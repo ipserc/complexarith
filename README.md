@@ -22,7 +22,7 @@ SVDfactor.java Factor a matrix of the form A = U Σ V*, where Σ is a diagonal m
 
 The com.ipserc.arith.polynom package contains the Polynom class.
 Polynom.java provides the methods to operate with polynomials and calculate their roots in complex field.
-Generates polynomials from Hermite, Legendre, Lagerre and Chebyshev.
+Generates Hermite, Legendre, Lagerre and Chebyshev polynomials of any degree.
 It incorporates methods to graphically represent polynomials. It makes use of the JavaPlot library of Panayotis (http://javaplot.panayotis.com/)
 
 The com.ipserc.arith.vector package contains the Vector class.
