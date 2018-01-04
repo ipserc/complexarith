@@ -2,7 +2,7 @@
 complexarith is an attempt to model the complex field arithmetic in Java to be used in mathematical developments.
 
 The com.ipserc.arith.complex package contains the Complex class.
-Complex.java is the class that incorporates the methods and operations to be able to work on complexes. The class allows the introduction of complex numbers naturally in text format, so the calse constructor supports the instantiation of complex numbers of the form "3-2i"
+Complex.java is the class that incorporates the methods and operations to be able to work on complexes. The class allows the introduction of complex numbers naturally in text format, so the clase constructor supports the instantiation of complex numbers of the form "3-2i"
 Complex.java incorporates all arithmetic operations with complexes, as well as numerous functions.
 
 The com.ipserc.arith.matrixcomplex package contains the MatrixComplex class.
