@@ -60,6 +60,15 @@ public class LUfactor extends MatrixComplex {
 	}
 
 	/**
+	 * Instantiates a LUfactor array from a MatrixComplex
+	 * @param matrix the MatrixComplex already instantiated.
+	 */
+	public LUfactor(MatrixComplex matrix) {
+		super();
+		this.complexMatrix = matrix.complexMatrix.clone();
+	}
+
+	/**
 	 * Shortcut to LUfactorizePP()
 	 */
 	public void LUfactorize() {

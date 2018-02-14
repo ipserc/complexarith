@@ -2,6 +2,7 @@ package TestComplex;
 
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.complex.*;
+import com.ipserc.arith.factorization.Diagfactor;
 
 public class TestEigenV {
 
@@ -44,6 +45,11 @@ public class TestEigenV {
 			e.printStackTrace();
 		}
 		*/
+    	
+    	Diagfactor diagonal = new Diagfactor(aMatrix);
+    	diagonal.diagonalize();
+    	diagonal.D().println("Matriz Diagianl");
+    	diagonal.P().println("Matriz Valores Propios");
 	}
 	
 	/**
@@ -80,9 +86,11 @@ public class TestEigenV {
     	//aMatrix = new MatrixComplex("7,-1,-1;-1,5,1;-1,1,5");
     	//aMatrix = new MatrixComplex("43.000,49.000 + 30.000i;49.000 - 30.000i,115.000");
     	//aMatrix = new MatrixComplex("1,1;1,0;0,1"); aMatrix = aMatrix.adjoint().times(aMatrix);
-    	aMatrix = new MatrixComplex("2.000,1.000;1.000,2.000");
-    	aMatrix = new MatrixComplex("43.000,49.000 + 30.000i;49.000 - 30.000i,115.000");
-       	Complex.setFormatOFF();
+    	//aMatrix = new MatrixComplex("2.000,1.000;1.000,2.000");
+    	//aMatrix = new MatrixComplex("43.000,49.000 + 30.000i;49.000 - 30.000i,115.000");
+       	aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomRec(5);
+       	aMatrix = aMatrix.hermitian();
+     	Complex.setFormatOFF();
     	doEigenCalculations(aMatrix);
     	Complex.setFixedON(3);
     	doEigenCalculations(aMatrix);

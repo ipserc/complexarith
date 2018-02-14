@@ -23,7 +23,9 @@ public class plotPolynom {
 	
 	public static void main(String[] args) {
 		Polynom myPolynom;
-		
+		int degree;
+     	int kind;
+
 		/*
     	myPolynom = new Polynom("1.0,-1.5i,2.0,-1.5i,1.0");
 		showResults(myPolynom);
@@ -98,12 +100,14 @@ public class plotPolynom {
      	myPolynom = new Polynom().chebyshev2(degree);
      	myPolynom.println("Chebyshev2 " + degree);
 		showResults(myPolynom);
+    	/* */
 
-     	int kind = 3;
+     	/* 
+		degree = 5;
+     	kind = 3;
      	myPolynom = new Polynom().chebyshev(degree, kind);
      	myPolynom.println("Chebyshev " + degree + "," + kind);
 		showResults(myPolynom);
-     	/* */
      	
      	myPolynom = new Polynom().fromRoots("3-3i,-3+3i,2-2i,-2+2i,1-3i,-1+3i,0,3,-3,5,-5");
 		showResults(myPolynom);
@@ -113,6 +117,18 @@ public class plotPolynom {
 		
 		myPolynom = new Polynom("1,-7+8i,4+4i,-8+9i,-7+7i,-3-6i,1-8i,5-7i,-9-8i,8+7i,3+8i,6+8i,6+8i,-3-3i,2-i,-6-6i");
 		showResults(myPolynom);
+		*/
+
+     	myPolynom = new Polynom(13);
+		myPolynom.initMatrixRandomRec(7);
+		showResults(myPolynom);
+
+		degree = 13;
+     	kind = 3;
+     	myPolynom = new Polynom().chebyshev(degree, kind);
+     	myPolynom.println("Chebyshev " + degree + "," + kind);
+		showResults(myPolynom);
+
 	}
 
 }

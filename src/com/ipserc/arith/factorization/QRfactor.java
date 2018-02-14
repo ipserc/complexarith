@@ -52,6 +52,16 @@ public class QRfactor extends MatrixComplex {
 	}
 
 	/**
+	 * Instantiates a QRfactor array from a MatrixComplex
+	 * @param matrix the MatrixComplex already instantiated.
+	 */
+	public QRfactor(MatrixComplex matrix) {
+		super();
+		this.complexMatrix = matrix.complexMatrix.clone();
+	}
+
+
+	/**
 	 * Private Method. Aproximation of the sign function for complex numbers to use in the Housholder decomposition.
 	 * @param complexMatrix Complex number to evalute the sign.
 	 * @return The sign evaluated.

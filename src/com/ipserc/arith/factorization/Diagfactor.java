@@ -56,6 +56,15 @@ public class Diagfactor extends MatrixComplex {
 		super(strMatrix);
 	}
 
+	/**
+	 * Instantiates a Diagfactor array from a MatrixComplex.
+	 * @param matrix the MatrixComplex already instantiated.
+	 */
+	public Diagfactor(MatrixComplex matrix) {
+		super();
+		this.complexMatrix = matrix.complexMatrix.clone();
+	}
+
 	/*
 	 * 	GETTERS 
 	 */
