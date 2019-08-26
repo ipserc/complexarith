@@ -246,6 +246,10 @@ public class TestVector {
     	aVector = new Vector("1,1,1");
     	bVector = new Vector("2,2,0");
     	vectorCalcs(aVector, bVector);
+
+    	aVector = new Vector(" 6, 9, 14");
+    	bMatrix.base(" 1, 1, 1; 1, 1, 2; 1, 2, 3");
+       	cambioBase(aVector, bMatrix);
 	}
 
 }

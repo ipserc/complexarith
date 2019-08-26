@@ -928,7 +928,7 @@ public class MatrixComplex {
 		int rowLenA2 = cMatrix.rows();
 		int colLenA2 = cMatrix.cols();
 
-		if (rowLenA2 != colLenA1) {
+		if (colLenA1 != rowLenA2) {
 			System.err.println("Not valid product: The cols of matrix1 has to be equal to the rows of matrix2.");
 			//System.exit(1);
 		}
@@ -1841,7 +1841,7 @@ public class MatrixComplex {
 		indMatrix = this.indMatrix();
 		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
 	
-		System.out.println(HEADINFO + "solveGauss: " + "coefMatrix.determinant() = " + coefMatrix.determinant().mod());
+		System.out.println(HEADINFO + "solveGauss: " + "|coefMatrix.determinant()| = " + coefMatrix.determinant().mod());
 		if (this.homogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
 			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
 			return solMatrix;

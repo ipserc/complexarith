@@ -298,7 +298,7 @@ public class Vector extends MatrixComplex {
 	 * @return The vector referred to the new base.
 	 */
 	public Vector baseChg(MatrixComplex base) {
-		this.complexMatrix = this.transpose().divides(base).transpose().complexMatrix.clone();
+		this.complexMatrix = (base.dividesleft(this.transpose())).transpose().complexMatrix.clone();
 		return this;
 	}
 
