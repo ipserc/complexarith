@@ -28,6 +28,7 @@ public class TestPolynom {
 		Polynom myPolynom;
 		
 		Complex.setFormatON();
+		Complex.setFixedON(3);
 		
     	//-x²+2ix+1
     	myPolynom = new Polynom("-1,2i,1");
@@ -46,10 +47,9 @@ public class TestPolynom {
     	showResults(myPolynom);
 
     	// 2x³+3x²+2x+1
-    	myPolynom = new Polynom("-7,6,5,4,-3,2,-1");
-       	System.out.println("f(" + 0 + ")=" + myPolynom.eval(0));
-       	System.out.println("f(" + 1 + ")=" + myPolynom.eval(1));
-       	System.out.println("f(" + 2 + ")=" + myPolynom.eval(2));
+    	myPolynom = new Polynom("-7-i,6+3i,5-5i,4-3i,-3i,2+7i,-1+3i");
+    	for (int i = -10; i < 11; ++i)
+    		System.out.println("f(" + i + ")=" + myPolynom.eval(i));
     	showResults(myPolynom);
     	//myPolynom.plot(-5, 5);
 
@@ -61,11 +61,11 @@ public class TestPolynom {
     	myPolynom = new Polynom("-4i,3+2i,1,2-i,3,2,-i");
     	showResults(myPolynom);
 
-       	// 3-5x+2XÂ³-xâ�´-xâ�µ+2xâ�¶-6xâ�·
+       	// 3x⁷-5x⁶+2x⁵-x⁴-x³+2x-6
     	myPolynom = new Polynom("3,-5,0,2,-1,-1,2,-6");
     	showResults(myPolynom);
 /**/
-    	// x+2xÂ²+3xÂ³+4xâ�´
+    	// 4x⁴-3x³+2x²-x
     	myPolynom = new Polynom("4,-3,2,-1,0");
     	showResults(myPolynom);
 
@@ -101,8 +101,8 @@ public class TestPolynom {
     	Polynom polynomA = new Polynom("2,0,-3,0,4,-5");
     	Polynom polynomB = new Polynom("2,5,-1");
     	System.out.println("polynomA grado:" + polynomA.degree());
-    	polynomA.toPolynom();
-    	polynomB.toPolynom();    	
+    	polynomA.println("polynomA");
+    	polynomB.println("polynomB");    	
     	//showResults(polynomA);
     	//showResults(polynomB);
     	Polynom resultPolynom = polynomA.plus(polynomB);
@@ -111,9 +111,8 @@ public class TestPolynom {
     	resultPolynom = polynomA.minus(polynomB);
     	resultPolynom.println("Resta");
     	//showResults(prodPolynom);
-
-    	Polynom product = new Polynom(polynomA.degree());
-    	product = polynomA.times(polynomB);
+    	//Polynom product = new Polynom(polynomA.degree());
+    	Polynom product = polynomA.times(polynomB);
     	product.println("Producto");
     	//showResults(prodPolynom);
 
@@ -126,8 +125,8 @@ public class TestPolynom {
     	quotient.println("quotient");
     	quotient.getRemainder().println("remainder");
     	
-    	dividend = new Polynom("-3,0,4,2,0,6,2,0,-3,0,4,-5");
-    	divisor = new Polynom("2,5,-1");
+    	dividend = new Polynom("-3,0,4,2,0,6,2,0,-3,0,4,-5,0");
+    	divisor = new Polynom("2,5,-1,0");
     	quotient = new Polynom(dividend.degree());
     	quotient = dividend.divides(divisor);
     	dividend.println("dividend");

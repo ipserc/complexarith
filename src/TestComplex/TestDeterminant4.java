@@ -34,7 +34,7 @@ public class TestDeterminant4 {
 
 	public static void main(String[] args) {
 		MatrixComplex fMatrix;
-		int limSup = 13;
+		int limSup = 11;
   
        	Complex.setFormatON();
     	Complex.setFixedON(3);

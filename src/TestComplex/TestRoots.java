@@ -26,7 +26,7 @@ public class TestRoots {
     	Polynom aPolynom;
 
     	Complex.setFixedON(3);
-    	Complex.setScientificON(3);
+    	Complex.setFormatON();
 
     	//-x²+2ix+1
     	aPolynom = new Polynom("-1,2i,1");
@@ -87,13 +87,25 @@ public class TestRoots {
     	System.out.println(aPolynom.toMatrixComplex());
     	showResults(aPolynom);       	
 
-      	aPolynom = new Polynom("1,-7+8i,4+4i,-8+9i,-7+7i,-3-6i,1-8i,5-7i,-9-8i,8+7i,3+8i,6+8i,6+8i,-3-3i,2-i,-6-6i");
+      	aPolynom = new Polynom("1,-7+8i, 4+4i,-8+9i,-7+7i,-3-6i, 1-8i, 5-7i,-9-8i, 8+7i, 3+8i, 6+8i, 6+8i,-3-3i,2-i,-6-6i");
+    	showResults(aPolynom);
+
+      	aPolynom = new Polynom("1, 7+8i, 4-4i,-8+9i,-7+7i,-3-6i, 1-8i, 5-7i,-9-8i, 8+7i, 3+8i, 6+8i, 6+8i,-3-3i,2-i,-6-6i");
     	showResults(aPolynom);
 
     	aPolynom = new Polynom(16); aPolynom.initMatrixRandomRecInt(1);
     	showResults(aPolynom); 
     	
     	aPolynom = new Polynom(8); aPolynom.initMatrixRandomRecInt(9);
+    	showResults(aPolynom); 
+
+    	aPolynom = aPolynom.hermite(9);
+    	showResults(aPolynom); 
+
+    	aPolynom = aPolynom.chebyshev(9, 4);
+    	showResults(aPolynom); 
+    	
+    	aPolynom = aPolynom.chebyshev(16, 1);
     	showResults(aPolynom); 
 
 /**/

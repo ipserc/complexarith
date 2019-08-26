@@ -1,3 +1,33 @@
+/******************************************************************************
+ *  Compilation:  javac TestVector.java
+ *  Execution:    /usr/lib/jvm/java-8-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/workspace_oxigen/complexarith/bin:/home/ipserc/workspace_oxigen/complexarith/classes TestComplex.TestVector
+ *
+ *  Tests for arith.Complex.
+ *	
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *  
+ *
+ ******************************************************************************/
+
 package TestComplex;
 
 import com.ipserc.arith.complex.*;
@@ -37,9 +67,10 @@ public class TestVector {
        	System.out.println("dotProd/scalar prod (a·b) = " + result);
        	matrix = aVector.outerprod(bVector);
        	matrix.println("outerprod (a /\\ b) = ");
+       	matrix.determinant().println("Det.outerprod (a /\\ b) = ");
        	//System.out.println(" |a /\\ b|= " + cVector.determinant() + "\n");       	
        	cVector = aVector.crossprod(bVector);
-       	cVector.println("Producto vectorial (axb)");
+       	cVector.println("Producto vectorial (axb) = ");
        	cVector = aVector.plus(bVector);
        	cVector.println("cVector (a+b)");
        	cVector = aVector.minus(bVector);
@@ -58,6 +89,26 @@ public class TestVector {
 
 	}
 	
+	public static void vectorCalcs(Vector aVector, Vector bVector) {
+    	Vector cVector;
+    	Vector dVector;    	
+    	
+    	System.out.println("-------------- VECTORES --------------");
+    	aVector.println("Vector a");
+    	bVector.println("Vector b");
+    	cVector = aVector.projection(bVector);
+    	cVector.println("vector proyección a sobre b: ");
+    	aVector.projectionScalar(bVector).println("proyección escalar a sobre b: ");
+    	System.out.println("ángulo a b: " + aVector.angle(bVector));
+       	System.out.println("ángulops a b: " + aVector.angleps(bVector));
+    	dVector = aVector.rejection(bVector);
+    	dVector.println("vector rejection a sobre b: ");
+       	bVector.dotprod(dVector).println("Producto escalar b·d: ");
+    	System.out.println("ángulo b d: " + bVector.angle(dVector));
+       	System.out.println("distancia a b: " + aVector.distance(bVector));
+
+	}
+	
 	public static void main(String[] args) {
     	MatrixComplex bMatrix;
 
@@ -68,6 +119,9 @@ public class TestVector {
     	Vector eVector;    	
     	Vector fVector;
 
+    	Complex.setFixedON(3);
+    	Complex.setFormatON();
+    	
        	aVector = new Vector();
        	bVector = new Vector();
        	cVector = new Vector();
@@ -173,66 +227,25 @@ public class TestVector {
     	//bMatrix = new MatrixComplex("i,i,0;0,i,0;0,0,i");
     	cambioBase(aVector, bMatrix);
     	
-    	System.out.println("-------------- VECTORES --------------");
     	aVector = new Vector("2,1");
     	bVector = new Vector("-3,4");
-    	aVector.println("Vector a");
-    	bVector.println("Vector b");
-    	cVector = aVector.projection(bVector);
-    	cVector.println("vector proyección a sobre b");
-    	aVector.projectionScalar(bVector).println("proyección escalar a sobre b");
-    	System.out.println("ángulo a b:" + aVector.angle(bVector));
-    	dVector = aVector.rejection(bVector);
-    	dVector.println("vector rejection a sobre b");
-       	bVector.dotprod(dVector).println("Producto escalar b·d");
-    	System.out.println("ángulo b d:" + bVector.angle(dVector));
-       	System.out.println("distancia a b:" + aVector.distance(bVector));
-
-    	System.out.println("-------------- VECTORES --------------");
+    	vectorCalcs(aVector, bVector);
+    	
     	aVector = new Vector("-3,5,-2");
     	bVector = new Vector("-7,-1,3");
-    	aVector.println("Vector a");
-    	bVector.println("Vector b");
-    	cVector = aVector.projection(bVector);
-    	cVector.println("vector proyección a sobre b");
-    	aVector.projectionScalar(bVector).println("proyección escalar a sobre b");
-    	System.out.println("ángulo a b:" + aVector.angle(bVector));
-    	dVector = aVector.rejection(bVector);
-    	dVector.println("vector rejection a sobre b");
-       	bVector.dotprod(dVector).println("Producto escalar b·d");
-    	System.out.println("ángulo b d:" + bVector.angle(dVector));
-       	System.out.println("distancia a b:" + aVector.distance(bVector));
+    	vectorCalcs(aVector, bVector);
     	
-    	System.out.println("-------------- VECTORES --------------");
     	aVector = new Vector("3,4i,-2i,7");
     	bVector = new Vector("5i,6,1,-4i");
-    	aVector.println("Vector a");
-    	bVector.println("Vector b");
-    	cVector = aVector.projection(bVector);
-    	cVector.println("vector proyección a sobre b");
-    	aVector.projectionScalar(bVector).println("proyección escalar a sobre b");
-    	System.out.println("ángulo a b:" + aVector.angle(bVector));
-    	dVector = aVector.rejection(bVector);
-    	dVector.println("vector rejection a sobre b");
-       	bVector.dotprod(dVector).println("Producto escalar b·d");
-    	System.out.println("ángulo b d:" + bVector.angle(dVector));
-       	System.out.println("distancia a b:" + aVector.distance(bVector));
+    	vectorCalcs(aVector, bVector);
     	
-    	System.out.println("-------------- VECTORES --------------");
     	aVector = new Vector("0,2,1,-1");
     	bVector = new Vector("1,-1,0,0");
-    	aVector.println("Vector a");
-    	bVector.println("Vector b");
-    	cVector = aVector.projection(bVector);
-    	cVector.println("vector proyección a sobre b");
-    	aVector.projectionScalar(bVector).println("proyección escalar a sobre b");
-    	System.out.println("ángulo a b:" + aVector.angle(bVector));
-    	dVector = aVector.rejection(bVector);
-    	dVector.println("vector rejection a sobre b");
-       	bVector.dotprod(dVector).println("Producto escalar b·d");
-    	System.out.println("ángulo b d:" + bVector.angle(dVector));
-       	System.out.println("distancia a b:" + aVector.distance(bVector));
+    	vectorCalcs(aVector, bVector);
     	
+    	aVector = new Vector("1,1,1");
+    	bVector = new Vector("2,2,0");
+    	vectorCalcs(aVector, bVector);
 	}
 
 }

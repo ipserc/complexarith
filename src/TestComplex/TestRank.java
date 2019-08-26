@@ -111,5 +111,9 @@ public class TestRank {
 		aMatrix = new MatrixComplex("-3,6,-1,1,-7;1,-2,2,3,-1;2,-4,5,8,-4");
 		System.out.println("Rank(aMatrix):" + aMatrix.rank());
 		System.out.println("Nullity(aMatrix):" + aMatrix.nullity());
+		
+		aMatrix = new MatrixComplex("1,3,5,7,9;2,4,6,8,10;3,7,11,15,19;-10,-8,-6,-4,-2");
+		System.out.println("Rank(aMatrix):" + aMatrix.rank());
+		System.out.println("Nullity(aMatrix):" + aMatrix.nullity());
 	}
 }

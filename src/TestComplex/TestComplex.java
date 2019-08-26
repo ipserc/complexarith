@@ -373,6 +373,36 @@ public class TestComplex {
        c = Complex.arccos(c);
        System.out.println("c=arccos(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
        System.out.println("------------------------------------------------------------");
+       
+       a.setComplex("-2");
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       c = Complex.log(a);
+       System.out.println("c=log(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
+       System.out.println("------------------------------------------------------------");
+       
+       a.setComplex("2+2i");
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       c = Complex.log(a);
+       System.out.println("c=log(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
+       System.out.println("------------------------------------------------------------");
+       
+       a.setComplex("-2+2i");
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       c = Complex.log(a);
+       System.out.println("c=log(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
+       System.out.println("------------------------------------------------------------");
+
+       a.setComplex("2-2i");
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       c = Complex.log(a);
+       System.out.println("c=log(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
+       System.out.println("------------------------------------------------------------");
+  
+       a.setComplex("-2-2i");
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       c = Complex.log(a);
+       System.out.println("c=log(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
+       System.out.println("------------------------------------------------------------");
 
     }
 }

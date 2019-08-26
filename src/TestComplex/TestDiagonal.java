@@ -11,9 +11,12 @@ import com.ipserc.arith.factorization.Diagfactor;
 public class TestDiagonal {
 
 	private static void showResults(Diagfactor fMatrix) {
+		System.out.println("__________________________________________________________________________________________");
+    	System.out.println("______________________________ DIAGONALIZACION DE MATRICES _______________________________");
+		fMatrix.diagonalize();
 		MatrixComplex D = fMatrix.D();
 		MatrixComplex P = fMatrix.P();
-		fMatrix.println("--- A");
+ 		fMatrix.println("--- A");
 		D.println("--- D Diagonal");
 		P.println("--- P Matrix");
 		P.determinant().println("Determinant(P)");
@@ -47,33 +50,38 @@ public class TestDiagonal {
 		fMatrix= new Diagfactor(1);
     	
 		fMatrix= new Diagfactor("1,i,1;1,-2+i,3-i;1,0,-i");
-		fMatrix.diagonalize();
 		showResults(fMatrix);
 
 		fMatrix = new Diagfactor("3,1;1,3");
-		fMatrix.diagonalize();
 		showResults(fMatrix);
 
 		fMatrix = new Diagfactor("3,1i,-1i;1,3i,2;-1,1,-3");
-		fMatrix.diagonalize();
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor(10); fMatrix.initMatrixRandomInteger(10);
-		fMatrix.diagonalize();
+		/**/
+		fMatrix = new Diagfactor(6); fMatrix.initMatrixRandomInteger(9);
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor(10); fMatrix.initMatrixRandomInteger(10);
+		fMatrix = new Diagfactor(4); fMatrix.initMatrixRandomInteger(9);
 		fMatrix.complexMatrix = fMatrix.hermitian().complexMatrix;
-		fMatrix.diagonalize();
 		showResults(fMatrix);
 
 		//try { System.in.read(); } catch(java.io.IOException e) {}
 		
-		fMatrix = new Diagfactor(10); fMatrix.initMatrixRandomInteger(10);
-		//fMatrix = new Diagfactor(10); fMatrix.initMatrixRandomRecInt(10);
+		fMatrix = new Diagfactor(4); fMatrix.initMatrixRandomInteger(10);
 		fMatrix.complexMatrix = fMatrix.skewHermitian().complexMatrix;
-		fMatrix.diagonalize();
 		showResults(fMatrix);
+		/**/
+
+		fMatrix = new Diagfactor("1,2,3;0,-1,2;0,1,1");
+		showResults(fMatrix);
+
+		fMatrix = new Diagfactor("1,2,3,-i;0,+2i,-1,2;3i,0,1,1;4,-2,-i,5");
+		showResults(fMatrix);
+
+		fMatrix = new Diagfactor("1,0,1;0,1i,-2;0,0,2");
+		showResults(fMatrix);
+
 	}
 
 }

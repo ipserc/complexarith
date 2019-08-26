@@ -20,12 +20,12 @@ public class TestDeterminant3 {
        	startTime = System.currentTimeMillis();
 		System.out.println("detGauss(fMatrix) = " + fMatrix.determinantGauss().toString());
       	duration = System.currentTimeMillis() - startTime;
-    	System.out.println("El c�lculo del determinante ha llevado " + duration + "ms");
+    	System.out.println("El cálculo del determinante ha llevado " + duration + "ms");
     	if (fMatrix.dim() < 800) {
            	startTime = System.currentTimeMillis();
     	   	System.out.println("detAdj(fMatrix) = " + fMatrix.determinantAdj().toString());
     	   	duration = System.currentTimeMillis() - startTime;
-        	System.out.println("El c�lculo del determinante ha llevado " + duration + "ms");
+        	System.out.println("El cálculo del determinante ha llevado " + duration + "ms");
     	}
        	Complex.setFormatON();
     	Complex.setFixedON(3);

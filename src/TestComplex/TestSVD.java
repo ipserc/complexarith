@@ -56,6 +56,8 @@ public class TestSVD {
     	System.out.println("S="+S.toMathlab());
     	System.out.println("U="+U.toMathlab());
     	System.out.println("V="+V.toMathlab());
+    	System.out.println("\n------------------------------------------------");
+
 	}
 
 	/**
@@ -63,7 +65,6 @@ public class TestSVD {
 	 */
 	public static void main(String[] args) {
     	SVDfactor A;
-    	MatrixComplex Amatrix;
    	
        	Complex.setFormatON();
     	Complex.setFixedON(3);
@@ -105,8 +106,35 @@ public class TestSVD {
     	//A = new SVDfactor("1,1,0,-1;1,0,1,2");
     	//A = new SVDfactor("3,2i,2;2i,3,-2");
     	//A = new SVDfactor("-1,2,1;3,-2,1");
-/**/ 	
-    	A = new SVDfactor("-1,2,1;3,-2,1;5,-2,-3");
+/**/ 
+    	A=new SVDfactor(
+  			  " 2.925-0.533i, 0.729+2.732i, 7.443+6.499i,-4.267+3.362i;"
+  			+ " 0.208-2.559i,-2.815+3.671i,-7.676+0.295i,-1.295-2.829i;"
+  			+ "-0.525+2.311i, 2.814+5.875i,-7.154-1.795i,-4.754+2.267i;"
+  			+ "-3.146+4.064i,-8.656+6.937i, 7.892-3.179i,-8.197+8.063i");
+    	A.SVDfactorize();
+    	showResults(A);
+
+    	/**/
+
+    	A = new SVDfactor(4); 
+    	A.initMatrixRandomRec(9);
+    	A.SVDfactorize();
+    	showResults(A);
+
+       	A = new SVDfactor(
+       			" 6.0 , 0.0 ,-1.0 ,-4.0 ,-2.0;"+
+       			" 7.0 , 0.0 ,-6.0 , 0.0 ,-2.0;"+
+       			"-4.0 ,-1.0 ,-1.0 , 1.0 ,-7.0;"+
+       			"-1.0 , 8.0 , 8.0 , 6.0 ,-4.0;"+
+       			" 1.0 ,-4.0 , 6.0 , 7.0 , 2.0");    	
+    	A.SVDfactorize();
+    	showResults(A);
+
+    	A = new SVDfactor(
+    			"-1,2,1,4,-3;"+
+    			"3,-2,1,-2,-4;"+
+    			"5,-2,-3,-1,6");
     	A.SVDfactorize();
     	showResults(A);
     	
@@ -129,14 +157,14 @@ public class TestSVD {
     	A = new SVDfactor("-1+2i,3i,1,3+3i;-9-2i,2+5i,1-7i,-5+7i");
     	A.SVDfactorize();
     	showResults(A);
-/**/    	
+/* 	
     	Amatrix = new MatrixComplex(17,17); Amatrix.initMatrixRandomRec(1);
     	A = new SVDfactor(Amatrix);
     	//Amatrix.println("Amatrix");
     	A.SVDfactorize();
     	showResults(A);
     	A.charactPoly().println();
-/*
+
     	Amatrix = new MatrixComplex(17,27); Amatrix.initMatrixRandomRec(1);
     	A = new SVDfactor(Amatrix);
     	A.setFixFloatON(3);

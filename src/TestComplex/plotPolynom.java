@@ -1,6 +1,7 @@
 package TestComplex;
 
 import com.ipserc.arith.polynom.*;
+import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 public class plotPolynom {
@@ -10,9 +11,11 @@ public class plotPolynom {
 		double loLimit, upLimit;
 
 		myPolynom.println();
+		System.out.println("Polynom:" + myPolynom.toPolynom());
 		roots = myPolynom.solve();
+		roots.quicksort(0);
 		roots.println("roots");
-		loLimit = myPolynom.getMinRoot(roots);
+		loLimit = myPolynom.getMinRoot(roots);		
 		upLimit = myPolynom.getMaxRoot(roots);
 		myPolynom.setSampleBase(600);
 		myPolynom.plot(loLimit, upLimit);
@@ -22,10 +25,12 @@ public class plotPolynom {
 	}
 	
 	public static void main(String[] args) {
-		Polynom myPolynom;
+		Polynom myPolynom, aPolynom;
 		int degree;
      	int kind;
 
+     	Complex.setFormatON();
+     	Complex.setFixedON(5);
 		/*
     	myPolynom = new Polynom("1.0,-1.5i,2.0,-1.5i,1.0");
 		showResults(myPolynom);
@@ -57,7 +62,7 @@ public class plotPolynom {
      	/** /
  		/ **/
 		/* * / 
-     	//myPolynom = new Polynom("-1.0,3.0+2.0i,-23.0-8.0i,-123.0-42.0i,-50.0+152.0i,912.0000000000001+136.0i,1440.0000000000002-480.00000000000006i");
+     	//myPolynom = new Polynom("-1.0,3.0+2.0i,-23.0-8.0i,-123.0-42.0i,-50.0+152.0i,91200000001+136.0i,144000000002-480000000006i");
      	myPolynom = new Polynom("-1.0,3.0+2.0i,-23.0-8.0i,-123.0-42.0i,-50.0+152.0i,912.01+136.0i,0");
 		myPolynom.setFixFloatON(3);
 		roots = myPolynom.solve();
@@ -117,18 +122,40 @@ public class plotPolynom {
 		
 		myPolynom = new Polynom("1,-7+8i,4+4i,-8+9i,-7+7i,-3-6i,1-8i,5-7i,-9-8i,8+7i,3+8i,6+8i,6+8i,-3-3i,2-i,-6-6i");
 		showResults(myPolynom);
-		*/
 
      	myPolynom = new Polynom(13);
 		myPolynom.initMatrixRandomRec(7);
 		showResults(myPolynom);
 
+		*/
+
 		degree = 13;
-     	kind = 3;
+     	kind = 7;
      	myPolynom = new Polynom().chebyshev(degree, kind);
      	myPolynom.println("Chebyshev " + degree + "," + kind);
 		showResults(myPolynom);
 
+		myPolynom = new Polynom("1,2,-1,-2");
+		showResults(myPolynom);
+
+		myPolynom = new Polynom("1.3,1.7,-1.3,-1.7");
+		showResults(myPolynom);
+
+		myPolynom = new Polynom("1.45,1.55,-1.45,-1.55");
+		showResults(myPolynom);
+		
+		aPolynom = new Polynom("1,2,-1,-2");
+		myPolynom = new Polynom("1.45,1.55,-1.45,-1.55");
+		myPolynom = myPolynom.times(aPolynom);
+		showResults(myPolynom);
+
+		aPolynom = new Polynom("1,2,-1,-2");
+		myPolynom = new Polynom("1,2");
+		aPolynom = myPolynom.times(aPolynom);
+		myPolynom = new Polynom("1.45,1.55,-1.45,-1.55");
+		myPolynom = myPolynom.times(aPolynom);
+		showResults(myPolynom);
+		
 	}
 
 }

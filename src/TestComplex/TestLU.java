@@ -41,11 +41,11 @@ public class TestLU {
     	//aMatrix = new LUfactor("3,3,-1;1,9,2;2,1,-1");
     	//aMatrix = new LUfactor("3,3,-1,5;1,9,2,-4;2,1,-1,3;2,-2,0,1");
     	//aMatrix = new LUfactor("0,2,1,2;1,0,1,3;3,1,-4,2;-4,0,1,1");
-    	//aMatrix = new LUfactor("0.0,1.0 - 2.0i,1.0 + 1.0i,-2.0;-2.0 - 2.0i,1.0 - 2.0i,-1.0 - 1.0i,-2.0 - 1.0i;-i,1.0 - 1.0i,-1.0 - 2.0i,-2.0 - 1.0i;1.0,-1.0,-2.0 + 1.0i,-i");
+    	aMatrix = new LUfactor("0.0,1.0 - 2.0i,1.0 + 1.0i,-2.0;-2.0 - 2.0i,1.0 - 2.0i,-1.0 - 1.0i,-2.0 - 1.0i;-i,1.0 - 1.0i,-1.0 - 2.0i,-2.0 - 1.0i;1.0,-1.0,-2.0 + 1.0i,-i");
     	//aMatrix = new LUfactor("0.0,-i,0.0,-1.0 - 2.0i;i,-2.0 - 2.0i,-1.0 - 2.0i,1.0 + 1.0i;-2.0 + 1.0i,-2.0,0.0,-i;i,-2.0 - 2.0i,i,-2.0 + 1.0i");
     	//aMatrix = new LUfactor("1,3,-1;3,7,2;2,1,-1");
-    	//aMatrix = new LUfactor(3); aMatrix.initMatrixRandomInteger(3);
-       	aMatrix = new LUfactor(4); aMatrix.initMatrixRandomRec(9);
+    	//aMatrix = new LUfactor(5); aMatrix.initMatrixRandomInteger(9);
+       	//aMatrix = new LUfactor(5); aMatrix.initMatrixRandomRec(9);
     	//aMatrix = new LUfactor("1,2,3,;4,2,1;-3,0,1");
 
        	Complex.setFormatON();
@@ -65,6 +65,20 @@ public class TestLU {
      	aMatrix.LUfactorize();
     	showResults(aMatrix);
 */
+
+     	System.out.println("\n\n__________________________________ Matriz HERMITICA __________________________________"); 
+     	aMatrix = new LUfactor(4); 
+     	aMatrix.initMatrixRandomRecInt(7); 
+     	aMatrix.complexMatrix = aMatrix.hermitian().complexMatrix; 
+     	aMatrix.LUfactorize();
+    	showResults(aMatrix);
+
+     	System.out.println("\n\n__________________________________ Matriz SKEW-HERMITICA __________________________________"); 
+     	aMatrix = new LUfactor(4); 
+     	aMatrix.initMatrixRandomRecInt(7); 
+     	aMatrix.complexMatrix = aMatrix.skewHermitian().complexMatrix; 
+     	aMatrix.LUfactorize();
+    	showResults(aMatrix);
 	}
 
 }
