@@ -62,12 +62,12 @@ public class SVDfactor extends MatrixComplex {
 	}
 
 	/**
-	 *  Private method. If the matrix to decompose has less rows the columns this method returns the adjoint of the matrix to do the factorization over it.
+	 * Private method. If the matrix to decompose has less rows the columns this method returns the adjoint of the matrix to do the factorization over it.
 	 * @return The adjoint matrix to decompose with the SVD factorization.
 	 */
 	private MatrixComplex orientMatrix() {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 
 		MatrixComplex oMatrix = this.copy();
 		if (rowLen <= colLen) oMatrix = oMatrix.adjoint();
@@ -98,8 +98,8 @@ public class SVDfactor extends MatrixComplex {
 		MatrixComplex aMatrix = this.orientMatrix();
 		// aMatrix.println("--- aMatrix 'oriented'");
 
-		int rowLen = aMatrix.complexMatrix.length;
-		int colLen = aMatrix.complexMatrix[0].length;
+		int rowLen = aMatrix.rows();
+		int colLen = aMatrix.cols();
 
 		MatrixComplex bMatrix = aMatrix.adjoint().times(aMatrix);
 		//	System.out.println(bMatrix.toMatrixComplex());
@@ -109,8 +109,8 @@ public class SVDfactor extends MatrixComplex {
 		MatrixComplex eigenVectors = bMatrix.eigenvectors(eigenValues);
 
 		// bMatrix.println("--- bMatrix");
-		// eigenValues.println("--- eigenValues");
-		// eigenVectors.println("--- eigenVectors");
+		 eigenValues.println("--- eigenValues");
+		 eigenVectors.println("--- eigenVectors");
 
 		// Matrix Σ calculation section
 		//
@@ -129,7 +129,7 @@ public class SVDfactor extends MatrixComplex {
 		//MatrixComplex eigenVectorsNorm = eigenVectors.normalize(); 
 		for (int row = 0; row < colLen; ++row) {
 			for (int col = 0; col < colLen; ++col) {
-				cVV.complexMatrix[row][col] = eigenVectors.complexMatrix[col][row];
+				cVV.complexMatrix[row][col] = eigenVectors.complexMatrix[col][row].copy();
 			}
 		}
 		// cVV.println("--- cVV");
@@ -159,7 +159,7 @@ public class SVDfactor extends MatrixComplex {
 
 		// Solution for rowLen > colLen
 		// Otherwise undo the re-orientation 
-		if (this.complexMatrix.length > this.complexMatrix[0].length) {
+		if (this.rows() > this.cols()) {
 			this.cU = cUU;
 			this.cV = cVV;
 			this.cS = cSS;

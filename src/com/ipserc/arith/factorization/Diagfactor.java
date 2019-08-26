@@ -25,6 +25,7 @@
  */
 package com.ipserc.arith.factorization;
 
+import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
 /**
@@ -94,7 +95,7 @@ public class Diagfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Factorizes the matriz using a diagonal matrix of eigenvectors (D) and a eigenvalue matrix (P)
+	 * Factorizes the matrix using a diagonal matrix of eigenvectors (D) and a eigenvalue matrix (P)
 	 * The factorization gives A=P·D·P⁻¹
 	 */
 	public void diagonalize() {

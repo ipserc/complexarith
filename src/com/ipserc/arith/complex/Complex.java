@@ -35,16 +35,24 @@ package com.ipserc.arith.complex;
 
 import java.lang.Math;
 import java.util.Locale;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.text.NumberFormat;
 
 public class Complex {
-	private final static double DOS_PI = 2 * Math.PI; // 2 * 3.1415926535897932384626433832795;
-	//private final static double HALF_PI =  Math.PI / 2; //3.1415926535897932384626433832795 / 2;
+	public final static double DOS_PI = 2 * Math.PI; // 2 * 3.1415926535897932384626433832795;
+	public final static double HALF_PI =  Math.PI / 2; //3.1415926535897932384626433832795 / 2;
+	public final static Complex i = new Complex(0,1);
+	public final static Complex j = i; // For engineers
+	public final static Complex ZERO = new Complex(0,0);
+	public final static Complex ONE = new Complex(1,0);
+	public final static Complex mONE = new Complex(-1,0);
+	//public final static Complex _j_ = new Complex(0,1);
+	
 	private final static double PRECISION = 1E-13;
 	private final static double ZERO_THRESHOLD = 9.999999999999E-14; //Zero threshold for formatting numbers
-	private final static double ZERO_THRESHOLD_R = 9.999999999999E-6; //Reduced Zero threshold for formatting numbers
+	private final static double ZERO_THRESHOLD_R = 9.999999999999E-3; //Reduced Zero threshold for formatting numbers
 	private final static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	private final static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE); 
 	private static boolean FORMAT_NBR = false; //Pseudo constant. Flag for formatting numbers
@@ -56,7 +64,7 @@ public class Complex {
 	private double imp;	// the imaginary part
 	private double mod;	// the modulus
 	private double pha;	// the phase
-	private double cre; 	// sgn*modulus sgn=any func. Used to compare Complex
+	private double cre; // sgn*modulus sgn=any func. Used to compare Complex
 
 	/*
 	 * CONSTRUCTORS 
@@ -127,6 +135,7 @@ public class Complex {
 		pha = 0.0;
 		cre = 0.0;
 
+		numC = numC.replace('e', 'E');
 		if (numC.contains("|")) {
 			Pattern polPattern = Pattern.compile(polRegExp);
 			Matcher polMatcher = polPattern.matcher(numC);
@@ -220,6 +229,7 @@ public class Complex {
 	private void setPolCoord() {
 		this.mod = Math.hypot(this.rep, this.imp); //Math.sqrt(this.rep*this.rep + this.imp*this.imp );
 		this.pha = Math.atan2(this.imp, this.rep);
+		this.normalizePhase();
 		this.setCre();
 	}
 
@@ -522,9 +532,11 @@ public class Complex {
 	 * Shows the numbers formatting presentation status. Prints a message in the Console.
 	 */
 	public static void getFormatStatus() {
+		System.out.println( "------------------------------------------------");
 		System.out.println( "Formatting numbers is " + (FORMAT_NBR ? "ENABLED" : "DISABLED"));
 		System.out.println( "Fixed notation is " + (FIXED_NOTATION ? "ENABLED decimals:" + getMaxDecimals() : "DISABLED"));
 		System.out.println( "Scientific notation is " + (SCIENTIFIC_NOTATION ? "ENABLED decimals:" + getMaxDecimals() : "DISABLED"));	
+		System.out.println( "------------------------------------------------");
 	}
 
 	/**
@@ -556,8 +568,12 @@ public class Complex {
 	 * @return phase normalized.
 	 */
 	private double normalizePhase(double phase) {
+		//double phaNorm  = z.pha > Math.PI ? Math.PI - z.pha : z.pha;
+		//phaNorm = z.pha < -Math.PI ? Math.PI + z.pha : z.pha;
+		int sign = phase < 0.0 ? -1 : 1;
+		phase *= sign;
 		while (phase > Math.PI) phase -= DOS_PI;
-		return phase;
+		return phase * sign;
 	}
 
 	/**
@@ -580,6 +596,22 @@ public class Complex {
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringRec() {
+		return this.toStringRec("i");
+	}
+
+	/**
+	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS. 
+	 * @return The string representation of a complex number using scientific notation.
+	 */
+	public String toStringRecWolfram() {
+		return this.toStringRec("I");
+	}
+	
+	/**
+	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS. 
+	 * @return The string representation of a complex number using scientific notation.
+	 */
+	private String toStringRec(String imu) {
 		double fRep = formatNbr(rep);
 		double fImp = formatNbr(imp);
 		String sfRep = new String();
@@ -601,10 +633,10 @@ public class Complex {
 		if (fImp == 0.0 ) 
 			return sfRep + "";
 		if (fRep == 0.0)  
-			return sfImp + "i";
+			return sfImp + imu;
 		if (fImp <  0.0) 
-			return sfRep + "-" + sfImp.replace("-", "") + "i";
-		return sfRep + "+" + sfImp + "i";
+			return sfRep + "-" + sfImp.replace("-", "") + imu;
+		return sfRep + "+" + sfImp + imu;
 	}
 
 	/**
@@ -674,12 +706,12 @@ public class Complex {
 	}
 
 	public void print(String str) {
-		System.out.println(str);
+		System.out.print(str);
 		System.out.print(this.toString());
 	}
 
 	public void println(String str) {
-		System.out.println(str);
+		System.out.print(str);
 		System.out.println(this.toString());
 	}
 
@@ -752,20 +784,22 @@ public class Complex {
 	}
 
 	/**
+	 * Compares the Complex Object with another using the equal operator.
+	 * @param cNum Complex to compare.
+	 * @return The result of the comparison.
+	 */
+	public boolean equalsred(Complex cNum) {
+		return this.equalsred(cNum.rep, cNum.imp);
+	}
+
+	/**
 	 * Compares the Complex Object with another given in Rectangular coordinates using the equal operator.
 	 * @param n1 The real part.
 	 * @param n2 The imaginary part.
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2) {
-		boolean result;
-		double absRep = Math.abs(this.rep);
-		double absImp = Math.abs(this.imp);
-		double absN1 = Math.abs(n1);
-		double absN2 = Math.abs(n2);
-
-		result = (Math.abs(absRep - absN1) <= ZERO_THRESHOLD) && (Math.abs(absImp - absN2) <= ZERO_THRESHOLD);
-		return (result);
+		return (Math.abs(this.rep - n1) <= ZERO_THRESHOLD) && (Math.abs(this.imp - n1) <= ZERO_THRESHOLD);
 	}
 
 	/**
@@ -775,14 +809,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equalsred(double n1, double n2) {
-		boolean result;
-		double absRep = Math.abs(this.rep);
-		double absImp = Math.abs(this.imp);
-		double absN1 = Math.abs(n1);
-		double absN2 = Math.abs(n2);
-
-		result = (Math.abs(absRep - absN1) <= ZERO_THRESHOLD_R) && (Math.abs(absImp - absN2) <= ZERO_THRESHOLD_R);
-		return (result);
+		return (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n1) <= ZERO_THRESHOLD_R);
 	}
 
 	/*
@@ -889,6 +916,15 @@ public class Complex {
 			return sign;
 		}
 		return sign.divides(sign.mod);	   
+	}
+	
+	/**
+	 * Returns the inverse of a Complex number
+	 * @param the complex number
+	 * @return the inverse of the Complex number
+	 */
+	public static Complex inverse(Complex z) {
+		return Complex.ONE.divides(z);
 	}
 
 	/**
@@ -1006,6 +1042,16 @@ public class Complex {
 	 * @return The new Complex Object exponential of 'z'.
 	 */
 	public static Complex exp(Complex z) {
+		return new Complex('C', Math.exp(z.rep) * Math.cos(z.imp), Math.exp(z.rep) * Math.sin(z.imp));
+	}
+
+	/**
+	 * Returns a new Complex Object which value is the z exponential of 'z'.
+	 * @param d double number.
+	 * @return The new Complex Object exponential of 'z'.
+	 */
+	public static Complex exp(double d) {
+		Complex z = new Complex(d);
 		return new Complex('C', Math.exp(z.rep) * Math.cos(z.imp), Math.exp(z.rep) * Math.sin(z.imp));
 	}
 
@@ -1153,9 +1199,9 @@ public class Complex {
 	}   
 
 	/**
-	 * Returns a new Complex Object which value is the arctangent of 'z'.
+	 * Returns a new Complex Object which value is the arc tangent of 'z'.
 	 * @param z The complex number
-	 * @return The new Complex Object arctangent of 'z'.
+	 * @return The new Complex Object arc tangent of 'z'.
 	 */
 	public static Complex arctan(Complex z) {
 		Complex i = new Complex(0,1);
@@ -1164,9 +1210,9 @@ public class Complex {
 	}
 
 	/**
-	 * Returns a new Complex Object which value is the arccotangent of 'z'.
+	 * Returns a new Complex Object which value is the arc cotangent of 'z'.
 	 * @param z The complex number
-	 * @return The new Complex Object arccotangent of 'z'.
+	 * @return The new Complex Object arc cotangent of 'z'.
 	 */
 	public static Complex acotan(Complex z) {
 		Complex i = new Complex(0,1);
@@ -1175,27 +1221,27 @@ public class Complex {
 	}
 
 	/**
-	 * Returns a new Complex Object which value is the hyperbolic arcsine of 'z'.
+	 * Returns a new Complex Object which value is the hyperbolic arc sine of 'z'.
 	 * @param z The complex number
-	 * @return The new Complex Object hyperbolic arcsine of 'z'.
+	 * @return The new Complex Object hyperbolic arc sine of 'z'.
 	 */
 	public static Complex arcsinh(Complex z) {
 		return log(z.plus(root((z.power(2).plus(1)),2)));
 	}
 
 	/**
-	 * Returns a new Complex Object which value is the hyperbolic arccosine of 'z'.
+	 * Returns a new Complex Object which value is the hyperbolic arc cosine of 'z'.
 	 * @param z The complex number
-	 * @return The new Complex Object hyperbolic arccosine of 'z'.
+	 * @return The new Complex Object hyperbolic arc cosine of 'z'.
 	 */
 	public static Complex arccosh(Complex z) {
 		return log(z.plus(root((z.power(2).minus(1)),2)));
 	}
 
 	/**
-	 * Returns a new Complex Object which value is the hyperbolic arctangent of 'z'.
+	 * Returns a new Complex Object which value is the hyperbolic arc tangent of 'z'.
 	 * @param z The complex number
-	 * @return The new Complex Object hyperbolic arctangent of 'z'.
+	 * @return The new Complex Object hyperbolic arc tangent of 'z'.
 	 */
 	public static Complex arctanh(Complex z) {
 		Complex one = new Complex(1,0);
@@ -1210,5 +1256,224 @@ public class Complex {
 	public static Complex acoth(Complex z) {
 		return log((z.plus(1)).divides(z.minus(1))).divides(2);
 	}
+	
+	/**
+	 * Returns the Riemann integral of a Complex function along of the real line
+	 * @param lolimit the lower limit of the integral
+	 * @param uplimit the upper limit of the integral
+	 * @param func the function to be integrated
+	 * @param numDec the number of significant decimals 
+	 * @return The value of the integral
+	 */
+	public static Complex integrate(double lolimit, double uplimit, Function <Complex, Complex> func, int numDec) {
+		int iter  = 1;
+		double precission = Math.pow(10, -Math.abs(++numDec));
+		double step = (uplimit - lolimit) * precission;
+		
+		Complex integral = new Complex();
+		Complex prevPoint = new Complex(lolimit, 0);
+		Complex point = new Complex(lolimit + step, 0);
+		Complex prevVal = new Complex();
+		Complex val = new Complex();
+		
+		val = func.apply(prevPoint);
+		integral = val;
+		//System.out.printf("ulimit:%f point:%f val:%s \n", ulimit, prevPoint.mod, val.toString());
+		while (uplimit > point.mod) {
+			prevVal = func.apply(prevPoint);
+			val = func.apply(point);
+			integral = integral.plus(val);
+			//System.out.printf("ulimit:%f point:%f val:%s \n", ulimit, point.mod, val.toString());
+			prevPoint = point;
+			point = prevPoint.plus(step);
+			++iter;
+		}
+		return integral.times((uplimit-lolimit)/iter);
+	}
 
+	/**
+	 * Returns the Riemann integral of a Complex function in the complex plane 
+	 * @param slolimit the lower limit of the integral expressed as "a+bi"
+	 * @param suplimit the upper limit of the integral expressed as "a+bi"
+	 * @param func the function to be integrated
+	 * @param numDec the number of significant decimals 
+	 * @return The value of the integral
+	 */
+	public static Complex integrate(String slolimit, String suplimit, Function <Complex, Complex> func, int numDec) {
+		Complex lolimit = new Complex(slolimit);
+		Complex uplimit = new Complex(suplimit);
+		return integrate(lolimit, uplimit, func, numDec);
+	}
+
+	/**
+	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the real axe
+	 * @param lolimit the lower limit of the integral expressed as Complex
+	 * @param uplimit the upper limit of the integral expressed as Complex
+	 * @param func the function to be integrated
+	 * @param numDec the number of significant decimals 
+	 * @return The value of the integral
+	 */
+	public static Complex integrate(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, int numDec) {
+		Complex vector = uplimit.minus(lolimit);
+		double vectSlope = vector.imp/vector.rep;
+		double vectAngle = Math.atan(vectSlope);
+		double precission = Math.pow(10, -Math.abs(numDec+2));
+		
+		vectAngle = vectAngle > Math.PI ? Math.PI - vectAngle : vectAngle;
+		vectAngle = vectAngle < -Math.PI ? Math.PI + vectAngle : vectAngle;
+		
+		if (((vectAngle >= Math.PI/4) && (vectAngle < 3*Math.PI/4 )) ||
+				((vectAngle >= -3*Math.PI/4) && (vectAngle < -Math.PI/4 ))) {
+			return integrateIM(lolimit, uplimit, func, precission);
+		}
+		else return integrateRE(lolimit, uplimit, func, precission);
+	}
+	
+	/**
+	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the real axe
+	 * @param lolimit the lower limit of the integral expressed as Complex
+	 * @param uplimit the upper limit of the integral expressed as Complex
+	 * @param func the function to be integrated
+	 * @param numDec the number of significant decimals 
+	 * @return The value of the integral
+	 */
+	private static Complex integrateRE(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, double precission) {
+		Complex vector = uplimit.minus(lolimit);
+		Complex nextPoint = new Complex();
+		Complex integral = new Complex();
+
+		//Recorrer la recta con distancia Euclidea
+		double vectSlope = vector.imp/vector.rep;
+		double vectAngle = Math.atan(vectSlope);
+		double projRe = vector.mod * Math.cos(vectAngle);
+		double stepRe = projRe * precission * Math.signum(vector.rep);
+		double nextRep, nextImp;
+		
+		int iter = 0;
+		nextPoint = lolimit.copy();
+		
+		/** /
+		System.out.println("vectSlope:" + vectSlope);
+		System.out.println("vectAngle: PI*" + vectAngle*Math.PI);
+		System.out.println("projRe   :" + projRe);
+		System.out.println("stepRe   :" + stepRe);
+		System.out.println("iter:" + iter + "   nextPoint:" + lolimit.toString());
+		/**/
+
+		Complex val = new Complex();
+		val = func.apply(lolimit);
+		integral = val;
+
+		while (++iter <= 1/precission) {
+			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
+			nextRep = nextPoint.rep + stepRe;
+			nextImp = lolimit.imp + vectSlope * (nextRep - lolimit.rep);
+			nextPoint.setComplexRec(nextRep, nextImp);
+			val = func.apply(nextPoint);
+			integral = integral.plus(val);
+		}		
+		// System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
+		return integral.times(uplimit.minus(lolimit)).divides(iter);
+	}
+
+	/**
+	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the imaginary axe
+	 * @param lolimit the lower limit of the integral expressed as Complex
+	 * @param uplimit the upper limit of the integral expressed as Complex
+	 * @param func the function to be integrated
+	 * @param numDec the number of significant decimals 
+	 * @return The value of the integral
+	 */
+	private static Complex integrateIM(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, double precission) {
+		Complex vector = uplimit.minus(lolimit);
+		Complex nextPoint = new Complex();
+		Complex integral = new Complex();
+
+		//Recorrer la recta con distancia Euclidea
+		double vectSlope = vector.rep/vector.imp;
+		double vectAngle = Math.atan(vectSlope);
+		double projIm = vector.mod * Math.cos(vectAngle);
+		double stepIm = projIm * precission * Math.signum(vector.imp);
+		double nextRep, nextImp;
+		
+		int iter = 0;
+		nextPoint = lolimit.copy();
+		
+		/** /
+		System.out.println("vectSlope:" + vectSlope);
+		System.out.println("vectAngle: PI*" + vectAngle*Math.PI);
+		System.out.println("projIm   :" + projIm);
+		System.out.println("stepIm   :" + stepIm);
+		System.out.println("iter:" + iter + "   nextPoint:" + lolimit.toString());
+		/**/
+		
+		Complex val = new Complex();
+		val = func.apply(lolimit);
+		integral = val;
+
+		while (++iter <= 1/precission) {
+			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
+			nextImp = nextPoint.imp + stepIm;
+			nextRep = lolimit.rep + vectSlope * (nextImp - lolimit.imp);
+			nextPoint.setComplexRec(nextRep, nextImp);
+			val = func.apply(nextPoint);
+			integral = integral.plus(val);
+		}
+		// System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
+		return integral.times(uplimit.minus(lolimit)).divides(iter);
+	}
+
+	/**
+	 * Returns the value of the derivative at the point point
+	 * @param point the point to calculate the derivative
+	 * @param func the complex function to derived
+	 * @param precission the number of significant digits
+	 * @return the complex value of the derivative at the point
+	 */
+	static public Complex derivative(Complex point, Function <Complex, Complex> func, double precission) {
+		double hComp = Math.pow(10, -precission);
+		Complex h = new Complex(hComp, hComp);
+		return (func.apply(point.plus(h)).minus(func.apply(point.minus(h)))).divides(h.times(2));
+	}
+
+	/**
+	 * Returns the value of the derivative at the point point
+	 * @param point the point to calculate the derivative
+	 * @param func the complex function to derived
+	 * @param precission the number of significant digits
+	 * @return the complex value of the derivative at the point
+	 */
+	static public Complex derivative(double point, Function <Complex, Complex> func, double precission) {
+		Complex CPoint = new Complex(point, 0);
+		return derivative(CPoint, func, precission);
+	}
+	
+	
+/**	
+	public static Complex integrateCurv(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, int numDec) {
+		Complex vector = uplimit.minus(lolimit);
+		double precission = Math.pow(10, -Math.abs(++numDec));
+		
+		Complex integral = new Complex();
+
+		//Recorrer la distancia
+		double phiOrigin = lolimit.pha <= uplimit.pha ? lolimit.pha : uplimit.pha;
+		double phiEnd = lolimit.pha > uplimit.pha ? lolimit.pha : uplimit.pha;
+		double phiStep = (phiEnd - phiOrigin) * precission;
+		int iter = 0;
+		
+		System.out.println("phiOrigin:" + phiOrigin);
+		System.out.println("phiEnd   :" + phiEnd);
+		System.out.println("phiStep  :" + phiStep);
+		
+		
+		while (phiOrigin+(iter+1)*phiStep < phiEnd) {
+			System.out.println("iter:" + iter + "   phiEnd:" + phiEnd + "   phi:" + (phiOrigin+iter*phiStep));
+			
+			++iter;
+		}
+		
+		return integral;
+	}
+	**/
 }

@@ -1,7 +1,7 @@
 package com.ipserc.arith.vector;
 
 import com.ipserc.arith.complex.*; 
-import com.ipserc.arith.matrixcomplex.*;;
+import com.ipserc.arith.matrixcomplex.*;
 
 public class Vector extends MatrixComplex {
 
@@ -35,7 +35,7 @@ public class Vector extends MatrixComplex {
 	 */
 	public Vector(String cadena) {
 		super(cadena);
-		int rowLen = this.complexMatrix.length;
+		int rowLen = this.rows();
 		if (rowLen > 1) {
 			System.err.println(HEADINFO + "Not valid vector: vector set to null vector.");
 			this.complexMatrix = null;
@@ -50,10 +50,10 @@ public class Vector extends MatrixComplex {
 	 * Displays the vector with the coefficients separated by commas and enclosed between parenthesis.
 	 */
 	public void print() {
-		System.out.print("(");
-		for (int col = 0; col < this.complexMatrix[0].length; ++col) {
+		System.out.print(" ( ");
+		for (int col = 0; col < this.cols(); ++col) {
 			System.out.print(this.complexMatrix[0][col]);
-			System.out.print(col == this.complexMatrix[0].length-1 ? ")" : ", ");
+			System.out.print(col == this.cols()-1 ? " )" : ", ");
 		}
 	}
 
@@ -70,7 +70,7 @@ public class Vector extends MatrixComplex {
 	 * @param caption The caption above the vector
 	 */
 	public void print(String caption) {
-		System.out.println(caption);
+		System.out.print(caption);
 		this.print();
 	}	
 
@@ -79,7 +79,7 @@ public class Vector extends MatrixComplex {
 	 * @param caption The caption above the vector
 	 */
 	public void println(String caption) {
-		System.out.println(caption);
+		System.out.print(caption);
 		this.println();
 	}
 
@@ -93,8 +93,8 @@ public class Vector extends MatrixComplex {
 	 * @return The result of the sum
 	 */
 	public Vector plus(Vector vector) {
-		int dimA1 = this.complexMatrix[0].length;
-		int dimA2 = vector.complexMatrix[0].length;
+		int dimA1 = this.cols();
+		int dimA2 = vector.cols();
 
 		if (dimA1 != dimA2 ) {
 			System.err.println(HEADINFO + "Not valid sum: vectors of different size.");
@@ -115,8 +115,8 @@ public class Vector extends MatrixComplex {
 	 * @return The result of the difference
 	 */
 	public Vector minus(Vector vector) {
-		int dimA1 = this.complexMatrix[0].length;
-		int dimA2 = vector.complexMatrix[0].length;
+		int dimA1 = this.cols();
+		int dimA2 = vector.cols();
 
 		if (dimA1 != dimA2 ) {
 			System.err.println(HEADINFO + "Not valid differentation: vectors of different size.");
@@ -138,10 +138,10 @@ public class Vector extends MatrixComplex {
 	 * @return The scalar resultant of the product, a Complex.
 	 */
 	public Complex innerprod(Vector vector) {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
-		int rowLenC = vector.complexMatrix.length;
-		int colLenC = vector.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		int rowLenC = vector.rows();
+		int colLenC = vector.cols();
 
 		if (rowLen != 1 || rowLenC != 1) {
 			System.err.println(HEADINFO + "dotprod/innerprod: " + "One of the componentes isn't a vector");
@@ -153,6 +153,7 @@ public class Vector extends MatrixComplex {
 
 		return this.times(vector.adjoint()).complexMatrix[0][0];
 	}
+	
 	/**
 	 * Shortcut to the method innerprod(Vector vector)
 	 * Inner product spaces generalize Euclidean spaces (in which the inner product is the dot product, also known as the scalar product) to vector spaces of any (possibly infinite) dimension
@@ -172,10 +173,10 @@ public class Vector extends MatrixComplex {
 	 * @return an array with the outer product of the two vectors.
 	 */
 	public MatrixComplex outerprod(Vector vector) {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
-		int rowLenC = vector.complexMatrix.length;
-		int colLenC = vector.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		int rowLenC = vector.rows();
+		int colLenC = vector.cols();
 
 		if (rowLen != 1 || rowLenC != 1) {
 			System.err.println(HEADINFO + "outerprod: " + "One of the componentes isn't a vector");
@@ -189,7 +190,7 @@ public class Vector extends MatrixComplex {
 	}
 
 	/**
-	 * Private method. Calculates the cross product for vectors till dimension 7.
+	 * Private method. Calculates the cross product for vectors up to dimension 7.
 	 * The cross product or vector product (occasionally directed area product to emphasize the geometric significance) 
 	 * is a binary operation on two vectors in three-dimensional space (R3) and is denoted by the symbol ×. 
 	 * Given two linearly independent vectors a and b, the cross product, a × b, is a vector that is perpendicular to both a and b and thus normal to the plane containing them. 
@@ -213,8 +214,8 @@ public class Vector extends MatrixComplex {
 		Vector result = new Vector(dim);
 
 		Complex resultC = new Complex();
-		for(int colA = 0; colA < this.complexMatrix[0].length; ++colA) {
-			for(int colB = 0; colB < vector.complexMatrix[0].length; ++colB) {
+		for(int colA = 0; colA < this.cols(); ++colA) {
+			for(int colB = 0; colB < vector.cols(); ++colB) {
 				if (colA == colB) continue;
 				resCol = LC[colA][colB];
 				signCol = resCol < 0 ? -1 : 1;
@@ -237,10 +238,10 @@ public class Vector extends MatrixComplex {
 	 * @return The vector resultant of the cross product
 	 */
 	public Vector crossprod(Vector vector) {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
-		int rowLenC = vector.complexMatrix.length;
-		int colLenC = vector.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		int rowLenC = vector.rows();
+		int colLenC = vector.cols();
 		Vector result = new Vector();
 
 		if (rowLen != 1 || rowLenC != 1) {
@@ -280,6 +281,16 @@ public class Vector extends MatrixComplex {
 		return this.dotprod(v1.crossprod(v2));
 	}
 
+	/**
+	 * The scalar triple product (also called the mixed product, box product, or triple scalar product) is defined as the dot product of one of the vectors with the cross product of the other two.
+	 * @param v1 Second component of the mixed product
+	 * @param v2 Third component of the mixed product
+	 * @return The result of "this · (v1 x v2)"
+	 */
+	public Complex mixedprod(Vector v1, Vector v2) {
+		return this.tripleprod(v1, v2);
+	}
+	
 	/**
 	 * Changes the base of the vector and calculate its coordinates in the new base "base".
 	 * The vector must be expressed in the standard basis (orthonormal unitary canonical basis).
@@ -377,14 +388,23 @@ public class Vector extends MatrixComplex {
 	}
 
 	/**
+	 * Calculates the angle between the vector and the vector component using scalar projection formula.
+	 * @param vector the vector component.
+	 * @return the angle between the vector and the vector component in radians.
+	 */
+	public double angleps(Vector vector) {
+		double ps = this.projectionScalar(vector).mod();
+		double mod = this.mod();
+		return Math.acos(ps/mod);
+	}
+
+	/**
 	 * Calculates the angle between the vector and the vector component.
 	 * @param vector the vector component.
 	 * @return the angle between the vector and the vector component in radians.
 	 */
 	public double angle(Vector vector) {
-		double ps = this.projectionScalar(vector).mod();
-		double mod = this.mod();
-		return Math.acos(ps/mod);
+		return Math.acos(this.dotprod(vector).mod()/this.norm()/vector.norm());
 	}
 
 	/**
@@ -406,6 +426,20 @@ public class Vector extends MatrixComplex {
 	 */
 	public double distance(Vector vector) {
 		return this.rejection(vector).norm();
+	}
+	
+	public Vector times(Complex t) {
+		for (int i = 0; i < this.dim(); ++i) {
+			this.complexMatrix[0][i] = this.complexMatrix[0][i].times(t);
+		}
+		return this;
+	}
+
+	public Vector times(double t) {
+		for (int i = 0; i < this.dim(); ++i) {
+			this.complexMatrix[0][i] = this.complexMatrix[0][i].times(t);
+		}
+		return this;
 	}
 }
 

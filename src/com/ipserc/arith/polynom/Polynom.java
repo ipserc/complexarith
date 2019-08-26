@@ -1,10 +1,7 @@
 /**
- * /usr/lib/jvm/java-8-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/workspace_neon/complexarith/bin TestComplex.plotPolynom
+ * /usr/lib/jvm/java-8-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/workspace_oxigen/complexarith/bin TestComplex.plotPolynom
  */
 package com.ipserc.arith.polynom;
-
-import com.ipserc.arith.complex.*;
-
 /**
  * @author ipserc
  *
@@ -734,7 +731,7 @@ public class Polynom extends MatrixComplex {
 	public void plotRe(double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
-		p.setTitle("Im(" + this.toString() + ")");
+		p.setTitle("Re(" + this.toString() + ")");
 		p.set("zeroaxis", "");
 		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		p.set("key", "noautotitle");
