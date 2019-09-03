@@ -69,7 +69,7 @@ public class TestSolve8 {
 				+ " 101.438-42.882i,-34.934-6.514i,  33.935+92.671i,354.054        ,0");
 		showResults(aMatrix);
 
-		/* *** /
+		/* ***/
 		aMatrix = new MatrixComplex("" + 
 				" 1, 2, 1,-3, 0;"+
 				" 1,-2, 1,-1, 0;"+
@@ -97,7 +97,7 @@ public class TestSolve8 {
 				" 1, 0, 1, 2");
 		showResults(aMatrix);
 
-		/* *** /
+		/* ***/
 
 		aMatrix = new MatrixComplex("" + 
 				" 1, 2, 1,-3, 0;"+
@@ -121,7 +121,12 @@ public class TestSolve8 {
        			" 1.0 ,-4.0 , 6.0 , 7.0 , 2.0, 0");    	
 		showResults(aMatrix);
 
-		/ * ***/
+		aMatrix= new MatrixComplex(
+				"-3,-7, 5, 0;"+
+				" 2, 5, 1, 0;"+
+				" 1, 2,-6, 0");		
+		showResults(aMatrix);
+		/* ***/
 
 	}
 }

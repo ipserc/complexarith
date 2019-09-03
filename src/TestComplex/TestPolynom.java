@@ -137,5 +137,9 @@ public class TestPolynom {
     	resultPolynom = divisor.times(quotient).plus(quotient.getRemainder());
     	resultPolynom.print("El dividendo");
     	
+    	myPolynom = new Polynom("1,-2,3,-2");
+    	showResults(myPolynom);
+    	
+    	
 	}
 }

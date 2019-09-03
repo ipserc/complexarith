@@ -91,7 +91,7 @@ public class matesJosete {
 		System.out.println("------------------------ EJERCICIO 1 ------------------------");
 		MatrixComplex base = new MatrixComplex();
 		Vector vector = new Vector();
-		base.base("1,1,;1,-1");
+		base.base("1,1;1,-1");
 		base.println("Base");
 		vector = new Vector("5,3");
 		vector.println("vector");

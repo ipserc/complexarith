@@ -13,11 +13,12 @@ public class TestDiagonal {
 	private static void showResults(Diagfactor fMatrix) {
 		System.out.println("__________________________________________________________________________________________");
     	System.out.println("______________________________ DIAGONALIZACION DE MATRICES _______________________________");
+		fMatrix.println("--- A");
+		fMatrix.charactPoly().println("Polinomio Caraterístico");
 		fMatrix.diagonalize();
 		MatrixComplex D = fMatrix.D();
 		MatrixComplex P = fMatrix.P();
- 		fMatrix.println("--- A");
-		D.println("--- D Diagonal");
+ 		D.println("--- D Diagonal");
 		P.println("--- P Matrix");
 		P.determinant().println("Determinant(P)");
 		(P.times(D).times(P.inverse())).println("A=P·D·P⁻¹");
@@ -80,6 +81,12 @@ public class TestDiagonal {
 		showResults(fMatrix);
 
 		fMatrix = new Diagfactor("1,0,1;0,1i,-2;0,0,2");
+		showResults(fMatrix);
+
+		fMatrix = new Diagfactor("1,2,3;2,4,6;3,6,9");
+		showResults(fMatrix);
+
+		fMatrix = new Diagfactor("1,2,3;0,0,2;0,1,1");
 		showResults(fMatrix);
 
 	}

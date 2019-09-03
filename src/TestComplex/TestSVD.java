@@ -157,6 +157,14 @@ public class TestSVD {
     	A = new SVDfactor("-1+2i,3i,1,3+3i;-9-2i,2+5i,1-7i,-5+7i");
     	A.SVDfactorize();
     	showResults(A);
+    	
+		A = new SVDfactor(
+				" 1, 0, 0;"+
+				" 0, 1, 0;"+
+				" 1,-2, 2");
+    	A.SVDfactorize();
+    	showResults(A);
+
 /* 	
     	Amatrix = new MatrixComplex(17,17); Amatrix.initMatrixRandomRec(1);
     	A = new SVDfactor(Amatrix);
