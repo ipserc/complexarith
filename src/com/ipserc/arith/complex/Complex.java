@@ -799,7 +799,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2) {
-		return (Math.abs(this.rep - n1) <= ZERO_THRESHOLD) && (Math.abs(this.imp - n1) <= ZERO_THRESHOLD);
+		return (Math.abs(this.rep - n1) <= ZERO_THRESHOLD) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD);
 	}
 
 	/**
@@ -809,7 +809,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equalsred(double n1, double n2) {
-		return (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n1) <= ZERO_THRESHOLD_R);
+		return (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R);
 	}
 
 	/*

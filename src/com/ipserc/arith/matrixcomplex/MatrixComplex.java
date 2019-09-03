@@ -480,6 +480,13 @@ public class MatrixComplex {
 		return cMatrix;
 	}
 
+	public MatrixComplex clone() {
+		MatrixComplex cMatrix = this.copy();
+		cMatrix.mSign = this.mSign;
+		return cMatrix;
+	}
+
+
 	/*
 	 * PRINTING
 	 */
@@ -719,6 +726,7 @@ public class MatrixComplex {
 		this.complexMatrix[row1] = this.complexMatrix[row2];
 		this.complexMatrix[row2] = pivot.complexMatrix[0];
 		this.mSign = -this.mSign;
+		//	System.out.println("swapRows this.mSign="+this.mSign);
 	}
 
 	/**
@@ -995,6 +1003,7 @@ public class MatrixComplex {
 
 	/**
 	 * Transformation F(i,j) it swaps rows i and j of a matrix A ∈ C m × n.
+	 * The new matrix inherits from the source matrix 
 	 * @param rowi Index of row i.
 	 * @param rowj Index of row j.
 	 * @return The transformed matrix.
@@ -1009,11 +1018,14 @@ public class MatrixComplex {
 		Ftransf.complexMatrix[rowi] = Ftransf.complexMatrix[rowj];
 		Ftransf.complexMatrix[rowj] = pivot.complexMatrix[0];
 
-		return Ftransf.times(this);
+		Ftransf = Ftransf.times(this);
+		Ftransf.mSign = this.mSign;
+		return Ftransf;
 	}
 
 	/**
 	 * Transformation F(i,α) multiplies row i of a matrix A ∈ C m × n by a number α != 0.
+	 * The new matrix inherits from the source matrix.
 	 * @param row Index of row i.
 	 * @param cNum The complex number α.
 	 * @return The transformed matrix.
@@ -1023,13 +1035,16 @@ public class MatrixComplex {
 		MatrixComplex Ftransf = new MatrixComplex(rowLen);
 
 		Ftransf.initMatrixDiag(1, 0);
-		Ftransf.complexMatrix[row][row] = Ftransf.complexMatrix[row][row].times(cNum);
+		Ftransf.setItem(row, row, cNum);
 
-		return Ftransf.times(this);
+		Ftransf = Ftransf.times(this);
+		Ftransf.mSign = this.mSign;
+		return Ftransf;
 	}
 
 	/**
 	 * Transformation F(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α != 0 in text format.
+	 * The new matrix inherits from the source matrix.
 	 * @param row The index of row i.
 	 * @param sNum The complex number α in text format.
 	 * @return The transformed matrix.
@@ -1041,6 +1056,7 @@ public class MatrixComplex {
 
 	/**
 	 * Transformation F(i,j,α) Adds to row i of a matrix A ∈ C m × n its row j multiplied by the complex α != 0.
+	 * The new matrix inherits from the source matrix.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
 	 * @param cNum The complex number α.
@@ -1053,11 +1069,14 @@ public class MatrixComplex {
 		Ftransf.initMatrixDiag(1, 0);
 		Ftransf.setItem(rowi,rowj,cNum);
 
-		return Ftransf.times(this);
+		Ftransf = Ftransf.times(this);
+		Ftransf.mSign = this.mSign;
+		return Ftransf;
 	}
 
 	/**
 	 * Transformation F(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α != 0 in string format.
+	 * The new matrix inherits from the source matrix.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
 	 * @param sNum The complex number α in text format.
@@ -1491,6 +1510,7 @@ public class MatrixComplex {
 		int rowLen = this.rows();       
 		Complex cResult = new Complex(1, 0);
 		MatrixComplex auxMatrix = this.triangle();
+		// System.out.println("auxMatrix.mSign="+auxMatrix.mSign);
 		for (int iter = 0; iter < rowLen; ++iter) {
 			cResult = cResult.times(auxMatrix.complexMatrix[iter][iter]);
 		}
@@ -1841,7 +1861,7 @@ public class MatrixComplex {
 		indMatrix = this.indMatrix();
 		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
 	
-		System.out.println(HEADINFO + "solveGauss: " + "|coefMatrix.determinant()| = " + coefMatrix.determinant().mod());
+		//System.out.println(HEADINFO + "solveGauss: " + "|coefMatrix.determinant()| = " + coefMatrix.determinant().mod());
 		if (this.homogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
 			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
 			return solMatrix;
@@ -1884,7 +1904,7 @@ public class MatrixComplex {
 				//System.out.println(HEADINFO + "solveGauss: " + "");
 				newMatrix.setItem(row, rowLen-nbrOfSols, cVal);
 			}
-			//newMatrix.println(HEADINFO + "solveGauss: " + "newMatrix");
+			newMatrix.println(HEADINFO + "solveGauss: " + "newMatrix");
 			//auxMatrix.println(HEADINFO + "solveGauss: " + "auxMatrix");
 			//System.out.println(HEADINFO + "solveGauss: " + "homogeneous:" + newMatrix.homogeneous());
 
@@ -2110,7 +2130,6 @@ public class MatrixComplex {
 		int colLen = this.cols();
 		int countZeroArray = 0;
 		int countNonZeroArray = 0;
-		Complex zero = new Complex(0);
 		boolean isZero;
 		MatrixComplex zeroArray = new MatrixComplex(rowLen, colLen);
 		MatrixComplex nonZeroArray = new MatrixComplex(rowLen, colLen);
@@ -2118,7 +2137,7 @@ public class MatrixComplex {
 		for(int row = 0; row < rowLen; ++row) {
 			isZero = true;
 			for(int col = colLen-1; col < row && col > -1; --col) {
-				if (!this.complexMatrix[row][col].equals(zero)) isZero = false;
+				if (!this.complexMatrix[row][col].equalsred(Complex.ZERO)) isZero = false;
 			}
 			if (isZero) nonZeroArray.complexMatrix[countNonZeroArray++] = this.complexMatrix[row].clone(); 
 			else zeroArray.complexMatrix[countZeroArray++] = this.complexMatrix[row].clone();
@@ -2145,7 +2164,7 @@ public class MatrixComplex {
 		for(int row = 0; row < rowLen; ++row) {
 			isZero = true;
 			for(int col = 0; col < colLen; ++col) {
-				if (!this.complexMatrix[row][col].equals(Complex.ZERO)) isZero = false;
+				if (!this.complexMatrix[row][col].equalsred(Complex.ZERO)) isZero = false;
 			}
 			if (isZero) zeroArray.complexMatrix[countZeroArray++] = this.complexMatrix[row].clone();
 			else nonZeroArray.complexMatrix[countNonZeroArray++] = this.complexMatrix[row].clone();
@@ -2163,7 +2182,7 @@ public class MatrixComplex {
 	public MatrixComplex triangleUp(){
 		int rowLen = this.rows();
 		Complex cCoef = new Complex();
-		MatrixComplex auxMatrix = this.copy();
+		MatrixComplex auxMatrix = this.clone();
 
 		if (this.isTriangleUp()) return auxMatrix;
 
@@ -2175,11 +2194,15 @@ public class MatrixComplex {
 				}
 				if (rowSwap != k) auxMatrix.swapRows(k, rowSwap);
 			}
+			//	System.out.println("triangleUp auxMatrix.mSign 1:"+auxMatrix.mSign);
 			for (int row = k+1; row < rowLen; ++row) {
 				cCoef = auxMatrix.getItem(row, k).divides(auxMatrix.getItem(k,k).opposite());
+				//	System.out.println("triangleUp auxMatrix.mSign *:"+auxMatrix.mSign);
 				auxMatrix = auxMatrix.Ftransf(row, k, cCoef);
+				//	System.out.println("triangleUp auxMatrix.mSign *:"+auxMatrix.mSign);
 			}
 		}
+		//	System.out.println("triangleUp auxMatrix.mSign 2:"+auxMatrix.mSign);
 		return auxMatrix;
 	}
 
@@ -2206,7 +2229,7 @@ public class MatrixComplex {
 	public MatrixComplex triangleLo(){
 		int rowLen = this.rows();
 		Complex cCoef = new Complex();
-		MatrixComplex auxMatrix = this.copy();
+		MatrixComplex auxMatrix = this.clone();
 
 		if (this.isTriangleLo()) return auxMatrix;
 
@@ -2604,7 +2627,15 @@ public class MatrixComplex {
 		for (i = 0; i < grade; ++i) v[i]=i;
 		includedRows = includedRows(order, v);
 		coefCP = coefCP.plus(minor(includedRows));
-
+		/** /
+			System.out.print("Order:" + order + " includedRows:");
+			for (int idx = 0; idx < includedRows.length; ++idx )
+				System.out.print(includedRows[idx] + ", ");
+			System.out.println();
+			this.cofactors(includedRows).println();
+			System.out.println("Order:" + order + " minor:" + minor(includedRows));
+			System.out.println("Order:" + order + " coefCP:" + coefCP);
+		/ **/
 		while (true) {
 			i = order-1;
 			while (v[i] == grade-order+i && --i >= 0);
@@ -2613,6 +2644,16 @@ public class MatrixComplex {
 			for (j = i+1; j < order; ++j) v[j] = v[i]+j-i;
 			includedRows = includedRows(order, v);
 			coefCP = coefCP.plus(minor(includedRows));
+			/** /
+				System.out.print("Order:" + order + " includedRows:");
+				for (int idx = 0; idx < includedRows.length; ++idx )
+					System.out.print(includedRows[idx] + ", ");
+				System.out.println();
+				this.cofactors(includedRows).println();
+				this.cofactors(includedRows).triangle().println();
+				System.out.println("Order:" + order + " minor:" + minor(includedRows));
+				System.out.println("Order:" + order + " coefCP:" + coefCP);
+			/ **/
 		}
 		return coefCP;
 	}
@@ -2643,7 +2684,7 @@ public class MatrixComplex {
 			}
 		}
 		//this.print(charactPolyMatrix.complexMatrix);
-		return charactPoly;
+		return (colLen % 2) == 0 ? charactPoly : charactPoly.opposite();
 	}
 
 	/**
@@ -2672,27 +2713,36 @@ public class MatrixComplex {
 		MatrixComplex eigenVect;
 
 		Complex oldEigenVal = new Complex();
-		MatrixComplex cMatrix = this.minus(I.times(eigenVal.getItem(0,0)));
-		MatrixComplex dMatrix = cMatrix.augment();
+			eigenVal.println("-------------- eigenVal --------------------");
+		//MatrixComplex cMatrix = this.minus(I.times(eigenVal.getItem(0,0)));
+		MatrixComplex cMatrix = (I.times(eigenVal.getItem(0,0))).minus(this);
+		MatrixComplex dMatrix = cMatrix.augment().heap();
+			dMatrix.println("-------------- dMatrix[0] --------------------");
 		eigenVect = dMatrix.solve();
-		//	eigenVect.println("-------------- eigenVect --------------------");
+		//	eigenVect.println("-------------- eigenVect Sol 0 --------------------");
 		eigenVectors.complexMatrix[0] = eigenVect.complexMatrix[0].clone();
 		oldEigenVal = eigenVal.getItem(0,0);
 		for (int rowEig = 1; rowEig < rowLen; ++rowEig) {
-			if (oldEigenVal.equals(eigenVal.getItem(rowEig,0))) continue;
+			if (oldEigenVal.equalsred(eigenVal.getItem(rowEig,0))) continue;
 			cMatrix = this.minus(I.times(eigenVal.getItem(rowEig,0)));
+			cMatrix = (I.times(eigenVal.getItem(rowEig,0))).minus(this);
 			//	System.out.println("eigenVal[0]:"+eigenVal.complexMatrix[rowEig][0]);
 			//	cMatrix.println("B-lambI["+rowEig+"]");
-			dMatrix = cMatrix.augment();
-			// dMatrix.println("dMatrix B-lambI["+rowEig+"] triangle");
+			dMatrix = cMatrix.augment().heap();
+				dMatrix.println("-------------- dMatrix["+rowEig+"] --------------------");
 			eigenVect = dMatrix.solve();
-			//	eigenVect.println("-------------- eigenVect --------------------");
+			//	eigenVect.println("-------------- eigenVect Rest Sols --------------------");
 			//	eigenVectors.copyRow(colEig, eigenVect, 0);
-			for (int sol = 0; sol < dMatrix.nbrOfSolutions(); ++sol)
+			//	eigenVectors.println("-------------- eigenVectors --------------------");
+			//	System.out.println("dMatrix.nbrOfSolutions():" + dMatrix.nbrOfSolutions());
+			for (int sol = 0; sol < dMatrix.nbrOfSolutions(); ++sol) {
+			//	System.out.println("rowEig:" + rowEig + " sol:" + sol);
 				eigenVectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
+			}
 			oldEigenVal = eigenVal.getItem(rowEig,0);
 		}
-		//eigenVect.println("-------------- eigenVect --------------------");
+		//	eigenVect.println("-------------- eigenVect --------------------");
+		//	eigenVectors.println("-------------- eigenVectors --------------------");
 		return eigenVectors;
 	}
 
