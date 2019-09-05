@@ -1,21 +1,18 @@
 package TestComplex;
 
+import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 
 public class TestDeterminant2 {
     public static void main(String[] args) {
-    	MatrixComplex aMatrix;
-    	MatrixComplex bMatrix;
-    	MatrixComplex cMatrix;
-    	MatrixComplex dMatrix;
-    	MatrixComplex eMatrix;
     	MatrixComplex fMatrix;
-    	MatrixComplex gMatrix;
     	MatrixComplex hMatrix;
-    	MatrixComplex iMatrix;
+    	MatrixComplex gMatrix;
     	MatrixComplex UMatrix;
     	MatrixComplex VMatrix;
+
+    	Complex.setFormatON();
     	
     	fMatrix = new MatrixComplex("0,1,-1;1,1,0;-1,0,1");
        	fMatrix.println("Original Matrix");
@@ -23,6 +20,28 @@ public class TestDeterminant2 {
        	hMatrix.println("fMatrix triangle");
     	System.out.println("detGauss(fMatrix) = " + fMatrix.determinantGauss().toString());
     	System.out.println("detAdj(fMatrix) = " + fMatrix.determinantAdj().toString() + "\n");
+    	
+    	hMatrix = fMatrix.Ftransf(0, 1);
+       	hMatrix.println("Original Matrix");
+       	gMatrix = hMatrix.triangle();
+       	gMatrix.println("gMatrix triangle");
+    	System.out.println("detGauss(hMatrix) = " + hMatrix.determinantGauss().toString());
+    	System.out.println("detAdj(hMatrix) = " + hMatrix.determinantAdj().toString() + "\n");
+
+    	hMatrix = fMatrix.Ftransf(0, 2);
+       	hMatrix.println("Original Matrix");
+       	gMatrix = hMatrix.triangle();
+       	gMatrix.println("gMatrix triangle");
+    	System.out.println("detGauss(hMatrix) = " + hMatrix.determinantGauss().toString());
+    	System.out.println("detAdj(hMatrix) = " + hMatrix.determinantAdj().toString() + "\n");
+
+    	hMatrix = fMatrix.Ftransf(0, 1);
+    	hMatrix = hMatrix.Ftransf(1, 2);
+       	hMatrix.println("Original Matrix");
+       	gMatrix = hMatrix.triangle();
+       	gMatrix.println("gMatrix triangle");
+    	System.out.println("detGauss(hMatrix) = " + hMatrix.determinantGauss().toString());
+    	System.out.println("detAdj(hMatrix) = " + hMatrix.determinantAdj().toString() + "\n");
 
     	fMatrix = new MatrixComplex("3,11;2,6");
        	fMatrix.println("Original Matrix");
