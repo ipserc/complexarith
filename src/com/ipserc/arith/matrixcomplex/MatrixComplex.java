@@ -1013,13 +1013,14 @@ public class MatrixComplex {
 		MatrixComplex Ftransf = new MatrixComplex(rowLen);
 		MatrixComplex pivot = new MatrixComplex(1, rowLen);
 
+		Ftransf.mSign = this.mSign;
 		Ftransf.initMatrixDiag(1, 0);
 		pivot.complexMatrix[0] = Ftransf.complexMatrix[rowi];
 		Ftransf.complexMatrix[rowi] = Ftransf.complexMatrix[rowj];
 		Ftransf.complexMatrix[rowj] = pivot.complexMatrix[0];
+		Ftransf.mSign *= -1; /* Swapping the row, swapping mSign */
 
 		Ftransf = Ftransf.times(this);
-		Ftransf.mSign = this.mSign;
 		return Ftransf;
 	}
 
