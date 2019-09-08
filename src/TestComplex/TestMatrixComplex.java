@@ -63,14 +63,16 @@ public class TestMatrixComplex {
     			" 4, 2, 1, 5;"+
     			" 1, 0, 2, 3");
     	aMatrix.println("00-aMatrix A");
-    	fMatrix = aMatrix.Ftransf(1,2);
-    	fMatrix.println("01-Ftransf(1,2)·A");
+    	aMatrix.Ftransf(1,2);
+    	aMatrix.println("01-Ftransf(1,2)·A");
 
-    	fMatrix = aMatrix.Ftransf(1,"3");
-    	fMatrix.println("02-Ftransf(1,'3')·A");
+    	aMatrix.println("00-aMatrix A");
+    	aMatrix.Ftransf(1,"3");
+    	aMatrix.println("02-Ftransff(1,'3')·A");
 
-    	fMatrix = aMatrix.Ftransf(1, 0,"-2");
-    	fMatrix.println("03-Ftransf(1, 0,'-2')·A");
+    	aMatrix.println("00-aMatrix A");
+    	aMatrix.Ftransf(1, 0,"-2");
+    	aMatrix.println("03-Ftransff(1, 0,'-2')·A");
 
     	aMatrix = new MatrixComplex(""+
     			" 2, 1, 1, 1;"+

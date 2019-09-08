@@ -16,27 +16,31 @@ public class TestDeterminant2 {
     	
     	fMatrix = new MatrixComplex("0,1,-1;1,1,0;-1,0,1");
        	fMatrix.println("Original Matrix");
+       	hMatrix = fMatrix.clone();
        	hMatrix = fMatrix.triangle();
        	hMatrix.println("fMatrix triangle");
     	System.out.println("detGauss(fMatrix) = " + fMatrix.determinantGauss().toString());
     	System.out.println("detAdj(fMatrix) = " + fMatrix.determinantAdj().toString() + "\n");
     	
-    	hMatrix = fMatrix.Ftransf(0, 1);
+       	hMatrix = fMatrix.clone();
+    	hMatrix.Ftransf(0, 1);
        	hMatrix.println("Original Matrix");
        	gMatrix = hMatrix.triangle();
        	gMatrix.println("gMatrix triangle");
     	System.out.println("detGauss(hMatrix) = " + hMatrix.determinantGauss().toString());
     	System.out.println("detAdj(hMatrix) = " + hMatrix.determinantAdj().toString() + "\n");
 
-    	hMatrix = fMatrix.Ftransf(0, 2);
+       	hMatrix = fMatrix.clone();
+    	hMatrix.Ftransf(0, 2);
        	hMatrix.println("Original Matrix");
        	gMatrix = hMatrix.triangle();
        	gMatrix.println("gMatrix triangle");
     	System.out.println("detGauss(hMatrix) = " + hMatrix.determinantGauss().toString());
     	System.out.println("detAdj(hMatrix) = " + hMatrix.determinantAdj().toString() + "\n");
 
-    	hMatrix = fMatrix.Ftransf(0, 1);
-    	hMatrix = hMatrix.Ftransf(1, 2);
+       	hMatrix = fMatrix.clone();
+    	hMatrix.Ftransf(0, 1);
+    	hMatrix.Ftransf(1, 2);
        	hMatrix.println("Original Matrix");
        	gMatrix = hMatrix.triangle();
        	gMatrix.println("gMatrix triangle");

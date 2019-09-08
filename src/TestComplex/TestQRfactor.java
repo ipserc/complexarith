@@ -49,7 +49,7 @@ public class TestQRfactor {
     	//fMatrix = new QRfactor("12,-51,4;6,167,-68;-4,24,-41;-3,2,1");
     	//fMatrix = new QRfactor("12,-51,4;6,167,-68;-4,24,-41");
     	//fMatrix = new QRfactor("12,-51,4;6,167,-68");
-    	//fMatrix = new QRfactor("12,-51,4,-13;6,-167,-68,23;-4,24,-41,-2;-1,1,0,45");
+    	fMatrix = new QRfactor("12,-51,4,-13;6,-167,-68,23;-4,24,-41,-2;-1,1,0,45");
     	//fMatrix = new QRfactor("12,-51,4,-13;6,-167,-68,23;-4,24,-41,-2;-1,1,0,45;2,0,3,7");
     	//fMatrix = new QRfactor("0,1,-1;1,1,0;-1,0,1");
     	//fMatrix = new QRfactor("2,3,0;-1,3,-2;5,-2,1");
@@ -61,7 +61,7 @@ public class TestQRfactor {
     	//fMatrix = new QRfactor("1,0,1,1,3;1,-2,3,2,-4;1,-0.7,1,5,2;2,3,0,4,-3");
     	//fMatrix = new QRfactor(4);fMatrix.initMatrixRandomRecInt(9);
     	//fMatrix = new QRfactor(4);fMatrix.initMatrixRandomInteger(9);
-		fMatrix = new QRfactor("1,2,3,0;1,2,0,0;1,0,0,1");
+		//fMatrix = new QRfactor("1,2,3,0;1,2,0,0;1,0,0,1");
 		//fMatrix = new QRfactor("1,1,1;2,2,0;3,0,0;0,0,1");
     	//fMatrix = new QRfactor(4,6);fMatrix.initMatrixRandomInteger(9);
     	//fMatrix = new QRfactor(6,4);fMatrix.initMatrixRandomInteger(9);
@@ -70,13 +70,13 @@ public class TestQRfactor {
 		//fMatrix = new QRfactor("1-i,1,i;1,-5i,1;3+2i,1,1");
 		//fMatrix = new QRfactor(14,16);fMatrix.initMatrixRandomRec(9);
 		fMatrix.qrHouseholder();
-    	System.out.println("Householder");
+    	System.out.println("Householder (QR)");
     	showResults(fMatrix);
     	fMatrix.qrGramSchmidt();
-    	System.out.println("Gram-Schmidt");
+    	System.out.println("QR Gram-Schmidt");
     	showResults(fMatrix);
     	fMatrix.qrGramSchmidtMFull();
-    	System.out.println("Gram-Schmidt M Full");
+    	System.out.println("QR Gram-Schmidt M Full");
     	showResults(fMatrix);
 	}
 }
