@@ -998,97 +998,6 @@ public class MatrixComplex {
 	}
 
 	/*
-	 * Transformaciones elementales fila
-	 */
-
-	/**
-	 * Transformation F(i,j) it swaps rows i and j of a matrix A ∈ C m × n.
-	 * The new matrix inherits from the source matrix 
-	 * @param rowi Index of row i.
-	 * @param rowj Index of row j.
-	 * @return The transformed matrix.
-	 */
-	public MatrixComplex Ftransf(int rowi, int rowj) {
-		int rowLen = this.rows();
-		MatrixComplex Ftransf = new MatrixComplex(rowLen);
-		MatrixComplex pivot = new MatrixComplex(1, rowLen);
-
-		Ftransf.mSign = this.mSign;
-		Ftransf.initMatrixDiag(1, 0);
-		pivot.complexMatrix[0] = Ftransf.complexMatrix[rowi];
-		Ftransf.complexMatrix[rowi] = Ftransf.complexMatrix[rowj];
-		Ftransf.complexMatrix[rowj] = pivot.complexMatrix[0];
-		Ftransf.mSign *= -1; /* Swapping the row, swapping mSign */
-
-		Ftransf = Ftransf.times(this);
-		return Ftransf;
-	}
-
-	/**
-	 * Transformation F(i,α) multiplies row i of a matrix A ∈ C m × n by a number α != 0.
-	 * The new matrix inherits from the source matrix.
-	 * @param row Index of row i.
-	 * @param cNum The complex number α.
-	 * @return The transformed matrix.
-	 */
-	public MatrixComplex Ftransf(int row, Complex cNum) {
-		int rowLen = this.rows();
-		MatrixComplex Ftransf = new MatrixComplex(rowLen);
-
-		Ftransf.initMatrixDiag(1, 0);
-		Ftransf.setItem(row, row, cNum);
-
-		Ftransf = Ftransf.times(this);
-		Ftransf.mSign = this.mSign;
-		return Ftransf;
-	}
-
-	/**
-	 * Transformation F(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α != 0 in text format.
-	 * The new matrix inherits from the source matrix.
-	 * @param row The index of row i.
-	 * @param sNum The complex number α in text format.
-	 * @return The transformed matrix.
-	 */
-	public MatrixComplex Ftransf(int row, String sNum) {
-		Complex cNum = new Complex(sNum);
-		return this.Ftransf(row, cNum);
-	}
-
-	/**
-	 * Transformation F(i,j,α) Adds to row i of a matrix A ∈ C m × n its row j multiplied by the complex α != 0.
-	 * The new matrix inherits from the source matrix.
-	 * @param rowi The index of row i.
-	 * @param rowj The index of row j.
-	 * @param cNum The complex number α.
-	 * @return The transformed matrix.
-	 */
-	public MatrixComplex Ftransf(int rowi, int rowj, Complex cNum) {
-		int rowLen = this.rows();
-		MatrixComplex Ftransf = new MatrixComplex(rowLen);
-
-		Ftransf.initMatrixDiag(1, 0);
-		Ftransf.setItem(rowi,rowj,cNum);
-
-		Ftransf = Ftransf.times(this);
-		Ftransf.mSign = this.mSign;
-		return Ftransf;
-	}
-
-	/**
-	 * Transformation F(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α != 0 in string format.
-	 * The new matrix inherits from the source matrix.
-	 * @param rowi The index of row i.
-	 * @param rowj The index of row j.
-	 * @param sNum The complex number α in text format.
-	 * @return The transformed matrix.
-	 */
-	public MatrixComplex Ftransf(int rowi, int rowj, String sNum) {
-		Complex cNum = new Complex(sNum);    	
-		return this.Ftransf(rowi, rowj, cNum);
-	}    
-
-	/*
 	 * NORMS
 	 */
 
@@ -1508,7 +1417,13 @@ public class MatrixComplex {
 	 * @return The value of the determinant.
 	 */
 	public Complex determinantGauss() {
-		int rowLen = this.rows();       
+		int rowLen = this.rows();
+
+		if (rowLen != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
 		Complex cResult = new Complex(1, 0);
 		MatrixComplex auxMatrix = this.triangle();
 		// System.out.println("auxMatrix.mSign="+auxMatrix.mSign);
@@ -2199,7 +2114,8 @@ public class MatrixComplex {
 			for (int row = k+1; row < rowLen; ++row) {
 				cCoef = auxMatrix.getItem(row, k).divides(auxMatrix.getItem(k,k).opposite());
 				//	System.out.println("triangleUp auxMatrix.mSign *:"+auxMatrix.mSign);
-				auxMatrix = auxMatrix.Ftransf(row, k, cCoef);
+				//---------------auxMatrix = auxMatrix.oldFtransf(row, k, cCoef);
+				auxMatrix.Ftransf(row, k, cCoef);
 				//	System.out.println("triangleUp auxMatrix.mSign *:"+auxMatrix.mSign);
 			}
 		}
@@ -2244,7 +2160,8 @@ public class MatrixComplex {
 			}
 			for (int row = k-1; row >= 0; --row) {
 				cCoef = auxMatrix.getItem(row,k).divides(auxMatrix.getItem(k,k)).opposite();
-				auxMatrix = auxMatrix.Ftransf(row, k, cCoef);
+				//---------------auxMatrix = auxMatrix.oldFtransf(row, k, cCoef);
+				auxMatrix.Ftransf(row, k, cCoef);
 			}
 		}
 		return auxMatrix;
@@ -2475,7 +2392,6 @@ public class MatrixComplex {
 			}
 		}
 		return unkMatrix;
-		
 	}
 	
 	/**
@@ -2918,4 +2834,145 @@ public class MatrixComplex {
 		MatrixComplex point = new MatrixComplex(spoint);
 		return this.distance(point);
 	}
+	
+
+	/*
+	 * Transformaciones elementales fila
+	 */
+
+	/**
+	 * Transformation F(i,j) it swaps rows i and j of this matrix A ∈ C m × n and returns the result into a new Matrix.
+	 * @param rowi Index of row i.
+	 * @param rowj Index of row j.
+	 * @return The transformed matrix.
+	 */
+	public MatrixComplex Ftransff(int rowi, int rowj) {
+		int rowLen = this.rows();
+		MatrixComplex Ftrans = new MatrixComplex(rowLen);
+		MatrixComplex pivot = new MatrixComplex(1, rowLen);
+
+		Ftrans.initMatrixDiag(1, 0);
+		pivot.complexMatrix[0] = Ftrans.complexMatrix[rowi];
+		Ftrans.complexMatrix[rowi] = Ftrans.complexMatrix[rowj];
+		Ftrans.complexMatrix[rowj] = pivot.complexMatrix[0];
+		Ftrans = Ftrans.times(this);
+		return Ftrans;
+	}
+
+	/**
+	 * Transformation F(i,j) it swaps rows i and j of this matrix A ∈ C m × n.
+	 * @param rowi Index of row i.
+	 * @param rowj Index of row j.
+	 */
+	public void Ftransf(int rowi, int rowj) {
+		int rowLen = this.rows();
+		MatrixComplex pivot = new MatrixComplex(1, rowLen);
+
+		pivot.complexMatrix[0] = this.complexMatrix[rowi];
+		this.complexMatrix[rowi] = this.complexMatrix[rowj];
+		this.complexMatrix[rowj] = pivot.complexMatrix[0];
+		this.mSign *= -1;
+	}
+
+	/**
+	 * Transformation F(i,α) multiplies row i of this matrix A ∈ C m × n by a number α != 0 and returns the result into a new Matrix.
+	 * @param row Index of row i.
+	 * @param cNum The complex number α.
+	 * @return The transformed matrix.
+	 */
+	public MatrixComplex Ftransff(int row, Complex cNum) {
+		int rowLen = this.rows();
+		MatrixComplex Ftrans = new MatrixComplex(rowLen);
+
+		Ftrans.initMatrixDiag(1, 0);
+		Ftrans.setItem(row, row, cNum);
+		Ftrans = Ftrans.times(this);
+		return Ftrans;
+	}
+
+	/**
+	 * Transformation F(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α != 0 in text format and returns the result into a new Matrix.
+	 * @param row The index of row i.
+	 * @param sNum The complex number α in text format.
+	 * @return The transformed matrix.
+	 */
+	public MatrixComplex Ftransff(int row, String sNum) {
+		Complex cNum = new Complex(sNum);
+		return this.Ftransff(row, cNum);
+	}
+
+	/**
+	 * Transformation F(i,α) multiplies row i of this matrix A ∈ C m × n by a number α != 0.
+	 * @param row Index of row i.
+	 * @param cNum The complex number α.
+	 */
+	public void Ftransf(int row, Complex cNum) {
+		int colLen = this.cols();
+		
+		for(int col = 0; col < colLen; ++col)
+			this.setItem(row, col, this.getItem(row, col).times(cNum));
+	}
+
+	/**
+	 * Transformation F(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α != 0 in text format.
+	 * @param row The index of row i.
+	 * @param sNum The complex number α in text format.
+	 */
+	public void Ftransf(int row, String sNum) {
+		Complex cNum = new Complex(sNum);
+		this.Ftransf(row, cNum);
+	}
+
+	/**
+	 * Transformation F(i,j,α) Adds to row i of a matrix A ∈ C m × n its row j multiplied by the complex α != 0.
+	 * @param rowi The index of row i.
+	 * @param rowj The index of row j.
+	 * @param cNum The complex number α.
+	 * @return The transformed matrix.
+	 */
+	public MatrixComplex Ftransff(int rowi, int rowj, Complex cNum) {
+		int rowLen = this.rows();
+		MatrixComplex Ftrans = new MatrixComplex(rowLen);
+
+		Ftrans.initMatrixDiag(1, 0);
+		Ftrans.setItem(rowi,rowj,cNum);
+		Ftrans = Ftrans.times(this);
+		return Ftrans;
+	}
+
+	/**
+	 * Transformation F(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α != 0 in string format.
+	 * @param rowi The index of row i.
+	 * @param rowj The index of row j.
+	 * @param sNum The complex number α in text format.
+	 * @return The transformed matrix.
+	 */
+	public MatrixComplex Ftransff(int rowi, int rowj, String sNum) {
+		Complex cNum = new Complex(sNum);    	
+		return this.Ftransff(rowi, rowj, cNum);
+	}    
+
+	/**
+	 * Transformation F(i,j,α) Adds to row i of a matrix A ∈ C m × n its row j multiplied by the complex α != 0.
+	 * @param rowi The index of row i.
+	 * @param rowj The index of row j.
+	 * @param cNum The complex number α.
+	 */
+	public void Ftransf(int rowi, int rowj, Complex cNum) {
+		int colLen = this.cols();
+		
+		for (int col = 0; col < colLen; ++col)
+			this.setItem(rowi, col, this.getItem(rowi, col).plus(this.getItem(rowj, col).times(cNum)));
+	}
+
+	/**
+	 * Transformation F(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α != 0 in string format.
+	 * @param rowi The index of row i.
+	 * @param rowj The index of row j.
+	 * @param sNum The complex number α in text format.
+	 */
+	public void Ftransf(int rowi, int rowj, String sNum) {
+		Complex cNum = new Complex(sNum);    	
+		this.Ftransf(rowi, rowj, cNum);
+	}    
 }
