@@ -143,6 +143,14 @@ public class TestVector {
        	calcNorms(fVector);
 
        	// OPERACIONES CON VECTORES
+       	aVector = new Vector("1,2");
+       	bVector = new Vector("2,-1");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector("1,2,0");
+       	bVector = new Vector("2,-1,0");
+       	vectorOperate(aVector, bVector);
+
        	aVector = new Vector("1,2,3");
        	bVector = new Vector("3,2,1");
        	vectorOperate(aVector, bVector);

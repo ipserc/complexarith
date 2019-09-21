@@ -2,9 +2,45 @@ package TestComplex;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.arith.factorization.*;
 
-public class TestSolve8 {
+public class TestSolve9 {
 
+	public static void showResults(LUfactor cMatrix) {
+    	MatrixComplex lMatrix;
+    	MatrixComplex uMatrix;
+    	MatrixComplex pMatrix;
+
+		System.out.println("_____________________________________________________________________________________");		
+		System.out.println("_____________________________ LU FACTORIZATION ______________________________________");		
+
+		cMatrix.LUfactorize();
+    	cMatrix.println("Original Matrix");
+    	lMatrix = cMatrix.L();
+    	lMatrix.println("L");
+    	uMatrix = cMatrix.U();
+    	uMatrix.println("U");
+    	pMatrix = cMatrix.P();
+    	pMatrix.println("P");
+    	cMatrix.P().transpose().times(cMatrix.L().times(cMatrix.U())).println("PT · L · U");
+	}
+	public static void showResults(SVDfactor A) {
+		MatrixComplex S;
+    	MatrixComplex V;
+    	MatrixComplex U;
+		A.SVDfactorize();
+    	S = A.getS();
+    	V = A.getV();
+    	U = A.getU();
+		System.out.println("_____________________________________________________________________________________");		
+		System.out.println("____________________________ SVD FACTORIZATION ______________________________________");		
+    	A.println("A");
+    	S.println("S");
+    	U.println("U");
+    	V.println("V");
+    	(U.times(S)).times(V.adjoint()).println("U·S·V*");
+	}
+	
 	private static void showResults(MatrixComplex fMatrix) {
 		MatrixComplex dMatrix;
 		MatrixComplex gMatrix;
@@ -57,81 +93,25 @@ public class TestSolve8 {
 		Complex.setFormatON();
 		Complex.setFixedON(3);
 		
-		aMatrix = new MatrixComplex(
-				  " 2.925-0.533i, 0.729+2.732i, 7.443+6.499i,-4.267+3.362i,0;"
-				+ " 0.208-2.559i,-2.815+3.671i,-7.676+0.295i,-1.295-2.829i,0;"
-				+ "-0.525+2.311i, 2.814+5.875i,-7.154-1.795i,-4.754+2.267i,0;"
-				+ "-3.146+4.064i,-8.656+6.937i, 7.892-3.179i,-8.197+8.063i,0");
-		aMatrix = new MatrixComplex(
-				  " 143.981        ,-49.251-71.500i,-21.671-42.518i,101.438+42.882i,0;"
-				+ " -49.251+71.500i, 96.680        , 61.750+28.227i,-34.934+ 6.514i,0;"
-				+ " -21.671+42.518i, 61.750-28.227i,130.192        , 33.935-92.671i,0;"
-				+ " 101.438-42.882i,-34.934-6.514i,  33.935+92.671i,354.054        ,0");
+     	aMatrix = new MatrixComplex(
+     			"-1, 1,-1, 0;"+
+     			"-1,-1, 1, 0;" +
+     			" 1,-1, 1, 0");
 		showResults(aMatrix);
 
-		/* ***/
-		aMatrix = new MatrixComplex("" + 
-				" 1, 2, 1,-3, 0;"+
-				" 1,-2, 1,-1, 0;"+
-				" 3, 5, 3,-4, 0;"+ 
-				" 1,-3, 1,-2, 0");
-		showResults(aMatrix);
-
-		aMatrix = new MatrixComplex(""+ 
-				" 1, 2, 1,-3,-2, 0;"+
-				" 1,-2, 1,-1, 2, 0;"+
-				" 3, 6, 3,-9,-6, 0;"+ 
-				" 1,-2, 1,-1, 2, 0;"+
-				" 1,-2, 0,-1, 2, 0;");
-		showResults(aMatrix);
-			
-		aMatrix = new MatrixComplex(""+
-				" 1, 2, 1, 0;"+
-				" 2, 4, 2, 0;"+
-				"-3, 6,-3, 0");
-		showResults(aMatrix);		
-
-		aMatrix = new MatrixComplex("" +
-				" 2,-3, 0,-9;"+
-				" 0, 4, 0,16;"+
-				" 1, 0, 1, 2");
-		showResults(aMatrix);
-
-		/* ***/
-
-		aMatrix = new MatrixComplex("" + 
-				" 1, 2, 1,-3, 0;"+
-				" 2,-2,-1, 4, 0;"+
-				" 5, 2,-3,-2, 0;"+ 
-				" 3,-1, 1,-3, 0");
-		showResults(aMatrix);
-
-		aMatrix = new MatrixComplex("" + 
-				" 1, 2, 1,-3, 0;"+
-				" 4, 0,-4, 1, 0;"+
-				" 5, 2,-3,-2, 0;"+ 
-				" 3,-1, 1,-3, 0");
-		showResults(aMatrix);
+		SVDfactor svdMatrix;
+		svdMatrix = new SVDfactor(
+     			"-1, 1,-1;"+
+     			"-1,-1, 1;" +
+     			" 1,-1, 1,");
+		showResults(svdMatrix);
 		
-		aMatrix = new MatrixComplex(
-       			" 6.0 , 0.0 ,-1.0 ,-4.0 ,-2.0, 0;"+
-       			" 7.0 , 0.0 ,-6.0 , 0.0 ,-2.0, 0;"+
-       			"-4.0 ,-1.0 ,-1.0 , 1.0 ,-7.0, 0;"+
-       			"-1.0 , 8.0 , 8.0 , 6.0 ,-4.0, 0;"+
-       			" 1.0 ,-4.0 , 6.0 , 7.0 , 2.0, 0");    	
-		showResults(aMatrix);
-
-		aMatrix = new MatrixComplex(
-				"-3,-7, 5, 0;"+
-				" 2, 5, 1, 0;"+
-				" 1, 2,-6, 0");		
-		showResults(aMatrix);
+		LUfactor luMatrix;
+		luMatrix = new LUfactor(
+     			"-1, 1,-1;"+
+     			"-1,-1, 1;" +
+     			" 1,-1, 1,");
+		showResults(luMatrix);
 		
-		aMatrix = new MatrixComplex(
-				"-2, 1, 3, 4;"+
-				" 1, 1, 0, 3;"+
-				"-1, 2, 3, 7");
-		showResults(aMatrix);
-		/* ***/
 	}
 }

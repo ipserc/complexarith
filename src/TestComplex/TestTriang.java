@@ -37,7 +37,7 @@ public class TestTriang {
     	aMatrix = new MatrixComplex("2,2,1;0,0,1;1,0,1"); showResults(aMatrix);
 		aMatrix = new MatrixComplex("3,-1,1,2;1,2,1,-4;1,0,1,0;2,2,1,-3"); showResults(aMatrix);
 
-    	/* * /
+    	/* */
     	aMatrix = new MatrixComplex("2,2,1;0,0,1;1,0,1"); showResults(aMatrix);
 		aMatrix = new MatrixComplex("1,0,1;0,0,1;2,2,1"); showResults(aMatrix);
 		aMatrix = new MatrixComplex("0,0,1;2,2,1;1,0,1"); showResults(aMatrix);

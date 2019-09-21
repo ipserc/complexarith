@@ -1,5 +1,6 @@
 package TestComplex;
 
+import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 public class TestGram {
@@ -28,6 +29,12 @@ public class TestGram {
 	public static void main(String[] args) {
 		MatrixComplex aMatrix;
 		
+		Complex.setFormatON();
+		Complex.setFixedON(3);
+		
+		aMatrix = new MatrixComplex("2,1;1,4");
+		showResults(aMatrix);
+
 		aMatrix = new MatrixComplex("1,2;1,2;0,3");
 		showResults(aMatrix);
 

@@ -17,7 +17,7 @@ public class TestEigenV {
     	aMatrix.println(Header + "aMatrix");
     	System.out.println(Header + "Maxima:\n"+aMatrix.toMaxima());
     	System.out.println(Header + "Wolfram:\n"+aMatrix.toWolfram());
-    	aMatrix.determinant().println(Header + "Det[aMatrix]");
+    	aMatrix.determinant().println(Header + "Det[aMatrix]:");
     	eigenVal = aMatrix.eigenvalues();
     	eigenVal.quicksort(0);
     	eigenVectors = aMatrix.eigenvectors(eigenVal);
@@ -64,7 +64,7 @@ public class TestEigenV {
 
      	Complex.setFormatON();
      	Complex.setFixedON(3);
-     	/*
+     	/**/
     	//aMatrix = new MatrixComplex(8); aMatrix.initMatrixRandomRecInt(1); doEigenCalculations(aMatrix);
     	aMatrix = new MatrixComplex("-1,2,1;3,4,-1;1,2,2"); doEigenCalculations(aMatrix);
     	//aMatrix = new MatrixComplex("-1,2,1;1,2,-1;1,2,2"); doEigenCalculations(aMatrix);
@@ -97,7 +97,7 @@ public class TestEigenV {
     	Complex.setScientificON(3);	doEigenCalculations(aMatrix);
     	aMatrix = new MatrixComplex("3,2,-1;2,3,1;0,0,5"); doEigenCalculations(aMatrix);
     	aMatrix = new MatrixComplex("3,2,-1;2,3,1;1,-2,5"); doEigenCalculations(aMatrix);
-    	
+    	Complex.setFixedON(3);
     	aMatrix = new MatrixComplex(""+
     			"-11.0i,-20.0 , 10.0i,  4.0 ,-15.0i,-18.0 , -7.0i,-16.0 ,-10.0i,  2.0 ;"+
     			"  8.0 , -1.0i,  1.0 , 17.0i, -4.0 , 16.0i,-13.0 ,-11.0i,  0.0 ,-17.0i;"+
@@ -136,7 +136,7 @@ public class TestEigenV {
     			" 2, 4, 3;"+
     			" 3, 6, 4"); 
     	doEigenCalculations(aMatrix);
-    	/** /
+    	/**/
      	
      	aMatrix = new MatrixComplex(""+
      			" -1.000 ,  1.000 , -1.000 ;"+
@@ -210,12 +210,14 @@ public class TestEigenV {
        			"-1.0 , 8.0 , 8.0 , 6.0 ,-4.0;"+
        			" 1.0 ,-4.0 , 6.0 , 7.0 , 2.0");    	
      	doEigenCalculations(aMatrix);
-	    	*/
+	    /**/
 		aMatrix = new MatrixComplex(
 				  " 2.925-0.533i, 0.729+2.732i, 7.443+6.499i,-4.267+3.362i;"
 				+ " 0.208-2.559i,-2.815+3.671i,-7.676+0.295i,-1.295-2.829i;"
 				+ "-0.525+2.311i, 2.814+5.875i,-7.154-1.795i,-4.754+2.267i;"
 				+ "-3.146+4.064i,-8.656+6.937i, 7.892-3.179i,-8.197+8.063i");
+		doEigenCalculations(aMatrix);
+
 		aMatrix = new MatrixComplex(
 				  " 143.981        ,-49.251-71.500i,-21.671-42.518i,101.438+42.882i;"
 				+ " -49.251+71.500i, 96.680        , 61.750+28.227i,-34.934+ 6.514i;"
