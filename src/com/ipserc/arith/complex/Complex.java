@@ -33,6 +33,7 @@
  */
 package com.ipserc.arith.complex;
 
+import java.lang.Double;
 import java.lang.Math;
 import java.util.Locale;
 import java.util.function.Function;
