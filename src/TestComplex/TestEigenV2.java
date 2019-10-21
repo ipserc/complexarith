@@ -10,7 +10,7 @@ public class TestEigenV2 {
     	MatrixComplex eigenVal;
     	MatrixComplex eigenVectors;  
     	MatrixComplex eigenVect;
-    	final String Header = new String("TEV --- "); 
+    	final String Header = new String("TEV2 --- "); 
 
     	System.out.println("__________________________________________________________________________________________");
     	System.out.println("____________________________ CALCULO AUTOVALORES/AUTOVECTORES ____________________________");
@@ -18,15 +18,19 @@ public class TestEigenV2 {
     	System.out.println(Header + "Maxima:\n"+aMatrix.toMaxima());
     	System.out.println(Header + "Wolfram:\n"+aMatrix.toWolfram());
     	aMatrix.determinant().println(Header + "Det[aMatrix]:");
+    	aMatrix.triangle().heap().println("---------------- triangle:");
+    	
     	eigenVal = aMatrix.eigenvalues();
     	eigenVal.quicksort(0);
+    	eigenVal.println(Header + "**************** eigenVal ****************");
     	eigenVectors = aMatrix.eigenvectors(eigenVal);
     	aMatrix.charactPoly().println(Header + "Characteristic polynom");
     	//aMatrix.charactPoly().plotReIm(-10, 10);
-    	eigenVal.println(Header + "eigenVal");
-    	eigenVectors.println(Header + "eigenVectors");
-
-    	int colLen = aMatrix.complexMatrix[0].length;
+    	eigenVectors.println(Header + "**************** eigenVectors ****************");
+    	
+//    	if (true) return;
+    	
+    	int colLen = aMatrix.cols(); //complexMatrix[0].length;
     	eigenVect = new MatrixComplex(1,colLen);
     	
     	for (int eigv = 0; eigv < eigenVal.complexMatrix.length; ++eigv) {
@@ -60,11 +64,11 @@ public class TestEigenV2 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-    	MatrixComplex aMatrix;
+    	MatrixComplex aMatrix = new MatrixComplex();
 
      	Complex.setFormatON();
      	Complex.setFixedON(3);
-     	
+/*
      	aMatrix = new MatrixComplex(""+
      			" -1.000 ,  1.000 , -1.000 ;"+
      			" -1.000 , -1.000 ,  1.000 ;" +
@@ -77,5 +81,26 @@ public class TestEigenV2 {
      			"  1.000 , -1.000 , -1.000 ");
      	doEigenCalculations(aMatrix);
 
+     	aMatrix = new MatrixComplex();
+     	aMatrix.initMatrixRandomImagInt();
+     	doEigenCalculations(aMatrix);
+*/
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000 ,  1.000 ,  1.000 ;"+
+     			" -1.000 , -1.000 , -1.000 ;" +
+     			"  1.000 ,  1.000 , -1.000 ");
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000i ,  1.000i ,  1.000i ;"+
+     			" -1.000i , -1.000i , -1.000i ;" +
+     			"  1.000i ,  1.000i , -1.000i ");
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000 ,  2.000 ,  4.000 ;"+
+     			"  2.000 ,  1.000 , -4.000 ;" +
+     			"  0.000 ,  0.000 ,  3.000 ");
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000 ,  1.001 ,  1.000 ;"+
+     			" -1.000 , -1.000 , -1.000 ;" +
+     			"  1.000 ,  1.000 , -1.000 ");
+  	doEigenCalculations(aMatrix);
 	}
 }
