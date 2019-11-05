@@ -1736,6 +1736,7 @@ public class MatrixComplex {
 		int dim = this.cols();
 		int nbrUkn = dim-1;
 		int nbrSolutions = nbrUkn-rank;
+		System.out.println("rank:" + rank);
 		nbrSolutions = nbrSolutions == 0 ? 1 : nbrSolutions;
 		return nbrSolutions;
 	}
@@ -1991,7 +1992,7 @@ public class MatrixComplex {
 		tempMatrix = tempMatrix.triangle().heap();
 		for (int row = 0; row < rowLen; ++row) {
 			result = 0;
-			for (int col = 0; col < colLen; ++col) {
+			for (int col = 0; col < row+1; ++col) {
 				result += tempMatrix.complexMatrix[row][col].equalsred(0,0) ? 0 : 1;				
 			}
 			rank += result == 0 ? 0 : 1;
