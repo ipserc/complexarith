@@ -22,24 +22,43 @@ public class TestEigenV2 {
     	
     	eigenVal = aMatrix.eigenvalues();
     	eigenVal.quicksort(0);
-    	eigenVal.println(Header + "**************** eigenVal ****************");
-    	eigenVectors = aMatrix.eigenvectors(eigenVal);
     	aMatrix.charactPoly().println(Header + "Characteristic polynom");
+    	eigenVal.println(Header + "**************** eigenVal ****************");
+    	{
+	    	Complex eVal = eigenVal.getItem(0,0);
+			System.out.println("arith mult[" +  eVal + "]:" + eigenVal.arithmeticMultiplicity(eVal));    		
+	    	for (int i = 0; i < eigenVal.rows(); ++i) {
+	    		if (eVal.equalsred(eigenVal.getItem(i,0))) continue;
+	    		eVal = eigenVal.getItem(i,0);
+	    		System.out.println("arith mult[" +  eVal + "]:" + eigenVal.arithmeticMultiplicity(eVal));    		
+	    	}
+    	}
+
+    	eigenVectors = aMatrix.eigenvectors(eigenVal);
     	//aMatrix.charactPoly().plotReIm(-10, 10);
     	eigenVectors.println(Header + "**************** eigenVectors ****************");
+    	{
+	    	Complex eVal = eigenVal.getItem(0,0);
+			System.out.println("geom mult(" +  eVal + "):" + eigenVal.geometricMultiplicity(eVal, eigenVectors));    		
+	    	for (int i = 0; i < eigenVal.rows(); ++i) {
+	    		if (eVal.equalsred(eigenVal.getItem(i,0))) continue;
+	    		eVal = eigenVal.getItem(i,0);
+	    		System.out.println("geom mult(" +  eVal + "):" + eigenVal.geometricMultiplicity(eVal, eigenVectors));
+	    	}
+    	}
+
     	
 //    	if (true) return;
     	
     	int colLen = aMatrix.cols(); //complexMatrix[0].length;
     	eigenVect = new MatrixComplex(1,colLen);
     	
-    	for (int eigv = 0; eigv < eigenVal.complexMatrix.length; ++eigv) {
-	    	for(int col = 0; col < colLen; ++col) 
-	    		eigenVect.complexMatrix[0][col] = eigenVectors.complexMatrix[eigv][col];
+    	for (int eigv = 0; eigv < eigenVal.rows(); ++eigv) {
+    		eigenVect.complexMatrix[0] = eigenVectors.complexMatrix[eigv].clone();
 	    	//eigenVect.divides(eigenVect.complexMatrix[0][0]).println(Header + "Norm eigenVect "+eigv);
 	    	eigenVect.println(Header + "**************** eigenVect ****************");
-	    	aMatrix.times(eigenVect.transpose()).transpose().println(Header + "aMatrix·eigenVect "+eigv);
-	    	eigenVect.times(eigenVal.complexMatrix[eigv][0]).println(Header + "eigval["+eigv+"]·eigenVect "+eigv);
+	    	aMatrix.times(eigenVect.transpose()).transpose().println(Header + "aMatrix·eigenVect_"+eigv);
+	    	eigenVect.times(eigenVal.complexMatrix[eigv][0]).println(Header + "eigval["+eigv+"]·eigenVect_"+eigv);
     	}
 
     	eigenVectors.adjoint().times(eigenVectors).println(Header + "eVT·eV");
@@ -55,8 +74,8 @@ public class TestEigenV2 {
     	
     	Diagfactor diagonal = new Diagfactor(aMatrix);
     	diagonal.diagonalize();
-    	diagonal.D().println(Header + "Matriz Diagonal");
-    	diagonal.P().println(Header + "Matriz Valores Propios");
+    	diagonal.D().println(Header + "Matriz Diagonal (D)");
+    	diagonal.P().println(Header + "Matriz Valores Propios (P)");
     	diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println(Header + "P·D·P⁻¹");
 	}
 	
@@ -86,21 +105,36 @@ public class TestEigenV2 {
      	doEigenCalculations(aMatrix);
 */
      	aMatrix = new MatrixComplex(""+
-     			"  1.000 ,  1.000 ,  1.000 ;"+
-     			" -1.000 , -1.000 , -1.000 ;" +
-     			"  1.000 ,  1.000 , -1.000 ");
+     			"  1.000 ,  2.000 ,  4.000 ;" +
+     			"  2.000 ,  1.000 , -4.000 ;" +
+     			"  0.000 ,  0.000 ,  3.000 ");
+     	doEigenCalculations(aMatrix);
      	aMatrix = new MatrixComplex(""+
-     			"  1.000i ,  1.000i ,  1.000i ;"+
+     			"  1.000i ,  1.000i ,  1.000i ;" +
      			" -1.000i , -1.000i , -1.000i ;" +
      			"  1.000i ,  1.000i , -1.000i ");
      	aMatrix = new MatrixComplex(""+
-     			"  1.000 ,  2.000 ,  4.000 ;"+
-     			"  2.000 ,  1.000 , -4.000 ;" +
-     			"  0.000 ,  0.000 ,  3.000 ");
+     			"  1.0000 ,  1.0000 ,  1.00000 ;" +
+     			" -1.0000 , -1.0000 , -1.00000 ;" +
+     			"  1.0000 ,  1.0000 , -1.00000 ");
+     	doEigenCalculations(aMatrix);
      	aMatrix = new MatrixComplex(""+
-     			"  1.000 ,  1.001 ,  1.000 ;"+
+     			"  1.000 ,  1.000 ,  1.000 ;" +
      			" -1.000 , -1.000 , -1.000 ;" +
      			"  1.000 ,  1.000 , -1.000 ");
-  	doEigenCalculations(aMatrix);
+     	doEigenCalculations(aMatrix);
+     	aMatrix = new MatrixComplex(""+
+     			" -1.000 ,  3.000 ,  6.000 , -2.000 ,  3.000;" +
+     			"  2.000 , -1.000 , -1.000 ,  2.000 , -1.000;" +
+     			" -5.000 , -1.000 , -2.000 , -5.000 , -1.000;" + 
+     			"  3.000 ,  0.000 , -1.000 ,  4.000 , -2.000;" +
+     			" -1.000 , -1.000 , -2.000 , -5.000 , -2.000");
+     	doEigenCalculations(aMatrix);
+     	aMatrix = new MatrixComplex(""+
+     			"  4.000 , -1.000 ,  1.000 ;" +
+     			"  0.000 ,  1.000 ,  3.000 ;" +
+     			"  0.000 ,  2.000 ,  2.000 ");
+     	doEigenCalculations(aMatrix);
+
 	}
 }
