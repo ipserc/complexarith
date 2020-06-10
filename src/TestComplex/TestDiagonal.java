@@ -1,5 +1,5 @@
 /* /usr/lib/jvm/java-8-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 
- * -classpath /home/ipserc/workspace_neon/complexarith/bin:/home/ipserc/workspace_neon/complexarith/classes 
+ * -classpath /home/ipserc/eclipse-workspace/complexarith/bin:/home/ipserc/eclipse-workspace/complexarith/classes 
  * TestComplex.TestDiagonal
  */
 package TestComplex;
@@ -14,14 +14,17 @@ public class TestDiagonal {
 		System.out.println("__________________________________________________________________________________________");
     	System.out.println("______________________________ DIAGONALIZACION DE MATRICES _______________________________");
 		fMatrix.println("--- A");
-		fMatrix.charactPoly().println("Polinomio Caraterístico");
+		fMatrix.triangle().heap().println("--- Triangle");
+		fMatrix.charactPoly().println("Polinomio Característico");
 		fMatrix.diagonalize();
-		MatrixComplex D = fMatrix.D();
-		MatrixComplex P = fMatrix.P();
- 		D.println("--- D Diagonal");
-		P.println("--- P Matrix");
-		P.determinant().println("Determinant(P)");
-		(P.times(D).times(P.inverse())).println("A=P·D·P⁻¹");
+		if (fMatrix.factorized()) {
+			MatrixComplex D = fMatrix.D();
+			MatrixComplex P = fMatrix.P();
+	 		D.println("--- D Diagonal");
+			P.println("--- P Matrix");
+			P.determinant().println("Determinant(P)=");
+			(P.times(D).times(P.inverse())).println("A=P·D·P⁻¹");
+		}
 	}
 
 	private static MatrixComplex diagonal(MatrixComplex fMatrix) {
@@ -89,6 +92,8 @@ public class TestDiagonal {
 		fMatrix = new Diagfactor("1,2,3;0,0,2;0,1,1");
 		showResults(fMatrix);
 
+		fMatrix = new Diagfactor("2,2,-3,4;-2,2,1,0;3,3,-5,7;4,2,-6,7");
+		showResults(fMatrix);
 	}
 
 }

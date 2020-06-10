@@ -3,7 +3,8 @@ package com.ipserc.arith.matrixcomplex;
 import java.lang.Double;
 import java.lang.Math;
 import com.ipserc.arith.complex.*;
-import com.ipserc.arith.polynom.*;;
+import com.ipserc.arith.polynom.*;
+import com.ipserc.combinatoric.*;
 
 public class MatrixComplex {
 	public Complex[][] complexMatrix;
@@ -103,12 +104,12 @@ public class MatrixComplex {
 		for (int row = 0; row < rowLen; ++row)
 			for (int col = 0; col < colLen; ++col)
 				switch (coordType) {
-				case 'C':
-				case 'c':this.complexMatrix[row][col].setComplexRec(n1, n2); 
-				break;
-				case 'P':
-				case 'p':this.complexMatrix[row][col].setComplexPol(n1, n2); 
-				break;
+					case 'C':
+					case 'c':this.complexMatrix[row][col].setComplexRec(n1, n2); 
+					break;
+					case 'P':
+					case 'p':this.complexMatrix[row][col].setComplexPol(n1, n2); 
+					break;
 				}
 	}
 
@@ -169,12 +170,12 @@ public class MatrixComplex {
 			for (int col = 0; col < colLen; ++col)
 				if (row == col) {
 					switch (coordType) {
-					case 'C':
-					case 'c':this.complexMatrix[row][col].setComplexRec(n1, n2); 
-					break;
-					case 'P':
-					case 'p':this.complexMatrix[row][col].setComplexPol(n1, n2); 
-					break;
+						case 'C':
+						case 'c':this.complexMatrix[row][col].setComplexRec(n1, n2); 
+						break;
+						case 'P':
+						case 'p':this.complexMatrix[row][col].setComplexPol(n1, n2); 
+						break;
 					}
 				}
 				else this.complexMatrix[row][col].setComplexRec(0, 0);
@@ -220,30 +221,30 @@ public class MatrixComplex {
 		for (int row = 0; row < rowLen; ++row)
 			for (int col = 0; col < colLen; ++col)
 				switch (coordType) {
-				case 'A':
-				case 'a':this.complexMatrix[row][col].setComplexRandomReal(base); 
-				break;
-				case 'B':
-				case 'b':this.complexMatrix[row][col].setComplexRandomInt(base); 
-				break;
-				case 'C':
-				case 'c':this.complexMatrix[row][col].setComplexRandomRec(base); 
-				break;
-				case 'D':
-				case 'd':this.complexMatrix[row][col].setComplexRandomImag(base); 
-				break;
-				case 'E':
-				case 'e':this.complexMatrix[row][col].setComplexRandomImagInt(base); 
-				break;
-				case 'P':
-				case 'p':this.complexMatrix[row][col].setComplexRandomPol(base); 
-				break;
-				case 'I':
-				case 'i':this.complexMatrix[row][col].setComplexRandomRecInt(base); 
-				break;
-				case 'J':
-				case 'j':this.complexMatrix[row][col].setComplexRandomPolInt(base); 
-				break;
+					case 'A':
+					case 'a':this.complexMatrix[row][col].setComplexRandomReal(base); 
+					break;
+					case 'B':
+					case 'b':this.complexMatrix[row][col].setComplexRandomInt(base); 
+					break;
+					case 'C':
+					case 'c':this.complexMatrix[row][col].setComplexRandomRec(base); 
+					break;
+					case 'D':
+					case 'd':this.complexMatrix[row][col].setComplexRandomImag(base); 
+					break;
+					case 'E':
+					case 'e':this.complexMatrix[row][col].setComplexRandomImagInt(base); 
+					break;
+					case 'P':
+					case 'p':this.complexMatrix[row][col].setComplexRandomPol(base); 
+					break;
+					case 'I':
+					case 'i':this.complexMatrix[row][col].setComplexRandomRecInt(base); 
+					break;
+					case 'J':
+					case 'j':this.complexMatrix[row][col].setComplexRandomPolInt(base); 
+					break;
 				}
 	}
 
@@ -988,6 +989,20 @@ public class MatrixComplex {
 		return this.times(cMatrix.inverse());
 	}
 
+	/**
+	 * Calculates the power of a Matrix
+	 * @param power The power at which the matrix is ​​raised. Only positive integers are allowed
+	 * @return The matrix raised to power
+	 */
+	public MatrixComplex power(int power) {
+		MatrixComplex powerMatrix = new MatrixComplex(this.rows(), this.cols());
+		powerMatrix.initMatrixDiag(1, 0);
+		if (power == 0) return powerMatrix;
+		for (int i = 1; i <= power; ++i)
+			powerMatrix = powerMatrix.times(this);
+		return powerMatrix;
+	}
+	
 	/*
 	 * NORMS
 	 */
@@ -1390,8 +1405,8 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns the matrix diagonalized using triangularization Lo-Up
-	 * @return The matrix diagonalized
+	 * Returns the diagonal matrix using triangularization Lo-Up
+	 * @return The diagonal matrix 
 	 */  
 	public MatrixComplex diagonal() {
 		return (this.triangleLo()).triangleUp();
@@ -1707,6 +1722,18 @@ public class MatrixComplex {
 		}
 		return rdMatrix;
 	}
+
+	private Complex getCoef(int row1, int row2) {
+		Complex coef = new Complex(0);
+		
+		for (int col = 0; col < this.cols(); ++col) {
+			if(!this.getItem(row2, col).equalsred(Complex.ZERO)) {
+				coef = this.getItem(row1, col).divides(this.getItem(row2, col));
+				break;
+			}
+		}
+		return coef;
+	}
 	
 	/**
 	 * Removes the duplicated rows of a Matrix
@@ -1721,11 +1748,24 @@ public class MatrixComplex {
 		newMatrix.complexMatrix[ndRow++] = this.complexMatrix[0].clone();
 		for(int row = 1; row < rowLen; ++row) {
 			for(int rrow = 0; rrow < row; ++rrow) {
+				//System.out.println("checking row:" + row +" - rrow:" + rrow);
 				isDuplicate = true;
+				Complex coef = this.getCoef(rrow, row);
+				//coef.println("El coeficiente encontrado:");
 				for(int col = 0; col < colLen; ++col) {
-					if (!this.complexMatrix[row][col].equals(this.complexMatrix[rrow][col])) isDuplicate = false;
+					if (coef.equals(Complex.ZERO)) {
+						isDuplicate = false;
+						break;
+					};
+					if (!this.getItem(row,col).equals(this.getItem(rrow,col).divides(coef))) {
+						isDuplicate = false;
+						break;
+					}
 				}
-				if (isDuplicate) break;
+				if (isDuplicate) {
+					System.out.println("------- duplicate row:" + row +" - rrow:" + rrow);
+					break;
+				}
 			}
 			if (!isDuplicate) newMatrix.complexMatrix[ndRow++] = this.complexMatrix[row].clone();
 		}
@@ -1735,7 +1775,7 @@ public class MatrixComplex {
 		}
 		return rdMatrix;
 	}
-
+	
 	/**
 	 * Returns the minimum number of LI solutions that the equation system has
 	 * @return The minimum number of LI solutions
@@ -1746,7 +1786,6 @@ public class MatrixComplex {
 		int dim = this.cols();
 		int nbrUkn = dim-1;
 		int nbrSolutions = nbrUkn-rank;
-		//System.out.println("---------------- rank:" + rank);
 		nbrSolutions = nbrSolutions == 0 ? 1 : nbrSolutions;
 		return nbrSolutions;
 	}
@@ -1773,6 +1812,148 @@ public class MatrixComplex {
 		return numSols;
 	}
 	
+	public MatrixComplex solveSubstitution(MatrixComplex solMatrix, Complex lambda) {
+		MatrixComplex auxMatrix;
+		int eqsIdx = this.rows()-1;
+		int nbrSols = this.nbrOfSolutions();
+		auxMatrix = this.triangle().heap();
+		int rowIdx, colIdx, solIdx, reduxSol = 0;
+		Complex value;
+
+		System.out.println(HEADINFO + "SOLVED by SUBSTITUTION method ");
+		for (rowIdx = eqsIdx; rowIdx >= 0; --rowIdx) {
+			colIdx = rowIdx;
+			if (auxMatrix.isNullRow(rowIdx) || auxMatrix.isNullCol(colIdx)) {
+				++reduxSol;
+			}
+		}
+		// Prepare the parametric values for solutions.
+		// We need to try with	0,0,0,...,0,0,1 
+		//						0,0,0,...,0,1,0
+		//						0,0,0,...,1,0,0
+		//						...
+		//						0,1,0,...,0,0,0
+		//						1,0,0,...,0,0,0
+		for (solIdx = 0; solIdx < nbrSols; ++solIdx) {
+			solMatrix.setItem(solIdx, this.cols()-2-solIdx, lambda);
+		}
+		
+		// With the partial solution calculated get the rest of the values
+		for (solIdx = 0; solIdx < nbrSols; ++solIdx) {
+			for (rowIdx = eqsIdx-reduxSol; rowIdx >= 0; --rowIdx) {
+				// Independent term
+				value = auxMatrix.getItem(rowIdx, auxMatrix.cols()-1);
+				for (colIdx = auxMatrix.cols()-2; colIdx > rowIdx; --colIdx) {
+					value = value.minus(auxMatrix.getItem(rowIdx, colIdx).times(solMatrix.getItem(solIdx, colIdx)));
+				}
+				value = value.divides(auxMatrix.getItem(rowIdx, colIdx));
+				solMatrix.setItem(solIdx, rowIdx, value);
+			}
+		}
+		return solMatrix;
+	}
+
+	/**
+	 * Finds the solutions to a equation systems
+	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
+	 * @return The column matrix with the solutions if they exist, otherwise null.
+	 */	
+	public MatrixComplex solveGauss3(Complex lambda) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+
+		if (rowLen+1 > colLen) {
+			System.out.println(HEADINFO + "solveGauss: " + "Not valid matrix: The matrix doesn't represent an equation system.");
+		}
+		
+		int nbrOfSols = this.nbrOfSolutions();
+		MatrixComplex coefMatrix, indMatrix;
+		MatrixComplex solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
+
+		int typeEqSys = this.typeEqSys();
+		this.printTypeEqSys(typeEqSys, lambda);
+		if (typeEqSys == INCOMPATIBLE) return solMatrix.divides(0).transpose();
+
+		coefMatrix = this.coefMatrix();
+		indMatrix = this.indMatrix();
+		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
+		solMatrix = solveReduction(solMatrix, lambda);
+		for (int rowIdx = 0 ; rowIdx < solMatrix.rows(); ++rowIdx) {
+			if (solMatrix.isNullRow(rowIdx)) {
+				solMatrix = solveSubstitution(solMatrix, lambda);
+				break;
+			}
+		}
+		return solMatrix;
+	}
+	
+	/**
+	 * Private function that generates the new reduced equations system to find out its solutions
+	 * @param colLen
+	 * @param nbrSols
+	 * @param solMatrix
+	 * @param sol
+	 * @return
+	 */
+	private MatrixComplex setNewMatrixRed(int colLen, int nbrSols, MatrixComplex solMatrix, int sol) {
+		Complex cVal;
+		MatrixComplex newMatrix = this.subMatrixAug(0, 0, colLen-nbrSols);
+		for (int row = 0; row < newMatrix.rows(); ++row) {
+			cVal = this.getItem(row, colLen);
+			for (int col = colLen-nbrSols; col < colLen; ++col) {
+				cVal = cVal.minus(this.getItem(row, col).times(solMatrix.getItem(sol, col)));
+			}
+			newMatrix.setItem(row, newMatrix.cols()-1, cVal) ;
+		}
+		return newMatrix;
+	}
+
+	
+	public MatrixComplex solveReduction(MatrixComplex solMatrix, Complex lambda) {
+		/*
+		 * System reduction is used to find a particular solution for indeterminate compatible systems
+		 * Based on the number of solutions, unknowns are fixed in a orthogonal base to determine the 
+		 * linear independent solutions 
+		 * A value for lambda is given to calculate the indeterminate solutions
+		 */
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		int colSol = rowLen-1;
+		MatrixComplex auxMatrix;
+		MatrixComplex newMatrix;
+		Complex cVal;
+
+		System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
+			//this.println("---------------- Matrix solve");
+		auxMatrix = this.triangleUp();	// .heap();
+		int nbrOfSols = auxMatrix.nbrOfSolutions();
+			//System.out.println("---------------- nbrOfSols:" + nbrOfSols);
+		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
+			//auxMatrix.coefMatrix().println("---------------- coefMatrix");
+			//System.out.println("----------------");
+		if ( auxMatrix.coefMatrix().isNull() ) return solMatrix;
+
+		for (int sol = 0; sol < nbrOfSols; ++sol) {
+			for (int row = rowLen-1; row >= 0; --row) {
+				if (colSol < 0) break;
+				if (auxMatrix.isNullRow(row)) {
+					cVal = lambda;
+				}
+				else {
+					cVal = auxMatrix.getItem(row, colLen-1);
+					cVal = cVal.divides(auxMatrix.getItem(row, colLen-2));
+				}
+				solMatrix.setItem(sol, colSol--, cVal);
+				newMatrix = auxMatrix.setNewMatrixRed(colLen-1, nbrOfSols, solMatrix, sol);
+				if (newMatrix.isNull()) break;
+				MatrixComplex newSolMatrix = newMatrix.solve(lambda);
+				for (int col = 0; col < newSolMatrix.cols(); ++col)
+					solMatrix.setItem(sol, col, newSolMatrix.getItem(0, col));
+			}
+		}
+		return solMatrix;
+	}
+	
 	/**
 	 * Private function that generates the new reduced equations system to find out its solutions
 	 * @param auxMatrix
@@ -1783,7 +1964,7 @@ public class MatrixComplex {
 	 * @param solMatrix
 	 * @return
 	 */
-	private MatrixComplex setNewMatrix(MatrixComplex auxMatrix, int nbrOfSols, int rowLen, int colLen, int sol, MatrixComplex solMatrix) {
+	private MatrixComplex setNewMatrix_(MatrixComplex auxMatrix, int nbrOfSols, int rowLen, int colLen, int sol, MatrixComplex solMatrix) {
 		Complex cVal;
 		MatrixComplex newMatrix = auxMatrix.subMatrixAug(0, nbrOfSols, colLen-nbrOfSols-1);
 		for (int row = 0; row < colLen-nbrOfSols-1; ++row) {
@@ -1795,13 +1976,108 @@ public class MatrixComplex {
 		}
 		return newMatrix;
 	}
+
+	public MatrixComplex solveReduction_(MatrixComplex solMatrix, Complex lambda) {
+		/*
+		 * System reduction is used to find a particular solution for indeterminate compatible systems
+		 * Based on the number of solutions, unknowns are fixed in a orthogonal base to determine the 
+		 * linear independent solutions 
+		 * A value for lambda is given to calculate the indeterminate solutions
+		 */
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		MatrixComplex auxMatrix;
+		MatrixComplex newMatrix;
+
+		System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
+			//this.println("---------------- Matriz solve");
+		auxMatrix = this.triangleUp().heap();
+		int nbrOfSols = auxMatrix.nbrOfSolutions();
+			//System.out.println("---------------- nbrOfSols:" + nbrOfSols);
+		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
+			//auxMatrix.coefMatrix().println("---------------- coefMatrix");
+			//System.out.println("----------------");
+		if ( auxMatrix.coefMatrix().isNull() ) return solMatrix;
+
+		for (int sol = 0; sol < nbrOfSols; ++sol) {
+			for (int col = 0; col < nbrOfSols; ++col) {
+				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
+				if (this.homogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
+				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
+			}
+			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
+			newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
+			rowSolMatrix = newMatrix.solve(lambda);	
+			/*
+			 * Check if the solutions calculated are valid
+			 * If not, uses the inverse rule to assign the fixed value to the solution
+			 * TODO This is a brute force solution. I need to find out the condition in the equations system that forces to change the rule
+			 */
+			if (!Double.isFinite(rowSolMatrix.times(rowSolMatrix.transpose()).getItem(0,0).rep())) {
+				for (int col = 0; col < nbrOfSols; ++col) {
+					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
+					if (this.homogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
+					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
+				}
+				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
+				rowSolMatrix = newMatrix.solve(lambda);
+			}
+			if (newMatrix.typeEqSys() == INCOMPATIBLE) {
+				this.printTypeEqSys(INCOMPATIBLE, lambda);
+				return solMatrix.divides(0);
+			}
+			else {
+				for (int col = nbrOfSols; col < colLen-1; ++col) {
+					solMatrix.setItem(sol, col, rowSolMatrix.getItem(0, col-nbrOfSols));
+				}
+			}
+		}
+		return solMatrix;
+	}
 	
+
 	/**
+	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
 	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The column matrix with the solutions if they exist, otherwise null.
 	 */	
 	public MatrixComplex solveGauss2(Complex lambda) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+
+		if (rowLen+1 > colLen) {
+			System.out.println(HEADINFO + "solveGauss: " + "Not valid matrix: The matrix doesn't represent an equation system.");
+		}
+
+		MatrixComplex coefMatrix, indMatrix;
+		MatrixComplex solMatrix = new MatrixComplex(1, colLen-1);
+
+		int typeEqSys = this.typeEqSys();
+		//this.printTypeEqSys(typeEqSys, lambda);
+		if (typeEqSys == INCOMPATIBLE) return solMatrix.divides(0).transpose();
+
+		coefMatrix = this.coefMatrix();
+		indMatrix = this.indMatrix();
+		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
+	
+		if (this.homogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
+			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
+			return solMatrix;
+		}
+		
+		if (rowLen == 1 && colLen == 2) {
+			solMatrix.setItem(0, 0, lambda);
+			return solMatrix;
+		}
+		/*
+		 * The complete system of equations is solved by triangularization
+		 * The solutions are calculated by system reduction
+		 */
+		return solveReduction(solMatrix, lambda);
+	}
+
+	public MatrixComplex solveGauss21(Complex lambda) {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
@@ -1859,7 +2135,7 @@ public class MatrixComplex {
 				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 			}
 			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
-			newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
+			newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
 			rowSolMatrix = newMatrix.solve();	
 			/*
 			 * Check if the solutions calculated are valid
@@ -1872,7 +2148,7 @@ public class MatrixComplex {
 					if (this.homogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
 				}
-				newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
+				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
 				rowSolMatrix = newMatrix.solve();
 			}
 			if (newMatrix.typeEqSys() == INCOMPATIBLE) {
@@ -1888,6 +2164,7 @@ public class MatrixComplex {
 		//solMatrix.println(HEADINFO + "solveGauss: " + "solMatrix");
 		return solMatrix;
 	}
+
 
 	/**
 	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
@@ -1968,7 +2245,7 @@ public class MatrixComplex {
 				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 			}
 			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
-			newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
+			newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
 			rowSolMatrix = newMatrix.solve();	
 			/*
 			 * Check if the solutions calculated are valid
@@ -1981,7 +2258,7 @@ public class MatrixComplex {
 					if (this.homogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
 				}
-				newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
+				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
 				rowSolMatrix = newMatrix.solve();
 			}
 			if (newMatrix.typeEqSys() == INCOMPATIBLE) {
@@ -2069,7 +2346,7 @@ public class MatrixComplex {
 	 * @return The column matrix with the solutions if they exist.
 	 */
 	public MatrixComplex solveGauss(Complex lambda) {
-		return solveGauss2(lambda);
+		return solveGauss3(lambda);
 	}
 	
 	/**
@@ -2271,6 +2548,148 @@ public class MatrixComplex {
 	 * @return The rank of the matrix.
 	 */
 	public int rank() {
+		return rankDown();
+	}
+	
+	public int rankDown() {
+		int maxRank = this.rows(), rank = maxRank ;
+		MatrixComplex tempMatrix = this.copy();
+		MatrixComplex incrMatrix;
+		CombinationNoReps combinat = new CombinationNoReps();
+		
+		if (this.isNull()) return 0;
+
+		if (this.rows() > this.cols()) {
+			tempMatrix = this.transpose();
+			maxRank = this.cols();
+		}
+		
+		long[][] rows, cols;
+		boolean rankfound;
+		for (int order = maxRank; order > 0 ; --order) {
+			rankfound = false;
+			rows = combinat.getCollection(tempMatrix.rows(), order);
+			cols = combinat.getCollection(tempMatrix.cols(), order);
+			for (int row = 0; row < rows.length; ++row) {
+				int[] rowsi = new int[rows[row].length];
+				for (int idx = 0; idx < rowsi.length; ++idx ) rowsi[idx] = (int)rows[row][idx];
+				for (int col = 0; col < cols.length; ++col) {
+					int[] colsi = new int[cols[col].length];
+					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
+					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
+					if (!incrMatrix.determinant().equalsred(Complex.ZERO)) {
+						rankfound = true;
+						break;
+					}
+				}
+				if (rankfound) return rank;
+			}
+			--rank;
+		}
+		return rank;
+	}
+
+	public int rankUp() {
+		int rank = 0, maxRank = this.rows();
+		MatrixComplex tempMatrix = this.copy();
+		MatrixComplex incrMatrix;
+		CombinationNoReps combinat = new CombinationNoReps();
+		
+		if (this.isNull()) return 0;
+
+		if (this.rows() > this.cols()) {
+			tempMatrix = this.transpose();
+			maxRank = this.cols();
+		}
+		
+		long[][] rows, cols;
+		boolean rankfound;
+		for (int order = 1; order <= maxRank; ++order) {
+			rankfound = false;
+			rows = combinat.getCollection(tempMatrix.rows(), order);
+			cols = combinat.getCollection(tempMatrix.cols(), order);
+			for (int row = 0; row < rows.length; ++row) {
+				int[] rowsi = new int[rows[row].length];
+				for (int idx = 0; idx < rowsi.length; ++idx ) rowsi[idx] = (int)rows[row][idx];
+				for (int col = 0; col < cols.length; ++col) {
+					int[] colsi = new int[cols[col].length];
+					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
+					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
+					if (!incrMatrix.determinant().equalsred(Complex.ZERO)) {
+						++rank;
+						rankfound = true;
+						break;
+					}
+				}
+				if (rankfound) break;
+			}
+		}
+		return rank;
+	}
+
+/*
+	 * No he conseguido encontrar un método fiable para hayar el rango en matrices no cuadradas
+	 * Dejo comentado el código para retomarlo algún día
+	 */
+	/**
+	 * Alternative method to calculate the rank based on triangularization.
+	 * Triangularizing arrays will show the rank of the matrix by counting zeros in rows.
+	 * Null columns must be identified.
+	 * @return The rank of the matrix. 
+	 * /
+	public int rank_() {
+		int result, rank = 0;
+		MatrixComplex tempMatrix;
+
+		if (this.isNull()) return 0;
+		
+		tempMatrix = this.copy().triangle().heap();
+		tempMatrix = tempMatrix.removeNullRows();
+		//tempMatrix.println("tempMatrix");
+		tempMatrix = tempMatrix.removeDuplicateRows();
+		tempMatrix.println("tempMatrix");
+		for (int row = 0; row < tempMatrix.rows(); ++row) {
+			result = 0;
+			for (int col = row; col < tempMatrix.cols(); ++col) {
+				if (this.isNullCol(row)) break;
+				result += tempMatrix.getItem(row,col).equalsred(0,0) ? 0 : 1;				
+			}
+			rank += result == 0 ? 0 : 1;
+		}
+
+		return rank > tempMatrix.rows() ? tempMatrix.rows() : rank;
+	}
+
+	public int rank__() {
+		int result, rankHi = 0, rankLo = 0;
+		MatrixComplex tempMatrix;
+
+		if (this.isNull()) return 0;
+		
+		tempMatrix = this.copy().triangle().heap();
+		for (int row = 0; row < tempMatrix.rows(); ++row) {
+			result = 0;
+			for (int col = row; col < tempMatrix.cols(); ++col) {
+				if (this.isNullCol(row)) break;
+				result += tempMatrix.getItem(row,col).equalsred(0,0) ? 0 : 1;				
+			}
+			rankHi += result == 0 ? 0 : 1;
+		}
+		
+		tempMatrix = this.copy().triangleLo().heap();
+		for (int row = 0; row < tempMatrix.rows(); ++row) {
+			result = 0;
+			for (int col = row; col < tempMatrix.cols(); ++col) {
+				if (this.isNullCol(row)) break;
+				result += tempMatrix.getItem(row,col).equalsred(0,0) ? 0 : 1;				
+			}
+			rankLo += result == 0 ? 0 : 1;
+		}
+
+		return rankHi > rankLo ? rankLo : rankHi;
+	}
+
+	public int rank1() {
 		int result, rank = 0;
 		MatrixComplex tempMatrix = this.copy();
 		MatrixComplex redTempMatrix;
@@ -2304,7 +2723,8 @@ public class MatrixComplex {
 		//	System.out.println("---------------- rank:" +  rank);
 		return rank;
 	}
-
+	*/
+	
 	/**
 	 * Calculates the nullity of an array.
 	 * @return The nullity of the matrix.
@@ -2647,7 +3067,7 @@ public class MatrixComplex {
 	 * Copy the original matrix and add a column to zeros.
 	 * @return The augmented matrix.
 	 */
-	private MatrixComplex augment() {
+	public MatrixComplex augment() {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		int row, col;
@@ -2894,7 +3314,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the eigenvalue, characteristic value, or characteristic root associated with eigenvector v.
+	 * Calculates the eigenvalue, characteristic value, or characteristic root associated with eigenvector v by solving the Characteristic Polynomial.
 	 * An eigenvalue is a scalar associated with a given linear transformation of a vector space and having the property that there is some nonzero vector which when multiplied by the scalar is equal to the vector obtained by letting the transformation operate on the vector; especially :  a root of the characteristic equation of a matrix
 	 * @return The eigenvalues as a column array
 	 */
@@ -2903,7 +3323,7 @@ public class MatrixComplex {
 		MatrixComplex eigenvalues = charactPoly.solve();
 		return eigenvalues;
 	}
-
+	
 	/**
 	 * Returns the arithmetic multiplicity of an specific eigenvalue
 	 * @param eigenvalues The eingenvalues matrix
@@ -2945,14 +3365,18 @@ public class MatrixComplex {
 		MatrixComplex dMatrix = cMatrix.augment().heap();
 		return dMatrix.solve().rank();
 	}
-	
+
 	/**
 	 * Calculates the eigenvector or characteristic vector of a linear transformation associated to an specific eigenvalues.
 	 * The eigenvector is a non-zero vector whose direction does not change when that linear transformation is applied to it
 	 * @param eigenVal The eigenvalue to calculate the eigenvector
 	 * @return The eigenvector as a column array
 	 */
-	public MatrixComplex eigenvectors(MatrixComplex eigenVal) {
+	public MatrixComplex eigenvectors(MatrixComplex eigenValArray) {
+		return eigenvectors2(eigenValArray);
+	}
+	
+	public MatrixComplex eigenvectors1(MatrixComplex eigenValArray) {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
@@ -2961,39 +3385,50 @@ public class MatrixComplex {
 		MatrixComplex eigenVect;
 
 		Complex oldEigenVal = new Complex();
-		//eigenVal.getItem(0,0).println("-------------------- eigenVal:");
-		//MatrixComplex cMatrix = this.minus(I.times(eigenVal.getItem(0,0)));
-		MatrixComplex cMatrix = (I.times(eigenVal.getItem(0,0))).minus(this);
+		MatrixComplex cMatrix = ((I.times(eigenValArray.getItem(0,0))).minus(this));
 		MatrixComplex dMatrix = cMatrix.augment().heap();
-		//	dMatrix.println("-------------------- dMatrix[0] --------------------");
 		eigenVect = dMatrix.solve();
-		//	eigenVect.println ("-------------------- eigenVect Sol 0 --------------------");
 		for (int sol = 0; sol < eigenVect.rows(); ++sol)
 			eigenVectors.complexMatrix[sol] = eigenVect.complexMatrix[sol].clone();
-		oldEigenVal = eigenVal.getItem(0,0);
+		oldEigenVal = eigenValArray.getItem(0,0);
 		for (int rowEig = 1; rowEig < rowLen; ++rowEig) {
-			//	System.out.println("-------------------- oldeigenVal:" + oldEigenVal);
-			//	System.out.println("--------------------    eigenVal:" + eigenVal.getItem(rowEig,0));
-			if (oldEigenVal.equalsred(eigenVal.getItem(rowEig,0))) continue;
-			cMatrix = this.minus(I.times(eigenVal.getItem(rowEig,0)));
-			cMatrix = (I.times(eigenVal.getItem(rowEig,0))).minus(this);
-			//	System.out.println("eigenVal[0]:"+eigenVal.complexMatrix[rowEig][0]);
-			//	cMatrix.println("B-lambI["+rowEig+"]");
+			if (oldEigenVal.equalsred(eigenValArray.getItem(rowEig,0))) continue;
+			//cMatrix = this.minus(I.times(eigenValArray.getItem(rowEig,0)));
+			cMatrix = (I.times(eigenValArray.getItem(rowEig,0))).minus(this);
 			dMatrix = cMatrix.augment().heap();
-			//	dMatrix.println("-------------------- dMatrix["+rowEig+"] --------------------");
 			eigenVect = dMatrix.solve();
-			//	eigenVect.println("-------------------- eigenVect Rest Sols --------------------");
-			//	eigenVectors.copyRow(colEig, eigenVect, 0);
-			//	eigenVectors.println("-------------------- eigenVectors --------------------");
-			//	System.out.println("dMatrix.nbrOfSolutions():" + dMatrix.nbrOfSolutions());
 			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
-			//	System.out.println("rowEig:" + rowEig + " sol:" + sol);
 				eigenVectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
 			}
-			oldEigenVal = eigenVal.getItem(rowEig,0);
+			oldEigenVal = eigenValArray.getItem(rowEig,0);
 		}
-		//	eigenVect.println("-------------------- eigenVect --------------------");
-		//	eigenVectors.println("-------------------- eigenVectors --------------------");
+		return eigenVectors;
+	}
+
+	public MatrixComplex eigenvectors2(MatrixComplex eigenValArray) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+
+		eigenValArray.quicksort(0);
+
+		MatrixComplex I = new MatrixComplex(rowLen, colLen); I.initMatrixDiag(1,0);
+		MatrixComplex eigenVectors = new MatrixComplex(rowLen, colLen);
+		MatrixComplex eigenVect;
+		MatrixComplex cMatrix, dMatrix;
+		Complex eigenval;
+		
+		for (int rowEig = 0; rowEig < rowLen;) {
+			eigenval = eigenValArray.getItem(rowEig, 0);
+			int arithMult = eigenValArray.arithmeticMultiplicity(eigenval);
+			cMatrix = (I.times(eigenval)).minus(this);
+			dMatrix = cMatrix.augment().heap();
+			eigenVect = dMatrix.solve();
+			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
+			//for (int sol = 0; sol < arithMult; ++sol) {
+				eigenVectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
+			}
+			rowEig += arithMult;
+		}
 		return eigenVectors;
 	}
 

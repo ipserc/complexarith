@@ -93,6 +93,35 @@ public class Diagfactor extends MatrixComplex {
 	public boolean factorized() {
 		return factorized;
 	}
+	
+	/**
+	 * Indicates if the Matrix would be or not diagonalizable 
+	 * If for every eigenvalue of A, the geometric multiplicity equals the algebraic multiplicity, then A is said to be diagonalizable.
+	 * @param eigenvalueArray
+	 * @return true if the matrix is diagonalizable, otherwise false
+	 */
+	public boolean isDiagonalizable(MatrixComplex eigenvalueArray) {
+		int arithMult, geomMult;
+		int sumArithMult = 0;
+		Complex eigenValue = eigenvalueArray.getItem(0, 0);
+
+		arithMult = eigenvalueArray.arithmeticMultiplicity(eigenValue);
+		geomMult = this.geometricMultiplicity(eigenValue);
+		if (arithMult != geomMult) return false;
+
+		sumArithMult += arithMult;
+		for (int row = 1; row < this.rows(); ++row) {
+			if (eigenValue.equalsred(eigenvalueArray.getItem(row, 0))) continue;
+			else eigenValue = eigenvalueArray.getItem(row, 0);
+			arithMult = eigenvalueArray.arithmeticMultiplicity(eigenValue);
+			geomMult = this.geometricMultiplicity(eigenValue);
+			if (arithMult != geomMult) return false;
+			sumArithMult += arithMult;
+		}
+		if (sumArithMult == this.rows()) return true;
+		
+		return false;
+	}
 
 	/**
 	 * Factorizes the matrix using a diagonal matrix of eigenvectors (D) and a eigenvalue matrix (P)
@@ -102,11 +131,19 @@ public class Diagfactor extends MatrixComplex {
 		int rowLen = this.complexMatrix.length; 
 		int colLen= this.complexMatrix[0].length;
 		if (colLen != rowLen) {
-			System.out.println(HEADINFO + "The Matrix MUST be saqure to be factorized as a Diagonal Matrix");
+			System.out.println(HEADINFO + "The Matrix MUST be square to be factorized as a Diagonal Matrix");
 			System.exit(-1);
 		}
 		MatrixComplex eigenVal = this.eigenvalues();
 		eigenVal.quicksort(0);
+		
+		if (!this.isDiagonalizable(eigenVal)) {
+			factorized = false;
+			System.out.println(HEADINFO + "The Matrix cannot be diagonalized");
+			return;
+		}
+		else System.out.println(HEADINFO + "The Matrix CAN BE diagonalized");
+
 		// P: Transformation Matrix, the eigenvalues in columns
 		cP = this.eigenvectors(eigenVal).transpose();
 

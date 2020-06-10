@@ -74,9 +74,11 @@ public class TestEigenV2 {
     	
     	Diagfactor diagonal = new Diagfactor(aMatrix);
     	diagonal.diagonalize();
-    	diagonal.D().println(Header + "Matriz Diagonal (D)");
-    	diagonal.P().println(Header + "Matriz Valores Propios (P)");
-    	diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println(Header + "P·D·P⁻¹");
+    	if (diagonal.factorized()) {
+	    	diagonal.D().println(Header + "Matriz Diagonal (D)");
+	    	diagonal.P().println(Header + "Matriz Valores Propios (P)");
+	    	diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println(Header + "P·D·P⁻¹");
+    	}
 	}
 	
 	/**

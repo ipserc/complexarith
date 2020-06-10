@@ -12,7 +12,7 @@ public class TestDeterminant {
        	System.out.println("========================================================================================");
        	fMatrix.println("------------ Original Matrix ------------");
        	fMatrix.triangle().println("------------ fMatrix triangle ------------");
-       	showResultDeterminant(fMatrix); 	
+       	showResultDeterminant(fMatrix);
     	iMatrix = fMatrix.inverse();
        	iMatrix.println("------------ fMatrix inverse ------------");
        	showResultDeterminant(iMatrix); 

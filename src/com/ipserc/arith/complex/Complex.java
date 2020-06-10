@@ -631,7 +631,7 @@ public class Complex {
 		else if (FIXED_NOTATION) sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
 			//else sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
 
-		if (fImp == 0.0 ) 
+		if (this.equalsred(ZERO) || fImp == 0.0 ) 
 			return sfRep + "";
 		if (fRep == 0.0)  
 			return sfImp + imu;
@@ -649,7 +649,7 @@ public class Complex {
 		double fImp = formatNbr(imp);
 		if (Math.abs(fRep*ZERO_THRESHOLD_R) > Math.abs(fImp)) fImp = 0.0;
 		if (Math.abs(fImp*ZERO_THRESHOLD_R) > Math.abs(fRep)) fRep = 0.0;
-		if (fImp == 0.0 ) 
+		if (this.equalsred(ZERO) || fImp == 0.0 ) 
 			return fRep + "";
 		if (fRep == 0.0) 
 			if (Math.abs(fImp) != 1.0) 
