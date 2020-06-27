@@ -10,9 +10,17 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 
 	private final static String HEADINFO = "MatrixComplex --- INFO:";
+	private final static String VERSION = "1.0 (2020_0627_1130)";
 
 	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangulation (Chio's rule)
 
+	/*
+	 * 
+	 */
+	public void version() {
+		System.out.println("VERSION:" + VERSION); 
+	}
+	
 	/*
 	 * 	CONSTRUCTORS 
 	 */
@@ -1756,7 +1764,7 @@ public class MatrixComplex {
 					if (coef.equals(Complex.ZERO)) {
 						isDuplicate = false;
 						break;
-					};
+					}
 					if (!this.getItem(row,col).equals(this.getItem(rrow,col).divides(coef))) {
 						isDuplicate = false;
 						break;
@@ -1871,7 +1879,7 @@ public class MatrixComplex {
 		MatrixComplex solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
 
 		int typeEqSys = this.typeEqSys();
-		this.printTypeEqSys(typeEqSys, lambda);
+		//this.printTypeEqSys(typeEqSys, lambda);
 		if (typeEqSys == INCOMPATIBLE) return solMatrix.divides(0).transpose();
 
 		coefMatrix = this.coefMatrix();
@@ -1923,7 +1931,7 @@ public class MatrixComplex {
 		MatrixComplex newMatrix;
 		Complex cVal;
 
-		System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
+		//System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
 			//this.println("---------------- Matrix solve");
 		auxMatrix = this.triangleUp();	// .heap();
 		int nbrOfSols = auxMatrix.nbrOfSolutions();

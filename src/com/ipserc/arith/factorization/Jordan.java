@@ -4,10 +4,19 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.complex.Complex;;
 
 public class Jordan extends MatrixComplex {
+	private final static String VERSION = "1.0 (2020_0627_1130)";
+
 	private MatrixComplex cJ;
 	private MatrixComplex cP;
 	private boolean factorized = false;
 	private final static String HEADINFO = "Jordan --- INFO:";
+
+	/*
+	 * VERSION
+	 */
+	public void version() {
+		System.out.println("VERSION:" + VERSION); 
+	}
 
 	/*
 	 * 	CONSTRUCTORS 
