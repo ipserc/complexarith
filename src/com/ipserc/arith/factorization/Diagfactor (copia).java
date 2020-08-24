@@ -26,9 +26,7 @@
 package com.ipserc.arith.factorization;
 
 import com.ipserc.arith.complex.Complex;
-import com.ipserc.arith.matrixcomplex.Eigenspace;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.polynom.Polynom;
 
 /**
  * @author ipserc
@@ -44,12 +42,19 @@ public class Diagfactor extends MatrixComplex {
 	 * 	CONSTRUCTORS 
 	 */
 	/**
+	 * Instantiates a complex square array of length len.
+	 * @param len The length of the square array.
+	 */
+	public Diagfactor(int len) {
+		super(len);
+	}
+
+	/**
 	 * Instantiates a complex array from a string, rows are separated with ";", cols are separated with ",".
 	 * @param strMatrix the string with the rows and columns.
 	 */
 	public Diagfactor(String strMatrix) {
 		super(strMatrix);
-		diagonalize();
 	}
 
 	/**
@@ -59,7 +64,6 @@ public class Diagfactor extends MatrixComplex {
 	public Diagfactor(MatrixComplex matrix) {
 		super();
 		this.complexMatrix = matrix.complexMatrix.clone();
-		diagonalize();
 	}
 
 	/*
@@ -81,7 +85,6 @@ public class Diagfactor extends MatrixComplex {
 	public MatrixComplex P() {
 		return cP;
 	}
-	
 
 	/**
 	 * Gets the class member variable with the status of the factorization.
@@ -97,21 +100,21 @@ public class Diagfactor extends MatrixComplex {
 	 * @param eigenvalueArray
 	 * @return true if the matrix is diagonalizable, otherwise false
 	 */
-	public boolean isDiagonalizable(Eigenspace eigenspace) {
+	public boolean isDiagonalizable(MatrixComplex eigenvalueArray) {
 		int arithMult, geomMult;
 		int sumArithMult = 0;
-		Complex eigenValue = eigenspace.values().getItem(0, 0);
+		Complex eigenValue = eigenvalueArray.getItem(0, 0);
 
-		arithMult = eigenspace.arithmeticMultiplicity(eigenValue);
-		geomMult = eigenspace.geometricMultiplicity(eigenValue);
+		arithMult = eigenvalueArray.arithmeticMultiplicity(eigenValue);
+		geomMult = this.geometricMultiplicity(eigenValue);
 		if (arithMult != geomMult) return false;
 
 		sumArithMult += arithMult;
 		for (int row = 1; row < this.rows(); ++row) {
-			if (eigenValue.equalsred(eigenspace.values().getItem(row, 0))) continue;
-			else eigenValue = eigenspace.values().getItem(row, 0);
-			arithMult = eigenspace.arithmeticMultiplicity(eigenValue);
-			geomMult = eigenspace.geometricMultiplicity(eigenValue);
+			if (eigenValue.equalsred(eigenvalueArray.getItem(row, 0))) continue;
+			else eigenValue = eigenvalueArray.getItem(row, 0);
+			arithMult = eigenvalueArray.arithmeticMultiplicity(eigenValue);
+			geomMult = this.geometricMultiplicity(eigenValue);
 			if (arithMult != geomMult) return false;
 			sumArithMult += arithMult;
 		}
@@ -131,11 +134,10 @@ public class Diagfactor extends MatrixComplex {
 			System.out.println(HEADINFO + "The Matrix MUST be square to be factorized as a Diagonal Matrix");
 			System.exit(-1);
 		}
-		Eigenspace eigenspace = new Eigenspace(this);
-		//MatrixComplex eigenVal = this.eigenvalues();
-		//eigenVal.quicksort(0);
+		MatrixComplex eigenVal = this.eigenvalues();
+		eigenVal.quicksort(0);
 		
-		if (!this.isDiagonalizable(eigenspace)) {
+		if (!this.isDiagonalizable(eigenVal)) {
 			factorized = false;
 			System.out.println(HEADINFO + "The Matrix cannot be diagonalized");
 			return;
@@ -143,12 +145,12 @@ public class Diagfactor extends MatrixComplex {
 		else System.out.println(HEADINFO + "The Matrix CAN BE diagonalized");
 
 		// P: Transformation Matrix, the eigenvalues in columns
-		cP = eigenspace.vectors().transpose();
+		cP = this.eigenvectors(eigenVal).transpose();
 
 		// D: diagonal eigenvalues square root matrix
 		cD = new MatrixComplex(rowLen, colLen);
 		for (int i = 0; i < colLen; ++i)
-			cD.complexMatrix[i][i] = eigenspace.values().complexMatrix[i][0];
+			cD.complexMatrix[i][i] = eigenVal.complexMatrix[i][0];
 		//cD.println("--- Diagonal");
 		//(cP.times(cD).times(cP.inverse())).println("A=P·D·P⁻¹");
 		factorized = true;

@@ -7,8 +7,7 @@ import com.ipserc.arith.factorization.Diagfactor;
 public class TestEigenV2 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
-    	MatrixComplex eigenVal;
-    	MatrixComplex eigenVectors;  
+		Eigenspace eigenSpace = new Eigenspace(aMatrix);
     	MatrixComplex eigenVect;
     	final String Header = new String("TEV2 --- "); 
 
@@ -20,30 +19,27 @@ public class TestEigenV2 {
     	aMatrix.determinant().println(Header + "Det[aMatrix]:");
     	aMatrix.triangle().heap().println("---------------- triangle:");
     	
-    	eigenVal = aMatrix.eigenvalues();
-    	eigenVal.quicksort(0);
-    	aMatrix.charactPoly().println(Header + "Characteristic polynom");
-    	eigenVal.println(Header + "**************** eigenVal ****************");
+    	eigenSpace.getCharactPoly().println(Header + "Characteristic polynom");
+    	eigenSpace.values().println(Header + "**************** eigenVal ****************");
     	{
-	    	Complex eVal = eigenVal.getItem(0,0);
-			System.out.println("arith mult[" +  eVal + "]:" + eigenVal.arithmeticMultiplicity(eVal));    		
-	    	for (int i = 0; i < eigenVal.rows(); ++i) {
-	    		if (eVal.equalsred(eigenVal.getItem(i,0))) continue;
-	    		eVal = eigenVal.getItem(i,0);
-	    		System.out.println("arith mult[" +  eVal + "]:" + eigenVal.arithmeticMultiplicity(eVal));    		
+	    	Complex eVal = eigenSpace.values().getItem(0,0);
+			System.out.println("arith mult[" +  eVal + "]:" + eigenSpace.arithmeticMultiplicity(eVal));    		
+	    	for (int i = 0; i < eigenSpace.values().rows(); ++i) {
+	    		if (eVal.equalsred(eigenSpace.values().getItem(i,0))) continue;
+	    		eVal = eigenSpace.values().getItem(i,0);
+	    		System.out.println("arith mult[" +  eVal + "]:" + eigenSpace.arithmeticMultiplicity(eVal));    		
 	    	}
     	}
 
-    	eigenVectors = aMatrix.eigenvectors(eigenVal);
     	//aMatrix.charactPoly().plotReIm(-10, 10);
-    	eigenVectors.println(Header + "**************** eigenVectors ****************");
+    	eigenSpace.vectors().println(Header + "**************** eigenVectors ****************");
     	{
-	    	Complex eVal = eigenVal.getItem(0,0);
-			System.out.println("geom mult(" +  eVal + "):" + eigenVal.geometricMultiplicity(eVal, eigenVectors));    		
-	    	for (int i = 0; i < eigenVal.rows(); ++i) {
-	    		if (eVal.equalsred(eigenVal.getItem(i,0))) continue;
-	    		eVal = eigenVal.getItem(i,0);
-	    		System.out.println("geom mult(" +  eVal + "):" + eigenVal.geometricMultiplicity(eVal, eigenVectors));
+	    	Complex eVal = eigenSpace.values().getItem(0,0);
+			System.out.println("geom mult(" +  eVal + "):" + eigenSpace.geometricMultiplicity(eVal));    		
+	    	for (int i = 0; i < eigenSpace.values().rows(); ++i) {
+	    		if (eVal.equalsred(eigenSpace.values().getItem(i,0))) continue;
+	    		eVal = eigenSpace.values().getItem(i,0);
+	    		System.out.println("geom mult(" +  eVal + "):" + eigenSpace.geometricMultiplicity(eVal));
 	    	}
     	}
 
@@ -53,15 +49,15 @@ public class TestEigenV2 {
     	int colLen = aMatrix.cols(); //complexMatrix[0].length;
     	eigenVect = new MatrixComplex(1,colLen);
     	
-    	for (int eigv = 0; eigv < eigenVal.rows(); ++eigv) {
-    		eigenVect.complexMatrix[0] = eigenVectors.complexMatrix[eigv].clone();
+    	for (int eigv = 0; eigv < eigenSpace.values().rows(); ++eigv) {
+    		eigenVect.complexMatrix[0] = eigenSpace.vectors().complexMatrix[eigv].clone();
 	    	//eigenVect.divides(eigenVect.complexMatrix[0][0]).println(Header + "Norm eigenVect "+eigv);
 	    	eigenVect.println(Header + "**************** eigenVect ****************");
-	    	aMatrix.times(eigenVect.transpose()).transpose().println(Header + "aMatrix·eigenVect_"+eigv);
-	    	eigenVect.times(eigenVal.complexMatrix[eigv][0]).println(Header + "eigval["+eigv+"]·eigenVect_"+eigv);
+	    	aMatrix.times(eigenVect.transpose()).transpose().println(Header + "aMatrix·eigenVect  "+eigv);
+	    	eigenVect.times(eigenSpace.values().complexMatrix[eigv][0]).println(Header + "eigval["+eigv+"]·eigenVect"+eigv);
     	}
 
-    	eigenVectors.adjoint().times(eigenVectors).println(Header + "eVT·eV");
+    	eigenSpace.vectors().adjoint().times(eigenSpace.vectors()).println(Header + "eVT·eV");
     	/*
     	System.out.print("press any key");
     	try {

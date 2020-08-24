@@ -62,7 +62,9 @@ public class TestVector {
     	
        	System.out.println("------------- OPERACIONES CON VECTORES -----------------");
        	aVector.println("Vector a");
+       	System.out.printf("Dimensión Vector a:%d\n", aVector.dim());
        	bVector.println("Vector b");
+       	System.out.printf("Dimensión Vector b:%d\n", bVector.dim());
        	result = aVector.dotprod(bVector);
        	System.out.println("dotProd/scalar prod (a·b) = " + result);
        	matrix = aVector.outerprod(bVector);
@@ -71,6 +73,7 @@ public class TestVector {
        	//System.out.println(" |a /\\ b|= " + cVector.determinant() + "\n");       	
        	cVector = aVector.crossprod(bVector);
        	cVector.println("Producto vectorial (axb) = ");
+       	System.out.printf("Dimensión Vector prod.vect:%d\n", cVector.dim());
        	cVector = aVector.plus(bVector);
        	cVector.println("cVector (a+b)");
        	cVector = aVector.minus(bVector);
@@ -258,6 +261,51 @@ public class TestVector {
     	aVector = new Vector(" 6, 9, 14");
     	bMatrix.base(" 1, 1, 1; 1, 1, 2; 1, 2, 3");
        	cambioBase(aVector, bMatrix);
-	}
+       	
+       	aVector = new Vector(" 3, 2");
+       	bVector = new Vector("-3,-1");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector(" 3, 2");
+       	bVector = new Vector("-3,-1");
+       	vectorOperate(aVector, bVector);
+       	
+       	aVector = new Vector(" 3, 2, 0");
+       	bVector = new Vector(" 0, 0, 3");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector(" 3, 2,-1");
+       	bVector = new Vector("-3,-1, 2");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector(" 3, 2,-1");
+       	bVector = new Vector(" 3,-3, 3");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector(" 3, 2, 5,-2,-4, 1");
+       	bVector = new Vector("-3,-1,-1, 2, 2,-1");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector(" 3, 2, 5,-2,-4, 1, 0");
+       	bVector = new Vector("7, -12, 1, 7, -4, -4, 8");
+       	vectorOperate(aVector, bVector);
+      	
+       	aVector = new Vector(" 3, 2, 5,-2,-4, 1, 0");
+       	bVector = new Vector("-3,-1,-1, 2, 2,-1, 0");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector(" 3-2i, 2+0i, 5+i,-2-3i,-4i");
+       	bVector = new Vector("-3,-1,-1, 2, 2");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector(" -1+3i, -12-5i, 3+2i, -6+16i, -13i, -8-1i, 12-5i");
+       	bVector = new Vector("   -3,     -1,    -1,      2,    2,     0,     0");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector(" 3, 5,-2,-4, 1");
+       	bVector = new Vector("-3,-1, 2, 2,-1");
+       	vectorOperate(aVector, bVector);
+       	
+}
 
 }

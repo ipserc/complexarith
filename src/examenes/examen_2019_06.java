@@ -115,17 +115,15 @@ public class examen_2019_06 {
 		System.out.println("---------- Factorización SVD");
 		System.out.println("----------------------------");
 		SVDfactor Asvd = new SVDfactor(fMatrix);
-    	Asvd.SVDfactorize();
     	showResults(Asvd);
     	/* */
 		System.out.println();
 		System.out.println();
 		System.out.println("Apartado (c) Halla tantos autovectores de f linealmente independientes como sea posible.");
-		fMatrix.charactPoly().println("Polinomio Caracteristico:");
-		MatrixComplex eigenvalues = fMatrix.eigenvalues();
-		MatrixComplex eigenvectors = fMatrix.eigenvectors(eigenvalues);
-		eigenvalues.println("Auto Valores");
-		eigenvectors.println("Auto Vectores");
+		Eigenspace eigenMatrix = new Eigenspace(fMatrix);
+		eigenMatrix.charactPoly().println("Polinomio Caracteristico:");
+		eigenMatrix.values().println("Auto Valores");
+		eigenMatrix.vectors().println("Auto Vectores");
 	}
 
 	public static void Ejercicio1() {

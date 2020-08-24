@@ -132,5 +132,25 @@ public class TestSolve12 {
      			"  0,  2, -2,  2");
 		showResults(aMatrix);		
 
+		Complex.setFixedOFF();
+     	aMatrix = new MatrixComplex(""+
+     			"  0.000001, 1,  1;" +
+     			"  1.000000, 1,  2");
+		showResults(aMatrix);		
+		
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000000, 1,  2;" +
+     			"  0.000001, 1,  1;");
+		showResults(aMatrix);		
+
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000000, 0.0000001,  2;" +
+     			"  0.000001, 1.0000000,  1;");
+		showResults(aMatrix);		
+
+     	aMatrix = new MatrixComplex(""+
+     			"  0.000001, 1.0000000,  1;"+
+     			"  1.000000, 0.0000001,  2;");
+		showResults(aMatrix);		
 	}
 }

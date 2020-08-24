@@ -184,7 +184,7 @@ public class TestIntegral {
 		System.out.println("      ----- FAIL -----");
 		System.out.println("      Integral 1/z (" + lolimit.toString() + ", " + uplimit.toString() + ")=" + integral.toString());
 		System.out.println("CHECK Integral 1/z (" + lolimit.toString() + ", " + uplimit.toString() + ")=" + check.toString());
-		System.out.println("Cte Integración=" + (check.minus(integral)));
+		System.out.println("Cte Integración = " + (check.minus(integral)));
 		System.out.println("log(" + lolimit.toString() + ") = " + Complex.log(lolimit).toString());
 		System.out.println("log(" + uplimit.toString() + ") = " + Complex.log(uplimit).toString());
 		System.out.println(dashes);
@@ -235,5 +235,4 @@ public class TestIntegral {
 		System.out.println("CHECK Integral z (" + lolimit.toString() + ", " + uplimit.toString() + ")=" + (uplimit).power(2).divides(2).minus((lolimit).power(2).divides(2)).toString());
 		System.out.println(dashes);
 	}
-
 }

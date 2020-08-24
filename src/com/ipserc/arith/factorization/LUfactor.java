@@ -37,7 +37,7 @@ public class LUfactor extends MatrixComplex {
 	/**
 	 * Instantiates a complex square array of length len.
 	 * @param len The length of the square array.
-	 */
+	 *
 	public LUfactor(int len) {
 		super(len);
 	}
@@ -46,7 +46,7 @@ public class LUfactor extends MatrixComplex {
 	 * Instantiates a complex array of dimensions rowLen x colLen.
 	 * @param rowLen Number of rows.
 	 * @param colLen Number of columns.
-	 */
+	 *
 	public LUfactor(int rowLen, int colLen) {
 		super(rowLen, colLen);
 	}
@@ -57,6 +57,7 @@ public class LUfactor extends MatrixComplex {
 	 */
 	public LUfactor(String strMatrix) {
 		super(strMatrix);
+		LUfactorizePP();
 	}
 
 	/**
@@ -66,13 +67,7 @@ public class LUfactor extends MatrixComplex {
 	public LUfactor(MatrixComplex matrix) {
 		super();
 		this.complexMatrix = matrix.complexMatrix.clone();
-	}
-
-	/**
-	 * Shortcut to LUfactorizePP()
-	 */
-	public void LUfactorize() {
-		this.LUfactorizePP();
+		LUfactorizePP();
 	}
 
 	/**
@@ -82,7 +77,7 @@ public class LUfactor extends MatrixComplex {
 	 * Computers usually solve square systems of linear equations using the LU decomposition, and it is also a key step when inverting a matrix, or computing the determinant of a matrix. 
 	 * The LU decomposition was introduced by mathematician Tadeusz Banachiewicz in 1938.[Source Wikipedia]
 	 */
-	public void LUfactorizePP() {
+	private void LUfactorizePP() {
 		int rowLen = this.complexMatrix.length;
 		int colLen = this.complexMatrix[0].length;
 

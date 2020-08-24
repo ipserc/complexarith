@@ -130,7 +130,6 @@ public class QRfactor extends MatrixComplex {
 			q[k] = new MatrixComplex(rowLen, rowLen);
 			// q[k] = I-2·u·u* (conjugate transpose)
 			q[k] = I.minus(e.times(e.adjoint()).times(2));
-			//q[k] = I.minus(e.dotprod(e).times(2));
 			z = q[k].times(z);
 		}
 		cQ = q[0];	

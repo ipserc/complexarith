@@ -14,7 +14,7 @@ public class TestSolve09 {
 		System.out.println("_____________________________________________________________________________________");		
 		System.out.println("_____________________________ LU FACTORIZATION ______________________________________");		
 
-		cMatrix.LUfactorize();
+		//cMatrix.LUfactorize();
     	cMatrix.println("Original Matrix");
     	lMatrix = cMatrix.L();
     	lMatrix.println("L");
@@ -23,12 +23,13 @@ public class TestSolve09 {
     	pMatrix = cMatrix.P();
     	pMatrix.println("P");
     	cMatrix.P().transpose().times(cMatrix.L().times(cMatrix.U())).println("PT · L · U");
+		System.out.println("_____________________________________________________________________________________");		
+
 	}
 	public static void showResults(SVDfactor A) {
 		MatrixComplex S;
     	MatrixComplex V;
     	MatrixComplex U;
-		A.SVDfactorize();
     	S = A.getS();
     	V = A.getV();
     	U = A.getU();
@@ -39,6 +40,7 @@ public class TestSolve09 {
     	U.println("U");
     	V.println("V");
     	(U.times(S)).times(V.adjoint()).println("U·S·V*");
+		System.out.println("_____________________________________________________________________________________");		
 	}
 	
 	private static void showResults(MatrixComplex fMatrix) {
@@ -82,6 +84,7 @@ public class TestSolve09 {
 			solMatrix.println("Soluciones (solMatrix)");
 			fMatrix.coefMatrix().times(solMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
 		}
+		System.out.println("_____________________________________________________________________________________");		
 	}
 
 	/**
@@ -89,10 +92,9 @@ public class TestSolve09 {
 	 */
 	public static void main(String[] args) {
 		MatrixComplex aMatrix;
-
 		Complex.setFormatON();
 		Complex.setFixedON(3);
-		
+
      	aMatrix = new MatrixComplex(
      			"-1, 1,-1, 0;"+
      			"-1,-1, 1, 0;" +
@@ -106,6 +108,22 @@ public class TestSolve09 {
      			" 1,-1, 1,");
 		showResults(svdMatrix);
 		
+		svdMatrix = new SVDfactor(
+     			" 2i, 1,-1;"+
+     			"-1,0, 1;" +
+     			" 1,-1, 2i,");
+		showResults(svdMatrix);
+		
+		svdMatrix = new SVDfactor(
+     			" 2i, 1;"+
+     			"-1, 1;" +
+     			" -1, 2i,");
+		showResults(svdMatrix);
+		
+		svdMatrix = new SVDfactor(svdMatrix.transpose());
+		showResults(svdMatrix);
+
+	
 		LUfactor luMatrix;
 		luMatrix = new LUfactor(
      			"-1, 1,-1;"+
@@ -119,6 +137,5 @@ public class TestSolve09 {
 		//interms.initMatrixRandomInteger(1); 
 		aMatrix = aMatrix.augment(interms.transpose()); 
 		showResults(aMatrix);
-
 	}
 }

@@ -27,5 +27,9 @@ public class TestCharacPol {
 
 		A = new MatrixComplex("1,2,3,4,0;-1,0,2,-1,-3;3,1,1,2,-2;5,-3,0,4,-3;-1,0,0,3,2");
 		ShowResults(A);
+		
+		A = new MatrixComplex(11); A.initMatrixRandomRec(2); A = A.divides(10);
+		A = A.adjoint().times(A);
+		ShowResults(A);
 	}
 }

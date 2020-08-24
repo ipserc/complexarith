@@ -218,7 +218,8 @@ public class Complex {
 		//double sgn = (Math.abs(this.rep) <= ZERO_THRESHOLD_R) ? Math.signum(this.imp): Math.signum(Math.cos(pha));
 		if ((Math.abs(this.imp) <= ZERO_THRESHOLD_R)) this.cre = this.rep;
 		else {
-			double sgn = Math.signum(this.rep);
+			//double sgn = Math.signum(this.rep);
+			double sgn = Math.signum(this.rep*this.imp);
 			this.cre = sgn * this.mod;
 		}
 	}

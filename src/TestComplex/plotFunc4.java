@@ -16,7 +16,7 @@ public class plotFunc4 {
 	 */
 	public static void plot(String title, long samples, double dataRe[][], double dataIm[][]) {
 		JavaPlot p = new JavaPlot();
-		p.setTitle("Integral "+title);
+		p.setTitle(title);
 		p.addPlot(dataRe);
 		p.addPlot(dataIm);
 		p.set("zeroaxis", "");
@@ -51,12 +51,12 @@ public class plotFunc4 {
 		double stepRe;
 		double stepIm;
 		Function<Complex, Complex> func;
-		func = z -> z.times(2);
+		func = z -> z.times(Complex.sin(z)).divides(z.mod());
 		
-		int samples = 100;
+		int samples = 300;
 		MatrixComplex data = new MatrixComplex(samples+1, 1);
-		lolimit.setComplex("-5+3i");
-		uplimit.setComplex("5+3i");
+		lolimit.setComplex("-1.9+1i");
+		uplimit.setComplex("+1-1.9i");
 		stepRe = uplimit.minus(lolimit).rep()/samples;
 		stepIm = uplimit.minus(lolimit).imp()/samples;
 		
@@ -75,19 +75,21 @@ public class plotFunc4 {
 			point1 = point2.copy();
 			point2.setComplexRec(point1.rep() + stepRe, point1.imp() + stepIm);
 		}
-		plot("func = z -> z.times(2) (3e-6+3e-6i, 10+2i)", samples, data);
+		String title = "Integral func = z*sin(z)/|z| (" + lolimit.toString() + "," + uplimit.toString()+")";
+		plot(title, samples, data);
 
 		point1 = lolimit;
 		point = point1.copy();
 		for (int t = 0; t <= samples; ++t) {			
-			data.complexMatrix[t][0] = point.power(2);
+			data.complexMatrix[t][0] = func.apply(point);
 			System.out.println("point:" + point.toString());			
 			System.out.println("step:" + t + " Data:" + data.complexMatrix[t][0].toString());
 			point.setComplexRec(point1.rep() + stepRe/2, point1.imp() + stepIm/2);
 			point1.setComplexRec(point1.rep() + stepRe, point1.imp() + stepIm);
 			
 		}
-		plot("z.power(2) (3e-6+3e-6i, 10+2i)", samples, data);
+		title = "func = z*sin(z)/|z| (" + lolimit.toString() + "," + uplimit.toString()+")";
+		plot(title, samples, data);
 	}
 
 }

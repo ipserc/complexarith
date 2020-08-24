@@ -30,7 +30,7 @@ public class TestSolve02 {
 			System.out.println("Se devuelve 1 solución única.");
 		else if (fMatrix.typeEqSys() == MatrixComplex.COMPATIBLE_INDET) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
 			else System.out.println("Sistema sin solución.") ;
-		System.out.println("	SOLVE GAUSS");		
+		System.out.println("	SOLVE GAUSS");
 		hMatrix = fMatrix.solve();
 		hMatrix.println("Soluciones (hMatrix)");
 		for (int i = 0 ; i < hMatrix.rows(); ++i) {

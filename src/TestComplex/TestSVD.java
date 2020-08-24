@@ -64,8 +64,8 @@ public class TestSVD {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-    	SVDfactor A;
-   	
+    	MatrixComplex A;
+    	SVDfactor svd;
        	Complex.setFormatON();
     	Complex.setFixedON(3);
 
@@ -107,67 +107,74 @@ public class TestSVD {
     	//A = new SVDfactor("3,2i,2;2i,3,-2");
     	//A = new SVDfactor("-1,2,1;3,-2,1");
 /**/ 
-    	A=new SVDfactor(
+    	svd = new SVDfactor(
   			  " 2.925-0.533i, 0.729+2.732i, 7.443+6.499i,-4.267+3.362i;"
   			+ " 0.208-2.559i,-2.815+3.671i,-7.676+0.295i,-1.295-2.829i;"
   			+ "-0.525+2.311i, 2.814+5.875i,-7.154-1.795i,-4.754+2.267i;"
   			+ "-3.146+4.064i,-8.656+6.937i, 7.892-3.179i,-8.197+8.063i");
-    	A.SVDfactorize();
-    	showResults(A);
+    	showResults(svd);
 
     	/**/
 
-    	A = new SVDfactor(4); 
+    	A = new MatrixComplex(4); 
     	A.initMatrixRandomRec(9);
-    	A.SVDfactorize();
-    	showResults(A);
+    	svd = new SVDfactor(A);
+    	showResults(svd);
 
-       	A = new SVDfactor(
+       	svd = new SVDfactor(
        			" 6.0 , 0.0 ,-1.0 ,-4.0 ,-2.0;"+
        			" 7.0 , 0.0 ,-6.0 , 0.0 ,-2.0;"+
        			"-4.0 ,-1.0 ,-1.0 , 1.0 ,-7.0;"+
        			"-1.0 , 8.0 , 8.0 , 6.0 ,-4.0;"+
        			" 1.0 ,-4.0 , 6.0 , 7.0 , 2.0");    	
-    	A.SVDfactorize();
-    	showResults(A);
+    	showResults(svd);
 
-    	A = new SVDfactor(
-    			"-1,2,1,4,-3;"+
-    			"3,-2,1,-2,-4;"+
-    			"5,-2,-3,-1,6");
-    	A.SVDfactorize();
-    	showResults(A);
+    	svd = new SVDfactor(
+    			"-1, 2, 1, 4,-3;"+
+    			" 3,-2, 1,-2,-4;"+
+    			" 5,-2,-3,-1, 6");
+    	showResults(svd);
     	
-    	A = new SVDfactor("-1,2;3,-2;5,-2");
-    	A.SVDfactorize();
-    	showResults(A);
+    	svd = new SVDfactor("-1,2;3,-2;5,-2");
+    	showResults(svd);
     	
-    	A = new SVDfactor("-1,2,1;3,-2,1");
-    	A.SVDfactorize();
-    	showResults(A);
+    	svd = new SVDfactor("-1,2,1;3,-2,1");
+    	showResults(svd);
     	
-    	A = new SVDfactor("-1+2i,3i,1;3+3i,-9-2i,-i;2+5i,1-7i,-5+7i");
-    	A.SVDfactorize();
-    	showResults(A);
+    	svd = new SVDfactor("-1+2i,3i,1;3+3i,-9-2i,-i;2+5i,1-7i,-5+7i");
+    	showResults(svd);
     	
-    	A = new SVDfactor("-1+2i,3i;3+3i,-9-2i;2+5i,1-7i");
-    	A.SVDfactorize();
-    	showResults(A);
+    	svd = new SVDfactor("-1+2i,3i;3+3i,-9-2i;2+5i,1-7i");
+    	showResults(svd);
 
-    	A = new SVDfactor("-1+2i,3i,1,3+3i;-9-2i,2+5i,1-7i,-5+7i");
-    	A.SVDfactorize();
-    	showResults(A);
+    	svd = new SVDfactor("-1+2i,3i,1,3+3i;-9-2i,2+5i,1-7i,-5+7i");
+    	showResults(svd);
     	
-		A = new SVDfactor(
+		svd = new SVDfactor(
 				" 1, 0, 0;"+
 				" 0, 1, 0;"+
 				" 1,-2, 2");
-    	A.SVDfactorize();
-    	showResults(A);
+    	showResults(svd);
 
+    	A = new MatrixComplex(11,11); A.initMatrixRandomRec(1);
+    	svd = new SVDfactor(A);
+    	showResults(svd);
+
+		svd = new SVDfactor(
+				" 1, 1, 1;"+
+				" 1, 2, 1;"+
+				" 1, 1, 1");
+    	showResults(svd);
+    	
+		svd = new SVDfactor(
+				" 1, 1, 0 ,1;"+
+				" 0, 0, 0, 1;"+
+				" 1, 1, 0, 0");
+    	showResults(svd);
+    	
 /* 	
-    	Amatrix = new MatrixComplex(17,17); Amatrix.initMatrixRandomRec(1);
-    	A = new SVDfactor(Amatrix);
+    	A = new MatrixComplex(17,17); Amatrix.initMatrixRandomRec(1);
+    	A = new SVDfactor(A);
     	//Amatrix.println("Amatrix");
     	A.SVDfactorize();
     	showResults(A);

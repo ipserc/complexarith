@@ -10,16 +10,15 @@ import com.ipserc.arith.factorization.Diagfactor;
 
 public class TestDiagonal {
 
-	private static void showResults(Diagfactor fMatrix) {
+	private static void showResults(MatrixComplex fMatrix) {
+		Diagfactor dMatrix = new Diagfactor(fMatrix);
 		System.out.println("__________________________________________________________________________________________");
     	System.out.println("______________________________ DIAGONALIZACION DE MATRICES _______________________________");
 		fMatrix.println("--- A");
 		fMatrix.triangle().heap().println("--- Triangle");
-		fMatrix.charactPoly().println("Polinomio Característico");
-		fMatrix.diagonalize();
-		if (fMatrix.factorized()) {
-			MatrixComplex D = fMatrix.D();
-			MatrixComplex P = fMatrix.P();
+		if (dMatrix.factorized()) {
+			MatrixComplex D = dMatrix.D();
+			MatrixComplex P = dMatrix.P();
 	 		D.println("--- D Diagonal");
 			P.println("--- P Matrix");
 			P.determinant().println("Determinant(P)=");
@@ -27,6 +26,7 @@ public class TestDiagonal {
 		}
 	}
 
+	/*
 	private static MatrixComplex diagonal(MatrixComplex fMatrix) {
 		int rowLen = fMatrix.complexMatrix.length; 
 		int colLen= fMatrix.complexMatrix[0].length;
@@ -44,56 +44,58 @@ public class TestDiagonal {
 
 		return eigenVal;
 	}
+	*/
 
 	public static void main(String[] args) {
-		Diagfactor fMatrix;
+		MatrixComplex fMatrix;
 
        	Complex.setFormatON();
     	Complex.setFixedON(3);
-
-		fMatrix= new Diagfactor(1);
-    	
-		fMatrix= new Diagfactor("1,i,1;1,-2+i,3-i;1,0,-i");
+  	
+		fMatrix= new MatrixComplex("1,i,1;1,-2+i,3-i;1,0,-i");
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor("3,1;1,3");
+		fMatrix = new MatrixComplex("3,1;1,3");
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor("3,1i,-1i;1,3i,2;-1,1,-3");
+		fMatrix = new MatrixComplex("3,1i,-1i;1,3i,2;-1,1,-3");
 		showResults(fMatrix);
 
 		/**/
-		fMatrix = new Diagfactor(6); fMatrix.initMatrixRandomInteger(9);
+		fMatrix = new MatrixComplex(6); fMatrix.initMatrixRandomInteger(9);
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor(4); fMatrix.initMatrixRandomInteger(9);
+		fMatrix = new MatrixComplex(4); fMatrix.initMatrixRandomInteger(9);
 		fMatrix.complexMatrix = fMatrix.hermitian().complexMatrix;
 		showResults(fMatrix);
 
 		//try { System.in.read(); } catch(java.io.IOException e) {}
 		
-		fMatrix = new Diagfactor(4); fMatrix.initMatrixRandomInteger(10);
+		fMatrix = new MatrixComplex(4); fMatrix.initMatrixRandomInteger(10);
 		fMatrix.complexMatrix = fMatrix.skewHermitian().complexMatrix;
 		showResults(fMatrix);
 		/**/
 
-		fMatrix = new Diagfactor("1,2,3;0,-1,2;0,1,1");
+		fMatrix = new MatrixComplex("1,2,3;0,-1,2;0,1,1");
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor("1,2,3,-i;0,+2i,-1,2;3i,0,1,1;4,-2,-i,5");
+		fMatrix = new MatrixComplex("1,2,3,-i;0,+2i,-1,2;3i,0,1,1;4,-2,-i,5");
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor("1,0,1;0,1i,-2;0,0,2");
+		fMatrix = new MatrixComplex("1,0,1;0,1i,-2;0,0,2");
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor("1,2,3;2,4,6;3,6,9");
+		fMatrix = new MatrixComplex("1,2,3;2,4,6;3,6,9");
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor("1,2,3;0,0,2;0,1,1");
+		fMatrix = new MatrixComplex("1,2,3;0,0,2;0,1,1");
 		showResults(fMatrix);
 
-		fMatrix = new Diagfactor("2,2,-3,4;-2,2,1,0;3,3,-5,7;4,2,-6,7");
+		fMatrix = new MatrixComplex("2,2,-3,4;-2,2,1,0;3,3,-5,7;4,2,-6,7");
 		showResults(fMatrix);
+		
+		fMatrix = new MatrixComplex(10); fMatrix.initMatrixRandomInteger(5);
+		showResults(fMatrix);		
 	}
 
 }

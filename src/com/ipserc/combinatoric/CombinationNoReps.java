@@ -5,13 +5,13 @@ import java.util.*;
 
 public class CombinationNoReps {
 	private final static String VERSION = "1.0 (2020_0627_1130)";
+
 	/*
 	 * VERSION
 	 */
 	public void version() {
 		System.out.println("VERSION:" + VERSION); 
 	}
-
 	
 	public long factorial(int num) {
 		long factorial;

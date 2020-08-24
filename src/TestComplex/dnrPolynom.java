@@ -10,14 +10,23 @@ public class dnrPolynom {
 		MatrixComplex roots;
 		double loLimit, upLimit;
 
+		System.out.println("_____________________________________________________________________________________");		
+		System.out.println("________________________ CALCULATE POLYNOMIAL ROOTS _________________________________");		
 		myPolynom.println();
 		System.out.println("Polynom:" + myPolynom.toPolynom());
+		/*
+		int degree = myPolynom.degree();
+		double grade = Math.log(degree/10);
+		int div = grade >= 10.0 ? (int)grade/10 : 1;
+		roots = myPolynom.divides(div).solve();
+		roots = roots.times(div);
+		*/
 		roots = myPolynom.solve();
 		roots.quicksort(0);
 		roots.println("roots");
 		loLimit = myPolynom.getMinRoot(roots);		
 		upLimit = myPolynom.getMaxRoot(roots);
-		myPolynom.setSampleBase(600);
+		myPolynom.setSampleBase(6000);
 		myPolynom.plot(loLimit, upLimit);
 		//myPolynom.plotReIm(loLimit, upLimit);     	
      	//myPolynom.plotAbs(loLimit, upLimit);     	
@@ -28,7 +37,7 @@ public class dnrPolynom {
 		Polynom myPolynom;
 
      	Complex.setFormatON();
-     	Complex.setFixedON(1);
+     	Complex.setFixedON(3);
      	
      	myPolynom = new Polynom();
      	
@@ -46,8 +55,8 @@ public class dnrPolynom {
 		myPolynom = new Polynom("1,0,-8,0,16");
 		showResults(myPolynom);	
 
-		//myPolynom = myPolynom.fromRoots("-4,-4,-2,-2,2,2,4,4");
-		myPolynom = new Polynom("1,0,-40,0,528,0,-2560,0,4096");
+		myPolynom = myPolynom.fromRoots("-4,-4,-2,-2,2,2,4,4");
+		//myPolynom = new Polynom("1,0,-40,0,528,0,-2560,0,4096");
 		showResults(myPolynom);	
 
 		//myPolynom = myPolynom.fromRoots("-6,-6,-4,-4,-2,-2,2,2,4,4,6,6");
@@ -71,12 +80,13 @@ public class dnrPolynom {
 		myPolynom = myPolynom.fromRoots("-1,-1,-0.9,-0.9,-0.8,-0.8,0.8,0.8,0.9,0.9,1,1");
 		//myPolynom = new Polynom("1,0,-112,0,4704,0,-92416,0,872704,0,-3612672,0,5308416");
 		showResults(myPolynom);	
+		*/
 
 		myPolynom = myPolynom.fromRoots("-1,-1,-0.9,-0.9,-0.8,-0.8,-0.7,-0.7,0.7,0.7,0.8,0.8,0.9,0.9,1,1");
 		//myPolynom = new Polynom("1,0,-240,0,23136,0,-1153280,0,31969536,0,-493854720,0,4042326016,0,-15476981760,0,21743271936");
 		showResults(myPolynom);
-		*/
 
+    	Complex.setFixedON(1);
 		myPolynom = myPolynom.fromRoots(""
 				+ "-1  ,-1,"
 				+ "-0.9,-0.9,"
@@ -99,6 +109,7 @@ public class dnrPolynom {
 				+ " 0.9, 0.9,"
 				+ " 1  , 1");
 		//myPolynom = new Polynom("1,0,-240,0,23136,0,-1153280,0,31969536,0,-493854720,0,4042326016,0,-15476981760,0,21743271936");
+		//myPolynom = new Polynom("1.0,-12.0,28.7,88.1,-239.8,-293.6,831.8,589.1,-1701.1,-794.7,2320.5,762.9,-2243.8,-538.2,1590.9,284.1,-843.0,-113.3,337.1,34.2,-102.1,-7.8,23.3,1.3,-4.0,-0.2,0.5,0.0,-0.0,-0.0,0.0,0.0,-0.0,-0.0,0.0,0.0,-0.0,-0.0,0.0,0.0,-0.0,0.0,0.0");
 		showResults(myPolynom);	
 	}
 

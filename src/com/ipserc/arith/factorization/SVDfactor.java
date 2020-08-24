@@ -18,31 +18,13 @@ package com.ipserc.arith.factorization;
 import com.ipserc.arith.matrixcomplex.*;
 
 public class SVDfactor extends MatrixComplex {
-
 	private MatrixComplex cS;
 	private MatrixComplex cV;
 	private MatrixComplex cU;
-	private boolean factorized = false;
 
 	/*
 	 * 	CONSTRUCTORS 
 	 */
-	/**
-	 * Instantiates a complex square array of length len.
-	 * @param len length of the square array.
-	 */
-	public SVDfactor(int len) {
-		super(len);
-	}
-
-	/**
-	 * Instantiates a complex array of dimensions rowLen x colLen.
-	 * @param rowLen Number of rows.
-	 * @param colLen Number of columns.
-	 */
-	public SVDfactor(int rowLen, int colLen) {
-		super(rowLen, colLen);
-	}
 
 	/**
 	 * Instantiates a complex array from a string, rows are separated with ";", cols are separated with ",".
@@ -50,6 +32,7 @@ public class SVDfactor extends MatrixComplex {
 	 */
 	public SVDfactor(String strMatrix) {
 		super(strMatrix);
+		factorize();
 	}
 
 	/**
@@ -59,6 +42,7 @@ public class SVDfactor extends MatrixComplex {
 	public SVDfactor(MatrixComplex matrix) {
 		super();
 		this.complexMatrix = matrix.complexMatrix.clone();
+		factorize();
 	}
 
 	/**
@@ -88,7 +72,7 @@ public class SVDfactor extends MatrixComplex {
 	 * V* is the conjugate transpose of V.
 	 * [Source Wikipedia]
 	 */
-	public void SVDfactorize() {
+	private void factorize() {
 		MatrixComplex cSS;
 		MatrixComplex cVV;
 		MatrixComplex cUU;
@@ -102,34 +86,35 @@ public class SVDfactor extends MatrixComplex {
 		int colLen = aMatrix.cols();
 
 		MatrixComplex bMatrix = aMatrix.adjoint().times(aMatrix);
-		//	System.out.println(bMatrix.toMatrixComplex());
-		MatrixComplex eigenValues = bMatrix.eigenvalues();
-		eigenValues.quicksort(0);
-		//eigenValues.println("--- eigenValues");
-		MatrixComplex eigenVectors = bMatrix.eigenvectors(eigenValues);
-
+		// System.out.println(bMatrix);
+		Eigenspace eigenSpace = new Eigenspace(bMatrix);
+		// We need the eigenvalues ordered (DOWN) from higher to lower
+		if (eigenSpace.order() == Eigenspace.Order.UP) eigenSpace.orderSwap();
 		// bMatrix.println("--- bMatrix");
-		 eigenValues.println("--- eigenValues");
-		 eigenVectors.println("--- eigenVectors");
+		// eigenSpace.values().println("--- eigenValues");
+		// eigenSpace.vectors().println("--- eigenVectors");
 
 		// Matrix Σ calculation section
 		//
 		// Σ: diagonal eigenvalues square root matrix, augmented with zeroes
 		//
 		cSS = new MatrixComplex(rowLen, colLen);
-		for (int i = 0; i < colLen; ++i)
-			cSS.complexMatrix[i][i] = eigenValues.complexMatrix[i][0].power(0.5);
+		for (int i = 0; i < colLen; ++i) {
+			cSS.complexMatrix[i][i] = eigenSpace.values().getItem(i,0).power(0.5);
+			//cSS.complexMatrix[i][i] = eigenValues.complexMatrix[i][0].power(0.5);
+		}
 		// cSS.println("--- cSS");
 
 		//Matrix V calculation section
 		//
-		// V: eigen vectors matrix, augmented with some other linealy independent vectors to form a basis of F mxm
+		// V: eigenvectors matrix, augmented with some other linealy independent vectors to form a basis of F mxm
 		//
 		cVV = new MatrixComplex(colLen); cVV.initMatrixDiag(1,0);
 		//MatrixComplex eigenVectorsNorm = eigenVectors.normalize(); 
 		for (int row = 0; row < colLen; ++row) {
 			for (int col = 0; col < colLen; ++col) {
-				cVV.complexMatrix[row][col] = eigenVectors.complexMatrix[col][row].copy();
+				cVV.complexMatrix[row][col] = eigenSpace.vectors().getItem(col,row).copy();
+				//cVV.complexMatrix[row][col] = eigenVectors.complexMatrix[col][row].copy();
 			}
 		}
 		// cVV.println("--- cVV");
@@ -146,7 +131,8 @@ public class SVDfactor extends MatrixComplex {
 		for (int col = 0; col < colLen; ++col) {
 			vCol.complexMatrix[0] = cVVt.complexMatrix[col].clone();
 			// vCol.println("--- vCol");
-			vRow = aMatrix.times(vCol.transpose()).divides(cSS.complexMatrix[col][col]);
+			vRow = aMatrix.times(vCol.transpose()).divides(cSS.getItem(col, col));
+			// vRow = aMatrix.times(vCol.transpose()).divides(cSS.complexMatrix[col][col]);
 			// vRow.println("--- vRow");
 			cUU.copyCol(col, vRow, 0);
 		}
@@ -169,7 +155,6 @@ public class SVDfactor extends MatrixComplex {
 			this.cV = cUU;
 			this.cS = cSS.transpose();
 		}
-		factorized = true;
 	}
 
 	/**
@@ -194,14 +179,6 @@ public class SVDfactor extends MatrixComplex {
 	 */
 	public MatrixComplex getU() {
 		return cU;
-	}   
-
-	/**
-	 * Gets the class member variable with the status of the factorization.
-	 * @return The factorization status.
-	 */
-	public boolean factorized() {
-		return factorized;
 	}
 }
 

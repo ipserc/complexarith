@@ -10,7 +10,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 
 	private final static String HEADINFO = "MatrixComplex --- INFO:";
-	private final static String VERSION = "1.0 (2020_0627_1130)";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
 
 	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangulation (Chio's rule)
 
@@ -989,7 +989,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the left division of two arrays as this*cMatrix⁻¹
+	 * Calculates the right division of two arrays as this*cMatrix⁻¹
 	 * @param cMatrix The matrix used as divisor
 	 * @return The right division
 	 */
@@ -1620,9 +1620,9 @@ public class MatrixComplex {
 		switch (type) {
 			case INCOMPATIBLE: text = "The system is INCOMPATIBLE"; 
 				break;
-			case COMPATIBLE_INDET: text = "The system is COMPATIBLE INDETERMINATED. Solutions calculated for λ = " + lambda.toString(); 
+			case COMPATIBLE_INDET: text = "The system is COMPATIBLE INDETERMINATE. Solutions calculated for λ = " + lambda.toString(); 
 				break;
-			case COMPATIBLE_DET: text = "The system is COMPATIBLE DETERMINANTED"; 
+			case COMPATIBLE_DET: text = "The system is COMPATIBLE DETERMINANTE"; 
 				break;
 		}    	
 		System.out.println(text);
@@ -1663,7 +1663,9 @@ public class MatrixComplex {
 	 * @return The solutions of the equation systems
 	 */
 	public MatrixComplex solve() {
-			return this.solveGauss(Complex.ONE);
+			MatrixComplex newThis = this.clone();
+			newThis.quicksort(0);
+			return newThis.solveGauss(Complex.ONE);
 	}
 
 	/**
@@ -1673,7 +1675,9 @@ public class MatrixComplex {
 	 * @return The column matrix with the solutions if they exist.
 	 */
 	public MatrixComplex solve(Complex lambda) {
-		return this.solveGauss(lambda);
+		MatrixComplex newThis = this.clone();
+		newThis.quicksort(0);
+		return newThis.solveGauss(lambda);
 	}
 
 	/**
@@ -3067,8 +3071,38 @@ public class MatrixComplex {
 	}
 
 	/*
-	 * Characteristic Polynomial Eigenvalues Eigenvectors
+	 * Characteristic Polynomial
 	 */
+	
+	/**
+	 * Returns the characteristic polynomial of the matrix.
+	 * The characteristic polynomial of a square matrix is a polynomial which is invariant under matrix similarity and has the eigenvalues as roots. It has the determinant and the trace of the matrix as coefficients. The characteristic polynomial of an endomorphism of vector spaces of finite dimension is the characteristic polynomial of the matrix of the endomorphism over any base; it does not depend on the choice of a basis
+	 * @return The characteristic polynomial
+	 */
+	public Polynom charactPoly() {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		Polynom charactPoly = new Polynom(colLen);
+
+		if (rowLen != colLen) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		for (int order = 0; order <= colLen; ++order) {
+			switch (order) {
+			case 0: charactPoly.complexMatrix[0][colLen-order].setComplexPol(1, 0); 
+			break;
+			case 1: charactPoly.complexMatrix[0][colLen-order] = this.trace().opposite(); 
+			break;
+			default: charactPoly.complexMatrix[0][colLen-order] = this.coefCP(order).times(Math.pow(-1, order)); 
+			break;
+			}
+		}
+		//this.print(charactPolyMatrix.complexMatrix);
+		return (colLen % 2) == 0 ? charactPoly : charactPoly.opposite();
+	}
+
 
 	/**
 	 * Returns a new augmented matrix.
@@ -3293,154 +3327,6 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns the characteristic polynomial of the matrix.
-	 * The characteristic polynomial of a square matrix is a polynomial which is invariant under matrix similarity and has the eigenvalues as roots. It has the determinant and the trace of the matrix as coefficients. The characteristic polynomial of an endomorphism of vector spaces of finite dimension is the characteristic polynomial of the matrix of the endomorphism over any base; it does not depend on the choice of a basis
-	 * @return The characteristic polynomial
-	 */
-	public Polynom charactPoly() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		Polynom charactPoly = new Polynom(colLen);
-
-		if (rowLen != colLen) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
-		}
-
-		for (int order = 0; order <= colLen; ++order) {
-			switch (order) {
-			case 0: charactPoly.complexMatrix[0][colLen-order].setComplexPol(1, 0); 
-			break;
-			case 1: charactPoly.complexMatrix[0][colLen-order] = this.trace().opposite(); 
-			break;
-			default: charactPoly.complexMatrix[0][colLen-order] = this.coefCP(order).times(Math.pow(-1, order)); 
-			break;
-			}
-		}
-		//this.print(charactPolyMatrix.complexMatrix);
-		return (colLen % 2) == 0 ? charactPoly : charactPoly.opposite();
-	}
-
-	/**
-	 * Calculates the eigenvalue, characteristic value, or characteristic root associated with eigenvector v by solving the Characteristic Polynomial.
-	 * An eigenvalue is a scalar associated with a given linear transformation of a vector space and having the property that there is some nonzero vector which when multiplied by the scalar is equal to the vector obtained by letting the transformation operate on the vector; especially :  a root of the characteristic equation of a matrix
-	 * @return The eigenvalues as a column array
-	 */
-	public MatrixComplex eigenvalues() {
-		Polynom charactPoly = this.charactPoly().copy();
-		MatrixComplex eigenvalues = charactPoly.solve();
-		return eigenvalues;
-	}
-	
-	/**
-	 * Returns the arithmetic multiplicity of an specific eigenvalue
-	 * @param eigenvalues The eingenvalues matrix
-	 * @param eigenvalue The value to evaluate the arithmetic multiplicity
-	 * @return The arithmetic multiplicity
-	 */
-	public int arithmeticMultiplicity(Complex eigenvalue) {
-		int arithMult = 0;
-		for (int i = 0; i < this.rows(); ++i) {
-			if (this.getItem(i,0).equalsred(eigenvalue)) ++arithMult;
-		}
-		return arithMult;
-	}
-	
-	/**
-	 * Returns the geometric multiplicity of an specific eigenvalue using the eigenvectors matrix
-	 * @param eigenVal The value to evaluate the geometric multiplicity
-	 * @return The geometric multiplicity
-	 */
-	public int geometricMultiplicity(Complex eigenVal, MatrixComplex eigenVects) {
-		MatrixComplex eigenV = new MatrixComplex(eigenVects.rows(), eigenVects.cols());
-
-		for (int i = 0; i < this.rows(); ++i) {
-			if (this.getItem(i,0).equalsred(eigenVal)) eigenV.complexMatrix[i] = eigenVects.complexMatrix[i];
-		}
-		return eigenV.rank();
-	}
-	
-	/**
-	 * Returns the geometric multiplicity of an specific eigenvalue calcultaing the eigenvectors
-	 * @param eigenVal The value to evaluate the geometric multiplicity
-	 * @return The geometric multiplicity
-	 */
-	public int geometricMultiplicity(Complex eigenVal) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		MatrixComplex I = new MatrixComplex(rowLen, colLen); I.initMatrixDiag(1,0);
-		MatrixComplex cMatrix = (I.times(eigenVal)).minus(this);
-		MatrixComplex dMatrix = cMatrix.augment().heap();
-		return dMatrix.solve().rank();
-	}
-
-	/**
-	 * Calculates the eigenvector or characteristic vector of a linear transformation associated to an specific eigenvalues.
-	 * The eigenvector is a non-zero vector whose direction does not change when that linear transformation is applied to it
-	 * @param eigenVal The eigenvalue to calculate the eigenvector
-	 * @return The eigenvector as a column array
-	 */
-	public MatrixComplex eigenvectors(MatrixComplex eigenValArray) {
-		return eigenvectors2(eigenValArray);
-	}
-	
-	public MatrixComplex eigenvectors1(MatrixComplex eigenValArray) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex I = new MatrixComplex(rowLen, colLen); I.initMatrixDiag(1,0);
-		MatrixComplex eigenVectors = new MatrixComplex(rowLen, colLen);
-		MatrixComplex eigenVect;
-
-		Complex oldEigenVal = new Complex();
-		MatrixComplex cMatrix = ((I.times(eigenValArray.getItem(0,0))).minus(this));
-		MatrixComplex dMatrix = cMatrix.augment().heap();
-		eigenVect = dMatrix.solve();
-		for (int sol = 0; sol < eigenVect.rows(); ++sol)
-			eigenVectors.complexMatrix[sol] = eigenVect.complexMatrix[sol].clone();
-		oldEigenVal = eigenValArray.getItem(0,0);
-		for (int rowEig = 1; rowEig < rowLen; ++rowEig) {
-			if (oldEigenVal.equalsred(eigenValArray.getItem(rowEig,0))) continue;
-			//cMatrix = this.minus(I.times(eigenValArray.getItem(rowEig,0)));
-			cMatrix = (I.times(eigenValArray.getItem(rowEig,0))).minus(this);
-			dMatrix = cMatrix.augment().heap();
-			eigenVect = dMatrix.solve();
-			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
-				eigenVectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
-			}
-			oldEigenVal = eigenValArray.getItem(rowEig,0);
-		}
-		return eigenVectors;
-	}
-
-	public MatrixComplex eigenvectors2(MatrixComplex eigenValArray) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		eigenValArray.quicksort(0);
-
-		MatrixComplex I = new MatrixComplex(rowLen, colLen); I.initMatrixDiag(1,0);
-		MatrixComplex eigenVectors = new MatrixComplex(rowLen, colLen);
-		MatrixComplex eigenVect;
-		MatrixComplex cMatrix, dMatrix;
-		Complex eigenval;
-		
-		for (int rowEig = 0; rowEig < rowLen;) {
-			eigenval = eigenValArray.getItem(rowEig, 0);
-			int arithMult = eigenValArray.arithmeticMultiplicity(eigenval);
-			cMatrix = (I.times(eigenval)).minus(this);
-			dMatrix = cMatrix.augment().heap();
-			eigenVect = dMatrix.solve();
-			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
-			//for (int sol = 0; sol < arithMult; ++sol) {
-				eigenVectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
-			}
-			rowEig += arithMult;
-		}
-		return eigenVectors;
-	}
-
-	/**
 	 * Constant to define the decreasing sort
 	 */
 	private final static int DECREASING = 0;
@@ -3510,7 +3396,7 @@ public class MatrixComplex {
 	 * Sorts from minimum to maximum using the quicksort method the rows of an array by the modulus of the item in the column "col".
 	 * @param col Index of the column to order.
 	 */   
-	public void quicksortdown(int col) {
+	public void quicksortup(int col) {
 		this.quicksort(col,0,this.rows()-1, INCREASING);
 	}
 

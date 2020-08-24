@@ -2,16 +2,9 @@ package TestComplex;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.polynom.Polynom;
 import com.panayotis.gnuplot.JavaPlot;
 
-public class plotFunc {
-	/**
-	 * Plots the function expressed in GNUPlot format between loLimit and upLimit.
-	 * @param GNUplotExpression The function to plot in GNUPlot format.
-	 * @param loLimit Lower limit of the plot.
-	 * @param upLimit Upper limit of the plot.
-	 */
+public class plotFunc5 {
 	public static void plot(long samples, double dataRe[][], double dataIm[][]) {
 		JavaPlot p = new JavaPlot();
 		p.setTitle("PRUEBA");
@@ -49,10 +42,11 @@ public class plotFunc {
 	}
 	
 	public static void main(String[] args) {
-		double freq = 7577;
-		long samples = (long)freq*2;
+		double freq = 104.3;
+		long period = 4;
+		long samples = (long)freq*period;
 		MatrixComplex data = new MatrixComplex((int)samples+1, 1);
-		Complex amplitud = new Complex("2");
+		Complex amplitud = new Complex("1");
 		
 		for (int t = 0; t <= samples; ++t) {
 			data.complexMatrix[t][0] = signalSin(amplitud, 1/freq, t);
