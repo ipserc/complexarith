@@ -25,6 +25,7 @@ public class Fourier extends MatrixComplex {
 	private Boolean isSampled = false;
 	private Boolean isSerialized = false;
 	private Boolean isTransformed = false;
+	private String funcData;
 	private String filterData;
 	
 	/*
@@ -406,21 +407,11 @@ public class Fourier extends MatrixComplex {
 	/*
 	 * **************** FOURIER SERIES PLOTTING METHODS ****************
 	 */
-	/**
-	 * Enumerative to set the style for gnu plots
-	 * LINES The lines style connects adjacent points with straight line segments.
-	 * IMPULSES The impulses style displays a vertical line from y=0 to the y value of each point.
-	 */
 	public static enum e_lineStyle {
 		LINES, IMPULSES;
 	}
 
-	/**
-	 * Teturns the "style" set required as "data " LINES or IMPULSES
-	 * @param lineStyle
-	 * @return The "style" set
-	 */
-	private String setLineStyle(e_lineStyle lineStyle) {
+	private String getLineStyle(e_lineStyle lineStyle) {
 		String strLineStyle = "data ";
 		
 		switch (lineStyle) {
@@ -455,7 +446,7 @@ public class Fourier extends MatrixComplex {
 		if (showIm) p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("grid","");
 		p.plot();
 	}
@@ -501,7 +492,7 @@ public class Fourier extends MatrixComplex {
 		if (showIm) p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("grid","");
 		p.plot();
 	}
@@ -539,7 +530,7 @@ public class Fourier extends MatrixComplex {
 		if (showIm) p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("grid","");
 		p.plot();
 	}
@@ -578,7 +569,7 @@ public class Fourier extends MatrixComplex {
 		p.addPlot(datafu);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("grid","");
 		p.plot();
 	}
@@ -587,7 +578,7 @@ public class Fourier extends MatrixComplex {
 	 * **************** FUNCTION SAMPLER METHODS ****************
 	 */
 	/**
-	 * Does the sampling of the function for the Fourier Series Analysis. The samples are stored in the Fourier Object
+	 * Does the sample of the function for the Fourier Series Analysis. The samples are stored in the Fourier Object
 	 */
 	public void doSrsSampling() {
 		//this.N = sampleFreq;
@@ -604,7 +595,7 @@ public class Fourier extends MatrixComplex {
 	}
 
 	/**
-	 * Does the sampling of the function for the Discrete Fourier Transform. The samples are stored in the Fourier Object
+	 * Does the sample of the function for the Discrete Fourier Transform. The samples are stored in the Fourier Object
 	 */
 	public void doTrfSampling() {
 		doSrsSampling();
@@ -994,9 +985,9 @@ public class Fourier extends MatrixComplex {
 	/**
 	 * Enumerative for the two kinds of x axis units
 	 * SAMP. x axis represents the index of the coefficients
-	 * FREC. x axix represents the frequency associated to the coefficient
+	 * FREC. x axix represents the frequency associated to the coefficiente
 	 */
-	public static  enum e_domain {
+	public static enum e_domain {
 		SAMP, FREC;
 	}
 	
@@ -1069,7 +1060,7 @@ public class Fourier extends MatrixComplex {
 		p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
 		if (logscale) p.set("logscale", "y");
 		p.set("grid","");
@@ -1121,7 +1112,7 @@ public class Fourier extends MatrixComplex {
 		p.set("zeroaxis", "");
 		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		if (logscale) p.set("logscale", "y");
 		p.set("grid","");
 		p.plot();
@@ -1310,6 +1301,11 @@ public class Fourier extends MatrixComplex {
 		filterData = "High Pass - G:" + gain + " Fcut:" + fIni + " Hz Bw:" + (sampleFreq/2-fIni) + " Hz" + " Nbr.Samp.:" + samplefreq;
 	}
 
+	
+	public void chebyshevFilter(double gain, int order, double fIni, int samplefrec) {
+		
+	}
+	
 	/**
 	 * Filters the signal
 	 * @param signal The signal to filter
@@ -1338,14 +1334,14 @@ public class Fourier extends MatrixComplex {
 	 * **************** SIGNAL OPERATIONS ****************	
 	*/
 	/**
-	 * Calculates the addition of two signals
+	 * 
 	 * @param signal
 	 * @return
 	 */
 	public Fourier plus(Fourier signal) {
 		Fourier sumSignal = new Fourier(this.N, this.loLimit, this.upLimit);
-		sumSignal.samples = new MatrixComplex(2, this.N);
-		sumSignal.transform = new MatrixComplex(1, this.N);
+		sumSignal.samples = new MatrixComplex(2, this.N+1);
+		sumSignal.transform = new MatrixComplex(1, this.N+1);
 		for(int i = 0; i < this.N; ++i) {
 			sumSignal.samples.setItem(0, i, this.samples.getItem(0, i));
 			sumSignal.samples.setItem(1, i, this.samples.getItem(1, i).plus(signal.samples.getItem(1, i)));
@@ -1357,14 +1353,14 @@ public class Fourier extends MatrixComplex {
 	}
 	
 	/**
-	 * Calculates the difference of two signals
+	 * 
 	 * @param signal
 	 * @return
 	 */
 	public Fourier minus(Fourier signal) {
 		Fourier minusSignal = new Fourier(this.N, this.loLimit, this.upLimit);
-		minusSignal.samples = new MatrixComplex(2, minusSignal.N);
-		minusSignal.transform = new MatrixComplex(1, minusSignal.N);
+		minusSignal.samples = new MatrixComplex(2, minusSignal.N+1);
+		minusSignal.transform = new MatrixComplex(1, minusSignal.N+1);
 		for(int i = 0; i < this.N; ++i) {
 			minusSignal.samples.setItem(0, i, this.samples.getItem(0, i));
 			minusSignal.samples.setItem(1, i, this.samples.getItem(1, i).minus(signal.samples.getItem(1, i)));
@@ -1374,7 +1370,7 @@ public class Fourier extends MatrixComplex {
 		minusSignal.isTransformed = true;
 		return minusSignal;
 	}
-
+	
 	/**
 	 * Calculates the convolution of two signals (or one signal through a filter) in the time domain.
 	 * @param offset the offset for the first sample
@@ -1410,6 +1406,70 @@ public class Fourier extends MatrixComplex {
 		signalF.isSampled = true;
 		signalF.DFT(signalF.N);
 		return signalF;
-	}	
+	}
+	
+	public Fourier convolution2(Fourier signal) {
+		Complex yVal = new Complex();
+		Fourier signalF = new Fourier(signal.N, signal.loLimit, signal.upLimit);
+		signalF.samples = new MatrixComplex(2, signalF.N);
+		Complex point, incr;
+
+    	/*DURATION*/ long time = System.currentTimeMillis();
+    	
+
+		Fourier extThis = new Fourier(3*signal.N, signal.loLimit, signal.upLimit);
+		Fourier extSignal = new Fourier(3*signal.N, signal.loLimit, signal.upLimit);
+		
+		extThis.samples = new MatrixComplex(2, 3*signal.N);
+		extSignal.samples = new MatrixComplex(2, 3*signal.N);
+
+    	point = signal.loLimit.times(3);
+		incr = signal.upLimit.minus(signal.loLimit).divides(signal.N);
+		for (int i = 0; i < 3*this.N; ++i) {
+			extThis.samples.setItem(0, i, point);
+			if (i >= this.N && i < 2*this.N)
+				extThis.samples.setItem(1, i, this.samples.getItem(1, i - this.N));
+			point = point.plus(incr);
+		}
+
+    	point = signal.loLimit.times(3);
+		incr = signal.upLimit.minus(signal.loLimit).divides(signal.N);
+		for (int i = 0; i < 3*signal.N; ++i) {
+			extSignal.samples.setItem(0, i, point);
+			if (i >= signal.N && i < 2*signal.N)
+				extSignal.samples.setItem(1, i, signal.samples.getItem(1, i - signal.N));
+			point = point.plus(incr);
+		}
+
+		Fourier extSignalF = new Fourier(3*signal.N, signal.loLimit, signal.upLimit);
+		extSignalF.samples = new MatrixComplex(2, 3*signalF.N);
+		point = signal.loLimit.times(3);
+		incr = signal.upLimit.minus(signal.loLimit).divides(signal.N);
+    	for(int t = 0; t < 3*N; ++t) {
+			extSignalF.samples.setItem(0, t, point);
+			yVal.setComplexRec(0, 0);
+			for(int n = 0; n < 3*signal.N; ++n) {
+				int t_n = t-n;
+				if (t_n < 0) continue;
+				//y(t) = y() + signal(n)*filter(t-n) 
+				yVal = yVal.plus(extSignal.samples.getItem(1, n).times(extThis.samples.getItem(1, t_n)));
+			}
+			extSignalF.samples.setItem(1, t, yVal.times(2)); // times(2) don't know why
+			point = point.plus(incr);
+		}
+
+		for (int i = 2*signal.N; i < 3*signal.N; ++i) {
+			signalF.samples.setItem(0, i-2*N, extSignalF.samples.getItem(0, i));
+			signalF.samples.setItem(1, i-2*N, extSignalF.samples.getItem(1, i));
+		}
+
+    	/*DURATION*/ time = System.currentTimeMillis() - time;
+		/*DURATION*/ duration IDFTDuration = new duration(time, "ms");
+		/*DURATION*/ System.out.println("Computing Time Filter:" + IDFTDuration.toString());
+
+		signalF.isSampled = true;
+		signalF.DFT(signalF.N);
+		return signalF;
+	}
 }
 

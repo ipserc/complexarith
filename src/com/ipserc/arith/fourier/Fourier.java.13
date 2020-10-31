@@ -25,6 +25,7 @@ public class Fourier extends MatrixComplex {
 	private Boolean isSampled = false;
 	private Boolean isSerialized = false;
 	private Boolean isTransformed = false;
+	private String funcData;
 	private String filterData;
 	
 	/*
@@ -406,21 +407,11 @@ public class Fourier extends MatrixComplex {
 	/*
 	 * **************** FOURIER SERIES PLOTTING METHODS ****************
 	 */
-	/**
-	 * Enumerative to set the style for gnu plots
-	 * LINES The lines style connects adjacent points with straight line segments.
-	 * IMPULSES The impulses style displays a vertical line from y=0 to the y value of each point.
-	 */
 	public static enum e_lineStyle {
 		LINES, IMPULSES;
 	}
 
-	/**
-	 * Teturns the "style" set required as "data " LINES or IMPULSES
-	 * @param lineStyle
-	 * @return The "style" set
-	 */
-	private String setLineStyle(e_lineStyle lineStyle) {
+	private String getLineStyle(e_lineStyle lineStyle) {
 		String strLineStyle = "data ";
 		
 		switch (lineStyle) {
@@ -455,7 +446,7 @@ public class Fourier extends MatrixComplex {
 		if (showIm) p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("grid","");
 		p.plot();
 	}
@@ -501,7 +492,7 @@ public class Fourier extends MatrixComplex {
 		if (showIm) p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("grid","");
 		p.plot();
 	}
@@ -539,7 +530,7 @@ public class Fourier extends MatrixComplex {
 		if (showIm) p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("grid","");
 		p.plot();
 	}
@@ -578,7 +569,7 @@ public class Fourier extends MatrixComplex {
 		p.addPlot(datafu);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("grid","");
 		p.plot();
 	}
@@ -587,7 +578,7 @@ public class Fourier extends MatrixComplex {
 	 * **************** FUNCTION SAMPLER METHODS ****************
 	 */
 	/**
-	 * Does the sampling of the function for the Fourier Series Analysis. The samples are stored in the Fourier Object
+	 * Does the sample of the function for the Fourier Series Analysis. The samples are stored in the Fourier Object
 	 */
 	public void doSrsSampling() {
 		//this.N = sampleFreq;
@@ -604,7 +595,7 @@ public class Fourier extends MatrixComplex {
 	}
 
 	/**
-	 * Does the sampling of the function for the Discrete Fourier Transform. The samples are stored in the Fourier Object
+	 * Does the sample of the function for the Discrete Fourier Transform. The samples are stored in the Fourier Object
 	 */
 	public void doTrfSampling() {
 		doSrsSampling();
@@ -982,7 +973,7 @@ public class Fourier extends MatrixComplex {
 	}
 	
 	/**
-	 * Enumerative for plotting the DFT in different operators 
+	 * Enumerative for plotting the DFT in differents opperators 
 	 * COMPLEX. Plots the values of the coefficients in Rectangular representation.
 	 * MAGNITUDE. Plots the values of the coefficients in Polar representation.
 	 * SQUARE. Plots the square values of the coefficients in Rectangular representation.
@@ -994,14 +985,14 @@ public class Fourier extends MatrixComplex {
 	/**
 	 * Enumerative for the two kinds of x axis units
 	 * SAMP. x axis represents the index of the coefficients
-	 * FREC. x axix represents the frequency associated to the coefficient
+	 * FREC. x axix represents the frequency associated to the coefficiente
 	 */
-	public static  enum e_domain {
+	public static enum e_domain {
 		SAMP, FREC;
 	}
 	
 	/**
-	 * Does the operations required for the different views
+	 * Does the operations requred for the diffrenet views
 	 * @param cNum The Complex number to operate with.
 	 * @param operator The operator as defined in e_operator
 	 * @param logscale True if the cNum should be non-negative to be plotted in logarithmic scale 
@@ -1069,13 +1060,13 @@ public class Fourier extends MatrixComplex {
 		p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
 		if (logscale) p.set("logscale", "y");
 		p.set("grid","");
 		p.plot();
 	}
-		
+
 	/**
 	 * Does the plot the DFT graphic in the domain of Frequency
 	 * @param Title The title of the polt
@@ -1121,7 +1112,7 @@ public class Fourier extends MatrixComplex {
 		p.set("zeroaxis", "");
 		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
 		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
+		p.set("style", getLineStyle(lineStyle));
 		if (logscale) p.set("logscale", "y");
 		p.set("grid","");
 		p.plot();
@@ -1338,14 +1329,14 @@ public class Fourier extends MatrixComplex {
 	 * **************** SIGNAL OPERATIONS ****************	
 	*/
 	/**
-	 * Calculates the addition of two signals
+	 * 
 	 * @param signal
 	 * @return
 	 */
 	public Fourier plus(Fourier signal) {
 		Fourier sumSignal = new Fourier(this.N, this.loLimit, this.upLimit);
-		sumSignal.samples = new MatrixComplex(2, this.N);
-		sumSignal.transform = new MatrixComplex(1, this.N);
+		sumSignal.samples = new MatrixComplex(2, this.N+1);
+		sumSignal.transform = new MatrixComplex(1, this.N+1);
 		for(int i = 0; i < this.N; ++i) {
 			sumSignal.samples.setItem(0, i, this.samples.getItem(0, i));
 			sumSignal.samples.setItem(1, i, this.samples.getItem(1, i).plus(signal.samples.getItem(1, i)));
@@ -1357,14 +1348,14 @@ public class Fourier extends MatrixComplex {
 	}
 	
 	/**
-	 * Calculates the difference of two signals
+	 * 
 	 * @param signal
 	 * @return
 	 */
 	public Fourier minus(Fourier signal) {
 		Fourier minusSignal = new Fourier(this.N, this.loLimit, this.upLimit);
-		minusSignal.samples = new MatrixComplex(2, minusSignal.N);
-		minusSignal.transform = new MatrixComplex(1, minusSignal.N);
+		minusSignal.samples = new MatrixComplex(2, minusSignal.N+1);
+		minusSignal.transform = new MatrixComplex(1, minusSignal.N+1);
 		for(int i = 0; i < this.N; ++i) {
 			minusSignal.samples.setItem(0, i, this.samples.getItem(0, i));
 			minusSignal.samples.setItem(1, i, this.samples.getItem(1, i).minus(signal.samples.getItem(1, i)));
@@ -1374,7 +1365,7 @@ public class Fourier extends MatrixComplex {
 		minusSignal.isTransformed = true;
 		return minusSignal;
 	}
-
+	
 	/**
 	 * Calculates the convolution of two signals (or one signal through a filter) in the time domain.
 	 * @param offset the offset for the first sample
@@ -1410,6 +1401,6 @@ public class Fourier extends MatrixComplex {
 		signalF.isSampled = true;
 		signalF.DFT(signalF.N);
 		return signalF;
-	}	
+	}
 }
 
