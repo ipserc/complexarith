@@ -419,6 +419,30 @@ public class TestComplex {
        c = Complex.log(a);
        System.out.println("c=log(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
        System.out.println("------------------------------------------------------------");
+       
+       a.setComplex("13");
+       b.setComplex("7");
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       System.out.println("b		= " + b.toStringRec() + " : " + b.toStringPol());
+       c = a.divides(b);
+       System.out.println("c=a/b		= " + c.toStringRec() + " : " + c.toStringPol());       
+       System.out.println("------------------------------------------------------------");
+
+       a.setComplex("13i");
+       b.setComplex("7i");
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       System.out.println("b		= " + b.toStringRec() + " : " + b.toStringPol());
+       c = a.divides(b);
+       System.out.println("c=a/b		= " + c.toStringRec() + " : " + c.toStringPol());       
+       System.out.println("------------------------------------------------------------");
+ 
+       a.setComplex("27+13i");
+       b.setComplex("8-7i");
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       System.out.println("b		= " + b.toStringRec() + " : " + b.toStringPol());
+       c = a.divides(b);
+       System.out.println("c=a/b		= " + c.toStringRec() + " : " + c.toStringPol());       
+       System.out.println("------------------------------------------------------------");
 
     }
 }

@@ -12,6 +12,7 @@ public class plotPolynom {
 
 		myPolynom.println();
 		System.out.println("Polynom:" + myPolynom.toPolynom());
+		System.out.println("Maxima:" + myPolynom.toMaxima());
 		roots = myPolynom.solve();
 		roots.quicksort(0);
 		roots.println("roots");
@@ -129,12 +130,13 @@ public class plotPolynom {
 
 		*/
 
-		degree = 13;
-     	kind = 7;
+		degree = 28;
+     	kind = 600;
      	myPolynom = new Polynom().chebyshev(degree, kind);
      	myPolynom.println("Chebyshev " + degree + "," + kind);
 		showResults(myPolynom);
 
+		/*
 		myPolynom = new Polynom("1,2,-1,-2");
 		showResults(myPolynom);
 
@@ -155,6 +157,8 @@ public class plotPolynom {
 		myPolynom = new Polynom("1.45,1.55,-1.45,-1.55");
 		myPolynom = myPolynom.times(aPolynom);
 		showResults(myPolynom);
+		*/
+		//MatrixComplex polGen = new MatrixComplex(); polGen.
 		
 	}
 

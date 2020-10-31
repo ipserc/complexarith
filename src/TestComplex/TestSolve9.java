@@ -6,7 +6,7 @@ import com.ipserc.arith.factorization.*;
 
 public class TestSolve9 {
 
-	public static void showResults(LUfactor cMatrix) {
+	public static void showResults(LUfactor luMatrix) {
     	MatrixComplex lMatrix;
     	MatrixComplex uMatrix;
     	MatrixComplex pMatrix;
@@ -14,21 +14,19 @@ public class TestSolve9 {
 		System.out.println("_____________________________________________________________________________________");		
 		System.out.println("_____________________________ LU FACTORIZATION ______________________________________");		
 
-		cMatrix.LUfactorize();
-    	cMatrix.println("Original Matrix");
-    	lMatrix = cMatrix.L();
+    	luMatrix.println("Original Matrix");
+    	lMatrix = luMatrix.L();
     	lMatrix.println("L");
-    	uMatrix = cMatrix.U();
+    	uMatrix = luMatrix.U();
     	uMatrix.println("U");
-    	pMatrix = cMatrix.P();
+    	pMatrix = luMatrix.P();
     	pMatrix.println("P");
-    	cMatrix.P().transpose().times(cMatrix.L().times(cMatrix.U())).println("PT · L · U");
+    	luMatrix.P().transpose().times(luMatrix.L().times(luMatrix.U())).println("PT · L · U");
 	}
 	public static void showResults(SVDfactor A) {
 		MatrixComplex S;
     	MatrixComplex V;
     	MatrixComplex U;
-		A.SVDfactorize();
     	S = A.getS();
     	V = A.getV();
     	U = A.getU();

@@ -7,7 +7,7 @@ import com.ipserc.arith.factorization.Diagfactor;
 public class TestEigenV5 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
-		Complex seed = new Complex(2,-3);
+		Complex seed = new Complex(1,0);
 		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);
      	MatrixComplex eigenVect;
     	final String Header = new String("TEV5 --- "); 

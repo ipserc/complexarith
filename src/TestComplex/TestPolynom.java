@@ -12,7 +12,7 @@ public class TestPolynom {
 		aPolynom.printCoef();
 		aPolynom.toPolynom(); //"Coef:");
 		aPolynom.println();
-		aPolynom.printMaxima();
+		aPolynom.printMaxima("P:");
 		aPolynom.printWolfram();
     	hMatrix = aPolynom.solve();
     	//hMatrix.println("Hay "+(aPolynom.complexMatrix[0].length-1)+" Soluciones");
@@ -140,6 +140,24 @@ public class TestPolynom {
     	myPolynom = new Polynom("1,-2,3,-2");
     	showResults(myPolynom);
     	
+    	myPolynom = new Polynom();
+    	myPolynom = myPolynom.chebyshev1(5);
+    	myPolynom.println("chebyshev 1 grado 5");
+
+    	myPolynom = myPolynom.chebyshev2(5);
+    	myPolynom.println("chebyshev 2 grado 5");
+
+    	myPolynom = myPolynom.chebyshev(5, 3);
+    	myPolynom.println("chebyshev 3 grado 5");
+
+    	myPolynom = myPolynom.chebyshev(5, 4);
+    	myPolynom.println("chebyshev 4 grado 5");
+
+    	myPolynom = myPolynom.chebyshev(5, 5);
+    	myPolynom.println("chebyshev 5 grado 5");
     	
+    	myPolynom = myPolynom.chebyshev(5, 6);
+    	myPolynom.println("chebyshev 6 grado 5");
+
 	}
 }
