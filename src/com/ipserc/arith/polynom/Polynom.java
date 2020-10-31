@@ -166,6 +166,10 @@ public class Polynom extends MatrixComplex {
 
 		return polynom;
 	}
+	
+	public String toMaxima(String caption) {
+		return caption + this.toMaxima();
+	}
 
 	/**
 	 * Constructs the polynomial as string as the used by GNUPlot.
@@ -210,7 +214,11 @@ public class Polynom extends MatrixComplex {
 	 * Displays the polynomial as string as the used by Maxima (Computer Algebra System) with a carriage return.
 	 */
 	public void printMaxima() {
-		System.out.println("poly(x):=" + this.toMaxima());
+		System.out.println("P:" + this.toMaxima());
+	}
+
+	public void printMaxima(String caption) {
+		System.out.println(caption + this.toMaxima());
 	}
 
 	/**

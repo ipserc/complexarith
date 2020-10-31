@@ -42,8 +42,10 @@ import java.util.regex.Pattern;
 import java.text.NumberFormat;
 
 public class Complex {
-	public final static double DOS_PI = 2 * Math.PI; // 2 * 3.1415926535897932384626433832795;
-	public final static double HALF_PI =  Math.PI / 2; //3.1415926535897932384626433832795 / 2;
+	public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
+	public final static double TWO_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
+	public final static double DOS_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
+	public final static double HALF_PI =  Math.PI / 2; 	//3.1415926535897932384626433832795 / 2;
 	public final static Complex i = new Complex(0,1);
 	public final static Complex j = i; // For engineers
 	public final static Complex ZERO = new Complex(0,0);
@@ -53,13 +55,18 @@ public class Complex {
 	
 	private final static double PRECISION = 1E-13;
 	private final static double ZERO_THRESHOLD = 9.999999999999E-14; //Zero threshold for formatting numbers
-	private final static double ZERO_THRESHOLD_R = 9.999999999999E-3; //Reduced Zero threshold for formatting numbers
+	private final static double ZERO_THRESHOLD_R = 9.999999999999E-10; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
 	private final static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	private final static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE); 
 	private static boolean FORMAT_NBR = false; //Pseudo constant. Flag for formatting numbers
 	private static boolean FIXED_NOTATION = false; //Pseudo constant. Flag for comma fixed notation
 	private static boolean SCIENTIFIC_NOTATION = false; //Pseudo constant. Flag for scientific notation
 	private static int MAX_DECIMALS = 3; //Pseudo constant
+	/* BACK UP to allow restoring status */
+	private static boolean FORMAT_NBR_BCK = false; //Pseudo constant. Flag for formatting numbers
+	private static boolean FIXED_NOTATION_BCK = false; //Pseudo constant. Flag for comma fixed notation
+	private static boolean SCIENTIFIC_NOTATION_BCK = false; //Pseudo constant. Flag for scientific notation
+	private static int MAX_DECIMALS_BCK = 3; //Pseudo constant
 
 	private double rep;	// the real part
 	private double imp;	// the imaginary part
@@ -465,7 +472,7 @@ public class Complex {
 	 */
 	public static void setFormatON() { 
 		FORMAT_NBR = true;
-		getFormatStatus();
+		printFormatStatus();
 	}
 
 	/**
@@ -476,7 +483,7 @@ public class Complex {
 		FIXED_NOTATION = true;
 		SCIENTIFIC_NOTATION = false;
 		MAX_DECIMALS = decimals;
-		getFormatStatus();
+		printFormatStatus();
 	}
 
 	/**
@@ -487,7 +494,7 @@ public class Complex {
 		FIXED_NOTATION = false;
 		SCIENTIFIC_NOTATION = true;
 		MAX_DECIMALS = decimals;
-		getFormatStatus();
+		printFormatStatus();
 	}
 
 	/**
@@ -495,7 +502,15 @@ public class Complex {
 	 */
 	public static void setFormatOFF() { 
 		FORMAT_NBR = false; 
-		getFormatStatus();
+		printFormatStatus();
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public static Boolean getFortmatStatus() {
+		return FORMAT_NBR;
 	}
 
 	/**
@@ -503,7 +518,15 @@ public class Complex {
 	 */
 	public static void setFixedOFF() {
 		FIXED_NOTATION = false;
-		getFormatStatus();	
+		printFormatStatus();	
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public static Boolean getFixedStatus() {
+		return FIXED_NOTATION;
 	}
 
 	/**
@@ -511,7 +534,11 @@ public class Complex {
 	 */
 	public static void setScientificOFF() {
 		SCIENTIFIC_NOTATION = false;
-		getFormatStatus();
+		printFormatStatus();
+	}
+	
+	public static Boolean getScientificStatus() {
+		return SCIENTIFIC_NOTATION;
 	}
 	
 	/**
@@ -533,12 +560,39 @@ public class Complex {
 	/**
 	 * Shows the numbers formatting presentation status. Prints a message in the Console.
 	 */
-	public static void getFormatStatus() {
+	public static void printFormatStatus() {
 		System.out.println( "------------------------------------------------");
 		System.out.println( "Formatting numbers is " + (FORMAT_NBR ? "ENABLED" : "DISABLED"));
 		System.out.println( "Fixed notation is " + (FIXED_NOTATION ? "ENABLED decimals:" + getMaxDecimals() : "DISABLED"));
 		System.out.println( "Scientific notation is " + (SCIENTIFIC_NOTATION ? "ENABLED decimals:" + getMaxDecimals() : "DISABLED"));	
 		System.out.println( "------------------------------------------------");
+	}
+
+	/**
+	 * 
+	 */
+	public static void storeFormatStatus() {
+		FORMAT_NBR_BCK = FORMAT_NBR;
+		FIXED_NOTATION_BCK = FIXED_NOTATION;
+		SCIENTIFIC_NOTATION_BCK = SCIENTIFIC_NOTATION;
+		MAX_DECIMALS_BCK = MAX_DECIMALS;
+	}
+	
+	/**
+	 * 
+	 */
+	public static void restoreFormatStatus() {
+		FORMAT_NBR = FORMAT_NBR_BCK;
+		FIXED_NOTATION = FIXED_NOTATION_BCK;
+		SCIENTIFIC_NOTATION = SCIENTIFIC_NOTATION_BCK;
+		MAX_DECIMALS = MAX_DECIMALS_BCK;
+	}
+
+	public static void resetFormatStatus() {
+		FORMAT_NBR = false;
+		FIXED_NOTATION = false;
+		SCIENTIFIC_NOTATION = false;
+		MAX_DECIMALS = 3;
 	}
 
 	/**
@@ -619,9 +673,10 @@ public class Complex {
 		String sfRep = new String();
 		String sfImp = new String();
 
-		if (Math.abs(fRep*ZERO_THRESHOLD_R) > Math.abs(fImp)) fImp = 0.0;
-		if (Math.abs(fImp*ZERO_THRESHOLD_R) > Math.abs(fRep)) fRep = 0.0;
-
+		if (FORMAT_NBR) {
+			if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_R) fRep = 0.0;
+			else if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_R) fImp = 0.0;
+		}
 		sfRep = String.valueOf(fRep);
 		if (SCIENTIFIC_NOTATION) sfRep = String.format("%."+MAX_DECIMALS+"E", fRep).replace(',', '.');
 		else if (FIXED_NOTATION) sfRep = String.format("%."+MAX_DECIMALS+"f", fRep).replace(',', '.');
@@ -632,12 +687,12 @@ public class Complex {
 		else if (FIXED_NOTATION) sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
 			//else sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
 
-		if (this.equalsred(ZERO) || fImp == 0.0 ) 
+		if (fImp == 0.0 ) 
 			return sfRep + "";
 		if (fRep == 0.0)  
 			return sfImp + imu;
 		if (fImp <  0.0) 
-			return sfRep + "-" + sfImp.replace("-", "") + imu;
+			return sfRep + sfImp + imu;
 		return sfRep + "+" + sfImp + imu;
 	}
 
@@ -646,11 +701,14 @@ public class Complex {
 	 * @return The string representation of a complex number in rectangular coordinates.
 	 */
 	public String toStringRecI() {
-		double fRep = formatNbr(rep);
-		double fImp = formatNbr(imp);
-		if (Math.abs(fRep*ZERO_THRESHOLD_R) > Math.abs(fImp)) fImp = 0.0;
-		if (Math.abs(fImp*ZERO_THRESHOLD_R) > Math.abs(fRep)) fRep = 0.0;
-		if (this.equalsred(ZERO) || fImp == 0.0 ) 
+		double fRep = rep;
+		double fImp = imp;
+
+		if (FORMAT_NBR) {
+			if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_R) fRep = 0.0;
+			else if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_R) fImp = 0.0;
+		}
+		if (fImp == 0.0 ) 
 			return fRep + "";
 		if (fRep == 0.0) 
 			if (Math.abs(fImp) != 1.0) 
@@ -667,13 +725,24 @@ public class Complex {
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringPol() {
-		double fMod = formatNbr(mod);
-		double fPha = formatNbr(pha);
+		double fRep = rep;
+		double fImp = imp;
+		double fMod = mod;
+		double fPha = pha;
 		String sfMod = new String();
 		String sfPha = new String();
 
-		if (fMod < ZERO_THRESHOLD_R) fMod = 0.0;
-
+		if (FORMAT_NBR) {
+			if (Math.abs(rep/imp) < ZERO_THRESHOLD_R) {
+				fMod = Math.abs(imp);
+				fPha = Complex.HALF_PI*Math.signum(imp);
+			}
+			else if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_R) {
+				fMod = Math.abs(rep);
+				fPha = Complex.PI*Math.signum(imp);
+			}			
+		}
+		
 		sfMod = String.valueOf(fMod);
 		if (SCIENTIFIC_NOTATION) sfMod = String.format("%."+MAX_DECIMALS+"E", fMod).replace(',', '.');
 		else if (FIXED_NOTATION) sfMod = String.format("%."+MAX_DECIMALS+"f", fMod).replace(',', '.');
@@ -900,7 +969,7 @@ public class Complex {
 	public Complex divides(double alpha) {
 		return new Complex('P', this.mod / alpha, this.pha);
 	}
-
+	
 	/*
 	 * FUNCTIONS
 	 */
@@ -1056,7 +1125,34 @@ public class Complex {
 		Complex z = new Complex(d);
 		return new Complex('C', Math.exp(z.rep) * Math.cos(z.imp), Math.exp(z.rep) * Math.sin(z.imp));
 	}
+	
+	/**
+	 * Funtion modulus 
+	 * @param z
+	 * @return The modulus of the complex z
+	 */
+	public static double mod(Complex z) {
+		return z.mod();
+	}
 
+	/**
+	 * Function absolute value
+	 * @param z
+	 * @return The modulus of the complex z
+	 */
+	public static double abs(Complex z) {
+		return Complex.mod(z);
+	}
+	
+	/**
+	 * Returns a new complex with Re and Im parts positive
+	 * @param z
+	 * @return a new complex with Re and Im parts positive
+	 */
+	public static Complex positive(Complex z) {
+		return new Complex(Math.abs(z.rep), Math.abs(z.imp));
+	}
+	
 	/*
 	 * TRIGONOMETRICS
 	 */

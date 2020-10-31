@@ -44,7 +44,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns the complex matrix object of dimensions rowLen x colLen.
+	 * Instantiates the complex matrix object of dimensions rowLen x colLen.
 	 * @param rowLen Number of rows.
 	 * @param colLen Number of columns.
 	 */
@@ -56,7 +56,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns the complex matrix object from a string representation of the matrix where rows are separated with ";", columns are separated with ",".
+	 * Instantiates the complex matrix object from a string representation of the matrix where rows are separated with ";", columns are separated with ",".
 	 * @param cadena the string with the rows and columns.
 	 */
 	public MatrixComplex(String cadena) {
@@ -457,6 +457,17 @@ public class MatrixComplex {
 	public void setItem(int row, int col, Complex numC) {
 		this.complexMatrix[row][col].setComplexRec(numC.rep(), numC.imp());
 	}
+	
+	/**
+	 * 
+	 * @param row
+	 * @param col
+	 * @param snumC
+	 */
+	public void setItem(int row, int col, String snumC) {
+		this.complexMatrix[row][col].setComplex(snumC);
+	}
+	
 	
 	/**
 	 * Private method to return the components of a string separated by a delimiter. The components have to be integers.
