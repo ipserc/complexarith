@@ -365,6 +365,19 @@ public class Fourier extends MatrixComplex {
 		offset = off1.minus(off2);
 	}
 	
+	/*
+	 * Prints in the console the Fourier Series coefficients calculated as a vector.
+	 */
+	public void printCoefs() {
+		if(!isSerialized) {
+			System.out.println("WARNING (printCoefs):Function not serialized yet. Serialize it first.");
+			return;
+		}
+		//series.transpose().println("Fourier Series Coefs ");
+		System.out.println("Fourier Series Coefs ");
+		series.println();
+	}
+	
 	/**
 	 * Prints in the console the Fourier Series coefficients calculated.
 	 */
@@ -407,7 +420,7 @@ public class Fourier extends MatrixComplex {
 	 * **************** FOURIER SERIES PLOTTING METHODS ****************
 	 */
 	/**
-	 * Enumerative to set the style for gnu plots
+	 * Enumerative to set the style for gnuplot
 	 * LINES The lines style connects adjacent points with straight line segments.
 	 * IMPULSES The impulses style displays a vertical line from y=0 to the y value of each point.
 	 */
@@ -416,7 +429,7 @@ public class Fourier extends MatrixComplex {
 	}
 
 	/**
-	 * Teturns the "style" set required as "data " LINES or IMPULSES
+	 * Returns the "style" set required as "data " LINES or IMPULSES for gnuplot
 	 * @param lineStyle
 	 * @return The "style" set
 	 */
