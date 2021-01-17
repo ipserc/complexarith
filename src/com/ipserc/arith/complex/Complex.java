@@ -35,23 +35,29 @@ package com.ipserc.arith.complex;
 
 import java.lang.Double;
 import java.lang.Math;
+import java.math.*;
 import java.util.Locale;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.text.Normalizer;
 import java.text.NumberFormat;
 
 public class Complex {
+	private final static String HEADINFO = "Complex --- INFO:";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
+
 	public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
 	public final static double TWO_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
-	public final static double DOS_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
-	public final static double HALF_PI =  Math.PI / 2; 	//3.1415926535897932384626433832795 / 2;
+	public final static double DOS_PI = TWO_PI;			// 2 * 3.1415926535897932384626433832795;
+	public final static double HALF_PI =  Math.PI / 2; 	// 3.1415926535897932384626433832795 / 2;
 	public final static Complex i = new Complex(0,1);
 	public final static Complex j = i; // For engineers
 	public final static Complex ZERO = new Complex(0,0);
 	public final static Complex ONE = new Complex(1,0);
 	public final static Complex mONE = new Complex(-1,0);
 	//public final static Complex _j_ = new Complex(0,1);
+	public final static double LIM_INF = 2147483647; //2147483647
 	
 	private final static double PRECISION = 1E-13;
 	private final static double ZERO_THRESHOLD = 9.999999999999E-14; //Zero threshold for formatting numbers
@@ -73,9 +79,16 @@ public class Complex {
 	private double mod;	// the modulus
 	private double pha;	// the phase
 	private double cre; // sgn*modulus sgn=any func. Used to compare Complex
+	
+	/*
+	 * ---------------- VERSION ----------------
+	 */
+	public void version() {
+		System.out.println("VERSION:" + VERSION); 
+	}
 
 	/*
-	 * CONSTRUCTORS 
+	 * ---------------- CONSTRUCTORS ---------------- 
 	 */
 
 	/**
@@ -125,7 +138,7 @@ public class Complex {
 	}
 
 	/*
-	 * INITIALIZERS & SETTERS
+	 * ---------------- INITIALIZERS & SETTERS ----------------
 	 */
 
 	/**
@@ -269,7 +282,7 @@ public class Complex {
 			break;
 		case 'P': // For Polar Coordinates
 		case 'p':
-			this.mod = n1;
+			this.mod = Math.abs(n1);
 			this.pha = n2;
 			this.normalizePhase();
 			this.setRecCoord();
@@ -402,7 +415,7 @@ public class Complex {
 	}
 
 	/*
-	 * GETTERS
+	 * ---------------- GETTERS ----------------
 	 */
 
 	/**
@@ -464,7 +477,7 @@ public class Complex {
 		return mod; }
 
 	/*
-	 * PRESENTATION
+	 * ---------------- PRESENTATION ----------------
 	 */
 
 	/**
@@ -522,7 +535,7 @@ public class Complex {
 	}
 	
 	/**
-	 * 
+	 * getFixedStatus
 	 * @return
 	 */
 	public static Boolean getFixedStatus() {
@@ -569,7 +582,7 @@ public class Complex {
 	}
 
 	/**
-	 * 
+	 * storeFormatStatus
 	 */
 	public static void storeFormatStatus() {
 		FORMAT_NBR_BCK = FORMAT_NBR;
@@ -579,7 +592,7 @@ public class Complex {
 	}
 	
 	/**
-	 * 
+	 * restoreFormatStatus
 	 */
 	public static void restoreFormatStatus() {
 		FORMAT_NBR = FORMAT_NBR_BCK;
@@ -623,7 +636,7 @@ public class Complex {
 	 * @param phase to normalize.
 	 * @return phase normalized.
 	 */
-	private double normalizePhase(double phase) {
+	private static double normalizePhase(double phase) {
 		//double phaNorm  = z.pha > Math.PI ? Math.PI - z.pha : z.pha;
 		//phaNorm = z.pha < -Math.PI ? Math.PI + z.pha : z.pha;
 		int sign = phase < 0.0 ? -1 : 1;
@@ -636,7 +649,7 @@ public class Complex {
 	 * Private Method. Normalizes the Complex Object phase between -pi and pi.
 	 */
 	private void normalizePhase() {
-		this.pha = this.normalizePhase(this.pha);
+		this.pha = Complex.normalizePhase(this.pha);
 	}
 
 	/**
@@ -660,7 +673,7 @@ public class Complex {
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringRecWolfram() {
-		return this.toStringRec("I");
+		return this.toStringRec("i");
 	}
 	
 	/**
@@ -672,6 +685,11 @@ public class Complex {
 		double fImp = formatNbr(imp);
 		String sfRep = new String();
 		String sfImp = new String();
+		
+		if (Double.isInfinite(mod)) {
+			if (Math.tan(this.pha) >= 0) return ("Infinity");
+			else return ("-Infinity");
+		}
 
 		if (FORMAT_NBR) {
 			if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_R) fRep = 0.0;
@@ -732,6 +750,7 @@ public class Complex {
 		String sfMod = new String();
 		String sfPha = new String();
 
+		/*
 		if (FORMAT_NBR) {
 			if (Math.abs(rep/imp) < ZERO_THRESHOLD_R) {
 				fMod = Math.abs(imp);
@@ -739,9 +758,13 @@ public class Complex {
 			}
 			else if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_R) {
 				fMod = Math.abs(rep);
-				fPha = Complex.PI*Math.signum(imp);
+				fPha = 0;
 			}			
 		}
+		*/
+		
+		if (fMod == 0) fPha = 0;
+		if (Math.abs(fPha) < ZERO_THRESHOLD) fPha = 0;
 		
 		sfMod = String.valueOf(fMod);
 		if (SCIENTIFIC_NOTATION) sfMod = String.format("%."+MAX_DECIMALS+"E", fMod).replace(',', '.');
@@ -787,7 +810,7 @@ public class Complex {
 	}
 
 	/*
-	 * COPY & REPLICATION
+	 * ---------------- COPY & REPLICATION ----------------
 	 */
 
 	/**
@@ -805,7 +828,7 @@ public class Complex {
 	}
 
 	/*
-	 * UNARY OPERATIONS
+	 * ---------------- UNARY OPERATIONS ----------------
 	 */
 
 	/**
@@ -813,7 +836,7 @@ public class Complex {
 	 * @return The new Complex Object with the opposite.
 	 */
 	public Complex opposite() {
-		return new Complex('C', -this.rep, -this.imp);
+		return new Complex('C', -rep, -imp);
 	}
 
 	/**
@@ -842,7 +865,7 @@ public class Complex {
 	}
 
 	/*
-	 * BOOLEAN OPERATIONS
+	 * ---------------- BOOLEAN OPERATIONS ----------------
 	 */
 
 	/**
@@ -870,7 +893,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2) {
-		return (Math.abs(this.rep - n1) <= ZERO_THRESHOLD) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD);
+		return (Math.abs(Math.abs(this.rep) - Math.abs(n1)) <= ZERO_THRESHOLD) && (Math.abs(Math.abs(this.imp) - Math.abs(n2)) <= ZERO_THRESHOLD);
 	}
 
 	/**
@@ -880,11 +903,11 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equalsred(double n1, double n2) {
-		return (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R);
+		return (Math.abs(Math.abs(this.rep) - Math.abs(n1)) <= ZERO_THRESHOLD_R) && (Math.abs(Math.abs(this.imp) - Math.abs(n2)) <= ZERO_THRESHOLD_R);
 	}
 
 	/*
-	 * ARITHMETIC OPERATIONS
+	 * ---------------- ARITHMETIC OPERATIONS ----------------
 	 */
 
 	/**
@@ -938,7 +961,9 @@ public class Complex {
 	 * @return The new Complex Object with the result of the product.
 	 */
 	public Complex times(double alpha) {
-		return new Complex('P', alpha * mod, pha);
+		double aMod = Math.abs(alpha);
+		double aPha = alpha >= 0.0 ? 0 : Math.PI;
+		return new Complex('P', aMod * mod, pha + aPha);
 	}
 
 	/**
@@ -967,11 +992,13 @@ public class Complex {
 	 * @return The new Complex Object with the result of the division.
 	 */
 	public Complex divides(double alpha) {
-		return new Complex('P', this.mod / alpha, this.pha);
+		double aMod = Math.abs(alpha);
+		double aPha = alpha >= 0.0 ? 0 : Math.PI;
+		return new Complex('P', this.mod / aMod, this.pha - aPha);
 	}
 	
 	/*
-	 * FUNCTIONS
+	 * ---------------- FUNCTIONS ----------------
 	 */
 
 	/**
@@ -1069,11 +1096,24 @@ public class Complex {
 	 * @return The new COmplex Object with the value of 'this' raised to 'z'.
 	 */
 	public Complex power(Complex z) {
-		double commonExp = Math.exp(z.rep * Math.log(this.mod) - this.pha * z.imp);
-		double commonTri = this.pha * z.rep + z.imp * Math.log(this.mod);
-		double nRe = commonExp * Math.cos(commonTri);
-		double nIm = commonExp * Math.sin(commonTri);
-		return new Complex('C', nRe, nIm);
+		double comExp, comTri;
+		
+		if (Double.isInfinite(z.mod)) {
+			return new Complex('P', z.mod, this.pha * z.rep);
+		}
+		
+		if (this.mod != 0) {
+			comExp = Math.exp(z.rep * Math.log(this.mod) - this.pha * z.imp);
+			comTri = this.pha * z.rep + z.imp * Math.log(this.mod);
+		}
+		else {
+			comExp = 0;
+			comTri = 0;
+		}
+		return new Complex('P', comExp, comTri);
+		//double nRe = comExp * Math.cos(comTri);
+		//double nIm = comExp * Math.sin(comTri);
+		//return new Complex('C', nRe, nIm);
 	}
 
 	/**
@@ -1107,6 +1147,25 @@ public class Complex {
 		return new Complex('P', Math.pow(z.mod, 1/(double)pot), (z.pha + DOS_PI * k) / pot);  
 	}
 
+	/**
+	 * Calculates the "1st" square root of the Complex Object 'this'.
+	 * @param z The complex number.
+	 * @return The "1st" pot-root of the Complex Object 'this'.
+	 */
+	public static Complex sqrroot(Complex z) {
+		return root(z, 2);
+	}
+
+	/**
+	 * Calculates the "k-th" square root of the Complex Object 'this'.
+	 * @param z The complex number.
+	 * @param k The "k-th" root.
+	 * @return The "k-th" pot-root of the Complex Object 'this'.
+	 */
+	public static Complex sqrroot(Complex z, int k) {
+		return root(z, 2, k);
+	}
+		
 	/**
 	 * Returns a new Complex Object which value is the z exponential of 'z'.
 	 * @param z The complex number.
@@ -1154,8 +1213,9 @@ public class Complex {
 	}
 	
 	/*
-	 * TRIGONOMETRICS
+	 * ---------------- TRIGONOMETRICS ----------------
 	 */
+	
 	/**
 	 * Returns a new Complex Object which value is the sine of 'z'.
 	 * @param z The complex number
@@ -1212,6 +1272,7 @@ public class Complex {
 	public static Complex cot(Complex z) {
 		return cos(z).divides(sin(z));	   
 	}
+	
 	/**
 	 * Returns a new Complex Object which value is the hyperbolic sine of 'z'.
 	 * @param z The complex number
@@ -1365,8 +1426,8 @@ public class Complex {
 	 */
 	public static Complex integrate(double lolimit, double uplimit, Function <Complex, Complex> func, int numDec) {
 		int iter  = 1;
-		double precission = Math.pow(10, -Math.abs(++numDec));
-		double step = (uplimit - lolimit) * precission;
+		double precision = Math.pow(10, -Math.abs(++numDec));
+		double step = (uplimit - lolimit) * precision;
 		
 		Complex integral = new Complex();
 		Complex prevPoint = new Complex(lolimit, 0);
@@ -1415,16 +1476,16 @@ public class Complex {
 		Complex vector = uplimit.minus(lolimit);
 		double vectSlope = vector.imp/vector.rep;
 		double vectAngle = Math.atan(vectSlope);
-		double precission = Math.pow(10, -Math.abs(numDec+2));
+		double precision = Math.pow(10, -Math.abs(numDec+2));
 		
 		vectAngle = vectAngle > Math.PI ? Math.PI - vectAngle : vectAngle;
 		vectAngle = vectAngle < -Math.PI ? Math.PI + vectAngle : vectAngle;
 		
 		if (((vectAngle >= Math.PI/4) && (vectAngle < 3*Math.PI/4 )) ||
 				((vectAngle >= -3*Math.PI/4) && (vectAngle < -Math.PI/4 ))) {
-			return integrateIM(lolimit, uplimit, func, precission);
+			return integrateIM(lolimit, uplimit, func, precision);
 		}
-		else return integrateRE(lolimit, uplimit, func, precission);
+		else return integrateRE(lolimit, uplimit, func, precision);
 	}
 	
 	/**
@@ -1432,10 +1493,10 @@ public class Complex {
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param numDec the number of significant decimals 
+	 * @param precision The precision of the result 
 	 * @return The value of the integral
 	 */
-	private static Complex integrateRE(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, double precission) {
+	private static Complex integrateRE(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, double precision) {
 		Complex vector = uplimit.minus(lolimit);
 		Complex nextPoint = new Complex();
 		Complex integral = new Complex();
@@ -1444,7 +1505,7 @@ public class Complex {
 		double vectSlope = vector.imp/vector.rep;
 		double vectAngle = Math.atan(vectSlope);
 		double projRe = vector.mod * Math.cos(vectAngle);
-		double stepRe = projRe * precission * Math.signum(vector.rep);
+		double stepRe = projRe * precision * Math.signum(vector.rep);
 		double nextRep, nextImp;
 		
 		int iter = 0;
@@ -1462,7 +1523,7 @@ public class Complex {
 		val = func.apply(lolimit);
 		integral = val;
 
-		while (++iter <= 1/precission) {
+		while (++iter <= 1/precision) {
 			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
 			nextRep = nextPoint.rep + stepRe;
 			nextImp = lolimit.imp + vectSlope * (nextRep - lolimit.rep);
@@ -1479,10 +1540,10 @@ public class Complex {
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param numDec the number of significant decimals 
+	 * @param precision The precision of the result 
 	 * @return The value of the integral
 	 */
-	private static Complex integrateIM(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, double precission) {
+	private static Complex integrateIM(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, double precision) {
 		Complex vector = uplimit.minus(lolimit);
 		Complex nextPoint = new Complex();
 		Complex integral = new Complex();
@@ -1491,7 +1552,7 @@ public class Complex {
 		double vectSlope = vector.rep/vector.imp;
 		double vectAngle = Math.atan(vectSlope);
 		double projIm = vector.mod * Math.cos(vectAngle);
-		double stepIm = projIm * precission * Math.signum(vector.imp);
+		double stepIm = projIm * precision * Math.signum(vector.imp);
 		double nextRep, nextImp;
 		
 		int iter = 0;
@@ -1509,7 +1570,7 @@ public class Complex {
 		val = func.apply(lolimit);
 		integral = val;
 
-		while (++iter <= 1/precission) {
+		while (++iter <= 1/precision) {
 			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
 			nextImp = nextPoint.imp + stepIm;
 			nextRep = lolimit.rep + vectSlope * (nextImp - lolimit.imp);
@@ -1525,11 +1586,11 @@ public class Complex {
 	 * Returns the value of the derivative at the point point
 	 * @param point the point to calculate the derivative
 	 * @param func the complex function to derived
-	 * @param precission the number of significant digits
+	 * @param precision The precision of the result 
 	 * @return the complex value of the derivative at the point
 	 */
-	static public Complex derivative(Complex point, Function <Complex, Complex> func, double precission) {
-		double hComp = Math.pow(10, -precission);
+	static public Complex derivative(Complex point, Function <Complex, Complex> func, double precision) {
+		double hComp = Math.pow(10, -precision);
 		Complex h = new Complex(hComp, hComp);
 		return (func.apply(point.plus(h)).minus(func.apply(point.minus(h)))).divides(h.times(2));
 	}
@@ -1538,26 +1599,277 @@ public class Complex {
 	 * Returns the value of the derivative at the point point
 	 * @param point the point to calculate the derivative
 	 * @param func the complex function to derived
-	 * @param precission the number of significant digits
+	 * @param precision The precision of the result 
 	 * @return the complex value of the derivative at the point
 	 */
-	static public Complex derivative(double point, Function <Complex, Complex> func, double precission) {
+	static public Complex derivative(double point, Function <Complex, Complex> func, double precision) {
 		Complex CPoint = new Complex(point, 0);
-		return derivative(CPoint, func, precission);
+		return derivative(CPoint, func, precision);
+	}
+
+	/*
+	 * ---------------- ROUND & INT-DEC PARTS OF A NUMBER ----------------
+	 */
+	
+	/**
+	 * Gets the decimal part of a double number
+	 * @param num The number
+	 * @return The decimal part
+	 */
+	static public double getDecPart(double num) {
+		BigDecimal bigDecimal = new BigDecimal(String.valueOf(num));
+		int intValue = bigDecimal.intValue();
+		return num -  intValue;
+	}
+
+	/**
+	 * Gets the integer part of a double number
+	 * @param num The number
+	 * @return The integre part
+	 */
+	static public double getIntPart(double num) {
+		BigDecimal bigDecimal = new BigDecimal(String.valueOf(num));
+		int intValue = bigDecimal.intValue();
+		return intValue;
+	}
+
+	/**
+	 * Rounds a double number to decs decimals
+	 * @param num The number to round
+	 * @param decs The number of decimals
+	 * @return The rounded number
+	 */
+	static public double round(double num, int decs) {
+		String format = "%." + decs +"f";
+		String strNum = String.format(format, num).replace(",", ".");
+		double round = Double.parseDouble(strNum);
+		return round;
+	}
+
+	/**
+	 * Rounds a complex number to decs decimals
+	 * @param num The complex number to round
+	 * @param decs The number of decimals
+	 * @return The rounded complex number
+	 */
+	static public Complex round(Complex num, int decs) {
+		Complex rndComplex = new Complex();
+		rndComplex.setComplexPol(round(num.mod, decs), num.pha);
+		return rndComplex;
+	}
+
+	/*
+	 * ---------------- LIMITS ----------------
+	 */
+
+	static int LIM_NUMDECS = 10; // Number of significative decimals for limits calculations
+	static double LIM_PRECISION = Math.pow(10, -LIM_NUMDECS);
+
+	/**
+	 * Gets the next point in a series for evaluating a function
+	 * @param point The point to evaluate the function
+	 * @param mult The multiplier for the surrounding point
+	 * @param sign The sign of the surrounding point
+	 * @return The new point calculated
+	 */
+	static private Complex nextPoint(Complex point, double mult, int sign) {
+		double newMod, newPha;
+		Complex nextPoint = new Complex();
+		double precision = Complex.LIM_PRECISION; //Complex.PRECISION * 1e5; //1e5; 
+		newMod = point.mod + precision * mult * sign;
+		newPha = newMod < LIM_PRECISION ? point.pha + Complex.PI : point.pha;
+		newMod = Math.abs(newMod);
+		nextPoint.setComplexPol(newMod, newPha);
+		return nextPoint;
 	}
 	
+	/**
+	 * Determines if the value of the limit obtained is an indetermination or not
+	 * @param limit The value of the limit calculated
+	 * @return True is is an indetermination, False if not
+	 */
+	static private boolean isIndetermination(Complex limit) {
+		if (Double.isNaN(limit.mod)) return true;
+		if (Double.isNaN(limit.rep) || Double.isNaN(limit.imp)) return true;
+		return false;
+	}
+	
+	/**
+	 * Compares the values of two limits, usually the limit on the right and the limit on the left, and indicates whether they are the same or not
+	 * @param limr The value of the limit on the right
+	 * @param liml The value of the limit on the left
+	 * @return If both values of the limit are equals or not
+	 */
+	static private boolean limequ(Complex limr, Complex liml) {
+		if (limr.mod == 0 && liml.mod == 0) return true;
+		double cocient = limr.mod < liml.mod ? limr.mod/liml.mod : liml.mod/limr.mod;
+		if (round(cocient, LIM_NUMDECS-2) == 1) {
+			double sin2r = Math.pow(Math.sin(limr.pha),2);
+			double cos2r = Math.pow(Math.cos(limr.pha),2);
+			double sin2l = Math.pow(Math.sin(liml.pha),2);
+			double cos2l = Math.pow(Math.cos(liml.pha),2);
+			if (sin2r + cos2l == 1 && cos2r + sin2l == 1) return true;
+			return false;
+		}
+		else return false;
+	}
+	
+	/**
+	 * Calculates the limit of func at point of type double
+	 * @param func The function to evaluate for the limit
+	 * @param point The Complex point in which the function is evaluated
+	 * @return The Complex value of the limit
+	 */
+	static public Complex limit(Function <Complex, Complex> func, Complex point) {
+		Complex lastLimit = null;
+		Complex limit = func.apply(point);
+		if (!Complex.isIndetermination(limit)) {
+			System.out.println("NO indetermination");
+			return limit;
+		}
+		//	System.out.println("INDETERMINATION!!!");
+
+		limit = null;
+		Complex pointr = new Complex(); 
+		Complex pointl = new Complex();
+		double mult = 1;
+		Complex limr = new Complex();
+		Complex liml = new Complex();
+
+		do {
+			pointr = nextPoint(point, mult, 1);
+			pointl = nextPoint(point, mult, -1);
+			limr = round(func.apply(pointr), LIM_NUMDECS/3);
+			liml = round(func.apply(pointl), LIM_NUMDECS/3);
+			
+			//	System.out.println("pointr = " + pointr.toStringPol());
+			//	System.out.println("pointl = " + pointl.toStringPol());
+			//	System.out.println("limr   = " + limr.toStringPol());
+			//	System.out.println("liml   = " + liml.toStringPol());
+			
+			if (Double.isInfinite(limr.mod) && Double.isInfinite(liml.mod)) return limr;
+			if (limequ(limr,liml)) {
+				if (lastLimit != null) {
+					if (lastLimit.mod == limr.mod) return limr;
+				}
+				lastLimit = limr;
+			}
+			mult *=10;
+		} while(mult * LIM_PRECISION < 1);
+		
+		return limit;
+	}
+
+	/**
+	 * Calculates the limit of func at point of type Complex
+	 * @param func The function to evaluate for the limit
+	 * @param point The Complex point in which the function is evaluated
+	 * @return The Complex value of the limit
+	 */
+	static public Complex limit(Function <Complex, Complex> func, double point) {
+		Complex Cpoint = new Complex(point,0);
+		return limit(func, Cpoint);
+	}
+	
+	/**
+	 * Calculates the limit of func at +Infinite or -Inifinite regarding param sign
+	 * @param func The function to evaluate for the limit
+	 * @param sign The sign of the Infinite
+	 * @return The Complex value of the limit
+	 */
+	static private Complex limit_inf(Function <Complex, Complex> func, int sign) {
+		Complex result;
+		Complex result2;
+		Complex point;
+		// 1st - Determine if the function is convergent
+		/*************************************************************/
+		result = func.apply(new Complex(sign*Double.MAX_VALUE, 0));
+		if (!Complex.isIndetermination(result)) {
+			if (result.equals(Complex.ZERO)) {
+				System.out.println("NO indetermination");
+				return result;
+			}
+		}
+		//	System.out.println("INDETERMINATION!!!");
+		/*************************************************************/
+
+		// 2nd Try to find the convergence value
+		point = new Complex(sign*Complex.LIM_INF, 0);
+		result = func.apply(point);
+		if (Double.isInfinite(result.mod())) {
+			result.pha = func.apply(new Complex(sign*Complex.LIM_INF/1e8, 0)).pha;
+			//	System.out.println(" + + + Infinito detectado pha = " + result.pha);
+			return result;
+		}
+		do {
+			result2 = result.copy();
+			point.setComplexPol(point.mod*2, point.pha);			
+			result = func.apply(point);
+			//	System.out.println("result2 = " + result2.toStringPol());
+			//	System.out.println("result  = " + result.toStringPol());
+			// If it grows the cut it
+			if ((result.mod-result2.mod) > 0 ) {
+				// System.out.println("result.mod-result2.mod)*sign  = " + (result.mod-result2.mod)*sign);
+				result = result2;
+				break;
+			}
+			if ((result.mod == 0)) {
+				result.setComplexPol(0, 0);
+				break;
+			}		
+		} while (result2.mod/result.mod != 1);
+		return result;
+	}
+	
+	/**
+	 * Calculates the limit of func at +Infinite
+	 * @param func The function to evaluate for the limit
+	 * @return The Complex value of the limit
+	 */
+	static public Complex limit_inf(Function <Complex, Complex> func) {
+		return limit_inf(func, 1);
+	}
+	
+	/**
+	 * Calculates the limit of func at -Infinite
+	 * @param func The function to evaluate for the limit
+	 * @return The Complex value of the limit
+	 */
+	static public Complex limit_Minf(Function <Complex, Complex> func) {
+		return limit_inf(func, -1);
+	}
+
+	/**
+	 * Indicates if the function is continuous in the given point.
+	 * @param p The point in which the continuity is analyzed.
+	 * @return True if the function in continuous. False in other case.
+	 */
+	static public boolean isContinuous(Function <Complex, Complex> func, Complex point) {
+		if (limit(func, point) != null) return true;
+		return false;
+	}
+	
+	/**
+	 * Indicates if the function is continuous in the given point.
+	 * @param p The point in which the continuity is analyzed.
+	 * @return True if the function in continuous. False in other case.
+	 */
+	static public boolean isContinuous(Function <Complex, Complex> func, double point) {
+		if (limit(func, point) != null) return true;
+		return false;
+	}
 	
 /**	
 	public static Complex integrateCurv(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, int numDec) {
 		Complex vector = uplimit.minus(lolimit);
-		double precission = Math.pow(10, -Math.abs(++numDec));
+		double precision = Math.pow(10, -Math.abs(++numDec));
 		
 		Complex integral = new Complex();
 
 		//Recorrer la distancia
 		double phiOrigin = lolimit.pha <= uplimit.pha ? lolimit.pha : uplimit.pha;
 		double phiEnd = lolimit.pha > uplimit.pha ? lolimit.pha : uplimit.pha;
-		double phiStep = (phiEnd - phiOrigin) * precission;
+		double phiStep = (phiEnd - phiOrigin) * precision;
 		int iter = 0;
 		
 		System.out.println("phiOrigin:" + phiOrigin);

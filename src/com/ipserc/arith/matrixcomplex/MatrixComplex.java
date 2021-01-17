@@ -15,14 +15,18 @@ public class MatrixComplex {
 	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangulation (Chio's rule)
 
 	/*
-	 * 
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
 	 */
 	public void version() {
 		System.out.println("VERSION:" + VERSION); 
 	}
 	
 	/*
+	 * ***********************************************
 	 * 	CONSTRUCTORS 
+	 * ***********************************************
 	 */
 
 	/**
@@ -82,7 +86,9 @@ public class MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * INITIALIZERS
+	 * ***********************************************
 	 */
 
 	/**
@@ -393,8 +399,10 @@ public class MatrixComplex {
 			}
 	}
 
-	/**
-	 * Métodos para crear Bases Algebraícas
+	/*
+	 * ***********************************************
+	 * ALGEBRAIC BASES
+	 * ***********************************************
 	 */
 
 	/**
@@ -419,7 +427,9 @@ public class MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * INTERNAL FUNCTIONS
+	 * ***********************************************
 	 */
 
 	/**
@@ -449,6 +459,16 @@ public class MatrixComplex {
 	}
 	
 	/**
+	 * Sets the item(row, col) of the array to a specific double number
+	 * @param row
+	 * @param col
+	 * @param numD
+	 */
+	public void setItem(int row, int col, double numD) {
+		this.complexMatrix[row][col].setComplexRec(numD, 0);
+	}
+	
+	/**
 	 * Sets the item(row, col) of the array to a specific complex number
 	 * @param row
 	 * @param col
@@ -468,7 +488,6 @@ public class MatrixComplex {
 		this.complexMatrix[row][col].setComplex(snumC);
 	}
 	
-	
 	/**
 	 * Private method to return the components of a string separated by a delimiter. The components have to be integers.
 	 * @param str String to chop.
@@ -485,8 +504,11 @@ public class MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * COPY & REPLICATION
+	 * ***********************************************
 	 */
+	
 	/**
 	 * Copies the values of the array into another object.
 	 * @return The new array with the copy.
@@ -512,7 +534,9 @@ public class MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * PRINTING
+	 * ***********************************************
 	 */
 
 	/**
@@ -685,7 +709,9 @@ public class MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * COLS & ROWS OPERATIONS
+	 * ***********************************************
 	 */
 
 	/**
@@ -854,7 +880,9 @@ public class MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * ARITHMETIC OPERATIONS
+	 * ***********************************************
 	 */
 
 	/**
@@ -1023,7 +1051,9 @@ public class MatrixComplex {
 	}
 	
 	/*
+	 * ***********************************************
 	 * NORMS
+	 * ***********************************************
 	 */
 
 	/**
@@ -1115,7 +1145,9 @@ public class MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * UNARY OPERATORS
+	 * ***********************************************
 	 */
 
 	/**
@@ -1470,7 +1502,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Private method that calculates the matrix 3x3 determinant by the Sarrus's rule.
+	 * Private method that calculates the matrix 3x3 determinant by the Sarrus' rule.
 	 * @return The value of the determinant.
 	 */
 	private Complex determinant3() {
@@ -1547,6 +1579,12 @@ public class MatrixComplex {
 		return cSum ; //returns determinant value. once stack is finished, returns final determinant.
 	}
 
+	/*
+	 * ***********************************************
+	 * EQUATION SYSTEMS
+	 * ***********************************************
+	 */
+	
 	/**
 	 * Returns a new matrix with the coefficients of the object matrix.
 	 * The new matrix is the original one with the independent terms removed.
@@ -1584,19 +1622,35 @@ public class MatrixComplex {
 	public static final int COMPATIBLE_DET = 1;
 
 	/**
-	 * Identifies whether the system of equations is homogeneous.
-	 * @return Returns true if the system is homogeneous, false otherwise.
+	 * Identifies whether the system of equations is isHomogeneous.
+	 * @return Returns true if the system is isHomogeneous, false otherwise.
 	 */
-	public boolean homogeneous() {
+	public boolean isHomogeneous() {
 		int rowLen = this.rows();
 		int lastCol = this.cols()-1;
-		boolean homogeneous = true;
+		boolean isHomogeneous = true;
 
 		for (int row = 0; row < rowLen; ++row)
-			homogeneous &= this.complexMatrix[row][lastCol].equalsred(0, 0);
-		return homogeneous;
+			isHomogeneous &= this.complexMatrix[row][lastCol].equalsred(0, 0);
+		return isHomogeneous;
 	}
 
+	/**
+	 * Returns the homogeneous equation system of this
+	 * @return the homogeneous equation system of this
+	 */
+	public MatrixComplex homogeneous() {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		MatrixComplex homogeneous = new MatrixComplex(rowLen, colLen);
+
+		homogeneous = this.copy();
+		
+		for (int row = 0; row < rowLen; ++row)
+			homogeneous.setItem(row, colLen-1, Complex.ZERO);
+		return homogeneous;
+	}
+	
 	/**
 	 * Identifies the type of systems of equations returning the constant according to the definition.
 	 * @return INCOMPATIBLE = -1, COMPATIBLE_INDET = 0 or COMPATIBLE_DET = 1.
@@ -1617,7 +1671,7 @@ public class MatrixComplex {
 		if (augmRank != coefRank) return INCOMPATIBLE;
 		//if (augmRank != coefRank || coefRank == 0) return INCOMPATIBLE;
 			
-		if (coefRank == numUnk) return this.homogeneous() ? COMPATIBLE_INDET : COMPATIBLE_DET;
+		if (coefRank == numUnk) return this.isHomogeneous() ? COMPATIBLE_INDET : COMPATIBLE_DET;
 		else return COMPATIBLE_INDET;	
 	}
 	
@@ -1835,6 +1889,12 @@ public class MatrixComplex {
 		return numSols;
 	}
 	
+	/**
+	 * 
+	 * @param solMatrix
+	 * @param lambda
+	 * @return
+	 */
 	public MatrixComplex solveSubstitution(MatrixComplex solMatrix, Complex lambda) {
 		MatrixComplex auxMatrix;
 		int eqsIdx = this.rows()-1;
@@ -1930,7 +1990,6 @@ public class MatrixComplex {
 		}
 		return newMatrix;
 	}
-
 	
 	public MatrixComplex solveReduction(MatrixComplex solMatrix, Complex lambda) {
 		/*
@@ -1978,6 +2037,7 @@ public class MatrixComplex {
 	}
 	
 	/**
+	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
 	 * Private function that generates the new reduced equations system to find out its solutions
 	 * @param auxMatrix
 	 * @param nbrOfSols
@@ -2000,6 +2060,13 @@ public class MatrixComplex {
 		return newMatrix;
 	}
 
+	/**
+	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
+	 * 
+	 * @param solMatrix
+	 * @param lambda
+	 * @return
+	 */
 	public MatrixComplex solveReduction_(MatrixComplex solMatrix, Complex lambda) {
 		/*
 		 * System reduction is used to find a particular solution for indeterminate compatible systems
@@ -2025,7 +2092,7 @@ public class MatrixComplex {
 		for (int sol = 0; sol < nbrOfSols; ++sol) {
 			for (int col = 0; col < nbrOfSols; ++col) {
 				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.homogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
+				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
 				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 			}
 			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
@@ -2039,7 +2106,7 @@ public class MatrixComplex {
 			if (!Double.isFinite(rowSolMatrix.times(rowSolMatrix.transpose()).getItem(0,0).rep())) {
 				for (int col = 0; col < nbrOfSols; ++col) {
 					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.homogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
+					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
 				}
 				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
@@ -2058,7 +2125,6 @@ public class MatrixComplex {
 		return solMatrix;
 	}
 	
-
 	/**
 	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
 	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
@@ -2084,7 +2150,7 @@ public class MatrixComplex {
 		indMatrix = this.indMatrix();
 		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
 	
-		if (this.homogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
+		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
 			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
 			return solMatrix;
 		}
@@ -2100,6 +2166,12 @@ public class MatrixComplex {
 		return solveReduction(solMatrix, lambda);
 	}
 
+	/**
+	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
+	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
+	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
+	 * @return The column matrix with the solutions if they exist, otherwise null.
+	 */	
 	public MatrixComplex solveGauss21(Complex lambda) {
 		int rowLen = this.rows();
 		int colLen = this.cols();
@@ -2119,7 +2191,7 @@ public class MatrixComplex {
 		indMatrix = this.indMatrix();
 		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
 	
-		if (this.homogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
+		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
 			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
 			return solMatrix;
 		}
@@ -2154,7 +2226,7 @@ public class MatrixComplex {
 		for (int sol = 0; sol < nbrOfSols; ++sol) {
 			for (int col = 0; col < nbrOfSols; ++col) {
 				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.homogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
+				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
 				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 			}
 			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
@@ -2168,7 +2240,7 @@ public class MatrixComplex {
 			if (!Double.isFinite(rowSolMatrix.times(rowSolMatrix.transpose()).getItem(0,0).rep())) {
 				for (int col = 0; col < nbrOfSols; ++col) {
 					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.homogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
+					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
 				}
 				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
@@ -2187,7 +2259,6 @@ public class MatrixComplex {
 		//solMatrix.println(HEADINFO + "solveGauss: " + "solMatrix");
 		return solMatrix;
 	}
-
 
 	/**
 	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
@@ -2213,7 +2284,7 @@ public class MatrixComplex {
 		indMatrix = this.indMatrix();
 		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
 	
-		if (this.homogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
+		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
 			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
 			return solMatrix;
 		}
@@ -2248,8 +2319,8 @@ public class MatrixComplex {
 			return solMatrix;
 		}
 		
-		if (this.homogeneous()) {
-			System.out.println("---------------- this.homogeneous()");
+		if (this.isHomogeneous()) {
+			System.out.println("---------------- this.isHomogeneous()");
 			for (int sol = 0; sol < nbrOfSols; ++sol) {
 				if (auxMatrix.isNullSolution(sol, sol)) {
 					solMatrix.setItem(sol, sol+nbrOfSols, Complex.ONE);
@@ -2264,7 +2335,7 @@ public class MatrixComplex {
 		for (int sol = 0; sol < nbrOfSols; ++sol) {
 			for (int col = 0; col < nbrOfSols; ++col) {
 				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.homogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
+				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
 				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 			}
 			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
@@ -2278,7 +2349,7 @@ public class MatrixComplex {
 			if (!Double.isFinite(rowSolMatrix.times(rowSolMatrix.transpose()).getItem(0,0).rep())) {
 				for (int col = 0; col < nbrOfSols; ++col) {
 					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.homogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
+					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
 					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
 				}
 				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
@@ -2348,7 +2419,7 @@ public class MatrixComplex {
 			for (row = rowLen-1; row >= 0; --row) {
 				cCoef = coefMatrix.getItem(row, row);
 				if (cCoef.equalsred(0,0)) {
-					if (this.homogeneous() && nbrOfSols == 1) solMatrix.setItem(row,sol,lambda);
+					if (this.isHomogeneous() && nbrOfSols == 1) solMatrix.setItem(row,sol,lambda);
 					else solMatrix.setItem(row,sol, row == sol ? lambda : Complex.ZERO);
 					continue;
 				}
@@ -2362,6 +2433,24 @@ public class MatrixComplex {
 		return solMatrix.transpose();
 	}
 
+	/*
+	 * TODO Implementar solución paramétrica para sistemas compatibles indetereminados como
+	 * Implementar solución paramétrica para sistemas compatibles indetereminados como
+	 * 		
+		fMatrix = new MatrixComplex(  " 1,-2, 3 ,1; "
+									+ "-2, 5,-1, 2; "
+									+ " 4,-9, 7, 0");
+		partsol = solve(fMatrix);
+		hMatrix = fMatrix.homogeneous();
+		homosol = solve(hMatrix);
+		
+		for (int i = -5; i < 6; ++i) {
+			solution = partsol.plus(homosol.times(i));
+			checkSol(fMatrix, solution);
+		}
+ 
+	 */
+	
 	/**
 	 * Shortcut to ACTIVE solveGauss
 	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
@@ -3082,7 +3171,9 @@ public class MatrixComplex {
 	}
 
 	/*
-	 * Characteristic Polynomial
+	 * ***********************************************
+	 * CHARACTERISTIC POLYNOMIAL
+	 * ***********************************************
 	 */
 	
 	/**
@@ -3113,7 +3204,6 @@ public class MatrixComplex {
 		//this.print(charactPolyMatrix.complexMatrix);
 		return (colLen % 2) == 0 ? charactPoly : charactPoly.opposite();
 	}
-
 
 	/**
 	 * Returns a new augmented matrix.
@@ -3450,7 +3540,9 @@ public class MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * LINE EQUATION
+	 * ***********************************************
 	 */
 
 	/**
@@ -3510,7 +3602,9 @@ public class MatrixComplex {
 	}
 
 	/*
-	 * Transformaciones elementales fila
+	 * ***********************************************
+	 * ELEMENTARY ROW TRANSFORMATIONS
+	 * ***********************************************
 	 */
 
 	/**

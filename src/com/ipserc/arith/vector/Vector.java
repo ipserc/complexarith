@@ -6,6 +6,7 @@ import com.ipserc.arith.matrixcomplex.*;
 public class Vector extends MatrixComplex {
 
 	private final static String HEADINFO = "Vector --- INFO:";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
 
 	/**
 	 * Instantiates a new vector of dimension 1 initialized to zero
@@ -190,7 +191,7 @@ public class Vector extends MatrixComplex {
 	}
 
 	/**
-	 * Private method. Calculates the cross product for vectors up to dimension 7.
+	 * Private method. Calculates the cross product for vectors up to dimension 7. (Levi-Civita)
 	 * The cross product or vector product (occasionally directed area product to emphasize the geometric significance) 
 	 * is a binary operation on two vectors in three-dimensional space (R3) and is denoted by the symbol ×. 
 	 * Given two linearly independent vectors a and b, the cross product, a × b, is a vector that is perpendicular to both a and b and thus normal to the plane containing them. 

@@ -1,22 +1,17 @@
 package com.ipserc.arith.factorization;
 
+import com.ipserc.arith.matrixcomplex.Eigenspace;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.complex.Complex;;
 
-public class Jordan extends MatrixComplex {
+public class Jordan extends Eigenspace {
+
+	private final static String HEADINFO = "Jordan --- INFO:";
 	private final static String VERSION = "1.0 (2020_0627_1130)";
 
 	private MatrixComplex cJ;
 	private MatrixComplex cP;
 	private boolean factorized = false;
-	private final static String HEADINFO = "Jordan --- INFO:";
-
-	/*
-	 * VERSION
-	 */
-	public void version() {
-		System.out.println("VERSION:" + VERSION); 
-	}
 
 	/*
 	 * 	CONSTRUCTORS 
@@ -25,10 +20,12 @@ public class Jordan extends MatrixComplex {
 	 * Instantiates a complex square array of length len.
 	 * @param len The length of the square array.
 	 */
+	/*
 	public Jordan(int len) {
 		super(len);
 	}
-
+	*/
+	
 	/**
 	 * Instantiates a complex array from a string, rows are separated with ";", cols are separated with ",".
 	 * @param strMatrix the string with the rows and columns.
@@ -42,8 +39,8 @@ public class Jordan extends MatrixComplex {
 	 * @param matrix the MatrixComplex already instantiated.
 	 */
 	public Jordan(MatrixComplex matrix) {
-		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		super(matrix);
+		//this.complexMatrix = matrix.complexMatrix.clone();
 	}
 
 	/*
@@ -130,7 +127,7 @@ public class Jordan extends MatrixComplex {
 			System.out.println(HEADINFO + "The Matrix MUST be square to be factorized as a Jordan Matrix");
 			System.exit(-1);
 		}
-		MatrixComplex eigenValArray = this.eigenvalues();
+		MatrixComplex eigenValArray = this.values();
 		eigenValArray.quicksort(0);
 		
 		cJ = new MatrixComplex(rowLen, colLen);
@@ -138,7 +135,7 @@ public class Jordan extends MatrixComplex {
 
 		for (int i = 0; i < eigenValArray.rows();) {
 			Complex eigenval = eigenValArray.getItem(i, 0);
-			int arithMult = eigenValArray.arithmeticMultiplicity(eigenval);
+			int arithMult = this.arithmeticMultiplicity(eigenval);
 			MatrixComplex jordanBlock = this.block(i, arithMult, eigenval);
 			cJ = cJ.plus(jordanBlock);
 			i += arithMult;
@@ -147,7 +144,7 @@ public class Jordan extends MatrixComplex {
 		
 		for (int i = 0; i < eigenValArray.rows();) {
 			Complex eigenval = eigenValArray.getItem(i, 0);
-			int arithMult = eigenValArray.arithmeticMultiplicity(eigenval);
+			int arithMult = this.arithmeticMultiplicity(eigenval);
 			MatrixComplex eigenVect = this.eigenvectors(eigenval, arithMult);
 			eigenVect.println("----------EIGENVECTORS for:" + eigenval.toString() + " multiplicity:" + arithMult);
 			for (int sol = 0; sol < eigenVect.rows(); ++sol) {

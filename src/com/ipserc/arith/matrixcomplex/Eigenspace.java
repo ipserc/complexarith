@@ -13,6 +13,10 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.polynom.Polynom;
 
 public class Eigenspace extends MatrixComplex {
+	
+	private final static String HEADINFO = "Eigenspace --- INFO:";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
+
 	/**
 	 * Enumeration that gives the value of the order in wihch the eigenvalues, and therefore, the eigenvectors are returned
 	 * DOWN: The eigenvalues are sorted from higher to lower
@@ -25,7 +29,7 @@ public class Eigenspace extends MatrixComplex {
 	private Polynom charactPoly;
 	private Complex seed;
 	private Order order;
-	
+
 	/*
 	 * CONSTRUCTORS
 	 */

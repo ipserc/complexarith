@@ -205,7 +205,7 @@ public class Polynom extends MatrixComplex {
 		String polynom = new String(); 
 
 		polynom = this.toString();
-		polynom = polynom.replace("i", "I");
+		//polynom = polynom.replace("i", "I");
 
 		return polynom;
 	}
@@ -396,7 +396,7 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * Finds the roots to a Nth degree equation with a determined precision using the Weierstrass method.
 	 * Durand-Kerner Method. Discovered by Karl Weierstrass in 1891 and rediscovered independently by Durand in 1960 and Kerner in 1966.
-	 * @param precision The precission used to identify a zero.
+	 * @param precision The precision used to identify a zero.
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solveWeierstrass(double precision) {
@@ -470,7 +470,7 @@ public class Polynom extends MatrixComplex {
 
 	/**
 	 * Shortcut for solveWeierstrass(double precision).
-	 * @param precision The precission used to identify a zero.
+	 * @param precision The precision used to identify a zero.
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solve(double precision) {
