@@ -41,6 +41,8 @@ public class TestComplex {
         //Complex b = new Complex("3.605551275463989|14.7251695447016373538505735331180"); //"-2+3i");
         Complex c = new Complex("i");
         Complex d = new Complex();
+        Complex e = new Complex();
+        Complex f = new Complex();
         
         Complex.setFormatOFF();
         
@@ -190,6 +192,14 @@ public class TestComplex {
 
         a.setComplex("-i");
         b.setComplex("i");
+        System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+        System.out.println("b		= " + b.toStringRec() + " : " + b.toStringPol());
+        c = a.power(b);
+        System.out.println("c=a^b		= " + c.toStringRec() + " : " + c.toStringPol());
+        System.out.println("------------------------------------------------------------");
+
+        a.setComplex("i");
+        b.setComplex("1-2i");
         System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
         System.out.println("b		= " + b.toStringRec() + " : " + b.toStringPol());
         c = a.power(b);
@@ -443,6 +453,29 @@ public class TestComplex {
        c = a.divides(b);
        System.out.println("c=a/b		= " + c.toStringRec() + " : " + c.toStringPol());       
        System.out.println("------------------------------------------------------------");
+       
+       a.setComplexPol(9.0E-1, 0);
+       b.setComplexPol(9.0E-1, 3.141592653589793);
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       System.out.println("b		= " + b.toStringRec() + " : " + b.toStringPol());
+       c = Complex.sin(a);
+       d = Complex.sin(b);
+       e = a.times(c);
+       f = b.times(d);
+       System.out.println("sin(a)		= " + c.toStringRec() + " : " + c.toStringPol());
+       System.out.println("sin(b)		= " + d.toStringRec() + " : " + d.toStringPol());
+       System.out.println("a*sin(a)	= " + e.toStringRec() + " : " + e.toStringPol());
+       System.out.println("b*sin(b)	= " + f.toStringRec() + " : " + f.toStringPol());
+       System.out.println("------------------------------------------------------------");
+       
+       a.setComplex("1-i");
+       b = a.power(4);
+       c = a.times(a.times(a.times(a)));
+       System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
+       System.out.println("a^4		= " + b.toStringRec() + " : " + b.toStringPol());
+       System.out.println("a*a*a*a		= " + c.toStringRec() + " : " + c.toStringPol());
+       System.out.println("------------------------------------------------------------");
+       
 
     }
 }

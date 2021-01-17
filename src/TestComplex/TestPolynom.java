@@ -80,18 +80,24 @@ public class TestPolynom {
     	showResults(myPolynom);       	
     	
     	myPolynom = new Polynom("1,10,-30.49,-445.14,199.54,5727.08,-1890.73,-21585.78,6065.64,20638.8");
+    	myPolynom.plot(-7, 5);
     	showResults(myPolynom);
     	
     	myPolynom = new Polynom("1,10,30.49,445.14,199.54,5727.08,1890.73,21585.78,6065.64,20638.8");
     	showResults(myPolynom);
     	
     	myPolynom = new Polynom("-3+2i,-8+5i,5+4i,2-5i,9+6i,-8-3i,-2-2i,-3+7i,-5+1i,7+5i,6+8i,-1+2i,-8-5i,3-5i,-7-2i,1");
+    	myPolynom.plotReIm(-12, 12);
     	System.out.println(myPolynom.toMatrixComplex());
     	showResults(myPolynom);       	
 
     	myPolynom = new Polynom("1,-7+8i,4+4i,-8+9i,-7+7i,-3-6i,1-8i,5-7i,-9-8i,8+7i,3+8i,6+8i,6+8i,-3-3i,2-i,-6-6i");
     	showResults(myPolynom);
 
+    	myPolynom = new Polynom("1,-7+8i,4+4i,-8+9i,-7+7i,-3-6i,1-8i,5-7i,-9-8i,8+7i,3+8i,6+8i,6+8i,-3-3i,2-i,-6-6i");
+    	showResults(myPolynom);
+
+    	/*************************
     	myPolynom = new Polynom(16); myPolynom.initMatrixRandomRecInt(1);	
     	showResults(myPolynom); 
     	
@@ -158,6 +164,7 @@ public class TestPolynom {
     	
     	myPolynom = myPolynom.chebyshev(5, 6);
     	myPolynom.println("chebyshev 6 grado 5");
+    	*************************/
 
 	}
 }

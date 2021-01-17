@@ -3,10 +3,8 @@ package TestComplex;
 import java.awt.image.SampleModel;
 
 import com.ipserc.arith.complex.Complex;
-import com.ipserc.arith.fourier.*;
-import com.ipserc.arith.fourier.Fourier.e_domain;
-import com.ipserc.arith.fourier.Fourier.e_lineStyle;
-import com.ipserc.arith.fourier.Fourier.e_operator;
+import com.ipserc.signal.*;
+import com.ipserc.signal.Fourier.*;
 
 public class TestFilter {
 

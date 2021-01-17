@@ -131,7 +131,7 @@ public class plotPolynom {
 		*/
 
 		degree = 28;
-     	kind = 600;
+     	kind = 10;
      	myPolynom = new Polynom().chebyshev(degree, kind);
      	myPolynom.println("Chebyshev " + degree + "," + kind);
 		showResults(myPolynom);
