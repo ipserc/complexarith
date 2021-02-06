@@ -36,7 +36,10 @@ public class TestSolve {
 		if (fMatrix.typeEqSys() == 1)
 			System.out.println("Se devuelve 1 solución única.");
 		else if (fMatrix.typeEqSys() == 0) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
-			else System.out.println("Sistema sin solución.") ;
+			else {
+				System.out.println("Sistema sin solución.") ;
+				return;
+			}
 		hMatrix = fMatrix.solve();
 		hMatrix.println("Soluciones (hMatrix)");
 		fMatrix.coefMatrix().times(hMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
@@ -187,7 +190,7 @@ public class TestSolve {
 		fMatrix = new MatrixComplex("4,-3,-3,-6i;4i,-2,3,0;3,-4,-9,4i");
 		showResults(fMatrix);
 
-		fMatrix = new MatrixComplex(20,21); fMatrix.initMatrixRandomInteger(9);
+		fMatrix = new MatrixComplex(19,20); fMatrix.initMatrixRandomInteger(9);
 		showResults(fMatrix);
 
 		fMatrix = new MatrixComplex("1,2,3;2,1,-1");

@@ -16,6 +16,10 @@ public class TestEigenV5 {
     	System.out.println("____________________________ CALCULO AUTOVALORES/AUTOVECTORES ____________________________");
     	aMatrix.println(Header + "aMatrix");
     	System.out.println(Header + "Maxima:\n"+aMatrix.toMaxima());
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_eigenvalues(true));
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_eigenvectors(true));
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_charpoly(true));
+    	System.out.println(Header + "Octave:\n"+eigenSpace.Octave_eigenvectors());
     	System.out.println(Header + "Wolfram:\n"+aMatrix.toWolfram());
     	aMatrix.determinant().println(Header + "Det[aMatrix]:");
     	aMatrix.triangle().heap().println("---------------- triangle:");

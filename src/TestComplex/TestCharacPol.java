@@ -6,7 +6,8 @@ import com.ipserc.arith.matrixcomplex.*;
 public class TestCharacPol {
 	
 	private static void ShowResults(MatrixComplex A) {
-		System.out.println("En Wolfram:" + A.toWolfram());
+		System.out.println("Wolfram:" + A.toWolfram());
+		System.out.println("Maxima:" + A.toMaxima());
 		A.charactPoly().println("Polinomio Caraterístico");
 		System.out.println("------------------------------------------------");
 	}

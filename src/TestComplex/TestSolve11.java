@@ -40,7 +40,7 @@ public class TestSolve11 {
 			solMatrix.println("Probando Solución");
 			fMatrix.coefMatrix().times(solMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
 		}
-		if (fMatrix.typeEqSys() == MatrixComplex.COMPATIBLE_DET) {
+		if (fMatrix.typeEqSys() == MatrixComplex.DETERMINATE) {
 			hMatrix = fMatrix.solveCramer();
 			hMatrix.println("Soluciones Cramer (hMatrix)");
 			fMatrix.coefMatrix().times(hMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");			

@@ -26,9 +26,9 @@ public class TestSolve14 {
 		fMatrix.println("Equation System");
 		int typeEqSys = fMatrix.typeEqSys();
 		fMatrix.printTypeEqSys(typeEqSys, seed);	
-		if (typeEqSys == MatrixComplex.COMPATIBLE_DET)
+		if (typeEqSys == MatrixComplex.DETERMINATE)
 			System.out.println("Se devuelve 1 solución única.");
-		else if (typeEqSys == MatrixComplex.COMPATIBLE_INDET) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
+		else if (typeEqSys == MatrixComplex.INDETERMINATE) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
 			else {
 				System.out.println("Sistema sin solución.") ;
 				return hMatrix;
@@ -64,9 +64,9 @@ public class TestSolve14 {
 		Complex seed = new Complex(1,0);
 		int typeEqSys = fMatrix.typeEqSys();
 		fMatrix.printTypeEqSys(typeEqSys, seed);	
-		if (typeEqSys == MatrixComplex.COMPATIBLE_DET)
+		if (typeEqSys == MatrixComplex.DETERMINATE)
 			System.out.println("Se devuelve 1 solución única.");
-		else if (typeEqSys == MatrixComplex.COMPATIBLE_INDET) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
+		else if (typeEqSys == MatrixComplex.INDETERMINATE) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
 			else {
 				System.out.println("Sistema sin solución.") ;
 				return;
@@ -81,7 +81,7 @@ public class TestSolve14 {
 			solMatrix.println("Soluciones (solMatrix)");
 			fMatrix.coefMatrix().times(solMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
 		}
-		if (fMatrix.typeEqSys() == MatrixComplex.COMPATIBLE_DET) {
+		if (fMatrix.typeEqSys() == MatrixComplex.DETERMINATE) {
 			System.out.println("	SOLVE CRAMER");		
 			hMatrix = fMatrix.solveCramer();
 			hMatrix.println("Soluciones Cramer (hMatrix)");

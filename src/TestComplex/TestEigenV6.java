@@ -7,20 +7,24 @@ import com.ipserc.arith.factorization.Diagfactor;
 public class TestEigenV6 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
-		Complex seed = new Complex(2,-3);
+		Complex seed = new Complex(1,0);
 		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);
      	MatrixComplex eigenVect;
-    	final String Header = new String("TEV6 --- "); 
+    	final String Header = new String("TEV5 --- "); 
 
     	System.out.println("__________________________________________________________________________________________");
     	System.out.println("____________________________ CALCULO AUTOVALORES/AUTOVECTORES ____________________________");
     	aMatrix.println(Header + "aMatrix");
     	System.out.println(Header + "Maxima:\n"+aMatrix.toMaxima());
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_eigenvalues(true));
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_eigenvectors(true));
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_charpoly(true));
+    	System.out.println(Header + "Octave:\n"+eigenSpace.Octave_eigenvectors());
     	System.out.println(Header + "Wolfram:\n"+aMatrix.toWolfram());
     	aMatrix.determinant().println(Header + "Det[aMatrix]:");
     	aMatrix.triangle().heap().println("---------------- triangle:");
     	
-    	eigenSpace.charactPoly().println(Header + "Characteristic polynom");
+    	eigenSpace.getCharactPoly().println(Header + "Characteristic polynom");
     	eigenSpace.values().println(Header + "**************** eigenVal ****************");
     	{
 	    	Complex eVal = eigenSpace.values().getItem(0,0);

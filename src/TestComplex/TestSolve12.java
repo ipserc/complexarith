@@ -42,7 +42,7 @@ public class TestSolve12 {
 			//solMatrix.println("Soluciones (solMatrix)");
 			fMatrix.coefMatrix().times(solMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(solMatrix.transpose())");
 		}
-		if (fMatrix.typeEqSys() == MatrixComplex.COMPATIBLE_DET) {
+		if (fMatrix.typeEqSys() == MatrixComplex.DETERMINATE) {
 			System.out.println("	SOLVE CRAMER");		
 			hMatrix = fMatrix.solveCramer();
 			System.out.println("++++++++++++++++++++++++++++++++++++++");

@@ -30,9 +30,9 @@ public class TestSolve4 {
 		int nbrSolutions = fMatrix.nbrOfSolutions();
 		fMatrix.printTypeEqSys();
 		fMatrix.typeEqSys();
-		if (fMatrix.typeEqSys() == MatrixComplex.COMPATIBLE_DET)
+		if (fMatrix.typeEqSys() == MatrixComplex.DETERMINATE)
 			System.out.println("Se devuelve 1 solución única.");
-		else if (fMatrix.typeEqSys() == MatrixComplex.COMPATIBLE_INDET) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
+		else if (fMatrix.typeEqSys() == MatrixComplex.INDETERMINATE) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
 			else System.out.println("Sistema sin solución.");
 		hMatrix = fMatrix.solve();
 		hMatrix.println("Soluciones (hMatrix)");

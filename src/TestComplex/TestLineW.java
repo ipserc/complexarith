@@ -65,6 +65,8 @@ public class TestLineW {
 		MatrixComplex aLine = new MatrixComplex();		
 		List<MatrixComplex> listLines = new ArrayList<MatrixComplex>();
 		
+		Complex.setFormatON();
+		
 		aLine = aLine.pointVector("-1,4,-2,7", "3,-5,-2,3");
 		listLines.add(aLine);
 		aLine.println(toGNUPlot(aLine));

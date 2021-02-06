@@ -7,14 +7,20 @@ import com.ipserc.arith.factorization.Diagfactor;
 public class TestEigenV2 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
-		Eigenspace eigenSpace = new Eigenspace(aMatrix);
-    	MatrixComplex eigenVect;
-    	final String Header = new String("TEV2 --- "); 
+		Complex seed = new Complex(1,0);
+		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);
+     	MatrixComplex eigenVect;
+    	final String Header = new String("TEV5 --- "); 
 
     	System.out.println("__________________________________________________________________________________________");
     	System.out.println("____________________________ CALCULO AUTOVALORES/AUTOVECTORES ____________________________");
     	aMatrix.println(Header + "aMatrix");
     	System.out.println(Header + "Maxima:\n"+aMatrix.toMaxima());
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_eigenvalues(true));
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_eigenvectors(true));
+    	System.out.println(Header + "Maxima:\n"+eigenSpace.Maxima_charpoly(true));
+    	System.out.println(Header + "Octave:\n"+eigenSpace.Octave_eigenvectors());
+    	System.out.println(Header + "Octave:\n"+eigenSpace.Octave_eigenvectors());
     	System.out.println(Header + "Wolfram:\n"+aMatrix.toWolfram());
     	aMatrix.determinant().println(Header + "Det[aMatrix]:");
     	aMatrix.triangle().heap().println("---------------- triangle:");
@@ -102,20 +108,28 @@ public class TestEigenV2 {
      	aMatrix.initMatrixRandomImagInt();
      	doEigenCalculations(aMatrix);
 */
+
+/* * /
      	aMatrix = new MatrixComplex(""+
      			"  1.000 ,  2.000 ,  4.000 ;" +
      			"  2.000 ,  1.000 , -4.000 ;" +
      			"  0.000 ,  0.000 ,  3.000 ");
      	doEigenCalculations(aMatrix);
+/* */
+     	
+/* */
      	aMatrix = new MatrixComplex(""+
      			"  1.000i ,  1.000i ,  1.000i ;" +
      			" -1.000i , -1.000i , -1.000i ;" +
      			"  1.000i ,  1.000i , -1.000i ");
+/* */
      	aMatrix = new MatrixComplex(""+
      			"  1.0000 ,  1.0000 ,  1.00000 ;" +
      			" -1.0000 , -1.0000 , -1.00000 ;" +
      			"  1.0000 ,  1.0000 , -1.00000 ");
      	doEigenCalculations(aMatrix);
+
+/* */
      	aMatrix = new MatrixComplex(""+
      			"  1.000 ,  1.000 ,  1.000 ;" +
      			" -1.000 , -1.000 , -1.000 ;" +
@@ -133,6 +147,6 @@ public class TestEigenV2 {
      			"  0.000 ,  1.000 ,  3.000 ;" +
      			"  0.000 ,  2.000 ,  2.000 ");
      	doEigenCalculations(aMatrix);
-
+/* */
 	}
 }
