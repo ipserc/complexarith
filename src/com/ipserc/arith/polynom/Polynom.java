@@ -1,5 +1,5 @@
 /**
- * /usr/lib/jvm/java-8-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/workspace_oxigen/complexarith/bin TestComplex.plotPolynom
+ * /usr/lib/jvm/java-11-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin TestComplex.plotPolynom
  */
 package com.ipserc.arith.polynom;
 /**
@@ -19,11 +19,28 @@ public class Polynom extends MatrixComplex {
 	private Complex[][] polyNorm;
 	private Polynom remainder;
 
-	private final static String HEADINFO = "Polynom --- INFO:";
 	private static double sampleBase = 300;
 
+	private final static String HEADINFO = "Polynom --- INFO:";
+	private final static String VERSION = "1.0 (2021_0130_1300)";
+
 	/*
-	 * CONSTRUCTORS
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public void version() {
+		System.out.println("VERSION:" + VERSION); 
+	}
+	
+	/*
+	 * ***********************************************
+	 * 	CONSTRUCTORS 
+	 * ***********************************************
 	 */
 
 	/**
@@ -135,6 +152,7 @@ public class Polynom extends MatrixComplex {
 	public double getSampleBase() {
 		return sampleBase;
 	}
+	
 	/*
 	 * PRINTING
 	 */
@@ -865,7 +883,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Calculates the Hermite polynomial of degree "degree" using the formula hermite(n) = 2·x*hermite(n-1) - 2(n-1)*hermte(n-2)
+	 * Calculates the Hermite polynomial of degree "degree" using the formula hermite(n) = 2n*hermite(n-1) - 2(n-1)*hermte(n-2)
 	 * Hermite(0) = 1
 	 * Hermite(1) = 2x
 	 * @param degree The degree of the Hermite polynomial.

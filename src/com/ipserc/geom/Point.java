@@ -6,6 +6,26 @@ import com.ipserc.arith.vector.*;
 public class Point extends MatrixComplex {
 
 	private final static String HEADINFO = "Point --- INFO:";
+	private final static String VERSION = "1.0 (2021_0206_0100)";
+
+	/*
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public void version() {
+		System.out.println("VERSION:" + VERSION); 
+	}
+
+	/*
+	 * ***********************************************
+	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 */
 
 	public Point() {
 		super();

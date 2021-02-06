@@ -11,6 +11,7 @@ package com.ipserc.arith.matrixcomplex;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.polynom.Polynom;
+import com.ipserc.syseq.Syseq;
 
 public class Eigenspace extends MatrixComplex {
 	
@@ -31,8 +32,11 @@ public class Eigenspace extends MatrixComplex {
 	private Order order;
 
 	/*
+	 * ***********************************************
 	 * CONSTRUCTORS
+	 * ***********************************************
 	 */
+	
 	/**
 	 * 
 	 * @param cmatrix
@@ -78,8 +82,11 @@ public class Eigenspace extends MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * GETTERS
+	 * ***********************************************
 	 */
+	
 	/**
 	 * 
 	 */
@@ -90,8 +97,11 @@ public class Eigenspace extends MatrixComplex {
 	}
 	
 	/*
+	 * ***********************************************
 	 * GETTERS
+	 * ***********************************************
 	 */
+	
 	/**
 	 * 
 	 * @return
@@ -133,7 +143,9 @@ public class Eigenspace extends MatrixComplex {
 	}
 	
 	/*
+	 * ***********************************************
 	 * OPERATORS
+	 * ***********************************************
 	 */
 
 	/**
@@ -173,8 +185,8 @@ public class Eigenspace extends MatrixComplex {
 		// values.quicksortup(0); // DO NOT USE - SVD factorization doesn't allow this
 		// order = Order.UP;
 		// By dafault the order in which the eigenvalues are sorted is from Higher to Lower
-		values.quicksort(0);
 		order = Order.DOWN;
+		values.quicksort(0);
 	}
 
 	/**
@@ -216,14 +228,42 @@ public class Eigenspace extends MatrixComplex {
 		
 		for (int rowEig = 0; rowEig < rowLen;) {
 			eigenval = values.getItem(rowEig, 0);
-			int arithMult = this.arithmeticMultiplicity(eigenval);
+			// int arithMult = this.arithmeticMultiplicity(eigenval);
 			cMatrix = (I.times(eigenval)).minus(this);
 			dMatrix = cMatrix.augment().heap();
+			System.out.println("Ec.Caract.["+rowEig+"]" + dMatrix.toMatrixComplex());
 			eigenVect = dMatrix.solve(seed);
 			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
 				vectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
 			}
-			rowEig += arithMult;
+			rowEig += eigenVect.rows();
+			// rowEig += arithMult;
 		}
 	}
+	
+	/*
+	 * ***********************************************
+	 * PRINTING
+	 * ***********************************************
+	 */
+	
+	public String Maxima_eigenvalues(boolean expand) {
+		String toMaxima = "eigenvalues("+this.toMaxima()+")";
+		return expand ? "expand("+toMaxima+")" : toMaxima; 		
+	}
+	
+	public String Maxima_eigenvectors(boolean expand) {
+		String toMaxima = "eigenvectors("+this.toMaxima()+")";
+		return expand ? "expand("+toMaxima+")" : toMaxima; 		
+	}
+	
+	public String Maxima_charpoly(boolean expand) {
+		String toMaxima = "charpoly("+this.toMaxima()+",t)";
+		return expand ? "expand("+toMaxima+")" : toMaxima;
+	}
+	
+	public String Octave_eigenvectors() {
+		return "[V,lambda] = eig("+this.toMathlab()+")";
+	}
+
 }

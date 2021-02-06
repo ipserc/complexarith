@@ -19,6 +19,10 @@ public class MatrixComplex {
 	 * 	VERSION 
 	 * ***********************************************
 	 */
+	
+	/**
+	 * Prints Class Version
+	 */
 	public void version() {
 		System.out.println("VERSION:" + VERSION); 
 	}
@@ -631,7 +635,7 @@ public class MatrixComplex {
 				matrixMaxima += this.complexMatrix[row][col].toString();
 				matrixMaxima += (col == colLen-1 ? "]" : ",");
 			}
-			matrixMaxima += (row == rowLen-1 ? ");" : ",");
+			matrixMaxima += (row == rowLen-1 ? ")" : ",");
 		}
 		matrixMaxima = matrixMaxima.replace("i", "*%i");
 		matrixMaxima = "matrix(" + matrixMaxima;
@@ -684,6 +688,14 @@ public class MatrixComplex {
 		return matrixWolfram;
 	}
 
+	/**
+	 * Returns a string with the array expression in the format used by GNU Octave.
+	 * @return The string with the array in GNU Octave format.
+	 */
+	public String toOctave() {
+		return toMathlab();
+	}
+	
 	/**
 	 * Returns a string with the array expression in the format used by Matrix Complex. 
 	 * @return The string with the array in MatrixComplex format.
@@ -1613,13 +1625,23 @@ public class MatrixComplex {
 			indMatrix.complexMatrix[row][0] = this.complexMatrix[row][colLen-1];
 		return indMatrix;
 	}
+
+	/**
+	 * Returns a new matrix with the independent terms of the object matrix.
+	 * The new matrix is the independent terms column matrix.
+	 * @return The new matrix with the independent terms.
+	 */
+	public MatrixComplex constMatrix() {
+		return this.indMatrix();
+	}
 	
+
 	/**
 	 * Defines the constants that identify the type of equation system being solved.
 	 */
-	public static final int INCOMPATIBLE = -1;
-	public static final int COMPATIBLE_INDET = 0;
-	public static final int COMPATIBLE_DET = 1;
+	public static final int INCONSISTENT = -1;
+	public static final int INDETERMINATE = 0;
+	public static final int DETERMINATE = 1;
 
 	/**
 	 * Identifies whether the system of equations is isHomogeneous.
@@ -1653,7 +1675,7 @@ public class MatrixComplex {
 	
 	/**
 	 * Identifies the type of systems of equations returning the constant according to the definition.
-	 * @return INCOMPATIBLE = -1, COMPATIBLE_INDET = 0 or COMPATIBLE_DET = 1.
+	 * @return INCONSISTENT = -1, INDETERMINATE = 0 or DETERMINATE = 1.
 	 */
 	public int typeEqSys() {
 		int numUnk = this.cols()-1;
@@ -1668,26 +1690,26 @@ public class MatrixComplex {
 		//	System.out.println("------------------ typeEqSys() augmRank:" + augmRank);
 		//	System.out.println("------------------ typeEqSys() coefRank:" + coefRank);
 				
-		if (augmRank != coefRank) return INCOMPATIBLE;
-		//if (augmRank != coefRank || coefRank == 0) return INCOMPATIBLE;
+		if (augmRank != coefRank) return INCONSISTENT;
+		//if (augmRank != coefRank || coefRank == 0) return INCONSISTENT;
 			
-		if (coefRank == numUnk) return this.isHomogeneous() ? COMPATIBLE_INDET : COMPATIBLE_DET;
-		else return COMPATIBLE_INDET;	
+		if (coefRank == numUnk) return this.isHomogeneous() ? INDETERMINATE : DETERMINATE;
+		else return INDETERMINATE;	
 	}
 	
 	/**
 	 * Prints a message indicating the system type of equations according to type "type".
-	 * @param type INCOMPATIBLE = -1, COMPATIBLE_INDET = 0 or COMPATIBLE_DET = 1.
+	 * @param type INCONSISTENT = -1, INDETERMINATE = 0 or DETERMINATE = 1.
 	 * @param lambda Parameter value to calculate solutions for indeterminate systems.
 	 */
 	public void printTypeEqSys(int type, Complex lambda) {
 		String text = "";
 		switch (type) {
-			case INCOMPATIBLE: text = "The system is INCOMPATIBLE"; 
+			case INCONSISTENT: text = "The system is INCONSISTENT"; 
 				break;
-			case COMPATIBLE_INDET: text = "The system is COMPATIBLE INDETERMINATE. Solutions calculated for λ = " + lambda.toString(); 
+			case INDETERMINATE: text = "The system is INDETERMINATE. Solutions calculated for λ = " + lambda.toString(); 
 				break;
-			case COMPATIBLE_DET: text = "The system is COMPATIBLE DETERMINANTE"; 
+			case DETERMINATE: text = "The system is DETERMINATE"; 
 				break;
 		}    	
 		System.out.println(text);
@@ -1695,7 +1717,7 @@ public class MatrixComplex {
 
 	/**
 	 * Prints a message indicating the system type of equations according to type "type". lambda is 1 by default
-	 * @param type INCOMPATIBLE = -1, COMPATIBLE_INDET = 0 or COMPATIBLE_DET = 1.
+	 * @param type INCONSISTENT = -1, INDETERMINATE = 0 or DETERMINATE = 1.
 	 */
 	public void printTypeEqSys() {
 		int type = this.typeEqSys();
@@ -1874,11 +1896,11 @@ public class MatrixComplex {
 	public int nbrOfSolutionsText() {
 		int numSols;
 		switch (this.typeEqSys()) {
-			case MatrixComplex.COMPATIBLE_DET:
+			case MatrixComplex.DETERMINATE:
 				System.out.println("1 single solution is returned."); 
 				numSols = 1;
 				break;
-			case MatrixComplex.COMPATIBLE_INDET:
+			case MatrixComplex.INDETERMINATE:
 					numSols = this.nbrOfSolutions();
 					System.out.println(numSols + " linear independent solutions are returned."); 
 					break;
@@ -1903,7 +1925,7 @@ public class MatrixComplex {
 		int rowIdx, colIdx, solIdx, reduxSol = 0;
 		Complex value;
 
-		System.out.println(HEADINFO + "SOLVED by SUBSTITUTION method ");
+			//System.out.println(HEADINFO + "SOLVED by SUBSTITUTION method ");
 		for (rowIdx = eqsIdx; rowIdx >= 0; --rowIdx) {
 			colIdx = rowIdx;
 			if (auxMatrix.isNullRow(rowIdx) || auxMatrix.isNullCol(colIdx)) {
@@ -1955,11 +1977,11 @@ public class MatrixComplex {
 
 		int typeEqSys = this.typeEqSys();
 		//this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCOMPATIBLE) return solMatrix.divides(0).transpose();
+		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
 
 		coefMatrix = this.coefMatrix();
 		indMatrix = this.indMatrix();
-		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
+		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
 		solMatrix = solveReduction(solMatrix, lambda);
 		for (int rowIdx = 0 ; rowIdx < solMatrix.rows(); ++rowIdx) {
 			if (solMatrix.isNullRow(rowIdx)) {
@@ -2019,7 +2041,7 @@ public class MatrixComplex {
 			for (int row = rowLen-1; row >= 0; --row) {
 				if (colSol < 0) break;
 				if (auxMatrix.isNullRow(row)) {
-					cVal = lambda;
+					cVal = Complex.ZERO; //lambda;
 				}
 				else {
 					cVal = auxMatrix.getItem(row, colLen-1);
@@ -2112,8 +2134,8 @@ public class MatrixComplex {
 				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
 				rowSolMatrix = newMatrix.solve(lambda);
 			}
-			if (newMatrix.typeEqSys() == INCOMPATIBLE) {
-				this.printTypeEqSys(INCOMPATIBLE, lambda);
+			if (newMatrix.typeEqSys() == INCONSISTENT) {
+				this.printTypeEqSys(INCONSISTENT, lambda);
 				return solMatrix.divides(0);
 			}
 			else {
@@ -2144,11 +2166,11 @@ public class MatrixComplex {
 
 		int typeEqSys = this.typeEqSys();
 		//this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCOMPATIBLE) return solMatrix.divides(0).transpose();
+		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
 
 		coefMatrix = this.coefMatrix();
 		indMatrix = this.indMatrix();
-		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
+		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
 	
 		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
 			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
@@ -2185,11 +2207,11 @@ public class MatrixComplex {
 
 		int typeEqSys = this.typeEqSys();
 		//this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCOMPATIBLE) return solMatrix.divides(0).transpose();
+		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
 
 		coefMatrix = this.coefMatrix();
 		indMatrix = this.indMatrix();
-		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
+		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
 	
 		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
 			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
@@ -2246,8 +2268,8 @@ public class MatrixComplex {
 				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
 				rowSolMatrix = newMatrix.solve();
 			}
-			if (newMatrix.typeEqSys() == INCOMPATIBLE) {
-				this.printTypeEqSys(INCOMPATIBLE, lambda);
+			if (newMatrix.typeEqSys() == INCONSISTENT) {
+				this.printTypeEqSys(INCONSISTENT, lambda);
 				return solMatrix.divides(0);
 			}
 			else {
@@ -2278,11 +2300,11 @@ public class MatrixComplex {
 
 		int typeEqSys = this.typeEqSys();
 		//this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCOMPATIBLE) return solMatrix.divides(0).transpose();
+		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
 
 		coefMatrix = this.coefMatrix();
 		indMatrix = this.indMatrix();
-		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
+		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
 	
 		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
 			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
@@ -2355,8 +2377,8 @@ public class MatrixComplex {
 				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
 				rowSolMatrix = newMatrix.solve();
 			}
-			if (newMatrix.typeEqSys() == INCOMPATIBLE) {
-				//this.printTypeEqSys(INCOMPATIBLE, lambda);
+			if (newMatrix.typeEqSys() == INCONSISTENT) {
+				//this.printTypeEqSys(INCONSISTENT, lambda);
 				return solMatrix.divides(0);
 			}
 			else {
@@ -2395,11 +2417,11 @@ public class MatrixComplex {
 		 */
 		int typeEqSys = this.typeEqSys();
 		this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCOMPATIBLE) return solMatrix.divides(0);
+		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0);
 
 		coefMatrix = this.coefMatrix();
 		indMatrix = this.indMatrix();
-		if (typeEqSys == COMPATIBLE_DET) return coefMatrix.dividesleft(indMatrix).transpose();
+		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
 
 		/*
 		 * The complete system of equations is solved by triangularization
@@ -2479,7 +2501,7 @@ public class MatrixComplex {
 		MatrixComplex auxMatrix = new MatrixComplex(rowLen, rowLen);
 		MatrixComplex solMatrix = new MatrixComplex(rowLen, 1);
 
-		if (this.typeEqSys() != COMPATIBLE_DET) {
+		if (this.typeEqSys() != DETERMINATE) {
 			System.out.println(HEADINFO + "solveCramer ERROR: " + "The system is not determined, so there is no Cramer solution.");
 			return solMatrix.transpose().divides(0);			
 		}
@@ -3193,12 +3215,15 @@ public class MatrixComplex {
 
 		for (int order = 0; order <= colLen; ++order) {
 			switch (order) {
-			case 0: charactPoly.complexMatrix[0][colLen-order].setComplexPol(1, 0); 
-			break;
-			case 1: charactPoly.complexMatrix[0][colLen-order] = this.trace().opposite(); 
-			break;
-			default: charactPoly.complexMatrix[0][colLen-order] = this.coefCP(order).times(Math.pow(-1, order)); 
-			break;
+				case 0: 
+					charactPoly.complexMatrix[0][colLen-order].setComplexPol(1, 0); 
+					break;
+				case 1: 
+					charactPoly.complexMatrix[0][colLen-order] = this.trace().opposite(); 
+					break;
+				default: 
+					charactPoly.complexMatrix[0][colLen-order] = this.coefCP(order).times(Math.pow(-1, order)); 
+					break;
 			}
 		}
 		//this.print(charactPolyMatrix.complexMatrix);

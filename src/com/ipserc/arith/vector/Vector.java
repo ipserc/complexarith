@@ -8,6 +8,25 @@ public class Vector extends MatrixComplex {
 	private final static String HEADINFO = "Vector --- INFO:";
 	private final static String VERSION = "1.0 (2020_0824_1800)";
 
+	/*
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public void version() {
+		System.out.println("VERSION:" + VERSION); 
+	}
+
+	/*
+	 * ***********************************************
+	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 */
+
 	/**
 	 * Instantiates a new vector of dimension 1 initialized to zero
 	 */
@@ -44,7 +63,9 @@ public class Vector extends MatrixComplex {
 	}    
 
 	/*
+	 * ***********************************************
 	 * PRINTING
+	 * ***********************************************
 	 */
 
 	/**
@@ -54,7 +75,7 @@ public class Vector extends MatrixComplex {
 		System.out.print(" ( ");
 		for (int col = 0; col < this.cols(); ++col) {
 			System.out.print(this.complexMatrix[0][col]);
-			System.out.print(col == this.cols()-1 ? " )" : ", ");
+			System.out.print(col == this.cols()-1 ? " )" : " , ");
 		}
 	}
 
@@ -85,7 +106,9 @@ public class Vector extends MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * OPERATIONS WITH VECTORS
+	 * ***********************************************
 	 */
 
 	/**
@@ -254,16 +277,16 @@ public class Vector extends MatrixComplex {
 		}
 
 		switch (colLen) {
-		case 1: 
-			return result = new Vector(1);
-		case 2:
-		case 3:
-			return  this.crossprodP(vector, 3);
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-			return  this.crossprodP(vector, 7);
+			case 1: 
+				return result = new Vector(1);
+			case 2:
+			case 3:
+				return  this.crossprodP(vector, 3);
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+				return  this.crossprodP(vector, 7);
 		}
 
 		return result;
@@ -292,28 +315,6 @@ public class Vector extends MatrixComplex {
 		return this.tripleprod(v1, v2);
 	}
 	
-	/**
-	 * Changes the base of the vector and calculate its coordinates in the new base "base".
-	 * The vector must be expressed in the standard basis (orthonormal unitary canonical basis).
-	 * @param base The base in which we would like to express the new coordinates.
-	 * @return The vector referred to the new base.
-	 */
-	public Vector baseChg(MatrixComplex base) {
-		this.complexMatrix = (base.dividesleft(this.transpose())).transpose().complexMatrix.clone();
-		return this;
-	}
-
-	/**
-	 * Changes the base of the vector expressed in "base" and calculate its coordinates in the standard basis.
-	 * The vector must be expressed in the base given by the parameter "base".
-	 * @param base The base in which the vector is referred.
-	 * @return The vector referred standard basis.
-	 */
-	public Vector baseExchg(MatrixComplex base) {
-		this.complexMatrix = base.times(this.transpose()).transpose().complexMatrix.clone();
-		return this;
-	}
-
 	/**
 	 * Calculates the modulus of the vector.
 	 * @return the modulus of the vector.
@@ -365,6 +366,60 @@ public class Vector extends MatrixComplex {
 		vector.complexMatrix = this.divides(num).complexMatrix.clone();
 		return vector;
 	}
+
+	/**
+	 * 
+	 */
+	public Vector times(Complex t) {
+		for (int i = 0; i < this.dim(); ++i) {
+			this.complexMatrix[0][i] = this.complexMatrix[0][i].times(t);
+		}
+		return this;
+	}
+
+	/**
+	 * 
+	 */
+	public Vector times(double t) {
+		for (int i = 0; i < this.dim(); ++i) {
+			this.complexMatrix[0][i] = this.complexMatrix[0][i].times(t);
+		}
+		return this;
+	}
+
+	/*
+	 * ***********************************************
+	 * BASE OPERATIONS
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Changes the base of the vector and calculate its coordinates in the new base "base".
+	 * The vector must be expressed in the standard basis (orthonormal unitary canonical basis).
+	 * @param base The base in which we would like to express the new coordinates.
+	 * @return The vector referred to the new base.
+	 */
+	public Vector baseChg(MatrixComplex base) {
+		this.complexMatrix = (base.dividesleft(this.transpose())).transpose().complexMatrix.clone();
+		return this;
+	}
+
+	/**
+	 * Changes the base of the vector expressed in "base" and calculate its coordinates in the standard basis.
+	 * The vector must be expressed in the base given by the parameter "base".
+	 * @param base The base in which the vector is referred.
+	 * @return The vector referred standard basis.
+	 */
+	public Vector baseExchg(MatrixComplex base) {
+		this.complexMatrix = base.times(this.transpose()).transpose().complexMatrix.clone();
+		return this;
+	}
+
+	/*
+	 * ***********************************************
+	 * LINEAR ALGEBRA
+	 * ***********************************************
+	 */
 
 	/**
 	 * Calculates the scalar projection of the vector on the vector component.
@@ -429,18 +484,5 @@ public class Vector extends MatrixComplex {
 		return this.rejection(vector).norm();
 	}
 	
-	public Vector times(Complex t) {
-		for (int i = 0; i < this.dim(); ++i) {
-			this.complexMatrix[0][i] = this.complexMatrix[0][i].times(t);
-		}
-		return this;
-	}
-
-	public Vector times(double t) {
-		for (int i = 0; i < this.dim(); ++i) {
-			this.complexMatrix[0][i] = this.complexMatrix[0][i].times(t);
-		}
-		return this;
-	}
 }
 

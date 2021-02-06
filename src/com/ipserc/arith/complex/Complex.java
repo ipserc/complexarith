@@ -60,8 +60,8 @@ public class Complex {
 	public final static double LIM_INF = 2147483647; //2147483647
 	
 	private final static double PRECISION = 1E-13;
-	private final static double ZERO_THRESHOLD = 9.999999999999E-14; //Zero threshold for formatting numbers
-	private final static double ZERO_THRESHOLD_R = 9.999999999999E-10; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
+	private final static double ZERO_THRESHOLD = PRECISION*10;//9.999999999999E-13; //Zero threshold for formatting numbers
+	private final static double ZERO_THRESHOLD_R = Math.sqrt(PRECISION);//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
 	private final static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	private final static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE); 
 	private static boolean FORMAT_NBR = false; //Pseudo constant. Flag for formatting numbers
@@ -893,7 +893,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2) {
-		return (Math.abs(Math.abs(this.rep) - Math.abs(n1)) <= ZERO_THRESHOLD) && (Math.abs(Math.abs(this.imp) - Math.abs(n2)) <= ZERO_THRESHOLD);
+		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD));
 	}
 
 	/**
@@ -903,7 +903,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equalsred(double n1, double n2) {
-		return (Math.abs(Math.abs(this.rep) - Math.abs(n1)) <= ZERO_THRESHOLD_R) && (Math.abs(Math.abs(this.imp) - Math.abs(n2)) <= ZERO_THRESHOLD_R);
+		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
 	}
 
 	/*

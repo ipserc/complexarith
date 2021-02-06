@@ -4,10 +4,31 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.vector.*;
 
 public class Line {
-	private final static String HEADINFO = "Line --- INFO:";
 	private Vector direction;
 	private Point point;
 	
+	private final static String HEADINFO = "Line --- INFO:";
+	private final static String VERSION = "1.0 (2021_0206_0100)";
+
+	/*
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public void version() {
+		System.out.println("VERSION:" + VERSION); 
+	}
+
+	/*
+	 * ***********************************************
+	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 */
+
 	/**
 	 * Instantiates an empty line
 	 */
@@ -96,6 +117,12 @@ public class Line {
 		return line;
 	}
 	
+	/*
+	 * ***********************************************
+	 * GETTERS
+	 * ***********************************************
+	 */
+	
 	/**
 	 * Gets the director vector of the line
 	 * @return
@@ -112,6 +139,12 @@ public class Line {
 		return this.point;
 	}
 	
+	/*
+	 * ***********************************************
+	 * SETTERS
+	 * ***********************************************
+	 */
+	
 	/**
 	 * Sets the director vector of the line
 	 */
@@ -126,14 +159,20 @@ public class Line {
 		this.point = point;
 	}
 
+	/*
+	 * ***********************************************
+	 * PRINTING
+	 * ***********************************************
+	 */
+
 	/**
 	 * Prints the line from the components of its vectorial equation
 	 * @param caption
 	 */
 	public void print(String caption) {
 		System.out.println(caption);
-		this.direction.println("  direction:");
-		this.point.print("  point:");
+		this.direction.println(	"  direction:");
+		this.point.print(		"  point    :");
 	}
 	
 	/**
@@ -145,6 +184,12 @@ public class Line {
 		System.out.println();
 	}
 
+	/*
+	 * ***********************************************
+	 * CALCULATIONS
+	 * ***********************************************
+	 */
+	
 	/**
 	 * Calculates a point of the line from its vectorial equation given a parameter lambda
 	 * @param lambda The parameter

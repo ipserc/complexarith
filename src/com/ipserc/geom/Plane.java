@@ -12,9 +12,30 @@ import com.ipserc.arith.matrixcomplex.*;
  *
  */
 public class Plane {
-	private final static String HEADINFO = "Plane --- INFO:";
 	private Vector normal;
 	private Point point;
+
+	private final static String HEADINFO = "Plane --- INFO:";
+	private final static String VERSION = "1.0 (2021_0206_0100)";
+
+	/*
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public void version() {
+		System.out.println("VERSION:" + VERSION); 
+	}
+
+	/*
+	 * ***********************************************
+	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 */
 
 	public Plane() {
 		this.normal = new Vector();
