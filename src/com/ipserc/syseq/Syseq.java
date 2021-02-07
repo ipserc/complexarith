@@ -8,8 +8,8 @@ public class Syseq extends MatrixComplex{
 	private MatrixComplex homosol;	// Solution for the homogeneous system
 	private Boolean solved = false;
 
-	private final static String HEADINFO = "Syseq --- INFO:";
-	private final static String VERSION = "1.0 (2021_0130_1300)";
+	private final static String HEADINFO = "Syseq --- INFO: ";
+	private final static String VERSION = "1.1 (2021_0207_2100)";
 
 	/*
 	 * ***********************************************
@@ -20,8 +20,8 @@ public class Syseq extends MatrixComplex{
 	/**
 	 * Prints Class Version
 	 */
-	public void version() {
-		System.out.println("VERSION:" + VERSION); 
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
 	}
 	
 	/*
@@ -147,6 +147,16 @@ public class Syseq extends MatrixComplex{
 	}
 
 	/**
+	 * 
+	 */
+	public String MatrixComplex_sysEq() {
+		String toMMatrixComplex;
+		toMMatrixComplex = this.preMatrixComplex();
+		toMMatrixComplex = "Syseq aMatrix = new Syseq("+");";
+		return toMMatrixComplex;
+	}
+	
+	/**
 	 * Returns the linsolve command for Maxima with the equations and the unknowns blocks. It can use expand if enabled.
 	 * @param expand if True adds expand to the linsolve
 	 * @return The linsolve command for Maxima
@@ -154,28 +164,28 @@ public class Syseq extends MatrixComplex{
 	public String Maxima_linsolve(boolean expand) {
 		int row, col;
 		//Set up equations block
-		String toMaxima = "([";
+		String toWolfram = "([";
 		for (row = 0; row < rows(); ++ row) {
 			for (col = 0; col < cols()-1; ++col) {
-				toMaxima = toMaxima + "+("+getItem(row, col)+")*x"+col;
+				toWolfram = toWolfram + "+("+getItem(row, col)+")*x"+col;
 			}
-			toMaxima = toMaxima + "="+getItem(row, col);
-			toMaxima = toMaxima + (row < rows()-1 ? "," : "],[") ;
+			toWolfram = toWolfram + "="+getItem(row, col);
+			toWolfram = toWolfram + (row < rows()-1 ? "," : "],[") ;
 		}
 		// replace "i" with "*%i" (imaginary term for Maxima)
-		toMaxima = toMaxima.replace("i", "*%i");
+		toWolfram = toWolfram.replace("i", "*%i");
 		
 		// Set up unknowns block
 		for (col = 0; col < cols() - 2; ++col) {
-			toMaxima = toMaxima + "x"+col+",";
+			toWolfram = toWolfram + "x"+col+",";
 		}
-		toMaxima = toMaxima + "x"+col+"])";
+		toWolfram = toWolfram + "x"+col+"])";
 		
 		// Header for linsolve with expand
-		toMaxima = "linsolve" + toMaxima;
-		if (expand) toMaxima = "expand("+ toMaxima + ")";
+		toWolfram = "linsolve" + toWolfram;
+		if (expand) toWolfram = "expand("+ toWolfram + ")";
 
-		return toMaxima;
+		return toWolfram;
 	}
 	
 	/**
@@ -193,4 +203,53 @@ public class Syseq extends MatrixComplex{
 		return toOctave;
 	}
 	
+	/**
+	 * Returns the linsolve command for Mathlab with the equations and the unknowns blocks. It can use disp if enabled.
+	 * @param disp if True adds disp to the linsolve
+	 * @return The linsolve command for Mathlab
+	 */
+	public String Mathlab_linsolve(boolean disp) {
+		return Octave_linsolve(disp);
+	}
+	
+	/**
+	 * Returns the solve command for Wolfram with the equations and the unknowns blocks.
+	 * @return The solve command for Wolfram
+	 */
+	public String Wolfram_solve() {
+		int row, col;
+		//Set up equations block
+		String toWolfram = "solve(";
+		for (row = 0; row < rows(); ++ row) {
+			for (col = 0; col < cols()-1; ++col) {
+				toWolfram = toWolfram + "+("+getItem(row, col)+")*x"+col;
+			}
+			toWolfram = toWolfram + "="+getItem(row, col);
+			toWolfram = toWolfram + (row < rows()-1 ? "," : ",") ;
+		}
+		
+		// Set up unknowns block
+		for (col = 0; col < cols() - 2; ++col) {
+			toWolfram = toWolfram + "x"+col+",";
+		}
+		toWolfram = toWolfram + "x"+col+")";
+
+		return toWolfram;
+	}
+
+	/**
+	 * 
+	 * @param format
+	 * @param display
+	 */
+	public void printSystemEqSolve(outputFormat format, boolean display) {
+		switch (format) {
+			case MATRIXCOMPLEX: System.out.println("MATRIXCOMPLEX:"+MatrixComplex_sysEq()); break;
+			case MAXIMA: System.out.println("MAXIMA:"+Maxima_linsolve(display)); break;
+			case OCTAVE: System.out.println("OCTAVE:"+Octave_linsolve(display)); break;
+			case MATHLAB: System.out.println("MATHLAB:"+Mathlab_linsolve(display)); break;
+			case WOLFRAM: System.out.println("WOLFRAM:"+Wolfram_solve()); break;				
+		}
+		
+	}
 }

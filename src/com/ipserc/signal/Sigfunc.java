@@ -2,7 +2,28 @@ package com.ipserc.signal;
 
 import com.ipserc.arith.complex.Complex;
 
+/**
+ * Sigfunc: Signal functions
+ * @author ipserc
+ *
+ */
 public class Sigfunc {
+
+	private final static String HEADINFO = "Sigfunc --- INFO: ";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
+
+	/*
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+	}
 
 	// Delta Dirac
 	public static Complex delta(Complex z, int t) {

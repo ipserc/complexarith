@@ -27,6 +27,22 @@ public class Fourier extends MatrixComplex {
 	private Boolean isTransformed = false;
 	private String filterData;
 	
+	private final static String HEADINFO = "Fourier --- INFO: ";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
+
+	/*
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+	}
+
 	/*
 	 * ****************	CONSTRUCTORS **************** 
 	 */

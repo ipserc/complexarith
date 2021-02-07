@@ -15,7 +15,7 @@ public class Plane {
 	private Vector normal;
 	private Point point;
 
-	private final static String HEADINFO = "Plane --- INFO:";
+	private final static String HEADINFO = "Plane --- INFO: ";
 	private final static String VERSION = "1.0 (2021_0206_0100)";
 
 	/*
@@ -27,8 +27,8 @@ public class Plane {
 	/**
 	 * Prints Class Version
 	 */
-	public void version() {
-		System.out.println("VERSION:" + VERSION); 
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
 	}
 
 	/*

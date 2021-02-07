@@ -4,13 +4,14 @@ import java.util.List;
 import java.util.*;
 
 public class CombinationNoReps {
+	private final static String HEADINFO = "Combinatoric --- INFO: ";
 	private final static String VERSION = "1.0 (2020_0627_1130)";
 
 	/*
 	 * VERSION
 	 */
-	public void version() {
-		System.out.println("VERSION:" + VERSION); 
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
 	}
 	
 	public long factorial(int num) {
