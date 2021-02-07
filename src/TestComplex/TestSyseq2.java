@@ -5,6 +5,7 @@ package TestComplex;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.syseq.*;
 
 public class TestSyseq2 {
@@ -23,8 +24,9 @@ public class TestSyseq2 {
 		System.out.println(".".repeat(55));
 		fMatrix.print("Equation System");
 		//System.out.println("Maxima:" + fMatrix.toMaxima());
-		System.out.println("Maxima:" + fMatrix.Maxima_linsolve(true));
-		System.out.println("Octave:" + fMatrix.Octave_linsolve(true));
+		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true); 
+		fMatrix.printSystemEqSolve(outputFormat.OCTAVE, true); 
+		fMatrix.printSystemEqSolve(outputFormat.MAXIMA, true); 
 		//fMatrix.homogeneous().println("Homogeneous Equation System");
 		fMatrix.printSol();
 
