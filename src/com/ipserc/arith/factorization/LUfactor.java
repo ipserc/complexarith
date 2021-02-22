@@ -24,6 +24,11 @@ package com.ipserc.arith.factorization;
 
 import com.ipserc.arith.matrixcomplex.*;
 
+/**
+ * 
+ * @author ipserc
+ *
+ */
 public class LUfactor extends MatrixComplex {
 
 	private MatrixComplex cL;
@@ -31,13 +36,32 @@ public class LUfactor extends MatrixComplex {
 	private MatrixComplex cP;
 	private boolean factorized = false;
 
+	private final static String HEADINFO = "LUfactor --- INFO: ";
+	private final static String VERSION = "1.1 (2021_0214_2300)";
+
 	/*
-	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
 	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+	}
+
+	/*
+	 * ***********************************************
+	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 */
+
 	/**
 	 * Instantiates a complex square array of length len.
 	 * @param len The length of the square array.
-	 *
+	 */
 	public LUfactor(int len) {
 		super(len);
 	}
@@ -52,7 +76,7 @@ public class LUfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Instantiates a complex array from a string, rows are separated with ";", cols are separated with ",".
+	 * Instantiates a complex array from a string, rows are separated with ";", cols are separated with "," and factorizes it.
 	 * @param strMatrix the string with the rows and columns.
 	 */
 	public LUfactor(String strMatrix) {
@@ -61,7 +85,7 @@ public class LUfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Instantiates a LUfactor array from a MatrixComplex
+	 * Instantiates a LUfactor array from a MatrixComplex and factorizes it.
 	 * @param matrix the MatrixComplex already instantiated.
 	 */
 	public LUfactor(MatrixComplex matrix) {
@@ -70,8 +94,26 @@ public class LUfactor extends MatrixComplex {
 		LUfactorizePP();
 	}
 
+	/*
+	 * ***********************************************
+	 * 	FACTORIZATION
+	 * ***********************************************
+	 */
+
 	/**
-	 * Factorices the array using the LU decomposition.
+	 * Factorizes the array using the LU decomposition.
+	 * In numerical analysis and linear algebra, LU decomposition (where 'LU' stands for 'lower upper', and also called LU factorization) factors a matrix as the product of a lower triangular matrix and an upper triangular matrix. 
+	 * The product sometimes includes a permutation matrix as well. The LU decomposition can be viewed as the matrix form of Gaussian elimination. 
+	 * Computers usually solve square systems of linear equations using the LU decomposition, and it is also a key step when inverting a matrix, or computing the determinant of a matrix. 
+	 * The LU decomposition was introduced by mathematician Tadeusz Banachiewicz in 1938.[Source Wikipedia]
+	 */
+	public void factorice() {
+		if (factorized) return;
+		this.LUfactorizePP();
+	}
+	
+	/**
+	 * Factorizes the array using the LU decomposition.
 	 * In numerical analysis and linear algebra, LU decomposition (where 'LU' stands for 'lower upper', and also called LU factorization) factors a matrix as the product of a lower triangular matrix and an upper triangular matrix. 
 	 * The product sometimes includes a permutation matrix as well. The LU decomposition can be viewed as the matrix form of Gaussian elimination. 
 	 * Computers usually solve square systems of linear equations using the LU decomposition, and it is also a key step when inverting a matrix, or computing the determinant of a matrix. 
@@ -113,6 +155,12 @@ public class LUfactor extends MatrixComplex {
 		factorized = true;
 	}
 
+	/*
+	 * ***********************************************
+	 * 	GETTERS 
+	 * ***********************************************
+	 */
+
 	/**
 	 * Gets the class member variable with the Lower array.
 	 * @return The Lower array of the LU decomposition.
@@ -143,5 +191,61 @@ public class LUfactor extends MatrixComplex {
 	 */
 	public boolean factorized() {
 		return factorized;
+	}
+	
+	/*
+	 * ***********************************************
+	 * 	PRINTING
+	 * ***********************************************
+	 */
+
+	/**
+	 * Returns the expression for LU Factorization for Maxima. expand is available. 
+	 * @param expand True if you want to expand the expressions
+	 * @return The LU Factorization expression
+	 * 
+	 * generalring - el anillo de las expresiones de Maxima
+	 * floatfield - el campo de los números decimales en coma flotante de doble precisión
+	 * complexfield - el campo de los números complejos decimales en coma flotante de doble precisión
+	 * crering - el anillo de las expresiones canónicas racionales (Canonical Rational Expression o CRE) de Maxima
+	 * rationalfield - el campo de los números racionales
+	 * runningerror - controla los errores de redondeo de las operaciones en coma flotante
+	 * noncommutingring - el anillo de las expresiones de Maxima en las que el producto es el operador no conmutativo "." 
+	 */
+	public String toMaxima_lu_factor(boolean expand) {
+		String toMaxima;
+		toMaxima = "get_lu_factors(lu_factor(" +this.toMaxima()+", complexfield))";
+		toMaxima = expand ? "expand("+toMaxima+");" : ";";
+		return toMaxima;
+	}
+	
+	/**
+	 * Returns the expression for LU Factorization for GNU Octave. expand is available. 
+	 * @return The LU Factorization expression
+	 */
+	public String toOctave_lu() {
+		String toOctave;
+		toOctave = "[l, u, p] = lu("+this.toOctave()+")";
+		return toOctave;
+	}
+
+	/**
+	 * Returns the expression for LU Factorization for GNU Octave. expand is available. 
+	 * @return The LU Factorization expression
+	 */
+	public String toMathlab_lu() {
+		String tomathlab;
+		tomathlab = "[l, u, p] = lu("+this.toMathlab()+")";
+		return tomathlab;
+	}
+
+	/**
+	 * Returns the expression for LU Factorization for Wolfram. expand is available. 
+	 * @return The LU Factorization expression
+	 */
+	public String toWolfram_LUDecomposition() {
+		String toWolfram;
+		toWolfram = "LUDecomposition["+this.toWolfram()+"]";
+		return toWolfram;
 	}
 }

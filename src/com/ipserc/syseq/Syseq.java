@@ -135,7 +135,8 @@ public class Syseq extends MatrixComplex{
 	/**
 	 * Prints the particular and homogeneous solutions if exists
 	 */
-	public void printSol() {
+	public void printSol(String title) {
+		System.out.println(title);
 		if (!solved) this.solveq();
 		if (typeEqSys() == INCONSISTENT) {
 			System.out.println("There are no solutions for an INCONSISTENT Equation System");
@@ -144,6 +145,13 @@ public class Syseq extends MatrixComplex{
 			partsol.println("Particular  Solution");
 			if (homosol != null) homosol.println("Homogeneous Solution");
 		}
+	}
+
+	/**
+	 * 
+	 */
+	public void printSol() {
+		printSol("");
 	}
 
 	/**
@@ -161,7 +169,7 @@ public class Syseq extends MatrixComplex{
 	 * @param expand if True adds expand to the linsolve
 	 * @return The linsolve command for Maxima
 	 */
-	public String Maxima_linsolve(boolean expand) {
+	public String toMaxima_linsolve(boolean expand) {
 		int row, col;
 		//Set up equations block
 		String toWolfram = "([";
@@ -193,7 +201,7 @@ public class Syseq extends MatrixComplex{
 	 * @param disp if True adds disp to the linsolve
 	 * @return The linsolve command for GNU Octave
 	 */
-	public String Octave_linsolve(boolean disp) {
+	public String toOctave_linsolve(boolean disp) {
 		String toOctave = "Sol = linsolve(";
 		MatrixComplex A, B;
 		A = this.coefMatrix();
@@ -208,15 +216,15 @@ public class Syseq extends MatrixComplex{
 	 * @param disp if True adds disp to the linsolve
 	 * @return The linsolve command for Mathlab
 	 */
-	public String Mathlab_linsolve(boolean disp) {
-		return Octave_linsolve(disp);
+	public String toMathlab_linsolve(boolean disp) {
+		return toOctave_linsolve(disp);
 	}
 	
 	/**
 	 * Returns the solve command for Wolfram with the equations and the unknowns blocks.
 	 * @return The solve command for Wolfram
 	 */
-	public String Wolfram_solve() {
+	public String toWolfram_solve() {
 		int row, col;
 		//Set up equations block
 		String toWolfram = "solve(";
@@ -245,10 +253,10 @@ public class Syseq extends MatrixComplex{
 	public void printSystemEqSolve(outputFormat format, boolean display) {
 		switch (format) {
 			case MATRIXCOMPLEX: System.out.println("MATRIXCOMPLEX:"+MatrixComplex_sysEq()); break;
-			case MAXIMA: System.out.println("MAXIMA:"+Maxima_linsolve(display)); break;
-			case OCTAVE: System.out.println("OCTAVE:"+Octave_linsolve(display)); break;
-			case MATHLAB: System.out.println("MATHLAB:"+Mathlab_linsolve(display)); break;
-			case WOLFRAM: System.out.println("WOLFRAM:"+Wolfram_solve()); break;				
+			case MAXIMA: System.out.println("MAXIMA:"+toMaxima_linsolve(display)); break;
+			case OCTAVE: System.out.println("OCTAVE:"+toOctave_linsolve(display)); break;
+			case MATHLAB: System.out.println("MATHLAB:"+toMathlab_linsolve(display)); break;
+			case WOLFRAM: System.out.println("WOLFRAM:"+toWolfram_solve()); break;				
 		}
 		
 	}

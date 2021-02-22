@@ -18,14 +18,38 @@ package com.ipserc.arith.factorization;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.complex.*;
 
+/**
+ * 
+ * @author ipserc
+ *
+ */
 public class QRfactor extends MatrixComplex {
 	private MatrixComplex cR;
 	private MatrixComplex cQ;
 	private boolean factorized = false;
 
+	private final static String HEADINFO = "QRfactor --- INFO: ";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
+
 	/*
-	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
 	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+	}
+
+	/*
+	 * ***********************************************
+	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 */
+
 	/**
 	 * Instantiates a complex square array of length len.
 	 * @param len the length of the square array.
@@ -60,6 +84,11 @@ public class QRfactor extends MatrixComplex {
 		this.complexMatrix = matrix.complexMatrix.clone();
 	}
 
+	/*
+	 * ***********************************************
+	 * 	PRIVATE METHODS
+	 * ***********************************************
+	 */
 
 	/**
 	 * Private Method. Aproximation of the sign function for complex numbers to use in the Housholder decomposition.
@@ -87,6 +116,12 @@ public class QRfactor extends MatrixComplex {
 				cQ.complexMatrix[rowLen-1][i] = cQ.complexMatrix[rowLen-1][i].opposite(); 
 		}
 	}
+
+	/*
+	 * ***********************************************
+	 * 	METHODS
+	 * ***********************************************
+	 */
 
 	/**
 	 * QR decomposition using the Housholder transformation. Factorices the array using the QR decomposition.
@@ -196,6 +231,12 @@ public class QRfactor extends MatrixComplex {
 		for (int row = colLen, col = colLen-1; row < rowLen; ++row) this.cR.complexMatrix[row][col].setComplexRec(0,0);
 	}
 
+	/*
+	 * ***********************************************
+	 * 	GETTERS
+	 * ***********************************************
+	 */
+
 	/**
 	 * Gets the class member variable with the Q array.
 	 * @return The Q array result of the QR decomposition.
@@ -218,6 +259,42 @@ public class QRfactor extends MatrixComplex {
 	 */
 	public boolean factorized() {
 		return factorized;
+	}
+
+	/*
+	 * ***********************************************
+	 * 	PRINTING
+	 * ***********************************************
+	 */
+
+	/**
+	 * Returns the expression for LU Factorization for GNU Octave. expand is available. 
+	 * @return The LU Factorization expression
+	 */
+	public String toOctave_qr() {
+		String toOctave;
+		toOctave = "[Q, R] = qr("+this.toOctave()+")";
+		return toOctave;
+	}
+
+	/**
+	 * Returns the expression for LU Factorization for GNU Octave. expand is available. 
+	 * @return The LU Factorization expression
+	 */
+	public String toMathlab_qr() {
+		String tomathlab;
+		tomathlab = "[Q, R] = qr(("+this.toMathlab()+")";
+		return tomathlab;
+	}
+
+	/**
+	 * Returns the expression for LU Factorization for Wolfram. expand is available. 
+	 * @return The LU Factorization expression
+	 */
+	public String toWolfram_QRdecomposition() {
+		String toWolfram;
+		toWolfram = "QR decomposition["+this.toWolfram()+"]";
+		return toWolfram;
 	}
 
 }

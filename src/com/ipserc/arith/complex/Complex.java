@@ -43,9 +43,17 @@ import java.util.regex.Pattern;
 import java.text.Normalizer;
 import java.text.NumberFormat;
 
+/**
+ * Complex class to work with complex numbers
+ * @author ipserc
+ *
+ */
 public class Complex {
-	private final static String HEADINFO = "Complex --- INFO:";
-	private final static String VERSION = "1.0 (2020_0824_1800)";
+	/*
+	 * ---------------- CONSTANTS ----------------
+	 */
+	private final static String HEADINFO = "Complex --- INFO: ";
+	private final static String VERSION = "1.1 (2021_0208_0000)";
 
 	public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
 	public final static double TWO_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
@@ -64,15 +72,19 @@ public class Complex {
 	private final static double ZERO_THRESHOLD_R = Math.sqrt(PRECISION);//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
 	private final static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	private final static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE); 
-	private static boolean FORMAT_NBR = false; //Pseudo constant. Flag for formatting numbers
-	private static boolean FIXED_NOTATION = false; //Pseudo constant. Flag for comma fixed notation
-	private static boolean SCIENTIFIC_NOTATION = false; //Pseudo constant. Flag for scientific notation
-	private static int MAX_DECIMALS = 3; //Pseudo constant
+
+	/*
+	 * ---------------- MEMBER VARS ----------------
+	 */
+	private static boolean FORMAT_NBR = false; //Member Variable. Flag for formatting numbers
+	private static boolean FIXED_NOTATION = false; //Member Variable. Flag for comma fixed notation
+	private static boolean SCIENTIFIC_NOTATION = false; //Member Variable. Flag for scientific notation
+	private static int MAX_DECIMALS = 3; //Member Variable
 	/* BACK UP to allow restoring status */
-	private static boolean FORMAT_NBR_BCK = false; //Pseudo constant. Flag for formatting numbers
-	private static boolean FIXED_NOTATION_BCK = false; //Pseudo constant. Flag for comma fixed notation
-	private static boolean SCIENTIFIC_NOTATION_BCK = false; //Pseudo constant. Flag for scientific notation
-	private static int MAX_DECIMALS_BCK = 3; //Pseudo constant
+	private static boolean FORMAT_NBR_BCK = false; //Member Variable. Flag for formatting numbers
+	private static boolean FIXED_NOTATION_BCK = false; //Member Variable. Flag for comma fixed notation
+	private static boolean SCIENTIFIC_NOTATION_BCK = false; //Member Variable. Flag for scientific notation
+	private static int MAX_DECIMALS_BCK = 3; //Member Variable
 
 	private double rep;	// the real part
 	private double imp;	// the imaginary part
@@ -83,8 +95,8 @@ public class Complex {
 	/*
 	 * ---------------- VERSION ----------------
 	 */
-	public void version() {
-		System.out.println("VERSION:" + VERSION); 
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
 	}
 
 	/*
@@ -482,45 +494,79 @@ public class Complex {
 
 	/**
 	 * Activates the numbers' formatting. This value is GLOBAL. Prints a message in the Console.
+	 * @param printStat
+	 */
+	public static void setFormatON(boolean printStat) { 
+		FORMAT_NBR = true;
+		if (printStat) printFormatStatus();	
+	}
+
+	/**
+	 * Activates the numbers' formatting. This value is GLOBAL.
 	 */
 	public static void setFormatON() { 
-		FORMAT_NBR = true;
-		printFormatStatus();
+		setFormatON(false); 
 	}
 
 	/**
 	 * Activates the Fixed notation. This value is GLOBAL. Prints a message in the Console.
 	 * @param decimals Number of decimals to show
+	 * @param printStat
 	 */
-	public static void setFixedON(int decimals) { 
+	public static void setFixedON(int decimals, boolean printStat) { 
 		FIXED_NOTATION = true;
 		SCIENTIFIC_NOTATION = false;
 		MAX_DECIMALS = decimals;
-		printFormatStatus();
+		if (printStat) printFormatStatus();	
+	}
+
+	/**
+	 * Activates the Fixed notation. This value is GLOBAL.
+	 * @param decimals Number of decimals to show
+	 */
+	public static void setFixedON(int decimals) { 
+		setFixedON(decimals, false);
 	}
 
 	/**
 	 * Activates the Scientific notation. This value is GLOBAL. Prints a message in the Console.
 	 * @param decimals Number of decimals to show
+	 * @param printStat
 	 */
-	public static void setScientificON(int decimals) { 
+	public static void setScientificON(int decimals, boolean printStat) { 
 		FIXED_NOTATION = false;
 		SCIENTIFIC_NOTATION = true;
 		MAX_DECIMALS = decimals;
-		printFormatStatus();
+		if (printStat) printFormatStatus();	
+	}
+
+	/**
+	 * Activates the Scientific notation. This value is GLOBAL.
+	 * @param decimals Number of decimals to show
+	 */
+	public static void setScientificON(int decimals) { 
+		setScientificON(decimals, false);
 	}
 
 	/**
 	 * Deactivates the numbers' formatting presentation. This value is GLOBAL. Prints a message in the Console.
+	 * @param printStat
 	 */
-	public static void setFormatOFF() { 
+	public static void setFormatOFF(boolean printStat) { 
 		FORMAT_NBR = false; 
-		printFormatStatus();
+		if (printStat) printFormatStatus();	
 	}
 
 	/**
-	 * 
-	 * @return
+	 * Deactivates the numbers' formatting presentation. This value is GLOBAL.
+	 */
+	public static void setFormatOFF() { 
+		setFormatOFF(false);
+	}
+
+	/**
+	 * Gets the Format Number Status
+	 * @return True or False
 	 */
 	public static Boolean getFortmatStatus() {
 		return FORMAT_NBR;
@@ -528,10 +574,18 @@ public class Complex {
 
 	/**
 	 * Deactivates the Fixed notation. This value is GLOBAL. Prints a message in the Console.
+	 * @param printStat
+	 */
+	public static void setFixedOFF(boolean printStat) {
+		FIXED_NOTATION = false;
+		if (printStat) printFormatStatus();	
+	}
+
+	/**
+	 * Deactivates the Fixed notation. This value is GLOBAL. Prints a message in the Console.
 	 */
 	public static void setFixedOFF() {
-		FIXED_NOTATION = false;
-		printFormatStatus();	
+		setFixedOFF(false);	
 	}
 	
 	/**
@@ -544,12 +598,24 @@ public class Complex {
 
 	/**
 	 * Deactivates the Scientific notation. This value is GLOBAL. Prints a message in the Console.
+	 * @param printStat
 	 */
-	public static void setScientificOFF() {
+	public static void setScientificOFF(boolean printStat) {
 		SCIENTIFIC_NOTATION = false;
-		printFormatStatus();
+		if (printStat) printFormatStatus();	
 	}
 	
+	/**
+	 * Deactivates the Scientific notation. This value is GLOBAL. Prints a message in the Console.
+	 */
+	public static void setScientificOFF() {
+		setScientificOFF(false);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public static Boolean getScientificStatus() {
 		return SCIENTIFIC_NOTATION;
 	}
@@ -601,11 +667,57 @@ public class Complex {
 		MAX_DECIMALS = MAX_DECIMALS_BCK;
 	}
 
+	/**
+	 * 
+	 */
 	public static void resetFormatStatus() {
 		FORMAT_NBR = false;
 		FIXED_NOTATION = false;
 		SCIENTIFIC_NOTATION = false;
 		MAX_DECIMALS = 3;
+	}
+
+	/**
+	 * 
+	 * @param size
+	 * @param title
+	 * @return
+	 */
+	public static String boxTitle(int size, String title) {
+		String theTitleTop;
+		String theTitleText;
+		String theTitleMid;
+		String theTitleBot;
+		
+		int titleSize = title.length() < size ? size : title.length()+4;
+		theTitleTop = "_".repeat(titleSize);
+		theTitleText = "|"+" ".repeat((titleSize-title.length())/2-2)+" "+title;
+		theTitleText += " "+" ".repeat(titleSize-theTitleText.length()-2)+"|";
+		theTitleMid = "|"+" ".repeat(titleSize-2)+"|";
+		theTitleBot = "|"+"_".repeat(titleSize-2)+"|";
+		return theTitleTop+System.lineSeparator()
+			+theTitleMid+System.lineSeparator()
+			+theTitleText+System.lineSeparator()
+			//+theTitleMid+System.lineSeparator()
+			+theTitleBot;	
+	}
+	
+	/**
+	 * 
+	 * @param size
+	 * @param title
+	 * @return
+	 */
+	public static String boxText(int size, String text) {
+		String theBoxTopBot;
+		String theBoxText;
+		int boxSize = text.length() < size ? size : text.length()+4;
+		
+		theBoxTopBot = "+".repeat(boxSize);
+		theBoxText = "|"+" ".repeat((boxSize-text.length()-2)/2)+text;
+		theBoxText += " ".repeat(boxSize-1-theBoxText.length())+"|";
+		
+		return theBoxTopBot+System.lineSeparator()+theBoxText+System.lineSeparator()+theBoxTopBot;
 	}
 
 	/**

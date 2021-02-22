@@ -6,11 +6,16 @@ import com.ipserc.arith.complex.*;
 import com.ipserc.arith.polynom.*;
 import com.ipserc.combinatoric.*;
 
+/**
+ * 
+ * @author ipserc
+ *
+ */
 public class MatrixComplex {
 	public Complex[][] complexMatrix;
 
-	private final static String HEADINFO = "MatrixComplex --- INFO:";
-	private final static String VERSION = "1.0 (2020_0824_1800)";
+	private final static String HEADINFO = "MatrixComplex --- INFO: ";
+	private final static String VERSION = "1.1 (2021_0207_2240)";
 
 	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangulation (Chio's rule)
 
@@ -23,10 +28,20 @@ public class MatrixComplex {
 	/**
 	 * Prints Class Version
 	 */
-	public void version() {
-		System.out.println("VERSION:" + VERSION); 
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
 	}
 	
+	/**
+	 * Enumeration that selects the possible output format for some expressions 
+	 * MATRIXCOMPLEX, 
+	 * MAXIMA, 
+	 * OCTAVE, 
+	 * MATHLAB, 
+	 * WOLFRAM
+	 */
+	public enum outputFormat {MATRIXCOMPLEX, MAXIMA, OCTAVE, MATHLAB, WOLFRAM};
+
 	/*
 	 * ***********************************************
 	 * 	CONSTRUCTORS 
@@ -697,27 +712,37 @@ public class MatrixComplex {
 	}
 	
 	/**
+	 * 
+	 * @return
+	 */
+	public String preMatrixComplex() {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		String preMatrixComplex = new String();
+		int row, col;
+
+		preMatrixComplex = "(\"";
+		for (row = 0; row < rowLen-1; ++row) {
+			for (col = 0; col < colLen; ++col) {
+				preMatrixComplex += this.complexMatrix[row][col].toString();
+				preMatrixComplex += (col == colLen-1 ? ";" : ",");
+			}
+		}
+		for (col = 0; col < colLen; ++col) {
+			preMatrixComplex += this.complexMatrix[row][col].toString();
+			preMatrixComplex += (col == colLen-1 ? "\")" : ",");
+		}
+		return preMatrixComplex;
+	}
+	
+	/**
 	 * Returns a string with the array expression in the format used by Matrix Complex. 
 	 * @return The string with the array in MatrixComplex format.
 	 */
 	public String toMatrixComplex() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		String matrixMatrixComplex = new String();
-		int row, col;
-
-		matrixMatrixComplex = "new MatrixComplex(\"";
-		for (row = 0; row < rowLen-1; ++row) {
-			for (col = 0; col < colLen; ++col) {
-				matrixMatrixComplex += this.complexMatrix[row][col].toString();
-				matrixMatrixComplex += (col == colLen-1 ? ";" : ",");
-			}
-		}
-		for (col = 0; col < colLen; ++col) {
-			matrixMatrixComplex += this.complexMatrix[row][col].toString();
-			matrixMatrixComplex += (col == colLen-1 ? "\")" : ",");
-		}
-		return matrixMatrixComplex;
+		String toMatrixComplex;
+		toMatrixComplex = "new MatrixComplex" + preMatrixComplex();
+		return toMatrixComplex;
 	}
 
 	/*
@@ -1096,7 +1121,7 @@ public class MatrixComplex {
 			System.exit(1);			
 		}
 
-		double[] norm = new double[colLen];
+		double[] norm = new double[rowLen];
 		for (int row = 0; row  < rowLen; ++row) {
 			norm[row] = 0.0;
 			for (int col = 0; col < colLen; ++col)
@@ -1123,7 +1148,7 @@ public class MatrixComplex {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
-		double[] norm = new double[colLen];
+		double[] norm = new double[rowLen+1];
 		for (int row = 0; row < rowLen; ++row) {
 			norm[row] = 0.0;
 			for (int col = 0; col  < colLen; ++col)
@@ -2059,421 +2084,6 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
-	 * Private function that generates the new reduced equations system to find out its solutions
-	 * @param auxMatrix
-	 * @param nbrOfSols
-	 * @param rowLen
-	 * @param colLen
-	 * @param sol
-	 * @param solMatrix
-	 * @return
-	 */
-	private MatrixComplex setNewMatrix_(MatrixComplex auxMatrix, int nbrOfSols, int rowLen, int colLen, int sol, MatrixComplex solMatrix) {
-		Complex cVal;
-		MatrixComplex newMatrix = auxMatrix.subMatrixAug(0, nbrOfSols, colLen-nbrOfSols-1);
-		for (int row = 0; row < colLen-nbrOfSols-1; ++row) {
-			cVal = newMatrix.getItem(row, newMatrix.cols()-1);
-			for (int col = 0; col < nbrOfSols; ++col) {
-				cVal = cVal.minus(auxMatrix.getItem(row, col).times(solMatrix.getItem(sol,col)));
-			}
-			newMatrix.setItem(row, rowLen-nbrOfSols, cVal);
-		}
-		return newMatrix;
-	}
-
-	/**
-	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
-	 * 
-	 * @param solMatrix
-	 * @param lambda
-	 * @return
-	 */
-	public MatrixComplex solveReduction_(MatrixComplex solMatrix, Complex lambda) {
-		/*
-		 * System reduction is used to find a particular solution for indeterminate compatible systems
-		 * Based on the number of solutions, unknowns are fixed in a orthogonal base to determine the 
-		 * linear independent solutions 
-		 * A value for lambda is given to calculate the indeterminate solutions
-		 */
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		MatrixComplex auxMatrix;
-		MatrixComplex newMatrix;
-
-		System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
-			//this.println("---------------- Matriz solve");
-		auxMatrix = this.triangleUp().heap();
-		int nbrOfSols = auxMatrix.nbrOfSolutions();
-			//System.out.println("---------------- nbrOfSols:" + nbrOfSols);
-		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
-			//auxMatrix.coefMatrix().println("---------------- coefMatrix");
-			//System.out.println("----------------");
-		if ( auxMatrix.coefMatrix().isNull() ) return solMatrix;
-
-		for (int sol = 0; sol < nbrOfSols; ++sol) {
-			for (int col = 0; col < nbrOfSols; ++col) {
-				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-			}
-			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
-			newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-			rowSolMatrix = newMatrix.solve(lambda);	
-			/*
-			 * Check if the solutions calculated are valid
-			 * If not, uses the inverse rule to assign the fixed value to the solution
-			 * TODO This is a brute force solution. I need to find out the condition in the equations system that forces to change the rule
-			 */
-			if (!Double.isFinite(rowSolMatrix.times(rowSolMatrix.transpose()).getItem(0,0).rep())) {
-				for (int col = 0; col < nbrOfSols; ++col) {
-					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				}
-				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-				rowSolMatrix = newMatrix.solve(lambda);
-			}
-			if (newMatrix.typeEqSys() == INCONSISTENT) {
-				this.printTypeEqSys(INCONSISTENT, lambda);
-				return solMatrix.divides(0);
-			}
-			else {
-				for (int col = nbrOfSols; col < colLen-1; ++col) {
-					solMatrix.setItem(sol, col, rowSolMatrix.getItem(0, col-nbrOfSols));
-				}
-			}
-		}
-		return solMatrix;
-	}
-	
-	/**
-	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
-	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
-	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
-	 * @return The column matrix with the solutions if they exist, otherwise null.
-	 */	
-	public MatrixComplex solveGauss2(Complex lambda) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		if (rowLen+1 > colLen) {
-			System.out.println(HEADINFO + "solveGauss: " + "Not valid matrix: The matrix doesn't represent an equation system.");
-		}
-
-		MatrixComplex coefMatrix, indMatrix;
-		MatrixComplex solMatrix = new MatrixComplex(1, colLen-1);
-
-		int typeEqSys = this.typeEqSys();
-		//this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
-
-		coefMatrix = this.coefMatrix();
-		indMatrix = this.indMatrix();
-		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
-	
-		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
-			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
-			return solMatrix;
-		}
-		
-		if (rowLen == 1 && colLen == 2) {
-			solMatrix.setItem(0, 0, lambda);
-			return solMatrix;
-		}
-		/*
-		 * The complete system of equations is solved by triangularization
-		 * The solutions are calculated by system reduction
-		 */
-		return solveReduction(solMatrix, lambda);
-	}
-
-	/**
-	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
-	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
-	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
-	 * @return The column matrix with the solutions if they exist, otherwise null.
-	 */	
-	public MatrixComplex solveGauss21(Complex lambda) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		if (rowLen+1 > colLen) {
-			System.out.println(HEADINFO + "solveGauss: " + "Not valid matrix: The matrix doesn't represent an equation system.");
-		}
-
-		MatrixComplex auxMatrix, coefMatrix, indMatrix;
-		MatrixComplex solMatrix = new MatrixComplex(1, colLen-1);
-
-		int typeEqSys = this.typeEqSys();
-		//this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
-
-		coefMatrix = this.coefMatrix();
-		indMatrix = this.indMatrix();
-		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
-	
-		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
-			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
-			return solMatrix;
-		}
-		
-		if (rowLen == 1 && colLen == 2) {
-			solMatrix.setItem(0, 0, lambda);
-			return solMatrix;
-		}
-		/*
-		 * The complete system of equations is solved by triangularization
-		 * The solutions are calculated by system reduction
-		 */
-		/*
-		 * System reduction is used to find a particular solution for indeterminate compatible systems
-		 * Based on the number of solutions unknowns are fixed in a orthogonal base to determine the 
-		 * linear independent solutions 
-		 * A value for lambda is given to calculate the indeterminate solutions
-		 */
-		System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
-
-			//this.println("---------------- Matriz solve");
-		auxMatrix = this.triangleUp().heap();
-		indMatrix = auxMatrix.indMatrix();
-		MatrixComplex newMatrix;
-		int nbrOfSols = auxMatrix.nbrOfSolutions();
-			//System.out.println("---------------- nbrOfSols:" + nbrOfSols);
-		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
-			//auxMatrix.coefMatrix().println("---------------- coefMatrix");
-			//System.out.println("----------------");
-		if ( auxMatrix.coefMatrix().isNull() ) return solMatrix;
-
-		for (int sol = 0; sol < nbrOfSols; ++sol) {
-			for (int col = 0; col < nbrOfSols; ++col) {
-				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-			}
-			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
-			newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-			rowSolMatrix = newMatrix.solve();	
-			/*
-			 * Check if the solutions calculated are valid
-			 * If not, uses the inverse rule to assign the fixed value to the solution
-			 * TODO This is a brute force solution. I need to find out the condition in the equations system that forces to change the rule
-			 */
-			if (!Double.isFinite(rowSolMatrix.times(rowSolMatrix.transpose()).getItem(0,0).rep())) {
-				for (int col = 0; col < nbrOfSols; ++col) {
-					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				}
-				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-				rowSolMatrix = newMatrix.solve();
-			}
-			if (newMatrix.typeEqSys() == INCONSISTENT) {
-				this.printTypeEqSys(INCONSISTENT, lambda);
-				return solMatrix.divides(0);
-			}
-			else {
-				for (int col = nbrOfSols; col < colLen-1; ++col) {
-					solMatrix.setItem(sol, col, rowSolMatrix.getItem(0, col-nbrOfSols));
-				}
-			}
-		}
-		//solMatrix.println(HEADINFO + "solveGauss: " + "solMatrix");
-		return solMatrix;
-	}
-
-	/**
-	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
-	 * @param lambda
-	 * @return
-	 */
-	public MatrixComplex solveGauss1(Complex lambda) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		if (rowLen+1 > colLen) {
-			System.out.println(HEADINFO + "solveGauss: " + "Not valid matrix: The matrix doesn't represent an equation system.");
-		}
-
-		MatrixComplex auxMatrix, coefMatrix, indMatrix;
-		MatrixComplex solMatrix = new MatrixComplex(1, colLen-1);
-
-		int typeEqSys = this.typeEqSys();
-		//this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
-
-		coefMatrix = this.coefMatrix();
-		indMatrix = this.indMatrix();
-		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
-	
-		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
-			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
-			return solMatrix;
-		}
-		
-		if (rowLen == 1 && colLen == 2) {
-			solMatrix.setItem(0, 0, lambda);
-			return solMatrix;
-		}
-		/*
-		 * The complete system of equations is solved by triangularization
-		 * The solutions are calculated by process known as back-substitution
-		 */
-		/*
-		 * System reduction is used to find a particular solution for indeterminate compatible systems
-		 * Based on the number of solutions unknowns are fixed in a orthogonal base to determine the 
-		 * linear independent solutions 
-		 * A value for lambda is given to calculate the indeterminate solutions
-		 */
-			this.println("---------------- Matriz solve");
-		auxMatrix = this.triangleUp().heap();
-		indMatrix = auxMatrix.indMatrix();
-		MatrixComplex newMatrix;
-		int nbrOfSols = auxMatrix.nbrOfSolutions();
-			System.out.println("---------------- nbrOfSols:" + nbrOfSols);
-		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
-		
-			auxMatrix.coefMatrix().println("---------------- coefMatrix");
-			System.out.println("----------------");
-/****/
-		if (coefMatrix.isNull()) {
-			solMatrix.initMatrixDiag(1,0);
-			return solMatrix;
-		}
-		
-		if (this.isHomogeneous()) {
-			System.out.println("---------------- this.isHomogeneous()");
-			for (int sol = 0; sol < nbrOfSols; ++sol) {
-				if (auxMatrix.isNullSolution(sol, sol)) {
-					solMatrix.setItem(sol, sol+nbrOfSols, Complex.ONE);
-				}
-			}
-			return solMatrix;
-			// if ( auxMatrix.coefMatrix().isNull() ) return solMatrix;
-		}
-/****/
-//		if ( auxMatrix.coefMatrix().isNull() ) return solMatrix;
-
-		for (int sol = 0; sol < nbrOfSols; ++sol) {
-			for (int col = 0; col < nbrOfSols; ++col) {
-				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-			}
-			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);	
-			newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-			rowSolMatrix = newMatrix.solve();	
-			/*
-			 * Check if the solutions calculated are valid
-			 * If not, uses the inverse rule to assign the fixed value to the solution
-			 * TODO This is a brute force solution. I need to find out the condition in the equations system that forces to change the rule
-			 */
-			if (!Double.isFinite(rowSolMatrix.times(rowSolMatrix.transpose()).getItem(0,0).rep())) {
-				for (int col = 0; col < nbrOfSols; ++col) {
-					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				}
-				newMatrix = setNewMatrix_(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-				rowSolMatrix = newMatrix.solve();
-			}
-			if (newMatrix.typeEqSys() == INCONSISTENT) {
-				//this.printTypeEqSys(INCONSISTENT, lambda);
-				return solMatrix.divides(0);
-			}
-			else {
-				for (int col = nbrOfSols; col < colLen-1; ++col) {
-					solMatrix.setItem(sol, col, rowSolMatrix.getItem(0, col-nbrOfSols));
-				}
-			}
-		}
-		//solMatrix.println(HEADINFO + "solveGauss: " + "solMatrix");
-		return solMatrix;
-	}
-
-	/**
-	 * DEPRECATED KEPT ONLY FOR VALIDATION PORPOUSES
-	 * @param lambda
-	 * @return
-	 */
-	public MatrixComplex solveGauss0(Complex lambda) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		Complex cCoef = new Complex();
-		Complex cVal = new Complex();
-		int col;
-		int row;
-
-		if (rowLen+1 > colLen) {
-			System.out.println(HEADINFO + "solveGauss: " + "Not valid matrix: The matrix doesn't represent an equation system.");
-		}
-
-		MatrixComplex auxMatrix, coefMatrix, indMatrix;
-		MatrixComplex solMatrix = new MatrixComplex(colLen-1, 1);
-
-		/*
-		 * The complete system of equations is solved by triangularization
-		 * The solutions are calculated by process known as back-substitution
-		 */
-		int typeEqSys = this.typeEqSys();
-		this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0);
-
-		coefMatrix = this.coefMatrix();
-		indMatrix = this.indMatrix();
-		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
-
-		/*
-		 * The complete system of equations is solved by triangularization
-		 * The solutions are calculated by process known as back-substitution
-		 */
-		/*
-		 * Back-substitution is used also to find a particular solution for indeterminate compatible systems
-		 * A value for lambda is set to calculate the indeterminate solutions
-		 */
-		System.out.println(HEADINFO + "SOLVED by GAUSS method ");
-		auxMatrix = this.triangleUp().heap();
-		coefMatrix = auxMatrix.coefMatrix();
-		indMatrix = auxMatrix.indMatrix();
-		int nbrOfSols = auxMatrix.nbrOfSolutions();
-		solMatrix = new MatrixComplex(colLen-1, nbrOfSols);
-		for (int sol = 0; sol < nbrOfSols; ++sol) {
-			for (row = rowLen-1; row >= 0; --row) {
-				cCoef = coefMatrix.getItem(row, row);
-				if (cCoef.equalsred(0,0)) {
-					if (this.isHomogeneous() && nbrOfSols == 1) solMatrix.setItem(row,sol,lambda);
-					else solMatrix.setItem(row,sol, row == sol ? lambda : Complex.ZERO);
-					continue;
-				}
-				cVal = indMatrix.getItem(row,0);
-				for (col = row+1; col < colLen-1; ++col) {
-					cVal = cVal.minus(coefMatrix.getItem(row,col).times(solMatrix.getItem(col,sol)));
-				}         
-				solMatrix.setItem(row,sol,cVal.divides(cCoef));
-			}
-		}
-		return solMatrix.transpose();
-	}
-
-	/*
-	 * TODO Implementar solución paramétrica para sistemas compatibles indetereminados como
-	 * Implementar solución paramétrica para sistemas compatibles indetereminados como
-	 * 		
-		fMatrix = new MatrixComplex(  " 1,-2, 3 ,1; "
-									+ "-2, 5,-1, 2; "
-									+ " 4,-9, 7, 0");
-		partsol = solve(fMatrix);
-		hMatrix = fMatrix.homogeneous();
-		homosol = solve(hMatrix);
-		
-		for (int i = -5; i < 6; ++i) {
-			solution = partsol.plus(homosol.times(i));
-			checkSol(fMatrix, solution);
-		}
- 
-	 */
-	
-	/**
 	 * Shortcut to ACTIVE solveGauss
 	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
@@ -2617,19 +2227,6 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * DEPRECATED USE isNullRow INSTEAD. Checks if the row of an array is zero.
-	 * @param row Index of the Row to check.
-	 * @return true if null, false otherwise.
-	 */
-	public boolean isRowNull_(int row) {
-		int colLen = this.cols();
-		for (int col = 0; col < colLen; ++col)
-			if (!this.complexMatrix[row][col].equals(0,0)) 
-				return false;
-		return true;
-	}
-	
-	/**
 	 * Returns TRUE if rowIdx has only zeros
 	 * @param rowIdx The row to check
 	 * @return True if is null
@@ -2679,51 +2276,11 @@ public class MatrixComplex {
 	
 	/**
 	 * Calculates the rank of an array.
+	/**
+	 * Calculates the rank of an array.
 	 * @return The rank of the matrix.
 	 */
 	public int rank() {
-		return rankDown();
-	}
-	
-	public int rankDown() {
-		int maxRank = this.rows(), rank = maxRank ;
-		MatrixComplex tempMatrix = this.copy();
-		MatrixComplex incrMatrix;
-		CombinationNoReps combinat = new CombinationNoReps();
-		
-		if (this.isNull()) return 0;
-
-		if (this.rows() > this.cols()) {
-			tempMatrix = this.transpose();
-			maxRank = this.cols();
-		}
-		
-		long[][] rows, cols;
-		boolean rankfound;
-		for (int order = maxRank; order > 0 ; --order) {
-			rankfound = false;
-			rows = combinat.getCollection(tempMatrix.rows(), order);
-			cols = combinat.getCollection(tempMatrix.cols(), order);
-			for (int row = 0; row < rows.length; ++row) {
-				int[] rowsi = new int[rows[row].length];
-				for (int idx = 0; idx < rowsi.length; ++idx ) rowsi[idx] = (int)rows[row][idx];
-				for (int col = 0; col < cols.length; ++col) {
-					int[] colsi = new int[cols[col].length];
-					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
-					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
-					if (!incrMatrix.determinant().equalsred(Complex.ZERO)) {
-						rankfound = true;
-						break;
-					}
-				}
-				if (rankfound) return rank;
-			}
-			--rank;
-		}
-		return rank;
-	}
-
-	public int rankUp() {
 		int rank = 0, maxRank = this.rows();
 		MatrixComplex tempMatrix = this.copy();
 		MatrixComplex incrMatrix;
@@ -2919,14 +2476,18 @@ public class MatrixComplex {
 		MatrixComplex hollow = new MatrixComplex(rowLen, colLen);
 		for(int row = 0; row < rowLen; ++row) {
 			isZero = true;
-			for(int col = colLen-1; col < row && col > -1; --col) {
-				if (!this.complexMatrix[row][col].equalsred(Complex.ZERO)) isZero = false;
+			//for(int col = colLen-1; col < row && col > -1; --col) {
+			for(int col = 0; col < colLen; ++col) {
+				if (!this.complexMatrix[row][col].equalsred(Complex.ZERO)) {
+					isZero = false;
+					break;
+				}
 			}
-			if (isZero) nonZeroArray.complexMatrix[countNonZeroArray++] = this.complexMatrix[row].clone(); 
-			else zeroArray.complexMatrix[countZeroArray++] = this.complexMatrix[row].clone();
+			if (isZero) zeroArray.complexMatrix[countZeroArray++] = this.complexMatrix[row].clone();
+			else nonZeroArray.complexMatrix[countNonZeroArray++] = this.complexMatrix[row].clone(); 
 		}
-		for(int row = 0; row < countNonZeroArray; ++row) hollow.complexMatrix[row] = nonZeroArray.complexMatrix[row].clone();
-		for(int row = 0; row < countZeroArray; ++row) hollow.complexMatrix[row+countNonZeroArray] = nonZeroArray.complexMatrix[row+countNonZeroArray].clone();
+		for(int row = 0; row < countZeroArray; ++row) hollow.complexMatrix[row] = zeroArray.complexMatrix[row].clone();
+		for(int row = 0; row < countNonZeroArray; ++row) hollow.complexMatrix[row+countZeroArray] = nonZeroArray.complexMatrix[row].clone();
 		
 		return hollow;
 	}
@@ -2947,13 +2508,16 @@ public class MatrixComplex {
 		for(int row = 0; row < rowLen; ++row) {
 			isZero = true;
 			for(int col = 0; col < colLen; ++col) {
-				if (!this.complexMatrix[row][col].equalsred(Complex.ZERO)) isZero = false;
+				if (!this.complexMatrix[row][col].equalsred(Complex.ZERO)) {
+					isZero = false ;
+					break;
+				}
 			}
 			if (isZero) zeroArray.complexMatrix[countZeroArray++] = this.complexMatrix[row].clone();
 			else nonZeroArray.complexMatrix[countNonZeroArray++] = this.complexMatrix[row].clone();
 		}
 		for(int row = 0; row < countNonZeroArray; ++row) heap.complexMatrix[row] = nonZeroArray.complexMatrix[row].clone();
-		for(int row = 0; row < countZeroArray; ++row) heap.complexMatrix[row+countNonZeroArray] = nonZeroArray.complexMatrix[row+countNonZeroArray].clone();
+		for(int row = 0; row < countZeroArray; ++row) heap.complexMatrix[row+countNonZeroArray] = zeroArray.complexMatrix[row].clone();
 		
 		return heap;
 	}
@@ -2962,7 +2526,7 @@ public class MatrixComplex {
 	 * Calculates the upper triangularization of the matrix.
 	 * @return The upper triangularized matrix.
 	 */
-	public MatrixComplex triangleUp(){
+	public MatrixComplex triangleUp_(){
 		int rowLen = this.rows();
 		Complex cCoef = new Complex();
 		MatrixComplex auxMatrix = this.clone();
@@ -2979,6 +2543,33 @@ public class MatrixComplex {
 			}
 			for (int row = k+1; row < rowLen; ++row) {
 				if (auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
+				cCoef = auxMatrix.getItem(row, k).divides(auxMatrix.getItem(k,k).opposite());
+				auxMatrix.Ftransf(row, k, cCoef);
+			}
+		}
+		return auxMatrix;
+	}
+
+	public MatrixComplex triangleUp(){
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		Complex cCoef = new Complex();
+		MatrixComplex auxMatrix = this.clone();
+
+		if (this.isTriangleUp()) return auxMatrix;
+
+		int upLimit = rowLen < colLen ? colLen : rowLen;
+		int loLimit = rowLen > colLen ? colLen : rowLen;
+		for (int k = 0; k < upLimit-1; ++k) {
+			if (k < rowLen && k < colLen && auxMatrix.getItem(k,k).equals(0,0)) {
+				int rowSwap = auxMatrix.locateSwapRowUp(k);
+				if (rowSwap == -1) {
+					continue;
+				}
+				if (rowSwap != k) auxMatrix.swapRows(k, rowSwap);
+			}
+			for (int row = k+1; row < rowLen; ++row) {
+				if (k >= loLimit || auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
 				cCoef = auxMatrix.getItem(row, k).divides(auxMatrix.getItem(k,k).opposite());
 				auxMatrix.Ftransf(row, k, cCoef);
 			}
@@ -3006,15 +2597,17 @@ public class MatrixComplex {
 	 * Calculates the lower triangularization of the matrix.
 	 * @return The lower triangularized matrix.
 	 */
-	public MatrixComplex triangleLo(){
+	public MatrixComplex triangleLo_(){
 		int rowLen = this.rows();
+		int colLen = this.cols();
 		Complex cCoef = new Complex();
 		MatrixComplex auxMatrix = this.clone();
 
 		if (this.isTriangleLo()) return auxMatrix;
 
-		for (int k = rowLen-1; k >= 0 ; --k) {
-			if (auxMatrix.getItem(k,k).equals(0,0)) {
+		int upLimit = rowLen > colLen ? colLen : rowLen;
+		for (int k = upLimit-1; k >= 0 ; --k) {
+			if (k < rowLen && k < colLen && auxMatrix.getItem(k,k).equals(0,0)) {
 				int rowSwap = auxMatrix.locateSwapRowDown(k);
 				if (rowSwap == -1) {
 					continue;
@@ -3030,6 +2623,35 @@ public class MatrixComplex {
 		return auxMatrix;
 	}
 	
+	public MatrixComplex triangleLo(){
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		Complex cCoef = new Complex();
+		MatrixComplex auxMatrix = this.clone();
+
+		if (this.isTriangleLo()) return auxMatrix;
+
+		/* Prepare Matrix */
+		int upLimit = rowLen < colLen ? colLen : rowLen;
+		int loLimit = rowLen > colLen ? colLen : rowLen;
+		for (int k = upLimit-1; k >= 0 ; --k) {
+			if (k < rowLen && k < colLen && auxMatrix.getItem(k,k).equals(0,0)) {
+				int rowSwap = auxMatrix.locateSwapRowDown(k);
+				if (rowSwap == -1) {
+					continue;
+				}
+				if (rowSwap != k) auxMatrix.swapRows(k, rowSwap);
+			}
+			
+			for (int row = k-1; row >= 0; --row) {
+				if (k >= loLimit || auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
+				cCoef = auxMatrix.getItem(row,k).divides(auxMatrix.getItem(k,k)).opposite();
+				auxMatrix.Ftransf(row, k, cCoef);
+			}
+		}
+		return auxMatrix;
+	}
+
 	/**
 	 * Indicates whether the array is square or nor
 	 * @return true for square matrix, false otherwise

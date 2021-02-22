@@ -196,11 +196,21 @@ public class Line {
 	 * @return the point of the line
 	 */
 	public Point point(Complex lambda) {
-		Point linePoint = new Point(this.point.dim());		
-		linePoint.complexMatrix = this.point.plus(this.direction.times(lambda)).complexMatrix.clone();
+		Point linePoint = new Point(this.point.dim());
+		linePoint.complexMatrix = (this.point.plus(this.direction.prod(lambda))).complexMatrix.clone();
 		return linePoint;
 	}
-	
+
+	/**
+	 * Calculates a point of the line from its vectorial equation given a parameter lambda
+	 * @param lambda The parameter
+	 * @return the point of the line
+	 */
+	public Point point(double lambda) {
+		Complex clambda = new Complex(lambda);
+		return point(clambda);
+	}
+
 	/**
 	 * Calculate the distance of a line to a given point
 	 * PaPp = PaPq + PqPp --> PaPp x V = PaPq x V + PqPp x V, as PaPq and V are parallel --> PaPq x V = 0 -->

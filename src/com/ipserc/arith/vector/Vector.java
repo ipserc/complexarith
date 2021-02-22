@@ -5,7 +5,7 @@ import com.ipserc.arith.matrixcomplex.*;
 
 public class Vector extends MatrixComplex {
 
-	private final static String HEADINFO = "Vector --- INFO:";
+	private final static String HEADINFO = "Vector --- INFO: ";
 	private final static String VERSION = "1.0 (2020_0824_1800)";
 
 	/*
@@ -17,8 +17,8 @@ public class Vector extends MatrixComplex {
 	/**
 	 * Prints Class Version
 	 */
-	public void version() {
-		System.out.println("VERSION:" + VERSION); 
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
 	}
 
 	/*
@@ -366,27 +366,7 @@ public class Vector extends MatrixComplex {
 		vector.complexMatrix = this.divides(num).complexMatrix.clone();
 		return vector;
 	}
-
-	/**
-	 * 
-	 */
-	public Vector times(Complex t) {
-		for (int i = 0; i < this.dim(); ++i) {
-			this.complexMatrix[0][i] = this.complexMatrix[0][i].times(t);
-		}
-		return this;
-	}
-
-	/**
-	 * 
-	 */
-	public Vector times(double t) {
-		for (int i = 0; i < this.dim(); ++i) {
-			this.complexMatrix[0][i] = this.complexMatrix[0][i].times(t);
-		}
-		return this;
-	}
-
+	
 	/*
 	 * ***********************************************
 	 * BASE OPERATIONS

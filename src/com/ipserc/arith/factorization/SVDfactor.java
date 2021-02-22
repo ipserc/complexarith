@@ -17,13 +17,36 @@ package com.ipserc.arith.factorization;
 
 import com.ipserc.arith.matrixcomplex.*;
 
+/**
+ * 
+ * @author ipserc
+ *
+ */
 public class SVDfactor extends MatrixComplex {
 	private MatrixComplex cS;
 	private MatrixComplex cV;
 	private MatrixComplex cU;
 
+	private final static String HEADINFO = "SVDfactor --- INFO: ";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
+
 	/*
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+	}
+
+	/*
+	 * ***********************************************
 	 * 	CONSTRUCTORS 
+	 * ***********************************************
 	 */
 
 	/**
@@ -45,6 +68,12 @@ public class SVDfactor extends MatrixComplex {
 		factorize();
 	}
 
+	/*
+	 * ***********************************************
+	 * 	PRIVATE METHODS 
+	 * ***********************************************
+	 */
+
 	/**
 	 * Private method. If the matrix to decompose has less rows the columns this method returns the adjoint of the matrix to do the factorization over it.
 	 * @return The adjoint matrix to decompose with the SVD factorization.
@@ -58,6 +87,12 @@ public class SVDfactor extends MatrixComplex {
 		return oMatrix;
 	}
 
+	/*
+	 * ***********************************************
+	 * 	METHODS 
+	 * ***********************************************
+	 */
+	
 	/**
 	 * Factorizes matrices mxn where m is greater or equal than n.
 	 * If in the array m is lesser n, it uses the orientMatrix method to return the adjoint matrix and operate on it.
@@ -157,6 +192,12 @@ public class SVDfactor extends MatrixComplex {
 		}
 	}
 
+	/*
+	 * ***********************************************
+	 * 	GETTERS
+	 * ***********************************************
+	 */
+
 	/**
 	 * Gets the class member variable with the V array.
 	 * @return The V array of the SVD decomposition.
@@ -179,6 +220,62 @@ public class SVDfactor extends MatrixComplex {
 	 */
 	public MatrixComplex getU() {
 		return cU;
+	}
+
+	/*
+	 * ***********************************************
+	 * 	PRINTING
+	 * ***********************************************
+	 */
+
+	/**
+	 * Returns the expression for SVD Factorization for Maxima. expand is available. 
+	 * @param expand True if you want to expand the expressions
+	 * @return The LU Factorization expression
+	 */
+	public String toMaxima_dgesvd(boolean expand) {
+		String toMaxima;
+		toMaxima = "[sigma, U, VT] : dgesvd (" +this.toMaxima()+", true, true)";
+		toMaxima = expand ? "expand("+toMaxima+");" : ";";
+		return toMaxima;
+	}
+	
+	/**
+	 * Returns the expression for generating Sigma from sigma returned from toMaxima_dgesvd.
+	 * @return Sigma:genmatrix expression
+	 */
+	public String toMaxima_Sigma() {
+		return "Sigma:genmatrix(lambda ([i, j], if i=j then sigma[i] else 0),length(U), length(VT));";
+	}
+	
+	/**
+	 * Returns the expression for SVD Factorization for GNU Octave. 
+	 * @return The LU Factorization expression
+	 */
+	public String toOctave_svd() {
+		String toOctave;
+		toOctave = "[U, S, V] = svd("+this.toOctave()+")";
+		return toOctave;
+	}
+
+	/**
+	 * Returns the expression for SVD Factorization for Mathlab.
+	 * @return The LU Factorization expression
+	 */
+	public String toMathlab_svd() {
+		String toMathlab;
+		toMathlab = "[U, S, V] = svd("+this.toMathlab()+")";
+		return toMathlab;
+	}
+
+	/**
+	 * Returns the expression for SVD Factorization for Wolfram.
+	 * @return The LU Factorization expression
+	 */
+	public String toWolfram_svd() {
+		String toWolfram;
+		toWolfram = "svd("+this.toWolfram()+")";
+		return toWolfram;
 	}
 }
 

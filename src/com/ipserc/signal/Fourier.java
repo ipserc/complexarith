@@ -7,7 +7,7 @@ import com.panayotis.gnuplot.JavaPlot;
 import java.io.FileWriter;   // Import the FileWriter class
 import java.io.IOException;  // Import the IOException class to handle errors
 import java.io.File;  // Import the File class
-import com.ipserc.duration.*;
+import com.ipserc.chronometer.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
@@ -349,7 +349,7 @@ public class Fourier extends MatrixComplex {
 		this.series = new MatrixComplex(1, order+1);
 		Complex coef ;
 
-		/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer FTChrono = new Chronometer();
 
 		for (int n = 0; n <= order ; ++n) {
 			Complex expn = Complex.i.times(-Complex.DOS_PI * n).divides(period);	//-2*pi*n*i/T
@@ -358,9 +358,8 @@ public class Fourier extends MatrixComplex {
 			series.setItem(0, n, coef);
 		}
 		
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ duration FTDuration = new duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time FS:" + FTDuration.toString());
+		/*CHRONO*/ FTChrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time FS:" + FTChrono.toString());
 		
 		isSerialized = true;
 		setOffset();
@@ -892,7 +891,7 @@ public class Fourier extends MatrixComplex {
 		
 		transform = new MatrixComplex(1,N);
 
-		/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer FTChrono = new Chronometer();
 		
 		for (int k = 0; k < N; ++k) { // freq index
 			Complex Ak = new Complex();
@@ -903,9 +902,8 @@ public class Fourier extends MatrixComplex {
 			transform.setItem(0, k, Ak);
 		}
 		
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ duration FTDuration = new duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time DFTL:" + FTDuration.toString());
+		/*CHRONO*/ FTChrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time DFTL:" + FTChrono.toString());
 		
 		isTransformed = true;
 	}
@@ -927,7 +925,7 @@ public class Fourier extends MatrixComplex {
 
 		transform = new MatrixComplex(1,N);
 
-		/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer FTChrono = new Chronometer();
 
 		int N2 = N/2;
 		int k0 = N%2 == 0 ? 0: 1;
@@ -944,9 +942,8 @@ public class Fourier extends MatrixComplex {
 			transform.setItem(0, k+N2, transform.getItem(0, N2-k+k0).conjugate());
 		}
 
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ duration FTDuration = new duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time DFT:" + FTDuration.toString());
+		/*CHRONO*/ FTChrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time DFT:" + FTChrono.toString());
 
 		isTransformed = true;
 	}
@@ -975,7 +972,7 @@ public class Fourier extends MatrixComplex {
     	Complex incr = upLimit.minus(loLimit).divides(N);
 		Complex Tk = new Complex();
 
-    	/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer IDFTChrono = new Chronometer();
 
 		for (int k = 0; k < N; ++k) { // time index
 			Tk.setComplexRec(0,0);
@@ -987,9 +984,8 @@ public class Fourier extends MatrixComplex {
 			samples.setItem(1, k, Tk.divides(N));
 			point = point.plus(incr);
 		}
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ duration IDFTDuration = new duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time IDFT:" + IDFTDuration.toString());
+		/*CHRONO*/ IDFTChrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time IDFT:" + IDFTChrono.toString());
 		isSampled = true;
 	}
 
@@ -1352,15 +1348,14 @@ public class Fourier extends MatrixComplex {
 		Fourier signalF = new Fourier(signal.getSampleFreq(), signal.loLimit, signal.upLimit);
 		signalF.transform = new MatrixComplex(1, signalF.N);
 		
-    	/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer IDFTChrono = new Chronometer();
 
     	for (int i = 0; i < signalF.N; ++i) {
 			signalF.transform.setItem(0, i, signal.transform.getItem(0, i).times(this.transform.getItem(0, i)));
 		}
 
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ duration IDFTDuration = new duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time Filter:" + IDFTDuration.toString());
+		/*CHRONO*/ IDFTChrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time Filter:" + IDFTChrono.toString());
 
 		signalF.isTransformed = true;
 		signalF.IDFT();	
@@ -1419,7 +1414,7 @@ public class Fourier extends MatrixComplex {
 		Fourier signalF = new Fourier(signal.N, signal.loLimit, signal.upLimit);
 		signalF.samples = new MatrixComplex(2, signalF.N);
 		
-    	/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer IDFTChrono = new Chronometer();
     	
     	Complex point = signal.loLimit.copy();
 		Complex incr = signal.upLimit.minus(signal.loLimit).divides(signal.N);
@@ -1436,9 +1431,8 @@ public class Fourier extends MatrixComplex {
 			point = point.plus(incr);
 		}
 
-    	/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ duration IDFTDuration = new duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time Filter:" + IDFTDuration.toString());
+    	/*CHRONO*/ IDFTChrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time Filter:" + IDFTChrono.toString());
 
 		signalF.isSampled = true;
 		signalF.DFT(signalF.N);

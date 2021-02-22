@@ -10,10 +10,7 @@ import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.panayotis.gnuplot.GNUPlotParameters;
 import com.panayotis.gnuplot.JavaPlot;
-import com.panayotis.gnuplot.plot.*;
 
 public class Polynom extends MatrixComplex {
 	private Complex[][] polyNorm;
@@ -21,7 +18,7 @@ public class Polynom extends MatrixComplex {
 
 	private static double sampleBase = 300;
 
-	private final static String HEADINFO = "Polynom --- INFO:";
+	private final static String HEADINFO = "Polynom --- INFO: ";
 	private final static String VERSION = "1.0 (2021_0130_1300)";
 
 	/*
@@ -33,8 +30,8 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * Prints Class Version
 	 */
-	public void version() {
-		System.out.println("VERSION:" + VERSION); 
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
 	}
 	
 	/*
@@ -93,8 +90,8 @@ public class Polynom extends MatrixComplex {
 
 	/**
 	 * Private method. Toggle column elements to sort them according to the column index.
-	 * It is necessary to do so that the polynomial is treated with the methods of the complex matrices.
-	 * The order of the coefficients in the matrix will coincide with the degree of the coefficients.
+	 * It is necessary to do so that the polynomial is managed with the complex matrices methods.
+	 * The order of the coefficients in the matrix will match with the degree of the coefficients.
 	 * Poly [0], is the independent term.
 	 * Poly [1], is the term in x.
 	 * Poly [2], is the term in x ^ 2.
@@ -102,8 +99,8 @@ public class Polynom extends MatrixComplex {
 	 * Poly [n], is the term in x ^ n.
 	 */
 	private void reverse() {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 		Complex swap = new Complex();
 		int limit = (colLen / (int)2);
 
@@ -117,7 +114,9 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * SETTERS & GETTERS
+	 * ***********************************************
 	 */
 
 	/**
@@ -154,7 +153,9 @@ public class Polynom extends MatrixComplex {
 	}
 	
 	/*
+	 * ***********************************************
 	 * PRINTING
+	 * ***********************************************
 	 */
 
 	/**
@@ -175,27 +176,34 @@ public class Polynom extends MatrixComplex {
 	 * Constructs the polynomial as string as the used by Maxima (Computer Algebra System)
 	 * @return The Maxima's polynomial representation as a string.
 	 */
-	public String toMaxima() {
+	public String Maxima_poly() {
 		String polynom = new String(); 
 
 		polynom = this.toString();
 		polynom = polynom.replace("i", "*%i");
 		polynom = polynom.replace("x", "*x");
-
 		return polynom;
 	}
 	
-	public String toMaxima(String caption) {
-		return caption + this.toMaxima();
+	public String Maxima_poly(String text) {
+		return text + this.Maxima_poly();
+	}
+	
+	public String Maxima_roots() {
+		return "allroots(" + this.Maxima_poly() + ")";
+	}
+
+	public String Maxima_roots(String text) {
+		return text + this.Maxima_roots();
 	}
 
 	/**
 	 * Constructs the polynomial as string as the used by GNUPlot.
 	 * @return The GNUPlot's polynomial representation as a string.
 	 */
-	public String toGNUPlot() {
-		int rowLen = this.complexMatrix.length;   
-		int colLen = this.complexMatrix[0].length;
+	public String GNUPlot_poly() {
+		int rowLen = this.rows();   
+		int colLen = this.cols();
 		Complex cCoef = new Complex();
 		String polynom = new String(); 
 
@@ -219,7 +227,7 @@ public class Polynom extends MatrixComplex {
 	 * Constructs the polynomial as string as the used by Wolfram Mathematica.
 	 * @return The Wolfram Mathematica's polynomial representation as a string.
 	 */
-	public String toWolfram() {
+	public String Wolfram_poly() {
 		String polynom = new String(); 
 
 		polynom = this.toString();
@@ -228,44 +236,61 @@ public class Polynom extends MatrixComplex {
 		return polynom;
 	}
 
-	/**
-	 * Displays the polynomial as string as the used by Maxima (Computer Algebra System) with a carriage return.
-	 */
-	public void printMaxima() {
-		System.out.println("P:" + this.toMaxima());
+	public String Wolfram_poly(String text) {
+		return text + Wolfram_poly();	
 	}
 
-	public void printMaxima(String caption) {
-		System.out.println(caption + this.toMaxima());
+	public String Wolfram_roots() {
+		return "roots(" + Wolfram_poly() + ")";	
 	}
 
-	/**
-	 * Displays the polynomial as string as the used by Wolfram Mathematica with a carriage return.
-	 */
-	public void printWolfram() {
-		System.out.println(this.toWolfram());
+	public String Wolfram_roots(String text) {
+		return text + Wolfram_roots();	
 	}
 
 	/**
-	 * Displays the the construction call for the polynomial as string as the used by this class with a carriage return.
+	 * Constructs the polynomial as string as the used by Wolfram Mathematica.
+	 * @return The Wolfram Mathematica's polynomial representation as a string.
 	 */
-	public void printPolynom() {
-		System.out.println(this.toPolynom()); 
+	public String Octave_poly() {
+		String polynom = new String();
+		Polynom newPol = new Polynom();
+
+		newPol = this.copy();
+		newPol.reverse();
+		polynom = newPol.toOctave();
+
+		return polynom;
 	}
+
+	public String Octave_poly(String text) {
+		return text + this.Octave_poly();	
+	}
+
+	public String Octave_roots() {
+		return "roots(" + this.Octave_poly() +")";	
+	}
+
+	public String Octave_roots(String text) {
+		return text + this.Octave_roots();	
+	}
+
 	/**
 	 * Displays the coefficients of the polynomial as a vector with a carriage return.
 	 */
-	public void printCoef() {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+	public String toCoefs() {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		String polyCoefs = new String(); 
 
 		for (int row = 0; row < rowLen; ++row) {
-			System.out.print("(");
+			polyCoefs += ("(");
 			for (int col = colLen-1; col >= 0; --col) {
-				System.out.print(this.complexMatrix[row][col]);
-				System.out.print(col == 0 ? ")\n" : ",");
+				polyCoefs += this.complexMatrix[row][col].toString();
+				polyCoefs += (col == 0 ? ")" : ",");
 			}
 		}
+		return polyCoefs;
 	}
 
 	/**
@@ -273,8 +298,8 @@ public class Polynom extends MatrixComplex {
 	 * @return The string with the constructor statement of the polynomial.
 	 */
 	public String toPolynom() {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 		int row, col;
 		String polynom = new String(); 
 
@@ -287,18 +312,22 @@ public class Polynom extends MatrixComplex {
 		}	
 		for (col = colLen-1; col >= 0; --col) {
 			polynom += this.complexMatrix[row][col].toString();
-			polynom += col == 0 ? "\");\n" : ",";
+			polynom += col == 0 ? "\");" : ",";
 		}
 		return polynom;
 	}
 
+	public String toPolynom(String text) {
+		return text + this.toPolynom();	
+	}
+	
 	/**
 	 * Builds the string representation of the polynomial in the form A[n]x^n + A[n-1]x^(n-1) + ... + A[2]x^2 + A[1]x + A[0].
 	 * @return The string representation of the polynomial.
 	 */
 	public String toString() {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 		Complex cCoef = new Complex();
 		String polynom = new String(); 
 
@@ -318,16 +347,10 @@ public class Polynom extends MatrixComplex {
 		return polynom;
 	}
 
-	/**
-	 * Calculates the degree of the polynomial.
-	 * @return The degree of the polynomial.
-	 */
-	public int degree() {
-		return this.complexMatrix[0].length - 1;
-	}
-
 	/*
+	 * ***********************************************
 	 * COPY & REPLICATION
+	 * ***********************************************
 	 */
 
 	/**
@@ -342,7 +365,9 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * METHODS
+	 * ***********************************************
 	 */
 
 	/**
@@ -351,8 +376,8 @@ public class Polynom extends MatrixComplex {
 	 * @return The complex number resultant of evaluating the polynomial for "value".
 	 */
 	public Complex eval(Complex value) {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 		if (rowLen != 1) {
 			System.err.println("Not valid matrix: The matrix doesn't represent polynomial.");
 			System.exit(1);
@@ -382,8 +407,8 @@ public class Polynom extends MatrixComplex {
 	 * @return The complex number resultant of evaluating the polynomial for "value".
 	 */
 	private Complex evalNorm(Complex value) {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 		if (rowLen != 1) {
 			System.err.println("Not valid matrix: The matrix doesn't represent polynomial.");
 			System.exit(1);
@@ -401,8 +426,8 @@ public class Polynom extends MatrixComplex {
 	 * The normalized polynomial is stored in the member polyNorm.
 	 */
 	private void normalizePol() {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 		int degree = colLen - 1; 
 		this.polyNorm = new Complex[rowLen][colLen];
 
@@ -418,8 +443,8 @@ public class Polynom extends MatrixComplex {
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solveWeierstrass(double precision) {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 		Complex cDenom = new Complex(1,0);
 		int iter = 0;
 
@@ -508,8 +533,8 @@ public class Polynom extends MatrixComplex {
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solve2d() {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
+		int rowLen = this.rows();
+		int colLen = this.cols();
 
 		if (rowLen != 1 ||  colLen != 3) {
 			System.err.println("Not valid matrix: The matrix doesn't represent a 2nd degree equation.");
@@ -566,7 +591,9 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * PRIVATE FUNCS
+	 * ***********************************************
 	 */
 
 	/**
@@ -585,8 +612,18 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * OPERATORS
+	 * ***********************************************
 	 */
+
+	/**
+	 * Calculates the degree of the polynomial.
+	 * @return The degree of the polynomial.
+	 */
+	public int degree() {
+		return this.cols() - 1;
+	}
 
 	/**
 	 * Calculates the sum of two polynomials.
@@ -713,7 +750,9 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * PLOTTING
+	 * ***********************************************
 	 */
 
 	/**
@@ -727,7 +766,7 @@ public class Polynom extends MatrixComplex {
 		JavaPlot p = new JavaPlot();
 		p.addPlot(GNUplotExpression);
 		p.setTitle(this.toString());
-		p.addPlot("[" + loLimit + ":" + upLimit + "] " + this.toGNUPlot());
+		p.addPlot("[" + loLimit + ":" + upLimit + "] " + this.GNUPlot_poly());
 		p.set("zeroaxis", "");
 		p.set("samples", Double.toString(samples));
 		p.plot();
@@ -745,7 +784,7 @@ public class Polynom extends MatrixComplex {
 		p.set("zeroaxis", "");
 		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		p.set("samples", Double.toString(samples));
-		p.addPlot(this.toGNUPlot());
+		p.addPlot(this.GNUPlot_poly());
 		p.plot();
 	}
 
@@ -762,7 +801,7 @@ public class Polynom extends MatrixComplex {
 		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		p.set("key", "noautotitle");
 		p.set("samples", Double.toString(samples));
-		p.addPlot("real("+ this.toGNUPlot() + ")");
+		p.addPlot("real("+ this.GNUPlot_poly() + ")");
 		p.plot();
 	}
 
@@ -779,7 +818,7 @@ public class Polynom extends MatrixComplex {
 		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		p.set("key", "noautotitle");
 		p.set("samples", Double.toString(samples));
-		p.addPlot("imag("+ this.toGNUPlot() + ")");
+		p.addPlot("imag("+ this.GNUPlot_poly() + ")");
 		p.plot();
 	}
 
@@ -796,7 +835,7 @@ public class Polynom extends MatrixComplex {
 		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		p.set("key", "noautotitle");
 		p.set("samples", Double.toString(samples));
-		p.addPlot("real(" + this.toGNUPlot() + "), imag("+ this.toGNUPlot() + ")");
+		p.addPlot("real(" + this.GNUPlot_poly() + "), imag("+ this.GNUPlot_poly() + ")");
 		p.plot();
 	}
 
@@ -813,7 +852,7 @@ public class Polynom extends MatrixComplex {
 		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		p.set("key", "noautotitle");
 		p.set("samples", Double.toString(samples));
-		p.addPlot("real(" + this.toGNUPlot() + ") / imag("+ this.toGNUPlot() + ")");
+		p.addPlot("real(" + this.GNUPlot_poly() + ") / imag("+ this.GNUPlot_poly() + ")");
 		p.plot();
 	}
 
@@ -830,7 +869,7 @@ public class Polynom extends MatrixComplex {
 		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		p.set("key", "noautotitle");
 		p.set("samples", Double.toString(samples));
-		p.addPlot("abs(" + this.toGNUPlot() + ")");
+		p.addPlot("abs(" + this.GNUPlot_poly() + ")");
 		p.plot();
 	}
 
@@ -848,7 +887,7 @@ public class Polynom extends MatrixComplex {
 		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		p.set("key", "noautotitle");
 		p.set("samples", Double.toString(samples));
-		p.addPlot("atan(real(" + this.toGNUPlot() + ")/imag("+ this.toGNUPlot() + "))");
+		p.addPlot("atan(real(" + this.GNUPlot_poly() + ")/imag("+ this.GNUPlot_poly() + "))");
 		p.plot();
 	}
 
@@ -877,6 +916,19 @@ public class Polynom extends MatrixComplex {
 
 		for (int i = 0; i < roots.length; ++i) {
 			root = root.setComplex(roots[i]).opposite();
+			listTerm.add(new Polynom("1,"+root.toString()));
+		}
+		return this.fromTerms(listTerm);
+	}
+
+	/**
+	 * Returns a polynomial from a list of its roots.
+	 * @param listRoots Complex list of the roots.
+	 * @return the polynomial.
+	 */
+	public Polynom fromRoots(List<Complex> listRoots) {
+		List<Polynom> listTerm = new ArrayList<Polynom>();
+		for (Complex root : listRoots) {
 			listTerm.add(new Polynom("1,"+root.toString()));
 		}
 		return this.fromTerms(listTerm);

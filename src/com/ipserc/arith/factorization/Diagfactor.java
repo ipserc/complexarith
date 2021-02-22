@@ -38,11 +38,28 @@ public class Diagfactor extends MatrixComplex {
 	private MatrixComplex cD;
 	private MatrixComplex cP;
 	private boolean factorized = false;
-	private final static String HEADINFO = "Diagfactor --- INFO:";
+	private final static String HEADINFO = "Diagfactor --- INFO: ";
+	private final static String VERSION = "1.0 (2020_0824_1800)";
 
 	/*
-	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
 	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+	}
+
+	/*
+	 * ***********************************************
+	 * 	CONSTRUCTORS 
+	 * ***********************************************
+	 */
+
 	/**
 	 * Instantiates a complex array from a string, rows are separated with ";", cols are separated with ",".
 	 * @param strMatrix the string with the rows and columns.
@@ -63,7 +80,9 @@ public class Diagfactor extends MatrixComplex {
 	}
 
 	/*
+	 * ***********************************************
 	 * 	GETTERS 
+	 * ***********************************************
 	 */
 
 	/**
@@ -91,6 +110,12 @@ public class Diagfactor extends MatrixComplex {
 		return factorized;
 	}
 	
+	/*
+	 * ***********************************************
+	 * 	CHECKERS 
+	 * ***********************************************
+	 */
+
 	/**
 	 * Indicates if the Matrix would be or not diagonalizable 
 	 * If for every eigenvalue of A, the geometric multiplicity equals the algebraic multiplicity, then A is said to be diagonalizable.
@@ -119,6 +144,12 @@ public class Diagfactor extends MatrixComplex {
 		
 		return false;
 	}
+
+	/*
+	 * ***********************************************
+	 * 	OPERATION 
+	 * ***********************************************
+	 */
 
 	/**
 	 * Factorizes the matrix using a diagonal matrix of eigenvectors (D) and a eigenvalue matrix (P)

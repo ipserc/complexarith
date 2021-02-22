@@ -10,13 +10,19 @@ package com.ipserc.arith.matrixcomplex;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
+import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.polynom.Polynom;
 import com.ipserc.syseq.Syseq;
 
+/**
+ * 
+ * @author ipserc
+ *
+ */
 public class Eigenspace extends MatrixComplex {
 	
-	private final static String HEADINFO = "Eigenspace --- INFO:";
-	private final static String VERSION = "1.0 (2020_0824_1800)";
+	private final static String HEADINFO = "Eigenspace --- INFO: ";
+	private final static String VERSION = "1.1 (2021_0207_2100)";
 
 	/**
 	 * Enumeration that gives the value of the order in wihch the eigenvalues, and therefore, the eigenvectors are returned
@@ -30,6 +36,19 @@ public class Eigenspace extends MatrixComplex {
 	private Polynom charactPoly;
 	private Complex seed;
 	private Order order;
+
+	/*
+	 * ***********************************************
+	 * 	VERSION 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Prints Class Version
+	 */
+	public static void version() {
+		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+	}
 
 	/*
 	 * ***********************************************
@@ -231,7 +250,7 @@ public class Eigenspace extends MatrixComplex {
 			// int arithMult = this.arithmeticMultiplicity(eigenval);
 			cMatrix = (I.times(eigenval)).minus(this);
 			dMatrix = cMatrix.augment().heap();
-			System.out.println("Ec.Caract.["+rowEig+"]" + dMatrix.toMatrixComplex());
+			// System.out.println("Ec.Caract.["+rowEig+"]" + dMatrix.toMatrixComplex());
 			eigenVect = dMatrix.solve(seed);
 			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
 				vectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
@@ -264,6 +283,33 @@ public class Eigenspace extends MatrixComplex {
 	
 	public String Octave_eigenvectors() {
 		return "[V,lambda] = eig("+this.toMathlab()+")";
+	}
+
+	public String Wolfrak_eigenvectors() {
+		return "eigenvectors("+this.toWolfram()+")";		
+	}
+	
+	public void printCharactEq(MatrixComplex.outputFormat format, boolean display) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		Syseq system = new Syseq();
+
+		MatrixComplex I = new MatrixComplex(rowLen, colLen); I.initMatrixDiag(1,0);
+		MatrixComplex cMatrix, dMatrix;
+		Complex eigenval;
+		
+		for (int rowEig = 0; rowEig < rowLen;) {
+			eigenval = values.getItem(rowEig, 0);
+			cMatrix = (I.times(eigenval)).minus(this);
+			dMatrix = cMatrix.augment().heap();
+			system.complexMatrix = dMatrix.complexMatrix;
+			System.out.print("Ec.Caract.["+rowEig+"]: " ); system.printSystemEqSolve(format, display);
+			rowEig += this.arithmeticMultiplicity(eigenval);
+		}
+	}
+
+	public void printCharactEq() {
+		printCharactEq(outputFormat.MATRIXCOMPLEX, false);
 	}
 
 }
