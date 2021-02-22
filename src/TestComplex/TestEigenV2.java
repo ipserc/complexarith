@@ -11,49 +11,43 @@ public class TestEigenV2 {
 		Complex seed = new Complex(1,0);
 		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);
      	MatrixComplex eigenVect;
+     	int boxSize = 65;
 
-    	System.out.println("__________________________________________________________________________________________");
-    	System.out.println("____________________________ CALCULO AUTOVALORES/AUTOVECTORES ____________________________");
+       	System.out.println("");
+       	System.out.println(Complex.boxTitle(boxSize, "EIGENVALUES & EIGENVECTORS TEST"));
     	aMatrix.println("aMatrix");
 
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	System.out.println("|                   EigenVectors Expressions                    |");
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    	System.out.println(Complex.boxText(boxSize, "EigenVectors Expressions"));
     	System.out.println("Maxima:"+eigenSpace.Maxima_eigenvalues(true));
     	System.out.println("Maxima:"+eigenSpace.Maxima_eigenvectors(true));
     	System.out.println("Maxima:"+eigenSpace.Maxima_charpoly(true));
     	System.out.println("Octave:"+eigenSpace.Octave_eigenvectors());
     	System.out.println("Wolfram:"+eigenSpace.Wolfrak_eigenvectors());
 
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	System.out.println("|        Determinant, Triangle & Characteristic polynomial      |");
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	aMatrix.determinant().println("Determinant]:");
+    	System.out.println(Complex.boxText(boxSize, "Determinant, Triangle & Characteristic polynomial"));
+    	aMatrix.determinant().println("Determinant:");
     	aMatrix.triangle().heap().println("triangle:");
     	eigenSpace.getCharactPoly().println("Characteristic polynom:");
 
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	System.out.println("|                    EigenValues Calculated                     |");
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    	System.out.println(Complex.boxText(boxSize, "EigenValues Calculated"));
     	{
 	    	Complex eVal = eigenSpace.values().getItem(0,0);
-			System.out.println("EigenValue: " + eVal.toString() + " - arith mult:" + eigenSpace.arithmeticMultiplicity(eVal) + " - geom mult:" + eigenSpace.geometricMultiplicity(eVal));    		
+			System.out.println("EigenValue: " + eVal.toString() + 
+					" - arith mult:" + eigenSpace.arithmeticMultiplicity(eVal) + 
+					" - geom mult:" + eigenSpace.geometricMultiplicity(eVal));    		
 	    	for (int i = 0; i < eigenSpace.values().rows(); ++i) {
 	    		if (eVal.equalsred(eigenSpace.values().getItem(i,0))) continue;
 	    		eVal = eigenSpace.values().getItem(i,0);
-				System.out.println("EigenValue: " + eVal.toString() + " - arith mult:" + eigenSpace.arithmeticMultiplicity(eVal) + " - geom mult:" + eigenSpace.geometricMultiplicity(eVal));    		
+				System.out.println("EigenValue: " + eVal.toString() + 
+						" - arith mult:" + eigenSpace.arithmeticMultiplicity(eVal) + 
+						" - geom mult:" + eigenSpace.geometricMultiplicity(eVal));    		
 	    	}
     	}
 
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	System.out.println("|                   Chacteristics Equations                     |");
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    	System.out.println(Complex.boxText(boxSize, "Chacteristics Equations"));
     	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
 
-     	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	System.out.println("|                   EigenVectors Calculated                     |");
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	eigenSpace.vectors().println();
+    	eigenSpace.vectors().println(Complex.boxText(boxSize, "EigenVectors Calculated"));
     	{
 	    	Complex eVal = eigenSpace.values().getItem(0,0);
 	    	for (int i = 0; i < eigenSpace.values().rows(); ++i) {
@@ -62,10 +56,7 @@ public class TestEigenV2 {
 	    	}
     	}
 
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	System.out.println("|                      Check eigenvectors                       |");
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
+    	System.out.println(Complex.boxText(boxSize, "Check eigenvectors"));
     	int colLen = aMatrix.cols(); //complexMatrix[0].length;
     	eigenVect = new MatrixComplex(1,colLen);
     	
@@ -79,9 +70,7 @@ public class TestEigenV2 {
 	    	eigenVect.times(eigenVal).println("eigval["+eigv+"]·eigenVect"+eigv);
     	}
 
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    	System.out.println("|                   Some other calculations                     |");
-    	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    	System.out.println(Complex.boxText(boxSize, "Some other calculations"));
     	eigenSpace.vectors().adjoint().times(eigenSpace.vectors()).println("eVT·eV:");
     	Diagfactor diagonal = new Diagfactor(aMatrix);
     	diagonal.diagonalize();
@@ -98,7 +87,6 @@ public class TestEigenV2 {
 			e.printStackTrace();
 		}
 		*/
-    	
 	}
 	
 	/**

@@ -53,10 +53,13 @@ public class TestFilter3 {
 		Fourier signal;
 		Fourier filter = new Fourier();
 		Fourier signalDFT , signalCONV, signalDIFF;
-		
+		int boxSize = 65;
+
+      	System.out.println(Complex.boxTitle(boxSize, "FOURIER TRANSF FILTER TEST"));		
 		/*****************
 		 * SIGNAL SECTION
 		 *****************/
+		System.out.println(Complex.boxText(boxSize, "Signal Section"));
 		boolean createSignal = true;
 		if (createSignal) {
 			loLimit = -30; //Complex.PI/40;
@@ -87,6 +90,7 @@ public class TestFilter3 {
 		/***********************
 		 * FILTER SECTION
 		 ***********************/
+		System.out.println(Complex.boxText(boxSize, "Filter Section"));
 		boolean createFilter = true;
 		// FILTER DEFINITION
 		if (createFilter) {
@@ -125,6 +129,7 @@ public class TestFilter3 {
 		/***********************
 		 * DFT SECTION
 		 ***********************/
+		System.out.println(Complex.boxText(boxSize, "DFT Section"));
 		boolean createDFT = true;
 		// DFT FILTERING PROCESS
 		if (createDFT) {
@@ -150,6 +155,7 @@ public class TestFilter3 {
 		/***********************
 		 * CONVOLUTION SECTION
 		 ***********************/
+		System.out.println(Complex.boxText(boxSize, "Convolution Section"));
 		boolean createCONV = true;
 		// CONVOLUTION FILTERING PROCESS
 		if (createCONV) {

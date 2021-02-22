@@ -6,13 +6,14 @@ import com.ipserc.arith.matrixcomplex.*;
 public class TestTriangLo {
 
 	public static void showResults(MatrixComplex aMatrix) {
+		int boxSize = 65;
+
+		System.out.println(Complex.boxTitle(boxSize, "TRIANGULARIZATION LO TEST"));
 		aMatrix.println("aMatrix Original");
 		aMatrix.triangleLo().println("aMatrix Triang Lo NEW");
 		aMatrix.println("aMatrix Verificar");
 		System.out.println("aMatrix DetAdj:" + aMatrix.determinantAdj());
 		System.out.println("aMatrix DetChi:" + aMatrix.determinant());
-		System.out.println("---------------------------------------");
-
 	}
 	
 	public static void main(String[] args) {

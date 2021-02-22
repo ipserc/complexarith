@@ -5,8 +5,9 @@ import com.ipserc.arith.complex.Complex;
 
 public class TestPlane {
 	public static void showResults(Plane planeA, Point pointP) {
-		System.out.println("_________________________________________________");		
-		System.out.println("___________________PLANE_POINT___________________");
+		int boxSize = 65;
+
+		System.out.println(Complex.boxText(boxSize, "PLANE & POINT"));
 		planeA.println("plane A");
 		planeA.generalEq().println("  General Eq:");
 		pointP.println("point P");
@@ -15,8 +16,9 @@ public class TestPlane {
 	}
 	
 	public static void showResults(Plane planeA, Line lineA) {
-		System.out.println("_________________________________________________");		
-		System.out.println("___________________PLANE_LINE____________________");
+		int boxSize = 65;
+
+		System.out.println(Complex.boxText(boxSize, "PLANE & LINE"));
 		planeA.println("plane A");
 		planeA.generalEq().println("  General Eq:");
 		lineA.println("line A");
@@ -29,8 +31,9 @@ public class TestPlane {
 
 	public static void showResults(Plane planeA, Plane planeB) {
 		Line line;
-		System.out.println("_________________________________________________");		
-		System.out.println("___________________TWO_PLANES____________________");
+		int boxSize = 65;
+
+		System.out.println(Complex.boxText(boxSize, "PLANE & PLANE"));
 		planeA.println("plane A");
 		planeA.generalEq().println("  General Eq:");
 		planeB.println("plane B");
@@ -51,6 +54,9 @@ public class TestPlane {
 		Plane planeA, planeB;
 		Point pointP;
 		Line lineA;
+		int boxSize = 65;
+
+		System.out.println(Complex.boxTitle(boxSize, "PLANE TEST"));
 
 		Complex.setFormatON();
 		Complex.setFixedON(3);
@@ -106,5 +112,8 @@ public class TestPlane {
 		planeB = new Plane("-3,6,-3", "3,-5,8");
 		showResults(planeA, planeB);
 
+		planeA = new Plane("4-3i,2i,-4+i,0,2,-1-3i,4", "0,0,0.75-0.5i,2+2i,-1+4i,0,-3i");
+		pointP = new Point("-2+i,0,3-4i,-1+4i,-4,0,3-2i");
+		showResults(planeA, pointP);
 	}
 }

@@ -2,36 +2,37 @@ package TestComplex;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.chronometer.Chronometer;
 
 public class TestDeterminant3 {
 	
 	private static void showResults(MatrixComplex fMatrix) {
-		long startTime, duration;
 		int dim = (int)Math.sqrt(fMatrix.dim());
-		boolean formatOff = (dim < 8) ? false : true; 
+		boolean setFormatOff = (dim < 8) ? false : true; 
+	   	int boxSize = 65;
 
-		System.out.println("");
-       	System.out.println("==================================================================================");
-       	fMatrix.println("------------ Matrix Dimension: " + dim + "x" + dim + " ------------");
-		if (formatOff) {
+       	System.out.println("");
+       	System.out.println(Complex.boxTitle(boxSize, "DETERMINANT TEST"));
+       	fMatrix.println(Complex.boxText(boxSize, "Matrix Dimension: " + dim + "x" + dim));
+		if (setFormatOff) {
+			Complex.storeFormatStatus();
 	       	Complex.setFormatOFF();
 	    	Complex.setFixedOFF();
 		}
-       	startTime = System.currentTimeMillis();
+       	Chronometer gaussChrono = new Chronometer();
 		System.out.println("detGauss(fMatrix) = " + fMatrix.determinantGauss().toString());
-      	duration = System.currentTimeMillis() - startTime;
-    	System.out.println("El cálculo del determinante ha llevado " + duration + "ms");
+		gaussChrono.stop();
+    	System.out.println("El cálculo del determinante ha llevado " + gaussChrono.toString());
     	if (fMatrix.dim() < 800) {
-           	startTime = System.currentTimeMillis();
+           	Chronometer adjChrono = new Chronometer();
     	   	System.out.println("detAdj(fMatrix) = " + fMatrix.determinantAdj().toString());
-    	   	duration = System.currentTimeMillis() - startTime;
-        	System.out.println("El cálculo del determinante ha llevado " + duration + "ms");
+    	   	adjChrono.stop();
+        	System.out.println("El cálculo del determinante ha llevado " + adjChrono.toString());
     	}
-       	Complex.setFormatON();
-    	Complex.setFixedON(3);
-       	System.out.println("==================================================================================");
-	}
-
+		if (setFormatOff) {
+			Complex.restoreFormatStatus();
+		}
+ 	}
 
 	public static void main(String[] args) {
 		MatrixComplex fMatrix;

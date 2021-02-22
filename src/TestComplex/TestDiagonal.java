@@ -4,19 +4,33 @@
  */
 package TestComplex;
 
-import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.factorization.Diagfactor;
+import com.ipserc.arith.matrixcomplex.MatrixComplex;
+import com.ipserc.chronometer.Chronometer;
 
 public class TestDiagonal {
 
 	private static void showResults(MatrixComplex fMatrix) {
+		int boxSize = 65;
+		
+       	System.out.println("");
+       	System.out.println(Complex.boxTitle(boxSize, "DIAGONALIZATION TEST"));
+       	System.out.println(Complex.boxText(boxSize, "Matrix"));
+       	System.out.println("MCOMPX :"+fMatrix.toMatrixComplex());
+       	System.out.println("MAXIMA :"+fMatrix.toMaxima());
+       	System.out.println("OCTAVE :"+fMatrix.toOctave());
+       	System.out.println("WOLFRAM:"+fMatrix.toWolfram());
+
+       	Chronometer chrono = new Chronometer();
 		Diagfactor dMatrix = new Diagfactor(fMatrix);
-		System.out.println("__________________________________________________________________________________________");
-    	System.out.println("______________________________ DIAGONALIZACION DE MATRICES _______________________________");
+		chrono.stop();
+
 		fMatrix.println("--- A");
 		fMatrix.triangle().heap().println("--- Triangle");
 		if (dMatrix.factorized()) {
+	       	System.out.println(Complex.boxText(boxSize, "Diagonal Matrix"));
+	    	System.out.println("The diagonalization has taken: " + chrono.toString());
 			MatrixComplex D = dMatrix.D();
 			MatrixComplex P = dMatrix.P();
 	 		D.println("--- D Diagonal");
@@ -52,6 +66,8 @@ public class TestDiagonal {
        	Complex.setFormatON();
     	Complex.setFixedON(3);
   	
+    	/**/
+
 		fMatrix= new MatrixComplex("1,i,1;1,-2+i,3-i;1,0,-i");
 		showResults(fMatrix);
 
@@ -62,6 +78,7 @@ public class TestDiagonal {
 		showResults(fMatrix);
 
 		/**/
+
 		fMatrix = new MatrixComplex(6); fMatrix.initMatrixRandomInteger(9);
 		showResults(fMatrix);
 
@@ -74,6 +91,7 @@ public class TestDiagonal {
 		fMatrix = new MatrixComplex(4); fMatrix.initMatrixRandomInteger(10);
 		fMatrix.complexMatrix = fMatrix.skewHermitian().complexMatrix;
 		showResults(fMatrix);
+
 		/**/
 
 		fMatrix = new MatrixComplex("1,2,3;0,-1,2;0,1,1");
@@ -93,6 +111,8 @@ public class TestDiagonal {
 
 		fMatrix = new MatrixComplex("2,2,-3,4;-2,2,1,0;3,3,-5,7;4,2,-6,7");
 		showResults(fMatrix);
+
+		/**/
 		
 		fMatrix = new MatrixComplex(10); fMatrix.initMatrixRandomInteger(5);
 		showResults(fMatrix);		

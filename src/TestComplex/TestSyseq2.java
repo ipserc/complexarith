@@ -20,16 +20,19 @@ public class TestSyseq2 {
 	}
 
 	private static void solve(Syseq fMatrix) {
-		MatrixComplex solution;	
-		System.out.println(".".repeat(55));
-		fMatrix.print("Equation System");
-		//System.out.println("Maxima:" + fMatrix.toMaxima());
-		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true); 
-		fMatrix.printSystemEqSolve(outputFormat.OCTAVE, true); 
-		fMatrix.printSystemEqSolve(outputFormat.MAXIMA, true); 
-		//fMatrix.homogeneous().println("Homogeneous Equation System");
-		fMatrix.printSol();
+		MatrixComplex solution;
+		int boxSize = 65;
+		
+		System.out.println(Complex.boxTitle(boxSize, "LINEAR EQUATIONS SYSTEM TEST"));
 
+		fMatrix.print(Complex.boxText(boxSize,"Equation System"));
+		
+     	System.out.println(Complex.boxText(boxSize, "System Solve Commands"));
+		fMatrix.printSystemEqSolve(outputFormat.MAXIMA, true);
+		fMatrix.printSystemEqSolve(outputFormat.OCTAVE, true);
+		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true);
+
+		fMatrix.printSol(Complex.boxText(boxSize, "System Solutions"));
 		switch (fMatrix.typeEqSys()) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
@@ -37,7 +40,8 @@ public class TestSyseq2 {
 				break ;
 			} 
 			default: { // MatrixComplex.INDETERMINATE
-				for (int i = -5; i < -6; ++i) {
+		     	System.out.println(Complex.boxText(boxSize, "Solutions check"));				
+				for (int i = -5; i < 6; ++i) {
 					double n = i/10.0;
 					System.out.println("*".repeat(20) + " Sol nbr:" + i); 
 					solution = fMatrix.solution(n);

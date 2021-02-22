@@ -9,11 +9,12 @@ public class dnrPolynom {
 	public static void showResults(Polynom myPolynom) {
 		MatrixComplex roots;
 		double loLimit, upLimit;
+		int titleSize = 65;
 
-		System.out.println("_____________________________________________________________________________________");		
-		System.out.println("________________________ CALCULATE POLYNOMIAL ROOTS _________________________________");		
-		myPolynom.println();
-		System.out.println("Polynom:" + myPolynom.toPolynom());
+		System.out.println(Complex.boxTitle(titleSize, "CALCULATE POLYNOMIAL ROOTS"));		
+		System.out.println(Complex.boxText(titleSize, "Polynom"));
+		myPolynom.println("Polynom:");
+		System.out.println("Polynom: " + myPolynom.toPolynom());
 		/*
 		int degree = myPolynom.degree();
 		double grade = Math.log(degree/10);
@@ -23,7 +24,7 @@ public class dnrPolynom {
 		*/
 		roots = myPolynom.solve();
 		roots.quicksort(0);
-		roots.println("roots");
+		roots.println(Complex.boxText(titleSize, "Roots"));
 		loLimit = myPolynom.getMinRoot(roots);		
 		upLimit = myPolynom.getMaxRoot(roots);
 		myPolynom.setSampleBase(6000);

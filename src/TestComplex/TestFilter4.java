@@ -45,10 +45,13 @@ public class TestFilter4 {
 		Fourier signalConv1, signalConv2, signalConv;
 		Fourier signalDiff;
 		Fourier signalOrig;
+		int boxSize = 65;
 		
+      	System.out.println(Complex.boxTitle(boxSize, "FOURIER TRANSF FILTER TEST"));		
 		/*****************
 		 * SIGNAL SECTION
 		 *****************/
+		System.out.println(Complex.boxText(boxSize, "Signal Section"));
 		signalOrig = new Fourier("/home/ipserc/saco/fourier_20201023_2013/signal_samples.txt");
 		signalOrig.readDFT("/home/ipserc/saco/fourier_20201023_2013/signal_dft.txt");
 		// PLOTING RESULTS

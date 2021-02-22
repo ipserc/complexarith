@@ -8,18 +8,29 @@ public class TestRoots {
 
 	public static void showResults(Polynom aPolynom) {
 		MatrixComplex hMatrix;
+		int boxSize = 65;
 		
-		aPolynom.toPolynom(); //"Coef:");
-		aPolynom.println();
-		aPolynom.printMaxima();
-    	hMatrix = aPolynom.solveWeierstrass();
+		System.out.println(Complex.boxTitle(boxSize, "POLYNOMIAL ROOTS TEST"));
+		System.out.println(Complex.boxText(boxSize, "Polynomial Coeficients"));
+		System.out.println(aPolynom.toCoefs());
+		System.out.println(Complex.boxText(boxSize, "Polynomial Representations"));
+		//aPolynom.toPolynom();
+		System.out.println(aPolynom.toPolynom("POLYNOM:"));
+		System.out.println(aPolynom.Maxima_poly("MAXIMA :"));
+		System.out.println(aPolynom.Octave_poly("OCTAVE :"));
+		System.out.println(aPolynom.Wolfram_poly("WOLFRAM:"));
+		System.out.println(Complex.boxText(boxSize, "Polynomial Roots"));
+		System.out.println(aPolynom.Maxima_roots("MAXIMA :"));
+		System.out.println(aPolynom.Octave_roots("OCTAVE :"));
+		System.out.println(aPolynom.Wolfram_roots("WOLFRAM:"));
+    	hMatrix = aPolynom.solve();
     	//hMatrix.println("Hay "+(aPolynom.complexMatrix[0].length-1)+" Soluciones");
     	hMatrix.quicksort(0);
-    	hMatrix.println("Hay "+(aPolynom.complexMatrix[0].length-1)+" Soluciones");
+    	hMatrix.println("There are "+(aPolynom.complexMatrix[0].length-1)+" roots");
+		System.out.println(Complex.boxText(boxSize, "Roots Test"));
     	for (int i = 0; i < hMatrix.complexMatrix.length; ++i) {
     		System.out.println("f(" + hMatrix.complexMatrix[i][0] + ")=" + aPolynom.eval(hMatrix.complexMatrix[i][0]));
     	}
-		System.out.println("---------------------------------------");
 	}
 
 	public static void main(String[] args) {

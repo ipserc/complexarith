@@ -8,7 +8,7 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.syseq.*;
 
-public class TestSyseq1 {
+public class TestSyseq3 {
 
 	private static void checkSol(MatrixComplex fMatrix, MatrixComplex solution) {
 		MatrixComplex indTerm = fMatrix.indMatrix().transpose();
@@ -24,7 +24,7 @@ public class TestSyseq1 {
 		int boxSize = 65;
 		
 		System.out.println(Complex.boxTitle(boxSize, "LINEAR EQUATIONS SYSTEM TEST"));
-		
+
 		fMatrix.print(Complex.boxText(boxSize,"Equation System"));
 		
      	System.out.println(Complex.boxText(boxSize, "System Solve Commands"));
@@ -55,75 +55,42 @@ public class TestSyseq1 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Syseq fMatrix = new Syseq();
+		Syseq fMatrix;
 		
-		Syseq.version();
+     	Complex.setFormatON();
+     	Complex.setFixedON(3);
 
-		Complex.setFormatON();
-		Complex.setFixedON(3);
-		
-		fMatrix = new Syseq(  " 1,-2, 3 ,1; "
-							+ "-2, 5,-1, 2; "
-							+ " 4,-9, 7, 0");
-		solve(fMatrix);
+     	Syseq.version();
 
-		fMatrix = new Syseq(  " 3, 1,-1,-4,  6;"
-							+ " 1,-2, 3, 1,  2;"
-							+ "-2, 5,-1, 2, -3;"
-							+ "10,-7, 5,-8, 19");
+		fMatrix = new Syseq("2,-3,0,-9;0,4,0,16;1,0,1,2"); // Sist Compatible determinado
 		solve(fMatrix);
 		
-		fMatrix = new Syseq(  " 1, 2, 1, -1;"
-				            + " 2, 4, 2, -2;"
-				            + " 3, 6, 3, -3");
-		solve(fMatrix);
-		
-		fMatrix = new Syseq(   " 1, -3,  4,  2,-1,  3;"
-							+  " 3, -9, 12,  6,-3,  9;"
-							+  "-1, -5,  2,  0,-3,  1;"
-							+  " 4,-12, 16,  8,-4, 12;"
-							+  "-5, 15,-20,-10, 5,-15;");
+		fMatrix = new Syseq("2,-3,0,0;0,4,0,0;1,0,1,0"); // Sist homogéneo
 		solve(fMatrix);
 
-		fMatrix = new Syseq(  " 1, -3,  1;"
-							+ "-2,  3, -1");
+		fMatrix = new Syseq("2,-3,0,1;-6,9,0,-3;1,0,1,1"); // Sist Comp Indeterminado
 		solve(fMatrix);
 
-		fMatrix = new Syseq(  " 1, -3, 0;"
-							+ " 2, -6, 0");
+		/*
+		fMatrix = new Syseq("2,-3,1;0,4,-1;1,0,1"); // No es un sistema de ecuaciones
 		solve(fMatrix);
-		
-		fMatrix = new Syseq(  " 1, -3,  1;"
-							+ "-2,  6,  1");
-		solve(fMatrix);
-		
-		fMatrix = new Syseq(  " 1, -3,  1;"
-							+ "-2,  6, -2");
+		 */
+
+		fMatrix = new Syseq("1.0,-1.0,-1.0,-1.0,-1.0;1.0,-1.0,1.0,-1.0,1.0;-1.0,-1.0,-1.0,-1.0,-1.0;-1.0,-1.0,1.0,-1.0,1.0");
 		solve(fMatrix);
 
-		fMatrix = new Syseq(   " 1, -3,  4,  2,-1,  3;"
-							+  " 3, -9, 12,  6,-3,  9;"
-							+  "-1, -5, 2i,  0,-3,  1;"
-							+  " 4,-12, 16,  8,-4, 12;"
-							+  "-5, 15,-20,-10, 5,-15;");
+		fMatrix = new Syseq(	
+				" 2.0,-1.0,-1.0,-1.0,-1.0;"
+			+	" 1.0,-2.0, 1.0,-1.0, 2.0;"
+			+	"-1.0,-1.0,-2.0,-1.0,-1.0;"
+			+	"-1.0,-1.0, 1.0,-2.0, 2.0");
 		solve(fMatrix);
 
-		fMatrix = new Syseq(5); fMatrix.initMatrixRandomRecInt(10);
-		solve(fMatrix);
-		
-		fMatrix = new Syseq(3); fMatrix.initMatrixRandomInteger(1);
-		solve(fMatrix);
-		
-		fMatrix = new Syseq(7); fMatrix.initMatrixRandomInteger(10);
-		solve(fMatrix);
-			
-		fMatrix = new Syseq("2.000,-2.000,-4.000,0.000;-2.000,2.000,4.000,0.000;0.000,0.000,0.000-0.000i,0.000");
-		solve(fMatrix);
-
-     	fMatrix = new Syseq(""+
-     			"  4.000 , -1.000 ,  1.000, 0 ;" +
-     			"  0.000 ,  1.000 ,  3.000, 0 ;" +
-     			"  0.000 ,  2.000 ,  2.000, 0 ");
+		fMatrix = new Syseq(	
+				" 2.0i,-1.0,-1.0i,-1.0,-1.0i;"
+			+	" 1.0,-2.0i, 1.0,-1.0i, 2.0;"
+			+	"-1.0i,-1.0,-2.0i,-1.0,-1.0i;"
+			+	"-1.0,-1.0i, 1.0,-2.0i, 2.0");
 		solve(fMatrix);
 	}
 }

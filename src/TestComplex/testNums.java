@@ -47,17 +47,17 @@ public class testNums {
         System.out.println("a:"+a.toString());
         System.out.println("a:"+a.toStringPol());
 
-        Complex.setFormatON();
+        Complex.setFormatON(true);
         System.out.println("a:"+a.toString());
         System.out.println("a:"+a.toStringPol());
         
-        Complex.setFormatOFF();
+        Complex.setFormatOFF(true);
         Complex.setFixedON(6);
         System.out.println("a:"+a.toString());
         System.out.println("a:"+a.toStringPol());
 
-        Complex.setFormatON();
-        Complex.setFixedON(6);
+        Complex.setFormatON(true);
+        Complex.setFixedON(6, true);
         System.out.println("a:"+a.toString());
         System.out.println("a:"+a.toStringPol());
 	}

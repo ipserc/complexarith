@@ -2,42 +2,49 @@ package TestComplex;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.chronometer.Chronometer;
 
 public class TestDeterminant {
 	public static void showResults(MatrixComplex fMatrix) {
     	MatrixComplex hMatrix;
     	MatrixComplex iMatrix;
+    	int boxSize = 65;
 
        	System.out.println("");
-       	System.out.println("========================================================================================");
-       	fMatrix.println("------------ Original Matrix ------------");
-       	fMatrix.triangle().println("------------ fMatrix triangle ------------");
+       	System.out.println(Complex.boxTitle(boxSize, "DETERMINANT TEST"));
+       	fMatrix.println(Complex.boxText(boxSize, "Original Matrix"));
+       	fMatrix.triangle().println(Complex.boxText(boxSize, "fMatrix triangle"));
        	showResultDeterminant(fMatrix);
     	iMatrix = fMatrix.inverse();
-       	iMatrix.println("------------ fMatrix inverse ------------");
+       	iMatrix.println(Complex.boxText(boxSize, "fMatrix inverse"));
        	showResultDeterminant(iMatrix); 
-       	fMatrix.times(iMatrix).println("Original * Inverse Matrix");
-       	System.out.println("========================================================================================");
+       	fMatrix.times(iMatrix).println(Complex.boxText(boxSize, "Original * Inverse Matrix"));
 	}
 	
 	private static void showResultDeterminant(MatrixComplex fMatrix) {
-		long startTime, duration;
-    	Complex.setFormatOFF();
-    	Complex.setFixedOFF();
-       	startTime = System.currentTimeMillis();
+		int dim = (int)Math.sqrt(fMatrix.dim());
+		boolean setFormatOff = (dim < 8) ? false : true; 
+
+	   	if (setFormatOff) {
+			Complex.storeFormatStatus();
+	       	Complex.setFormatOFF();
+	    	Complex.setFixedOFF();
+		}
+       	Chronometer gaussChrono = new Chronometer();
 		System.out.println("detGauss(fMatrix) = " + fMatrix.determinantGauss().toString());
-      	duration = System.currentTimeMillis() - startTime;
-    	System.out.println("El cálculo del determinante ha llevado " + duration + "ms");
+		gaussChrono.stop();
+    	System.out.println("El cálculo del determinante ha llevado " + gaussChrono.toString());
     	if (fMatrix.dim() < 800) {
-           	startTime = System.currentTimeMillis();
+           	Chronometer adjChrono = new Chronometer();
     	   	System.out.println("detAdj(fMatrix) = " + fMatrix.determinantAdj().toString());
-    	   	duration = System.currentTimeMillis() - startTime;
-        	System.out.println("El cálculo del determinante ha llevado " + duration + "ms");
+    	   	adjChrono.stop();
+        	System.out.println("El cálculo del determinante ha llevado " + adjChrono.toString());
     	}
-       	Complex.setFormatON();
-    	Complex.setFixedON(3);
-	}
-	
+		if (setFormatOff) {
+			Complex.restoreFormatStatus();
+		}
+ 	}
+
     public static void main(String[] args) {
     	MatrixComplex fMatrix;
     	MatrixComplex hMatrix;

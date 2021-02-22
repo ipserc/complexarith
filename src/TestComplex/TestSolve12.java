@@ -9,46 +9,48 @@ public class TestSolve12 {
 		MatrixComplex dMatrix;
 		MatrixComplex gMatrix;
 		MatrixComplex hMatrix;
-
-		System.out.println("_____________________________________________________________________________________");		
-		System.out.println("__________________________ SOLVE EQUATION SYSTEMS ___________________________________");
-		System.out.println(fMatrix.toWolfram());
+		int boxSize = 65;
+		
+		System.out.println(Complex.boxTitle(boxSize, "MATRIX SOLVE EQUATION"));   	
 		fMatrix.println("fMatrix = Original Matrix");
-		System.out.println("---------------- rank:" +  fMatrix.rank());
-		// -- fMatrix.printTypeEqSys();
+		System.out.println(Complex.boxText(boxSize, "Some Matrix Operations"));   	
 		gMatrix = fMatrix.triangleUp();
 		gMatrix.println("Triangle");
 		System.out.println("rank(gMatrix) = " + gMatrix.rank());		
 		dMatrix = fMatrix.triangleLo();
 		dMatrix.println("Triangle Lo");
 
+		System.out.println(Complex.boxText(boxSize, "Equations Operations"));   	
 		fMatrix.unkMatrix().println("Unknowns Matrix");
 		int rank1 = fMatrix.unkMatrix().rank();
 			System.out.println("rank(Unknowns Matrix) = " + rank1);
 			fMatrix.unkMatrix().determinant().println("unkMatrix().det=");
 		int nbrSolutions = fMatrix.nbrOfSolutions();
-		fMatrix.printTypeEqSys();
-
-		if (fMatrix.nbrOfSolutionsText() == 0) return;
-		
+		int typeEqSys = fMatrix.typeEqSys();
+		fMatrix.printTypeEqSys();	
+		if (typeEqSys == MatrixComplex.DETERMINATE)
+			System.out.println("Se devuelve 1 solución única.");
+		else if (typeEqSys == MatrixComplex.INDETERMINATE) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
+			else {
+				System.out.println("Sistema sin solución.") ;
+				return;
+			}
+		//System.out.println("	SOLVE GAUSS with λ " + seed.toString());
+		System.out.println(Complex.boxText(boxSize, "System Equations Solutions"));   	
 		hMatrix = fMatrix.solve();
-		System.out.println("--------------------------------------");
 		hMatrix.println("Soluciones (hMatrix)");
-		System.out.println("--------------------------------------");
 		for (int i = 0 ; i < hMatrix.rows(); ++i) {
 			MatrixComplex solMatrix = new MatrixComplex(1,hMatrix.cols());
 			for (int col = 0; col < hMatrix.cols(); ++col)
 				solMatrix.setItem(0,col,hMatrix.getItem(i,col));
-			//solMatrix.println("Soluciones (solMatrix)");
-			fMatrix.coefMatrix().times(solMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(solMatrix.transpose())");
+			solMatrix.println("Soluciones (solMatrix)");
+			fMatrix.coefMatrix().times(solMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
 		}
 		if (fMatrix.typeEqSys() == MatrixComplex.DETERMINATE) {
 			System.out.println("	SOLVE CRAMER");		
 			hMatrix = fMatrix.solveCramer();
-			System.out.println("++++++++++++++++++++++++++++++++++++++");
 			hMatrix.println("Soluciones Cramer (hMatrix)");
-			System.out.println("++++++++++++++++++++++++++++++++++++++");
-			fMatrix.coefMatrix().times(hMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix.transpose())");			
+			fMatrix.coefMatrix().times(hMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");			
 		}
 	}
 

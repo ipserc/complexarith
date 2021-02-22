@@ -9,16 +9,18 @@ public class TestSolve01 {
 		MatrixComplex dMatrix;
 		MatrixComplex gMatrix;
 		MatrixComplex hMatrix;
-
-		System.out.println("_____________________________________________________________________________________");		
-		System.out.println("__________________________ SOLVE EQUATION SYSTEMS ___________________________________");		
+		int boxSize = 65;
+		
+		System.out.println(Complex.boxTitle(boxSize, "MATRIX SOLVE EQUATION"));   	
 		fMatrix.println("fMatrix = Original Matrix");
+		System.out.println(Complex.boxText(boxSize, "Some Matrix Operations"));   	
 		gMatrix = fMatrix.triangleUp();
 		gMatrix.println("Triangle");
 		System.out.println("rank(gMatrix) = " + gMatrix.rank());		
 		dMatrix = fMatrix.triangleLo();
 		dMatrix.println("Triangle Lo");
 
+		System.out.println(Complex.boxText(boxSize, "Equations Operations"));   	
 		fMatrix.unkMatrix().println("Unknowns Matrix");
 		int rank1 = fMatrix.unkMatrix().rank();
 			System.out.println("rank(Unknowns Matrix) = " + rank1);
@@ -34,6 +36,7 @@ public class TestSolve01 {
 				return;
 			}
 		//System.out.println("	SOLVE GAUSS with λ " + seed.toString());
+		System.out.println(Complex.boxText(boxSize, "System Equations Solutions"));   	
 		hMatrix = fMatrix.solve(seed);
 		hMatrix.println("Soluciones (hMatrix)");
 		for (int i = 0 ; i < hMatrix.rows(); ++i) {

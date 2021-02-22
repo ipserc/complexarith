@@ -7,72 +7,83 @@ import com.ipserc.arith.factorization.*;
 public class TestLU {
 
 	public static void showResults(LUfactor luMatrix) {
-    	MatrixComplex lMatrix;
-    	MatrixComplex uMatrix;
-    	MatrixComplex pMatrix;
     	Complex det = new Complex();
+		int boxSize = 65;
+
+		System.out.println(Complex.boxTitle(boxSize, "LOWER UPPER DIAGONALIZATION (LU) TEST"));
     	
-    	luMatrix.println("luMatrix");
-    	System.out.println("A:"+luMatrix.toMaxima());
-    	luMatrix.triangle().println("luMatrix Triangle");
-    	lMatrix = luMatrix.L();
-    	lMatrix.println("L");
-    	uMatrix = luMatrix.U();
-    	uMatrix.println("U");
-    	pMatrix = luMatrix.P();
-    	pMatrix.println("P");
-    	if (!luMatrix.factorized()) System.out.println("No factorizable!!!!!!!!!!!");
-    	((luMatrix.U().transpose().times(luMatrix.L().transpose())).times(pMatrix)).transpose().println("(UT · LT · P)T");;
+		System.out.println(Complex.boxText(boxSize, "LU Results"));
+		luMatrix.println("luMatrix");
+    	System.out.println("MAXIMA :"+luMatrix.toMaxima_lu_factor(true));
+    	System.out.println("OCTAVE :"+luMatrix.toOctave_lu());
+    	System.out.println("WOLFRAM:"+luMatrix.toWolfram_LUDecomposition());
+    	if (!luMatrix.factorized()) {
+    		System.out.println("No factorizable!!!!!!!!!!!");
+    		return;
+    	}
+    	luMatrix.L().println("L");
+    	luMatrix.U().println("U");
+    	luMatrix.P().println("P");
+    	
+		System.out.println(Complex.boxText(boxSize, "LU Operations"));
+    	((luMatrix.U().transpose().times(luMatrix.L().transpose())).times(luMatrix.P())).transpose().println("(UT · LT · P)T");;
     	luMatrix.P().transpose().times(luMatrix.L().times(luMatrix.U())).println("PT · L · U");
-        	System.out.println("Determinant(A)=" + luMatrix.determinant());
-    		det = uMatrix.determinant();
-        	System.out.println("Determinant(U)=" + det);
-        	System.out.println("|Determinant(U)|=" + det.mod());        	
-        	uMatrix.inverse().println("Invert(U)");
-    	System.out.println("-----------------------------------------------------\n");
-		
+    	System.out.println("Determinant(A)=" + luMatrix.determinant());
+		det = luMatrix.U().determinant();
+    	System.out.println("Determinant(U)=" + det);
+    	System.out.println("|Determinant(U)|=" + det.mod());        	
+    	luMatrix.triangle().println("luMatrix Triangle");
+    	luMatrix.U().inverse().println("Invert(U)");		
 	}
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		MatrixComplex aMatrix;
     	LUfactor luMatrix;
  
-    	//luMatrix = new LUfactor("1,3,-1;3,9,2;2,1,-1");
-    	//luMatrix = new LUfactor("3,3,-1;1,9,2;2,1,-1");
-    	//luMatrix = new LUfactor("3,3,-1,5;1,9,2,-4;2,1,-1,3;2,-2,0,1");
-    	//luMatrix = new LUfactor("0,2,1,2;1,0,1,3;3,1,-4,2;-4,0,1,1");
-    	luMatrix = new LUfactor("0.0,1.0 - 2.0i,1.0 + 1.0i,-2.0;-2.0 - 2.0i,1.0 - 2.0i,-1.0 - 1.0i,-2.0 - 1.0i;-i,1.0 - 1.0i,-1.0 - 2.0i,-2.0 - 1.0i;1.0,-1.0,-2.0 + 1.0i,-i");
-    	//luMatrix = new LUfactor("0.0,-i,0.0,-1.0 - 2.0i;i,-2.0 - 2.0i,-1.0 - 2.0i,1.0 + 1.0i;-2.0 + 1.0i,-2.0,0.0,-i;i,-2.0 - 2.0i,i,-2.0 + 1.0i");
-    	//luMatrix = new LUfactor("1,3,-1;3,7,2;2,1,-1");
-    	//luMatrix = new LUfactor(5); luMatrix.initMatrixRandomInteger(9);
-       	//luMatrix = new LUfactor(5); luMatrix.initMatrixRandomRec(9);
-    	//luMatrix = new LUfactor("1,2,3,;4,2,1;-3,0,1");
-
-       	Complex.setFormatON();
+    	LUfactor.version();
+    	
+    	Complex.setFormatON();
     	Complex.setFixedON(3);
 
-    	luMatrix.println("luMatrix Original");
-    	showResults(luMatrix);
-/*
-    	luMatrix = new LUfactor("1,3,-1;2,1,-1;3,9,2");
-    	luMatrix.LUfactorize();
+    	luMatrix = new LUfactor("1,3,-1; 3,9,2; 2,1,-1");
     	showResults(luMatrix);
 
-    	//luMatrix = new LUfactor("1,3,-1;3,7,2;2,1,-1");
-    	//luMatrix = new LUfactor("1,1,1;1,2,2;1,1,3");
-    	luMatrix = new LUfactor(3); luMatrix.initMatrixRandomRec(9);
-     	luMatrix.LUfactorize();
+    	luMatrix = new LUfactor("3,3,-1; 1,9,2; 2,1,-1");
     	showResults(luMatrix);
-*/
 
-     	System.out.println("\n\n__________________________________ Matriz HERMITICA __________________________________"); 
+    	luMatrix = new LUfactor("3,3,-1,5; 1,9,2,-4; 2,1,-1,3; 2,-2,0,1");
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor("0,2,1,2; 1,0,1,3; 3,1,-4,2; -4,0,1,1");
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(" 0, -i, 0, -1-2i; i, -2-2i, -1-2i, 1+i; -2+i,-2, 0, -i; i, -2-2i, i, -2+i");
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor("1,3,-1;3,7,2;2,1,-1");
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(5); luMatrix.initMatrixRandomInteger(9); luMatrix.factorice();
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(7); luMatrix.initMatrixRandomRec(9); luMatrix.factorice();
+    	showResults(luMatrix);
+    	
+    	luMatrix = new LUfactor("1,2,3,;4,2,1;-3,0,1");
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor("0.0,1.0 - 2.0i,1.0 + 1.0i,-2.0;-2.0 - 2.0i,1.0 - 2.0i,-1.0 - 1.0i,-2.0 - 1.0i;-i,1.0 - 1.0i,-1.0 - 2.0i,-2.0 - 1.0i;1.0,-1.0,-2.0 + 1.0i,-i");
+    	showResults(luMatrix);
+
+		int boxSize = 65;
+
+		System.out.println(Complex.boxTitle(boxSize, "HERMITIAN MATRIX"));
      	aMatrix = new MatrixComplex(4); 
      	aMatrix.initMatrixRandomRecInt(7);
      	luMatrix = new LUfactor(aMatrix.hermitian()); 
     	showResults(luMatrix);
 
-     	System.out.println("\n\n__________________________________ Matriz SKEW-HERMITICA __________________________________"); 
+		System.out.println(Complex.boxTitle(boxSize, "SKEW-HERMITIAN MATRIX"));
      	aMatrix = new MatrixComplex(4); 
      	aMatrix.initMatrixRandomRecInt(7); 
      	luMatrix = new LUfactor(aMatrix.skewHermitian()); 

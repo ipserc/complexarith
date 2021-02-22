@@ -31,13 +31,13 @@ public class TestLineW {
 			for (i = 0; i < lineSystem.complexMatrix[0].length; ++i) {
 				cNum.setComplexRec(i, 0);
 				solutions = lineSystem.solveGauss(cNum);
-				solutions.println("Solutions");
+				solutions.println("Intersection");
 				//lineSystem.coefMatrix().times(solutions).println("Proof check");
 			}
 		}
 		else {
 			solutions = lineSystem.solve();
-			solutions.println("Solutions");
+			solutions.println("Intersection");
 		}
 		return solutions;
 	}
@@ -64,13 +64,19 @@ public class TestLineW {
 	public static void main(String[] args) {
 		MatrixComplex aLine = new MatrixComplex();		
 		List<MatrixComplex> listLines = new ArrayList<MatrixComplex>();
-		
+		String strPoint;
+		int boxSize = 65;
+
+		System.out.println(Complex.boxTitle(boxSize, "LINE TEST"));
+				
 		Complex.setFormatON();
-		
+
+		System.out.println(Complex.boxText(boxSize, "Line Intersection Test"));
 		aLine = aLine.pointVector("-1,4,-2,7", "3,-5,-2,3");
 		listLines.add(aLine);
 		aLine.println(toGNUPlot(aLine));
-		System.out.println("Distance:" + aLine.distance("1,0,0,0"));
+		strPoint = "1,0,0,0";
+		System.out.println("Distance to ("+ strPoint +"):" + aLine.distance(strPoint));
 
 		aLine = aLine.pointVector("-1,4,-2,7", "-1,-1,4,1");
 		listLines.add(aLine);
@@ -84,13 +90,18 @@ public class TestLineW {
 		listLines.add(aLine);
 		aLine.println(toGNUPlot(aLine));
 		/* */
-		
 		intersect(listLines);
 		
+		System.out.println(Complex.boxText(boxSize, "Line Distance Test"));
 		aLine = new MatrixComplex("2,1,-1,-1");
-		System.out.println("Distance:" + aLine.distance("3,1,-2"));
+		aLine.println("aLine:");
+		strPoint = "3,1,-2";
+		System.out.println("Distance to ("+ strPoint +"):" + aLine.distance(strPoint));
 		
+		System.out.println(Complex.boxText(boxSize, "Line Distance Test"));
 		aLine = new MatrixComplex("0,2,0,3");
-		System.out.println("Distance:" + aLine.distance("3,1,-2"));		
+		aLine.println("aLine:");
+		strPoint = "3,1,-2";
+		System.out.println("Distance to ("+ strPoint +"):" + aLine.distance(strPoint));
 	}
 }
