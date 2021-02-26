@@ -21,7 +21,7 @@ QRfactor.java Factorizes a matrix of the form A = Q R where Q is an orthogonal m
 SVDfactor.java Factorizes a matrix of the form A = U Σ V*, where Σ is a diagonal matrix mxn, and U and V are orthogonal matrices mxm and nxn respectively.
 
 The com.ipserc.arith.polynom package contains the Polynom class.
-Polynom.java provides the methods to operate with polynomials and calculate their roots in complex field.
+Polynom.java provides the methods to operate with polynomials and calculate its roots in the complex field.
 Generates Hermite, Legendre, Lagerre and Chebyshev polynomials of any degree.
 It incorporates methods to graphically represent polynomials. It makes use of the JavaPlot library of Panayotis (http://javaplot.panayotis.com/)
 
