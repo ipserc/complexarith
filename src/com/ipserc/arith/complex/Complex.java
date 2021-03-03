@@ -839,6 +839,46 @@ public class Complex {
 	}
 
 	/**
+	 * Returns a text inside of a hash-equal-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText4(int size, String text) {
+		String theBoxTopBot;
+		String theBoxText;
+		int boxSize = text.length() < size ? size : text.length()+4;
+		
+		theBoxTopBot = "#" + "=".repeat(boxSize-2)+"#";
+		theBoxText = "|"+" ".repeat((boxSize-text.length()-2)/2)+text;
+		theBoxText += " ".repeat(boxSize-1-theBoxText.length())+"|";
+		
+		return theBoxTopBot+System.lineSeparator()+
+				theBoxText+System.lineSeparator()+
+				theBoxTopBot;
+	}
+
+	/**
+	 * Returns a text inside of a colon (:) box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText5(int size, String text) {
+		String theBoxTopBot;
+		String theBoxText;
+		int boxSize = text.length() < size ? size : text.length()+6;
+		
+		theBoxTopBot = ":" + ":".repeat(boxSize-2)+":";
+		theBoxText = "::"+" ".repeat((boxSize-text.length()-2)/2)+text;
+		theBoxText += " ".repeat(boxSize-2-theBoxText.length())+"::";
+		
+		return theBoxTopBot+System.lineSeparator()+
+				theBoxText+System.lineSeparator()+
+				theBoxTopBot;
+	}
+
+	/**
 	 * Formats the number according with a ZERO_THRESHOLD and SIGNIFICATIVE decimals. 
 	 * Tries to return pretty integers keeping the maximum of decimals for reals.
 	 * @param number The number to be formatted.

@@ -18,7 +18,7 @@ public class MatrixComplex {
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
 	private final static String VERSION = "1.1 (2021_0207_2240)";
 
-	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangulation (Chio's rule)
+	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangularization (Chio's rule)
 
 	/*
 	 * ***********************************************
