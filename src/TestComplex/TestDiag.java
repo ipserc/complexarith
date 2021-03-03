@@ -22,8 +22,8 @@ public class TestDiag {
     		System.out.println("No factorizable!!!!!!!!!!!");
     		return;
     	}
-    	diagMatrix.D().println("D");
-    	diagMatrix.P().println("P");
+    	diagMatrix.D().println("D(iagonal) Matrix");
+    	diagMatrix.P().transpose().println("P(roper Values) transposed eigenvectors Matrix");
     	
 		System.out.println(Complex.boxText3(boxSize, "Diagfactor Operations"));
     	diagMatrix.P().times(diagMatrix.D().times(diagMatrix.P().inverse())).println("P · D · P⁻¹");
