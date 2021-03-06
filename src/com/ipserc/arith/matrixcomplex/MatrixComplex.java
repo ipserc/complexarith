@@ -810,6 +810,7 @@ public class MatrixComplex {
 		int colLen = this.cols();
 		MatrixComplex pivot = new MatrixComplex(1, colLen);
 
+		if (row1 == row2) return;
 		pivot.complexMatrix[0] = this.complexMatrix[row1];
 		this.complexMatrix[row1] = this.complexMatrix[row2];
 		this.complexMatrix[row2] = pivot.complexMatrix[0];
@@ -823,12 +824,10 @@ public class MatrixComplex {
 	 * @param row1 Row to swap.
 	 * @param row2 Row to swap.
 	 */
-	/*
 	public void swapRowsL(int row1, int row2) {
 		Complex pivot ;
 
-		if (row1 == row2) 
-			return;
+		if (row1 == row2) return;
 		for (int col = 0; col < row1; ++col) {
 			pivot = this.complexMatrix[row1][col];
 			this.complexMatrix[row1][col] = this.complexMatrix[row2][col];
@@ -836,7 +835,6 @@ public class MatrixComplex {
 		}
 		this.mSign = -this.mSign;
 	}
-	*/
 	
 	/**
 	 * Copies the value of the last column of the matrix "origMatrix" into the column indicated by "copyCol".

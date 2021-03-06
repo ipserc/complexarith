@@ -130,7 +130,8 @@ public class LUfactor extends MatrixComplex {
 
 		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
 		cL = new MatrixComplex(rowLen, colLen); cL.initMatrixDiag(1,0);
-		cU = new MatrixComplex(rowLen, colLen); cU = this.copy();
+		//cU = new MatrixComplex(rowLen, colLen); 
+		cU = this.copy();
 
 		for (int k = 0; k < rowLen-1; ++k) {
 			if (cU.complexMatrix[k][k].equals(0,0)) {
@@ -141,7 +142,8 @@ public class LUfactor extends MatrixComplex {
 				if (rowSwap != k) {
 					cU.swapRows(k, rowSwap);
 					cP.swapRows(k, rowSwap);				
-					cL.swapRowsL(k, rowSwap);
+					cL.swapRows(k, rowSwap);
+					//cL.swapRowsL(k, rowSwap);
 				}
 			}
 			for (int row = k+1; row < rowLen; ++row) {

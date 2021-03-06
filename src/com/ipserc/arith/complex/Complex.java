@@ -705,6 +705,18 @@ public class Complex {
 	}
 	
 	/**
+	 * Substitute of String.repeat(int n). This method is not available for Java 1.8 on Windows
+	 * @param str The String to repeat
+	 * @param n The number of times to repeat the string
+	 * @return The final String
+	 */
+	public static String repeat(String str, int n) {
+		String result ="" ;
+		for(int i = 0; i < n; ++i) result += str;
+		return result;
+	}
+	
+	/**
 	 * Returns a Title inside of a single line box
 	 * @param size The minimum size of the box
 	 * @param title The text to put inside the box
@@ -717,11 +729,11 @@ public class Complex {
 		String theTitleBot;
 		
 		int titleSize = title.length() < size ? size : title.length()+4;
-		theTitleTop = "_".repeat(titleSize);
-		theTitleText = "|"+" ".repeat((titleSize-title.length())/2-2)+" "+title;
-		theTitleText += " "+" ".repeat(titleSize-theTitleText.length()-2)+"|";
-		theTitleMid = "|"+" ".repeat(titleSize-2)+"|";
-		theTitleBot = "|"+"_".repeat(titleSize-2)+"|";
+		theTitleTop = repeat("_", titleSize);
+		theTitleText = "|"+repeat(" ", (titleSize-title.length())/2-2)+" "+title;
+		theTitleText += " "+repeat(" ", titleSize-theTitleText.length()-2)+"|";
+		theTitleMid = "|"+repeat(" ", titleSize-2)+"|";
+		theTitleBot = "|"+repeat("_", titleSize-2)+"|";
 		return theTitleTop+System.lineSeparator()
 			+theTitleMid+System.lineSeparator()
 			+theTitleText+System.lineSeparator()
@@ -741,10 +753,10 @@ public class Complex {
 		String theBoxMid;
 		int boxSize = text.length() < size ? size : text.length()+4;
 		
-		theBoxTopBot = "=".repeat(boxSize);
-		theBoxText = "|"+" ".repeat((boxSize-text.length()-2)/2)+text;
-		theBoxText += " ".repeat(boxSize-1-theBoxText.length())+"|";
-		theBoxMid = "|"+" ".repeat(boxSize-2)+"|";
+		theBoxTopBot = repeat("=", boxSize);
+		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
+		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
+		theBoxMid = "|"+repeat(" ", boxSize-2)+"|";
 
 		return theBoxTopBot+System.lineSeparator()+
 				theBoxMid+System.lineSeparator()+
@@ -766,11 +778,11 @@ public class Complex {
 		String theBoxMid;
 		int boxSize = text.length() < size ? size : text.length()+4;
 		
-		theBoxTop = " "+"_".repeat(boxSize-2)+" ";
-		theBoxMid = "/"+" ".repeat(boxSize-2)+"\\";
-		theBoxText = "|"+" ".repeat((boxSize-text.length()-2)/2)+text;
-		theBoxText += " ".repeat(boxSize-1-theBoxText.length())+"|";
-		theBoxBot = "\\"+"_".repeat(boxSize-2)+"/";
+		theBoxTop = " "+repeat("_", boxSize-2)+" ";
+		theBoxMid = "/"+repeat(" ", boxSize-2)+"\\";
+		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
+		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
+		theBoxBot = "\\"+repeat("_", boxSize-2)+"/";
 
 		return theBoxTop+System.lineSeparator()+
 				theBoxMid+System.lineSeparator()+
@@ -789,9 +801,9 @@ public class Complex {
 		String theBoxText;
 		int boxSize = text.length() < size ? size : text.length()+4;
 		
-		theBoxTopBot = "+".repeat(boxSize);
-		theBoxText = "|"+" ".repeat((boxSize-text.length()-2)/2)+text;
-		theBoxText += " ".repeat(boxSize-1-theBoxText.length())+"|";
+		theBoxTopBot = repeat("+", boxSize);
+		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
+		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
 		
 		return theBoxTopBot+System.lineSeparator()+
 				theBoxText+System.lineSeparator()+
@@ -809,9 +821,9 @@ public class Complex {
 		String theBoxText;
 		int boxSize = text.length() < size ? size : text.length()+4;
 		
-		theBoxTopBot = "+" + "-".repeat(boxSize-2)+"+";
-		theBoxText = "|"+" ".repeat((boxSize-text.length()-2)/2)+text;
-		theBoxText += " ".repeat(boxSize-1-theBoxText.length())+"|";
+		theBoxTopBot = "+" + repeat("-", boxSize-2)+"+";
+		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
+		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
 		
 		return theBoxTopBot+System.lineSeparator()+
 				theBoxText+System.lineSeparator()+
@@ -829,9 +841,9 @@ public class Complex {
 		String theBoxText;
 		int boxSize = text.length() < size ? size : text.length()+4;
 		
-		theBoxTopBot = "O" + "*".repeat(boxSize-2)+"O";
-		theBoxText = "|"+" ".repeat((boxSize-text.length()-2)/2)+text;
-		theBoxText += " ".repeat(boxSize-1-theBoxText.length())+"|";
+		theBoxTopBot = "O" + repeat("*", boxSize-2)+"O";
+		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
+		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
 		
 		return theBoxTopBot+System.lineSeparator()+
 				theBoxText+System.lineSeparator()+
@@ -849,9 +861,9 @@ public class Complex {
 		String theBoxText;
 		int boxSize = text.length() < size ? size : text.length()+4;
 		
-		theBoxTopBot = "#" + "=".repeat(boxSize-2)+"#";
-		theBoxText = "|"+" ".repeat((boxSize-text.length()-2)/2)+text;
-		theBoxText += " ".repeat(boxSize-1-theBoxText.length())+"|";
+		theBoxTopBot = "#" + repeat("=", boxSize-2)+"#";
+		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
+		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
 		
 		return theBoxTopBot+System.lineSeparator()+
 				theBoxText+System.lineSeparator()+
@@ -869,9 +881,9 @@ public class Complex {
 		String theBoxText;
 		int boxSize = text.length() < size ? size : text.length()+6;
 		
-		theBoxTopBot = ":" + ":".repeat(boxSize-2)+":";
-		theBoxText = "::"+" ".repeat((boxSize-text.length()-2)/2)+text;
-		theBoxText += " ".repeat(boxSize-2-theBoxText.length())+"::";
+		theBoxTopBot = ":" + repeat(":", boxSize-2)+":";
+		theBoxText = "::"+repeat(" ", (boxSize-text.length()-2)/2)+text;
+		theBoxText += repeat(" ", boxSize-2-theBoxText.length())+"::";
 		
 		return theBoxTopBot+System.lineSeparator()+
 				theBoxText+System.lineSeparator()+
