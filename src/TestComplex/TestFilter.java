@@ -104,7 +104,7 @@ public class TestFilter {
 		signalFiltered.plotSamples("Filtered signal " + filterparams, true, e_lineStyle.LINES);
 		signalFiltered.plotDFT("Filtered signal " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		
-		System.out.println("\n" + "-".repeat(20) + "\n");
+		System.out.println("\n" + Complex.repeat("-", 20) + "\n");
 		
 		/***********************
 		 * FILTER SECTION

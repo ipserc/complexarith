@@ -48,13 +48,6 @@ public class TestEigenV6 {
     	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
 
     	eigenSpace.vectors().println(Complex.boxText(boxSize, "EigenVectors Calculated"));
-    	{
-	    	Complex eVal = eigenSpace.values().getItem(0,0);
-	    	for (int i = 0; i < eigenSpace.values().rows(); ++i) {
-	    		if (eVal.equalsred(eigenSpace.values().getItem(i,0))) continue;
-	    		eVal = eigenSpace.values().getItem(i,0);
-	    	}
-    	}
 
     	System.out.println(Complex.boxText(boxSize, "Check eigenvectors"));
     	int colLen = aMatrix.cols(); //complexMatrix[0].length;

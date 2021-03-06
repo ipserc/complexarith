@@ -88,6 +88,9 @@ public class TestLU {
      	aMatrix.initMatrixRandomRecInt(7); 
      	luMatrix = new LUfactor(aMatrix.skewHermitian()); 
     	showResults(luMatrix);
+
+    	luMatrix = new LUfactor("1,3,-1; 3,9,2; 2,1,-1");
+    	showResults(luMatrix);
 	}
 
 }

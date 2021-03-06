@@ -43,7 +43,7 @@ public class TestSyseq2 {
 		     	System.out.println(Complex.boxText(boxSize, "Solutions check"));				
 				for (int i = -5; i < 6; ++i) {
 					double n = i/10.0;
-					System.out.println("*".repeat(20) + " Sol nbr:" + i); 
+					System.out.println(Complex.repeat("*", 20) + " Sol nbr:" + i); 
 					solution = fMatrix.solution(n);
 					checkSol(fMatrix, solution);
 				}		

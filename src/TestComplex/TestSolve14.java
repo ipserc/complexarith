@@ -9,11 +9,11 @@ public class TestSolve14 {
 		MatrixComplex indTerm = fMatrix.indMatrix().transpose();
 		MatrixComplex uknMatix = fMatrix.unkMatrix().transpose();
 		
-		System.out.println(".".repeat(55));
+		System.out.println(Complex.repeat(".", 55));
 		indTerm.println                 ("Independent Terms");
 		solution.println                ("Solution         ");
 		solution.times(uknMatix).println("Check            ");
-		System.out.println(".".repeat(55));
+		System.out.println(Complex.repeat(".", 55));
 	}
 	
 	private static MatrixComplex solve(MatrixComplex fMatrix) {
