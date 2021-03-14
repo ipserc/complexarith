@@ -22,6 +22,7 @@
 
 package com.ipserc.arith.factorization;
 
+import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 /**
@@ -30,15 +31,17 @@ import com.ipserc.arith.matrixcomplex.*;
  *
  */
 public class LUfactor extends MatrixComplex {
+	public static enum LUmethod {NONE, PIVOT, CROUT, DOOLITTLE, CHOLESKY};
 
 	private MatrixComplex cL;
 	private MatrixComplex cU;
 	private MatrixComplex cP;
 	private boolean factorized = false;
+	private LUmethod method = LUmethod.NONE;
 
 	private final static String HEADINFO = "LUfactor --- INFO: ";
-	private final static String VERSION = "1.1 (2021_0214_2300)";
-
+	private final static String VERSION = "1.2 (2021_0311_2300)";
+	
 	/*
 	 * ***********************************************
 	 * 	VERSION 
@@ -81,7 +84,12 @@ public class LUfactor extends MatrixComplex {
 	 */
 	public LUfactor(String strMatrix) {
 		super(strMatrix);
-		LUfactorizePP();
+		factorice();
+	}
+
+	public LUfactor(String strMatrix, final LUmethod method) {
+		super(strMatrix);
+		factorice(method);
 	}
 
 	/**
@@ -91,7 +99,13 @@ public class LUfactor extends MatrixComplex {
 	public LUfactor(MatrixComplex matrix) {
 		super();
 		this.complexMatrix = matrix.complexMatrix.clone();
-		LUfactorizePP();
+		factorice();
+	}
+
+	public LUfactor(MatrixComplex matrix, final LUmethod method) {
+		super();
+		this.complexMatrix = matrix.complexMatrix.clone();
+		factorice(method);
 	}
 
 	/*
@@ -102,31 +116,59 @@ public class LUfactor extends MatrixComplex {
 
 	/**
 	 * Factorizes the array using the LU decomposition.
-	 * In numerical analysis and linear algebra, LU decomposition (where 'LU' stands for 'lower upper', and also called LU factorization) factors a matrix as the product of a lower triangular matrix and an upper triangular matrix. 
+	 * In numerical analysis and linear algebra, LU decomposition (where 'LU' stands for 'lower upper', and also called LU factorization) 
+	 * factors a matrix as the product of a lower triangular matrix and an upper triangular matrix. 
 	 * The product sometimes includes a permutation matrix as well. The LU decomposition can be viewed as the matrix form of Gaussian elimination. 
-	 * Computers usually solve square systems of linear equations using the LU decomposition, and it is also a key step when inverting a matrix, or computing the determinant of a matrix. 
+	 * Computers usually solve square systems of linear equations using the LU decomposition, and it is also a key step when inverting a matrix, 
+	 * or computing the determinant of a matrix. 
 	 * The LU decomposition was introduced by mathematician Tadeusz Banachiewicz in 1938.[Source Wikipedia]
 	 */
-	public void factorice() {
-		if (factorized) return;
-		this.LUfactorizePP();
-	}
-	
-	/**
-	 * Factorizes the array using the LU decomposition.
-	 * In numerical analysis and linear algebra, LU decomposition (where 'LU' stands for 'lower upper', and also called LU factorization) factors a matrix as the product of a lower triangular matrix and an upper triangular matrix. 
-	 * The product sometimes includes a permutation matrix as well. The LU decomposition can be viewed as the matrix form of Gaussian elimination. 
-	 * Computers usually solve square systems of linear equations using the LU decomposition, and it is also a key step when inverting a matrix, or computing the determinant of a matrix. 
-	 * The LU decomposition was introduced by mathematician Tadeusz Banachiewicz in 1938.[Source Wikipedia]
-	 */
-	private void LUfactorizePP() {
-		int rowLen = this.complexMatrix.length;
-		int colLen = this.complexMatrix[0].length;
-
-		if (rowLen != colLen) {
+	public void factorice(final LUmethod method) {
+		factorized = false;
+		this.method = LUmethod.NONE;
+		if (this.rows() != this.cols()) {
+			System.out.println("rows:" + this.rows() + " cols:" + this.cols());
 			factorized = false;
 			return;
 		}
+		this.method = method;
+		switch (method) {
+			case PIVOT: PIVOTfactorice(); break;
+			case CROUT: CROUTfactorize(); break;
+			case DOOLITTLE: DOOLITTLEfactorize(); break;
+			case CHOLESKY: CHOLESKIfactorice(); break;
+			case NONE: break;
+			default: break;
+		}
+	}
+
+	public void factorice() {
+		factorized = false;
+		this.method = LUmethod.NONE;
+		if (this.rows() != this.cols()) {
+			System.out.println("rows:" + this.rows() + " cols:" + this.cols());
+			factorized = false;
+			return;
+		}
+		CROUTfactorize();		if (factorized){ this.method = LUmethod.CROUT; return; }
+		//DOOLITTLE is the same as CROUT but returning L and U both transposed
+		//DOOLITTLEfactorize();	if (factorized){ this.method = LUmethod.DOOLITTLE; return; }
+		CHOLESKIfactorice();	if (factorized){ this.method = LUmethod.CHOLESKY; return; }
+		PIVOTfactorice();		if (factorized){ this.method = LUmethod.PIVOT; return; }
+	}
+
+	/**
+	 * Factorizes the array using the LU decomposition.
+	 * In numerical analysis and linear algebra, LU decomposition (where 'LU' stands for 'lower upper', and also called LU factorization) 
+	 * factors a matrix as the product of a lower triangular matrix and an upper triangular matrix. 
+	 * The product sometimes includes a permutation matrix as well. The LU decomposition can be viewed as the matrix form of Gaussian elimination. 
+	 * Computers usually solve square systems of linear equations using the LU decomposition, and it is also a key step when inverting a matrix, 
+	 * or computing the determinant of a matrix. 
+	 * The LU decomposition was introduced by mathematician Tadeusz Banachiewicz in 1938.[Source Wikipedia]
+	 */
+	private void PIVOTfactorice() {
+		int rowLen = this.rows();
+		int colLen = this.cols();
 
 		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
 		cL = new MatrixComplex(rowLen, colLen); cL.initMatrixDiag(1,0);
@@ -142,8 +184,8 @@ public class LUfactor extends MatrixComplex {
 				if (rowSwap != k) {
 					cU.swapRows(k, rowSwap);
 					cP.swapRows(k, rowSwap);				
-					cL.swapRows(k, rowSwap);
-					//cL.swapRowsL(k, rowSwap);
+					//cL.swapRows(k, rowSwap);
+					cL.swapRowsL(k, rowSwap);
 				}
 			}
 			for (int row = k+1; row < rowLen; ++row) {
@@ -154,7 +196,251 @@ public class LUfactor extends MatrixComplex {
 				}
 			}
 		}
+		if (cL.isNaN() || cL.isInfinite() || cU.isNaN() || cU.isInfinite()) factorized = false;
+		else factorized = true;
+	}
+
+	/**
+	 * Calculates the CROUT L row matrix for a given column 
+	 * @param theCol The column
+	 */
+	private void CROUT_L(int theCol) {
+		//Boolean dep = false;
+		//if(dep) System.out.println(Complex.repeat("-L", 25));
+		for (int row = theCol; row < this.rows(); ++row) {
+			Complex SLU = new Complex(0,0);
+			for (int idx = 0; idx < theCol; ++idx) {
+				//if(dep) System.out.print("L"+row+idx+"*U"+idx+theCol+"+");
+				SLU = SLU.plus(cL.getItem(row, idx).times(cU.getItem(idx, theCol)));
+			}
+			//if(dep) System.out.println("\na"+row+theCol);
+			SLU = this.getItem(row, theCol).minus(SLU);
+			cL.setItem(row, theCol, SLU);
+		}
+	}
+	
+	/**
+	 * Calculates the CROUT U column matrix for a given row 
+	 * @param theRow The row
+	 * @return true if the diagonalization can be done, else false
+	 */
+	private boolean CROUT_U(int theRow) {
+		//Boolean dep = false;
+		//if(dep) System.out.println(Complex.repeat("+U", 25));
+		for (int col = theRow+1; col < this.cols(); ++col) {
+			Complex SLU = new Complex(0,0);
+			for (int idx = 0; idx < theRow; ++idx) {
+				//if(dep) System.out.print("L"+theRow+idx+"*U"+idx+col+"+");
+				SLU = SLU.plus(cL.getItem(theRow, idx).times(cU.getItem(idx, col)));				
+			}
+			//if(dep) System.out.println("\na"+theRow+col+" L"+theRow+theRow);
+			SLU = (this.getItem(theRow, col).minus(SLU)).divides(cL.getItem(theRow, theRow));
+			if (SLU.isInfinite() || SLU.isNaN()) return false;
+			cU.setItem(theRow, col, SLU);
+		}
+		return true;
+	}
+	
+	/**
+	 * In linear algebra, the Crout matrix decomposition is an LU decomposition which decomposes a matrix into a lower triangular matrix (L), 
+	 * an upper triangular matrix (U) and, although not always needed, a permutation matrix (P). It was developed by Prescott Durand Crout. [1]
+	 * The Crout matrix decomposition algorithm differs slightly from the Doolittle method. Doolittle's method returns a unit lower triangular matrix 
+	 * and an upper triangular matrix, while the Crout method returns a lower triangular matrix and a unit upper triangular matrix.
+	 * So, if a matrix decomposition of a matrix A is such that: A = LDU being L a unit lower triangular matrix, D a diagonal matrix 
+	 * and U a unit upper triangular matrix, then Doolittle's method produces A = L(DU) and Crout's method produces A = (LD)U.
+	 * source wikipedia https://en.wikipedia.org/wiki/Crout_matrix_decomposition
+	 */
+	private void CROUTfactorize() {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+
+		if (this.determinant().equalsred(Complex.ZERO)) return;
+		
+		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
+		cL = new MatrixComplex(rowLen, colLen);
+		cU = new MatrixComplex(rowLen, colLen); cU.initMatrixDiag(1,0);
+		
+		// -----------
+		// L Matrix
+		// -----------
+		// col 0
+		{
+			int col = 0;
+			for (int row = 0; row < rowLen; ++row ) {
+				cL.setItem(row, col, this.getItem(row, col));
+			}
+		}
+
+		// -----------
+		// U Matrix
+		// -----------
+		// row 0
+		{
+			int row = 0;
+			for (int col = 1; col < rowLen; ++col ) {
+				cU.setItem(row, col, this.getItem(row, col).divides(cL.getItem(row, row)));
+			}
+		}
+		
+		for(int idx = 1; idx < rowLen; ++idx) {
+			CROUT_L(idx);
+			if (!CROUT_U(idx)) return;
+		}
 		factorized = true;
+	}
+
+	/**
+	 * Calculates the DOOLITTLE U column matrix for a given row
+	 * @param theRow The given row
+	 */
+	private void DOOLITTLE_U(int theRow) {
+		//Boolean dep = false;
+		//if(dep) System.out.println(Complex.repeat("-U", 25));
+		for (int col = theRow; col < this.cols(); ++col) {
+			Complex SLU = new Complex(0,0);
+			for (int idx = 0; idx < theRow; ++idx) {
+				//if(dep) System.out.print("L"+theRow+idx+"*U"+idx+col+"+");
+				SLU = SLU.plus(cU.getItem(theRow, idx).times(cL.getItem(idx, col)));
+			}
+			//if(dep) System.out.println("\na"+theRow+col);
+			SLU = this.getItem(theRow, col).minus(SLU);
+			cU.setItem(theRow, col, SLU);
+		}
+	}
+
+	/**
+	 * Calculates the DOOLITTLE U row matrix for a given column
+	 * @param theCol
+	 * @return true if the diagonalization can be done, else false
+	 */
+	private boolean DOOLITTLE_L(int theCol) {
+		//Boolean dep = false;
+		//if(dep) System.out.println(Complex.repeat("+L", 25));
+		for (int row = theCol; row < this.rows(); ++row) {
+			Complex SLU = new Complex(0,0);
+			for (int idx = 0; idx < theCol; ++idx) {
+				//if(dep) System.out.print("L"+row+idx+"*U"+idx+theCol+"+");
+				SLU = SLU.plus(cU.getItem(row, idx).times(cL.getItem(idx, theCol)));				
+			}
+			//if(dep) System.out.println("\na"+row+theCol+" U"+theCol+theCol);
+			SLU = (this.getItem(row, theCol).minus(SLU)).divides(cU.getItem(theCol, theCol));
+			if (SLU.isInfinite() || SLU.isNaN()) return false;
+			cL.setItem(row, theCol, SLU);
+		}
+		return true;
+	}
+
+	/**
+	 * In linear algebra, the Crout matrix decomposition is an LU decomposition which decomposes a matrix into a lower triangular matrix (L), 
+	 * an upper triangular matrix (U) and, although not always needed, a permutation matrix (P). It was developed by Prescott Durand Crout. [1]
+	 * The Crout matrix decomposition algorithm differs slightly from the Doolittle method. Doolittle's method returns a unit lower triangular matrix 
+	 * and an upper triangular matrix, while the Crout method returns a lower triangular matrix and a unit upper triangular matrix.
+	 * So, if a matrix decomposition of a matrix A is such that: A = LDU being L a unit lower triangular matrix, D a diagonal matrix 
+	 * and U a unit upper triangular matrix, then Doolittle's method produces A = L(DU) and Crout's method produces A = (LD)U.
+	 * source wikipedia https://en.wikipedia.org/wiki/Crout_matrix_decomposition
+	 */
+	private void DOOLITTLEfactorize_() {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+
+		if (this.determinant().equalsred(Complex.ZERO)) return;
+		
+		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
+		cL = new MatrixComplex(rowLen, colLen); cL.initMatrixDiag(1,0);
+		cU = new MatrixComplex(rowLen, colLen);
+		
+		// -----------
+		// U Matrix
+		// -----------
+		// row 0
+		{
+			int row = 0;
+			for (int col = 0; col < rowLen; ++col ) {
+				cU.setItem(row, col, this.getItem(row, col));
+			}
+		}
+		
+		// -----------
+		// L Matrix
+		// -----------
+		// col 0
+		{
+			int col = 0;
+			for (int row = 1; row < rowLen; ++row ) {
+				cL.setItem(row, col, this.getItem(row, col).divides(cU.getItem(col, col)));
+			}
+		}
+
+		for(int idx = 1; idx < rowLen; ++idx) {
+			DOOLITTLE_U(idx);
+			if (!DOOLITTLE_L(idx)) return;
+		}
+		factorized = true;
+	}
+
+	/**
+	 * The Doolittle factorization is as doing a Crout's one but returning the U and L arrays transposed
+	 */
+	private void DOOLITTLEfactorize() {
+		LUfactor newLU = new LUfactor(this.transpose(), LUmethod.CROUT);
+		this.factorized = newLU.factorized;
+		if (factorized) {
+			this.cU = newLU.cL.transpose();
+			this.cL = newLU.cU.transpose();
+			this.cP = newLU.P();
+		}
+	}
+	
+	/**
+	 * Calculates the Cholesky array values for the decomposition
+	 * @return The L array
+	 */
+	private MatrixComplex CHOLESKYcoef() {
+		MatrixComplex coefMatrix = new MatrixComplex(this.rows());
+		Complex coef = new Complex();
+
+		for (int col = 0; col < this.cols(); ++col) {
+			for (int row = col; row < this.rows(); ++row) {
+				coef = Complex.ZERO;
+				if (row == col) {
+					for (int id = 0; id < col; ++id) {
+						coef = coef.plus(coefMatrix.getItem(col, id).power(2));
+					}
+					coef = Complex.root(this.getItem(row, col).minus(coef),2);
+					coefMatrix.setItem(row, col, coef);
+				}
+				else {
+					for (int id = 0; id < col; ++id) {
+						coef = coef.plus(coefMatrix.getItem(col, id).times(coefMatrix.getItem(row,id)));						
+					}
+					coef = (this.getItem(col, row).minus(coef)).divides(coefMatrix.getItem(col, col));
+					coefMatrix.setItem(row, col, coef);
+				}
+			}
+		}
+		return coefMatrix;
+	}
+	
+	/**
+	 * In linear algebra, the Cholesky decomposition or Cholesky factorization (pronounced /ʃəˈlɛski/ shə-LES-kee) is a decomposition of a Hermitian, 
+	 * positive-definite matrix into the product of a lower triangular matrix and its conjugate transpose, which is useful for efficient numerical 
+	 * solutions, e.g., Monte Carlo simulations. It was discovered by André-Louis Cholesky for real matrices. When it is applicable, the Cholesky decomposition 
+	 * is roughly twice as efficient as the LU decomposition for solving systems of linear equations.
+	 */
+	private void CHOLESKIfactorice() {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		
+		if (this.determinant().equalsred(Complex.ZERO)) return;
+		
+		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
+		cL = new MatrixComplex(rowLen, colLen);
+		cU = new MatrixComplex(rowLen, colLen);
+
+		cL = CHOLESKYcoef();
+		cU = cL.transpose();
+		if (cL.isNaN() || cL.isInfinite() || cU.isNaN() || cU.isInfinite()) factorized = false;
+		else factorized = true;
 	}
 
 	/*
@@ -163,6 +449,14 @@ public class LUfactor extends MatrixComplex {
 	 * ***********************************************
 	 */
 
+	/**
+	 * Returns the id of the factorization method used to decompose the array
+	 * @return The id of the factorization method
+	 */
+	public LUmethod getMethod() {
+		return this.method;
+	}
+	
 	/**
 	 * Gets the class member variable with the Lower array.
 	 * @return The Lower array of the LU decomposition.
@@ -202,6 +496,20 @@ public class LUfactor extends MatrixComplex {
 	 */
 
 	/**
+	 * Returns the name of the factorization method used to decompose the array
+	 * @return The name of the factorization method
+	 */
+	public String getMethodName() {
+		switch (this.method) {
+			case PIVOT: return "PIVOT";
+			case CROUT: return "CROUT";
+			case DOOLITTLE: return "DOOLITTLE";
+			case CHOLESKY: return "CHOLESKY";
+			default: return "NONE";
+		}
+	}
+
+	/**
 	 * Returns the expression for LU Factorization for Maxima. expand is available. 
 	 * @param expand True if you want to expand the expressions
 	 * @return The LU Factorization expression
@@ -218,6 +526,7 @@ public class LUfactor extends MatrixComplex {
 		String toMaxima;
 		toMaxima = "get_lu_factors(lu_factor(" +this.toMaxima()+", complexfield))";
 		toMaxima = expand ? "expand("+toMaxima+");" : ";";
+		toMaxima = "[P,L,U]:" + toMaxima;
 		return toMaxima;
 	}
 	

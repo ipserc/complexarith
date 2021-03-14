@@ -1021,7 +1021,9 @@ public class Complex {
 	}
 
 	/**
-	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS. 
+	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS.
+	 * Corrects the VERY VERY BAD fact of having two ways to represent decimals and thousands in English/Latin way using commas for points or viceversa
+	 * I would like to promote a worldwide amendment to adopt the English way for number representation and by the way the use of YYYY/MM/DD for dates as default 
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringPol() {
@@ -1169,6 +1171,78 @@ public class Complex {
 	 * BOOLEAN OPERATIONS
 	 * ***********************************************
 	 */
+
+	/**
+	 * Cheks if the Complex is infinitely large in magnitude.
+	 * @return true if this Complex value is infinitely large in magnitude, false otherwise
+	 */
+	public boolean isInfinite() {
+		Double mod = this.mod();
+		return mod.isInfinite();
+	}
+	
+	/**
+	 * Checks if the Complex is a Not-a-Number (NaN).
+	 * @return true if this Complex value is a Not-a-Number (NaN), false otherwise.
+	 */
+	public boolean isNaN() {
+		Double mod = this.mod();
+		return mod.isNaN();
+	}
+	
+	/**
+	 * Checks if the Complex is zero.
+	 * @return true if this Complex value is zero, false otherwise.
+	 */
+	public boolean isZero() {
+		if (this.mod() <= ZERO_THRESHOLD) return true;
+		else return false;
+	}
+	
+	/**
+	 * Checks if the Complex is reduced zero.
+	 * @return true if this Complex value is reduced zero, false otherwise.
+	 */
+	public boolean isZeroRed() {
+		if (this.mod() <= ZERO_THRESHOLD_R) return true;
+		else return false;
+	}
+	
+	/**
+	 * Checks if the imaginary part is zero.
+	 * @return true if imaginary part is zero, false otherwise.
+	 */
+	public boolean imPartNull() {
+		if (Math.abs(imp/rep) <= ZERO_THRESHOLD) return true;
+		else return false;
+	}
+
+	/**
+	 * Checks if the imaginary part is reduced zero.
+	 * @return true if imaginary part is reduced zero, false otherwise.
+	 */
+	public boolean imPartNullRed() {
+		if (Math.abs(imp/rep) <= ZERO_THRESHOLD_R) return true;
+		else return false;
+	}
+
+	/**
+	 * Checks if the real part is zero.
+	 * @return true if real part is zero, false otherwise.
+	 */
+	public boolean rePartNull() {
+		if (Math.abs(rep/imp) <= ZERO_THRESHOLD) return true;
+		else return false;
+	}
+
+	/**
+	 * Checks if the real part is reduced zero.
+	 * @return true if real part is reduced zero, false otherwise.
+	 */
+	public boolean rePartNullRed() {
+		if (Math.abs(rep/imp) <= ZERO_THRESHOLD_R) return true;
+		else return false;
+	}
 
 	/**
 	 * Compares the Complex Object with another using the equal operator.
@@ -2035,8 +2109,9 @@ public class Complex {
 	 * @return True is is an indetermination, False if not
 	 */
 	static private boolean isIndetermination(Complex limit) {
-		if (Double.isNaN(limit.mod)) return true;
-		if (Double.isNaN(limit.rep) || Double.isNaN(limit.imp)) return true;
+		//if (Double.isNaN(limit.mod)) return true;
+		if (limit.isNaN()) return true;
+		//if (Double.isNaN(limit.rep) || Double.isNaN(limit.imp)) return true;
 		return false;
 	}
 	
@@ -2093,7 +2168,9 @@ public class Complex {
 			//	System.out.println("limr   = " + limr.toStringPol());
 			//	System.out.println("liml   = " + liml.toStringPol());
 			
-			if (Double.isInfinite(limr.mod) && Double.isInfinite(liml.mod)) return limr;
+			//if (Double.isInfinite(limr.mod) && Double.isInfinite(liml.mod)) return limr;
+			if (limr.isInfinite() && liml.isInfinite()) return limr;
+			if (limr.isNaN() && liml.isNaN()) return limr;
 			if (limequ(limr,liml)) {
 				if (lastLimit != null) {
 					if (lastLimit.mod == limr.mod) return limr;
@@ -2142,7 +2219,7 @@ public class Complex {
 		// 2nd Try to find the convergence value
 		point = new Complex(sign*Complex.LIM_INF, 0);
 		result = func.apply(point);
-		if (Double.isInfinite(result.mod())) {
+		if (result.isInfinite()) {
 			result.pha = func.apply(new Complex(sign*Complex.LIM_INF/1e8, 0)).pha;
 			//	System.out.println(" + + + Infinito detectado pha = " + result.pha);
 			return result;

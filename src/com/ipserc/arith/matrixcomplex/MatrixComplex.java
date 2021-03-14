@@ -1188,6 +1188,20 @@ public class MatrixComplex {
 	 * ***********************************************
 	 */
 
+	public boolean isInfinite() {
+		for (int row = 0; row < this.rows(); ++row)
+			for (int col = 0; col < this.cols(); ++col)
+				if (this.getItem(row, col).isInfinite()) return true;
+		return false;
+	}
+	
+	public boolean isNaN() {
+		for (int row = 0; row < this.rows(); ++row)
+			for (int col = 0; col < this.cols(); ++col)
+				if (this.getItem(row, col).isNaN()) return true;
+		return false;
+	}
+
 	/**
 	 * Checks if the matrix is null.
 	 * @return true if the matrix is null, otherwise false.
