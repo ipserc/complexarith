@@ -13,6 +13,7 @@ public class TestLU {
 		System.out.println(Complex.boxTitle(boxSize, "LOWER UPPER DIAGONALIZATION (LU) TEST"));
     	
 		System.out.println(Complex.boxText(boxSize, "LU Results"));
+		System.out.println("Diagonalization Method LU." + luMatrix.getMethodName());
 		luMatrix.println("luMatrix");
     	System.out.println("MAXIMA :"+luMatrix.toMaxima_lu_factor(true));
     	System.out.println("OCTAVE :"+luMatrix.toOctave_lu());
@@ -29,14 +30,15 @@ public class TestLU {
     	((luMatrix.U().transpose().times(luMatrix.L().transpose())).times(luMatrix.P())).transpose().println("(UT · LT · P)T");;
     	luMatrix.P().transpose().times(luMatrix.L().times(luMatrix.U())).println("PT · L · U");
     	System.out.println("Determinant(A)=" + luMatrix.determinant());
-		det = luMatrix.U().determinant();
-    	System.out.println("Determinant(U)=" + det);
-    	System.out.println("|Determinant(U)|=" + det.mod());        	
-    	luMatrix.triangle().println("luMatrix Triangle");
+		det = luMatrix.U().determinant().times(luMatrix.L().determinant());
+    	System.out.println("Determinant(U*L)=" + det);
+    	System.out.println("|Determinant(U*L)|=" + det.mod());        	
+    	luMatrix.U().triangleLo().println("Triangle(U)");
     	luMatrix.U().inverse().println("Invert(U)");		
 	}
 
 	public static void main(String[] args) {
+		int boxSize = 65;
 		MatrixComplex aMatrix;
     	LUfactor luMatrix;
  
@@ -45,16 +47,111 @@ public class TestLU {
     	Complex.setFormatON();
     	Complex.setFixedON(3);
 
-    	luMatrix = new LUfactor("1,3,-1; 3,9,2; 2,1,-1");
+
+    	luMatrix = new LUfactor(  
+    			" 1, 2, 3;" +
+				" 6, 5, 4;" +
+				" 9, 7, 8", 
+				LUfactor.LUmethod.CHOLESKY);
     	showResults(luMatrix);
 
-    	luMatrix = new LUfactor("3,3,-1; 1,9,2; 2,1,-1");
+    	/**/
+    	luMatrix = new LUfactor(  
+    			" 3,-1, 4,-1;" +
+    			"-1,-1, 3, 1;" +
+    			" 2, 3,-1,-1;" +
+    			" 7, 1, 1, 2", 
+    			LUfactor.LUmethod.CHOLESKY);
     	showResults(luMatrix);
 
-    	luMatrix = new LUfactor("3,3,-1,5; 1,9,2,-4; 2,1,-1,3; 2,-2,0,1");
+    	luMatrix = new LUfactor(  
+    			"   1,   2,   4,   7;" +
+				"   2,  13,  23,  38;" +
+				"   4,  23,  77, 122;" +
+				"   7,  38, 122, 294", 
+				LUfactor.LUmethod.CHOLESKY);
     	showResults(luMatrix);
 
-    	luMatrix = new LUfactor("0,2,1,2; 1,0,1,3; 3,1,-4,2; -4,0,1,1");
+    	luMatrix = new LUfactor(  
+    			"   1,   2,   4,   7;" +
+				"   2,  13,  23,  38;" +
+				"   4,  23,  77, 122;" +
+				"   7,  38, 122, 294",
+				LUfactor.LUmethod.PIVOT);
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(  
+    			" 1, 3,-1;" +
+				" 3, 9, 2;" +
+				" 2, 1,-1", 
+				LUfactor.LUmethod.CHOLESKY);
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(  
+    			" 1, 3,-1;" +
+    			" 3, 9, 2;" +
+    			" 2, 1,-1", 
+    			LUfactor.LUmethod.CROUT);
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(  
+    			" 1, 3,-1;" +
+				" 3, 9, 2;" +
+				" 2, 1,-1", 
+				LUfactor.LUmethod.PIVOT);
+    	showResults(luMatrix);
+    	/**/
+
+    	/**/
+    	luMatrix = new LUfactor(
+    			" 3, 3,-1;" +
+    			" 1, 9, 2;" +
+    			" 2, 1,-1", 
+    			LUfactor.LUmethod.CROUT);
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(
+    			" 3, 3,-1;" +
+    			" 1, 9, 2;" +
+    			" 2, 1,-1", 
+    			LUfactor.LUmethod.DOOLITTLE);
+    	showResults(luMatrix);
+    	
+    	luMatrix = new LUfactor(
+    			" 3, 3,-1;" +
+    			" 1, 9, 2;" +
+    			" 2, 1,-1", 
+    			LUfactor.LUmethod.CHOLESKY);
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(
+    			" 3, 3,-1;" +
+    			" 1, 9, 2;" +
+    			" 2, 1,-1", 
+    			LUfactor.LUmethod.PIVOT);
+    	showResults(luMatrix);
+
+    	System.out.println(Complex.boxTitle3(boxSize, "FREE METHOD LOWER UPPER DIAGONALIZATION (LU)"));
+    	
+    	luMatrix = new LUfactor(
+    			" 3, 3,-1, 5;" +
+    			" 1, 9, 2,-4;" +
+    			" 2, 1,-1, 3;" +
+    			" 2,-2, 0, 1");
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(
+    			" 0, 2, 1, 2;" +
+    			" 1, 0, 1, 3;" +
+    			" 3, 1,-4, 2;" +
+    			"-4, 0, 1, 1");
+    	showResults(luMatrix);
+
+    	luMatrix = new LUfactor(
+    			" 0, 2, 1, 2;" +
+    			" 1, 0, 1, 3;" +
+    			" 3, 1,-4, 2;" +
+    			"-4, 0, 1, 1");
     	showResults(luMatrix);
 
     	luMatrix = new LUfactor(" 0, -i, 0, -1-2i; i, -2-2i, -1-2i, 1+i; -2+i,-2, 0, -i; i, -2-2i, i, -2+i");
@@ -75,8 +172,6 @@ public class TestLU {
     	luMatrix = new LUfactor("0.0,1.0 - 2.0i,1.0 + 1.0i,-2.0;-2.0 - 2.0i,1.0 - 2.0i,-1.0 - 1.0i,-2.0 - 1.0i;-i,1.0 - 1.0i,-1.0 - 2.0i,-2.0 - 1.0i;1.0,-1.0,-2.0 + 1.0i,-i");
     	showResults(luMatrix);
 
-		int boxSize = 65;
-
 		System.out.println(Complex.boxTitle(boxSize, "HERMITIAN MATRIX"));
      	aMatrix = new MatrixComplex(4); 
      	aMatrix.initMatrixRandomRecInt(7);
@@ -89,8 +184,9 @@ public class TestLU {
      	luMatrix = new LUfactor(aMatrix.skewHermitian()); 
     	showResults(luMatrix);
 
-    	luMatrix = new LUfactor("1,3,-1; 3,9,2; 2,1,-1");
+    	luMatrix = new LUfactor("1,3,-1; 3,9,-2; 2,1,-1");
     	showResults(luMatrix);
+    	/**/
 	}
 
 }
