@@ -40,7 +40,7 @@ public class LUfactor extends MatrixComplex {
 	private LUmethod method = LUmethod.NONE;
 
 	private final static String HEADINFO = "LUfactor --- INFO: ";
-	private final static String VERSION = "1.2 (2021_0311_2300)";
+	private final static String VERSION = "1.3 (2021_0319_1200)";
 	
 	/*
 	 * ***********************************************
@@ -87,6 +87,11 @@ public class LUfactor extends MatrixComplex {
 		factorice();
 	}
 
+	/**
+	 * Instantiates a complex array from a string, rows are separated with ";", cols are separated with "," and factorizes it.
+	 * @param strMatrix the string with the rows and columns.
+	 * @param method The method used to do the factorization
+	 */
 	public LUfactor(String strMatrix, final LUmethod method) {
 		super(strMatrix);
 		factorice(method);
@@ -102,6 +107,11 @@ public class LUfactor extends MatrixComplex {
 		factorice();
 	}
 
+	/**
+	 * Instantiates a LUfactor array from a MatrixComplex and factorizes it.
+	 * @param matrix the MatrixComplex already instantiated.
+	 * @param method The method used to do the factorization
+	 */
 	public LUfactor(MatrixComplex matrix, final LUmethod method) {
 		super();
 		this.complexMatrix = matrix.complexMatrix.clone();
@@ -153,7 +163,7 @@ public class LUfactor extends MatrixComplex {
 		CROUTfactorize();		if (factorized){ this.method = LUmethod.CROUT; return; }
 		//DOOLITTLE is the same as CROUT but returning L and U both transposed
 		//DOOLITTLEfactorize();	if (factorized){ this.method = LUmethod.DOOLITTLE; return; }
-		CHOLESKIfactorice();	if (factorized){ this.method = LUmethod.CHOLESKY; return; }
+		//CHOLESKIfactorice();	if (factorized){ this.method = LUmethod.CHOLESKY; return; }
 		PIVOTfactorice();		if (factorized){ this.method = LUmethod.PIVOT; return; }
 	}
 
@@ -399,27 +409,45 @@ public class LUfactor extends MatrixComplex {
 		MatrixComplex coefMatrix = new MatrixComplex(this.rows());
 		Complex coef = new Complex();
 
-		for (int col = 0; col < this.cols(); ++col) {
-			for (int row = col; row < this.rows(); ++row) {
+		//Step 1
+		coefMatrix.setItem(0,0,Complex.sqrroot(this.getItem(0,0)));
+		
+		//Step 2
+		for (int row = 1; row < this.rows(); ++row) {
+			coefMatrix.setItem(row,0,this.getItem(row,0).divides(coefMatrix.getItem(0,0)));
+		}
+		
+		//Step 3
+		for (int col = 1; col < this.cols()-1; ++col) {
+		
+			//Step 4
+			coef = Complex.ZERO;
+			for (int k = 0; k < col; ++k) {
+				coef = coef.plus(coefMatrix.getItem(col,k).power(2));
+			}
+			coefMatrix.setItem(col,col,Complex.sqrroot(this.getItem(col,col).minus(coef)));
+			
+			//Step 5
+			for (int row = col+1; row < this.rows(); ++row) {
 				coef = Complex.ZERO;
-				if (row == col) {
-					for (int id = 0; id < col; ++id) {
-						coef = coef.plus(coefMatrix.getItem(col, id).power(2));
-					}
-					coef = Complex.root(this.getItem(row, col).minus(coef),2);
-					coefMatrix.setItem(row, col, coef);
+				for (int k = 0; k < col; ++k) {
+					coef = coef.plus(coefMatrix.getItem(row,k).times(coefMatrix.getItem(col,k)));						
 				}
-				else {
-					for (int id = 0; id < col; ++id) {
-						coef = coef.plus(coefMatrix.getItem(col, id).times(coefMatrix.getItem(row,id)));						
-					}
-					coef = (this.getItem(col, row).minus(coef)).divides(coefMatrix.getItem(col, col));
-					coefMatrix.setItem(row, col, coef);
-				}
+				coefMatrix.setItem(row,col,(this.getItem(row,col).minus(coef)).divides(coefMatrix.getItem(col,col)));
 			}
 		}
+		
+		//Step 6
+		int n = this.rows()-1;
+		coef = Complex.ZERO;
+		for (int k = 0; k < n-1; ++k) {
+			coef = coef.plus(coefMatrix.getItem(n,k).power(2));						
+		}
+		coefMatrix.setItem(n,n,Complex.sqrroot(this.getItem(n,n).minus(coef)));
+		
 		return coefMatrix;
 	}
+
 	
 	/**
 	 * In linear algebra, the Cholesky decomposition or Cholesky factorization (pronounced /ʃəˈlɛski/ shə-LES-kee) is a decomposition of a Hermitian, 

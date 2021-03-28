@@ -42,6 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.text.Normalizer;
 import java.text.NumberFormat;
+import java.util.Random;
 
 /**
  * Complex class to work with complex numbers
@@ -55,7 +56,7 @@ public class Complex {
 	 * ***********************************************
 	 */
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.1 (2021_0208_0000)";
+	private final static String VERSION = "1.3 (2021_0327_2330)";
 
 	public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
 	public final static double TWO_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
@@ -96,6 +97,8 @@ public class Complex {
 	private double pha;	// the phase
 	private double cre; // sgn*modulus sgn=any func. Used to compare Complex
 	
+	private static Random randomNbr = new Random(System.currentTimeMillis());
+
 	/*
 	 * ***********************************************
 	 * VERSION
@@ -703,192 +706,6 @@ public class Complex {
 	private static String chr(int charCode) {
 		return Character.toString((char) charCode);
 	}
-	
-	/**
-	 * Substitute of String.repeat(int n). This method is not available for Java 1.8 on Windows
-	 * @param str The String to repeat
-	 * @param n The number of times to repeat the string
-	 * @return The final String
-	 */
-	public static String repeat(String str, int n) {
-		String result ="" ;
-		for(int i = 0; i < n; ++i) result += str;
-		return result;
-	}
-	
-	/**
-	 * Returns a Title inside of a single line box
-	 * @param size The minimum size of the box
-	 * @param title The text to put inside the box
-	 * @return The String representation of the box title
-	 */
-	public static String boxTitle(int size, String title) {
-		String theTitleTop;
-		String theTitleText;
-		String theTitleMid;
-		String theTitleBot;
-		
-		int titleSize = title.length() < size ? size : title.length()+4;
-		theTitleTop = repeat("_", titleSize);
-		theTitleText = "|"+repeat(" ", (titleSize-title.length())/2-2)+" "+title;
-		theTitleText += " "+repeat(" ", titleSize-theTitleText.length()-2)+"|";
-		theTitleMid = "|"+repeat(" ", titleSize-2)+"|";
-		theTitleBot = "|"+repeat("_", titleSize-2)+"|";
-		return theTitleTop+System.lineSeparator()
-			+theTitleMid+System.lineSeparator()
-			+theTitleText+System.lineSeparator()
-			//+theTitleMid+System.lineSeparator()
-			+theTitleBot;	
-	}
-	
-	/**
-	 * Returns a text inside of a equal-pipe box
-	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
-	 */
-	public static String boxTitle2(int size, String text) {
-		String theBoxTopBot;
-		String theBoxText;
-		String theBoxMid;
-		int boxSize = text.length() < size ? size : text.length()+4;
-		
-		theBoxTopBot = repeat("=", boxSize);
-		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
-		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
-		theBoxMid = "|"+repeat(" ", boxSize-2)+"|";
-
-		return theBoxTopBot+System.lineSeparator()+
-				theBoxMid+System.lineSeparator()+
-				theBoxText+System.lineSeparator()+
-				theBoxMid+System.lineSeparator()+
-				theBoxTopBot;
-	}
-
-	/**
-	 * Returns a text inside of a equal-pipe box
-	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
-	 */
-	public static String boxTitle3(int size, String text) {
-		String theBoxTop;
-		String theBoxBot;
-		String theBoxText;
-		String theBoxMid;
-		int boxSize = text.length() < size ? size : text.length()+4;
-		
-		theBoxTop = " "+repeat("_", boxSize-2)+" ";
-		theBoxMid = "/"+repeat(" ", boxSize-2)+"\\";
-		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
-		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
-		theBoxBot = "\\"+repeat("_", boxSize-2)+"/";
-
-		return theBoxTop+System.lineSeparator()+
-				theBoxMid+System.lineSeparator()+
-				theBoxText+System.lineSeparator()+
-				theBoxBot;
-	}
-
-	/**
-	 * Returns a text inside of a plus-pipe box
-	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
-	 */
-	public static String boxText(int size, String text) {
-		String theBoxTopBot;
-		String theBoxText;
-		int boxSize = text.length() < size ? size : text.length()+4;
-		
-		theBoxTopBot = repeat("+", boxSize);
-		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
-		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
-		
-		return theBoxTopBot+System.lineSeparator()+
-				theBoxText+System.lineSeparator()+
-				theBoxTopBot;
-	}
-
-	/**
-	 * Returns a text inside of a plus-minux-pipe box
-	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
-	 */
-	public static String boxText2(int size, String text) {
-		String theBoxTopBot;
-		String theBoxText;
-		int boxSize = text.length() < size ? size : text.length()+4;
-		
-		theBoxTopBot = "+" + repeat("-", boxSize-2)+"+";
-		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
-		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
-		
-		return theBoxTopBot+System.lineSeparator()+
-				theBoxText+System.lineSeparator()+
-				theBoxTopBot;
-	}
-
-	/**
-	 * Returns a text inside of a X-*-pipe box
-	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
-	 */
-	public static String boxText3(int size, String text) {
-		String theBoxTopBot;
-		String theBoxText;
-		int boxSize = text.length() < size ? size : text.length()+4;
-		
-		theBoxTopBot = "O" + repeat("*", boxSize-2)+"O";
-		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
-		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
-		
-		return theBoxTopBot+System.lineSeparator()+
-				theBoxText+System.lineSeparator()+
-				theBoxTopBot;
-	}
-
-	/**
-	 * Returns a text inside of a hash-equal-pipe box
-	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
-	 */
-	public static String boxText4(int size, String text) {
-		String theBoxTopBot;
-		String theBoxText;
-		int boxSize = text.length() < size ? size : text.length()+4;
-		
-		theBoxTopBot = "#" + repeat("=", boxSize-2)+"#";
-		theBoxText = "|"+repeat(" ", (boxSize-text.length()-2)/2)+text;
-		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+"|";
-		
-		return theBoxTopBot+System.lineSeparator()+
-				theBoxText+System.lineSeparator()+
-				theBoxTopBot;
-	}
-
-	/**
-	 * Returns a text inside of a colon (:) box
-	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
-	 */
-	public static String boxText5(int size, String text) {
-		String theBoxTopBot;
-		String theBoxText;
-		int boxSize = text.length() < size ? size : text.length()+6;
-		
-		theBoxTopBot = ":" + repeat(":", boxSize-2)+":";
-		theBoxText = "::"+repeat(" ", (boxSize-text.length()-2)/2)+text;
-		theBoxText += repeat(" ", boxSize-2-theBoxText.length())+"::";
-		
-		return theBoxTopBot+System.lineSeparator()+
-				theBoxText+System.lineSeparator()+
-				theBoxTopBot;
-	}
 
 	/**
 	 * Formats the number according with a ZERO_THRESHOLD and SIGNIFICATIVE decimals. 
@@ -1106,6 +923,276 @@ public class Complex {
 		System.out.print(str);
 		System.out.println(this.toString());
 	}
+	
+	/*
+	 * ***********************************************
+	 * DECORATION
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Substitute of String.repeat(int n). This method is not available for Java 1.8 on Windows
+	 * @param str The String to repeat
+	 * @param n The number of times to repeat the string
+	 * @return The final String
+	 */
+	public static String repeat(String str, int n) {
+		String result ="" ;
+		for(int i = 0; i < n; ++i) result += str;
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param size
+	 * @param title
+	 * @return
+	 */
+	public static String boxTitleRandom(int size, String title) {
+		Random rndBoxNbr = new Random(System.currentTimeMillis());
+		switch (rndBoxNbr.nextInt(6)+1) {		 
+			case 1: return boxTitle1(size, title);
+			case 2: return boxTitle2(size, title);
+			case 3: return boxTitle3(size, title);
+			case 4: return boxTitle4(size, title);
+			case 5: return boxTitle5(size, title);
+			case 6: return boxTitle6(size, title);
+		}
+		return boxTitle1(size, title);
+	}
+
+	/**
+	 * 
+	 * @param size
+	 * @param title
+	 * @param csi
+	 * @param top
+	 * @param csd
+	 * @param msi
+	 * @param msd
+	 * @param mdi
+	 * @param mdd
+	 * @param cii
+	 * @param bot
+	 * @param cid
+	 * @param nmid
+	 * @return
+	 */
+	public static String  makeBoxTitle(int size, String title, String csi, String top, String csd, String msi, String msd, String mdi, String mdd, String cii, String bot, String cid, Boolean nmid) {
+		String boxTitle = "";
+		String theTitleTop;
+		String theTitleText;
+		String theTitleMid;
+		String theTitleBot;
+		
+		int titleSize = title.length() < size ? size : title.length()+4;
+		theTitleTop = csi+repeat(top, titleSize-2)+csd;
+		theTitleMid = msi+repeat(" ", titleSize-2)+msd;
+		theTitleText = mdi+repeat(" ", ((titleSize-title.length())/2)-2)+" "+title;
+		theTitleText += " "+repeat(" ", titleSize-theTitleText.length()-2)+mdd;
+		theTitleBot = cii+repeat(bot, titleSize-2)+cid;
+		
+		boxTitle = theTitleTop+System.lineSeparator()
+			+theTitleMid+System.lineSeparator()
+			+theTitleText+System.lineSeparator();
+		if (nmid) boxTitle += theTitleMid+System.lineSeparator();
+		boxTitle += theTitleBot;
+		return boxTitle;
+	}
+		
+	/**
+	 * Returns a Title inside of a single line box
+	 * @param size The minimum size of the box
+	 * @param title The text to put inside the box
+	 * @return The String representation of the box title
+	 */
+	public static String boxTitle1(int size, String title) {
+		return makeBoxTitle(size, title,
+							"_", "_", "_",
+							"|", "|",
+							"|", "|",
+							"|", "_", "|", false);
+	}
+	
+	/**
+	 * Returns a text inside of a equal-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxTitle2(int size, String title) {
+		return makeBoxTitle(size, title,
+							" ", "_", " ",
+							"/", "\\",
+							"|", "|",
+							"\\", "_", "/" , false);
+	}
+
+	/**
+	 * Returns a text inside of a equal-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxTitle3(int size, String title) {
+		return makeBoxTitle(size, title,
+							"_", "_", "_",
+							"\\", "/",
+							"<", ">",
+							"/", "_", "\\", false);
+	}
+
+	/**
+	 * Returns a text inside of a equal-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxTitle4(int size, String title) {
+		return makeBoxTitle(size, title,
+							"+", "-", "+",
+							"|", "|",
+							"|", "|",
+							"+", "-", "+", true);
+	}
+
+	/**
+	 * Returns a text inside of a equal-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxTitle5(int size, String title) {
+		return makeBoxTitle(size, title,
+							"#", "=", "#",
+							"I", "I",
+							"I", "I",
+							"#", "=", "#", true);
+	}
+
+	/**
+	 * Returns a text inside of a equal-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxTitle6(int size, String title) {
+		return makeBoxTitle(size, title,
+							"_", "_", "_",
+							"\\", "/",
+							"[", "]",
+							"/", "_", "\\", false);
+	}
+
+	/**
+	 * 
+	 * @param size
+	 * @param title
+	 * @return
+	 */
+	public static String boxTextRandom(int size, String title) {
+		switch (randomNbr.nextInt(6)+1) {		 
+			case 1: return boxText1(size, title);
+			case 2: return boxText2(size, title);
+			case 3: return boxText3(size, title);
+			case 4: return boxText4(size, title);
+			case 5: return boxText5(size, title);
+			case 6: return boxText6(size, title);
+		}
+		return boxTitle1(size, title);
+	}
+
+	/**
+	 * Returns a text inside of a plus-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String makeBoxText(int size, String text, String csi, String top, String csd, String mdi, String mdd) {
+		String theBoxTopBot;
+		String theBoxText;
+		int boxSize = text.length() < size ? size : text.length()+4;
+		
+		theBoxTopBot = csi+repeat(top, boxSize-2)+csd;
+		theBoxText = mdi+repeat(" ", (boxSize-text.length()-2)/2)+text;
+		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+mdd;
+		
+		return theBoxTopBot+System.lineSeparator()+
+				theBoxText+System.lineSeparator()+
+				theBoxTopBot;
+	}
+
+	/**
+	 * Returns a text inside of a plus-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText1(int size, String text) {
+		return makeBoxText(size, text, 
+							"+", "+", "+", 
+							"|",      "|");
+	}
+
+	/**
+	 * Returns a text inside of a plus-minux-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText2(int size, String text) {
+		return makeBoxText(size, text, 
+				"+", "-", "+", 
+				"|",      "|");
+	}
+
+	/**
+	 * Returns a text inside of a X-*-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText3(int size, String text) {
+		return makeBoxText(size, text, 
+				"0", "*", "0", 
+				"|",      "|");
+	}
+
+	/**
+	 * Returns a text inside of a hash-equal-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText4(int size, String text) {
+		return makeBoxText(size, text, 
+				"#", "=", "#", 
+				"|",      "|");
+	}
+
+	/**
+	 * Returns a text inside of a colon (:) box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText5(int size, String text) {
+		return makeBoxText(size, text, 
+				":", ":", ":", 
+				":",      ":");
+	}
+	
+	/**
+	 * Returns a text inside of a colon (:) box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText6(int size, String text) {
+		return makeBoxText(size, text, 
+				" ", "-", " ", 
+				"(",      ")");
+	}
 
 	/*
 	 * ***********************************************
@@ -1280,6 +1367,26 @@ public class Complex {
 	 */
 	public boolean equalsred(double n1, double n2) {
 		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+	}
+
+	/**
+	 * Checks if a number is pure real
+	 * @return True if the number is pure real
+	 */
+	public Boolean isPureReal() {
+		if (rePartNullRed()) return false;
+		if (!imPartNullRed()) return false;
+		return true;
+	}
+
+	/**
+	 * Checks if a number is pure imaginary
+	 * @return True if the number is pure imaginary
+	 */
+	public Boolean isPureImaginary() {
+		if (imPartNullRed()) return false;
+		if (!rePartNullRed()) return false;
+		return true;
 	}
 
 	/*

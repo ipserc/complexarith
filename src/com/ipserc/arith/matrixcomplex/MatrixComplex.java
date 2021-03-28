@@ -16,7 +16,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.1 (2021_0207_2240)";
+	private final static String VERSION = "1.2 (2021_0319_1200)";
 
 	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangularization (Chio's rule)
 
@@ -1188,6 +1188,10 @@ public class MatrixComplex {
 	 * ***********************************************
 	 */
 
+	/**
+	 * Checks if at least one of the values of the array is infinite
+	 * @return True if one infinite value is found
+	 */
 	public boolean isInfinite() {
 		for (int row = 0; row < this.rows(); ++row)
 			for (int col = 0; col < this.cols(); ++col)
@@ -1195,6 +1199,10 @@ public class MatrixComplex {
 		return false;
 	}
 	
+	/**
+	 * Checks if at least one of the values of the array is NaN
+	 * @return True if one NaN value is found
+	 */
 	public boolean isNaN() {
 		for (int row = 0; row < this.rows(); ++row)
 			for (int col = 0; col < this.cols(); ++col)
@@ -1631,6 +1639,79 @@ public class MatrixComplex {
 		return cSum ; //returns determinant value. once stack is finished, returns final determinant.
 	}
 
+	/**
+	 * Checks if the matrix is symmetric or not
+	 * @return True if the matrix is symmetric
+	 */
+	public Boolean isSimmetryc() {
+		if (this.rows() != this.cols()) return false;
+		for (int row = 0; row < this.rows(); ++row)
+			for (int col = row; col < this.cols(); ++col)
+				if(!getItem(row, col).equals(getItem(col, row))) return false;
+		return true;
+	}
+	
+	/**
+	 * Checks if the matrix is antisymmetric or not
+	 * @return True if the matrix is antisymmetric
+	 */
+	public Boolean isAntiSimmetryc() {
+		if (this.rows() != this.cols()) return false;
+		for (int row = 0; row < this.rows(); ++row)
+			for (int col = row; col < this.cols(); ++col)
+				if(row == col) {
+					if (!getItem(row, col).equals(Complex.ZERO)) return false;
+				}
+				else if(!getItem(row, col).equals(getItem(col, row).opposite().conjugate())) return false;
+		return true;
+	}
+
+	/**
+	 * Checks if the matrix is skew-symmetric or not
+	 * @return True if the matrix is skew-symmetric
+	 */
+	public Boolean isSkewSymmetric() {
+		return isAntiSimmetryc();
+	}
+
+	/**
+	 * Checks if the matrix is hermitian or not
+	 * @return True if the matrix is hermitian
+	 */
+	public Boolean isHermitian() {
+		if (this.rows() != this.cols()) return false;
+		for (int row = 0; row < this.rows(); ++row)
+			for (int col = row; col < this.cols(); ++col)
+				if(row == col) {
+					if (!getItem(row, col).isPureReal()) return false;
+				}
+				else if(!getItem(row, col).equals(getItem(col, row).conjugate())) return false;
+		return true;
+	}
+	
+	/**
+	 * Checks if the matrix is antihermitian or not
+	 * @return True if the matrix is antihermitian
+	 */
+	public Boolean isAntiHermitian() {
+		if (this.rows() != this.cols()) return false;
+		for (int row = 0; row < this.rows(); ++row)
+			for (int col = row; col < this.cols(); ++col)
+				if(row == col) {
+					if (!getItem(row, col).isPureImaginary()) return false;
+				}
+				else if(!getItem(row, col).equals(getItem(col, row).opposite().conjugate())) return false;
+		return true;
+	}
+
+	/**
+	 * Checks if the matrix is skew-hermitian or not
+	 * @return True if the matrix is skew-hermitian
+	 */
+	public Boolean isSkewHermitian() {
+		return isAntiHermitian();
+	}
+	
 	/*
 	 * ***********************************************
 	 * EQUATION SYSTEMS
@@ -1684,7 +1765,7 @@ public class MatrixComplex {
 	public static final int DETERMINATE = 1;
 
 	/**
-	 * Identifies whether the system of equations is isHomogeneous.
+	 * Identifies if the system of equations is isHomogeneous.
 	 * @return Returns true if the system is isHomogeneous, false otherwise.
 	 */
 	public boolean isHomogeneous() {
@@ -1829,7 +1910,7 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Checks whether the all the items (except colIdx) of rowIdx of the Matrix are null or not
+	 * Checks if the all the items (except colIdx) of rowIdx of the Matrix are null or not
 	 * @param rowIdx The row to inspect
 	 * @param colIdx The col to skip
 	 * @return True if all are null
@@ -2468,7 +2549,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Checks whether the matrix is upper triangular.
+	 * Checks if the matrix is upper triangular.
 	 * @return true if the matrix is upper triangular, false otherwise.
 	 */
 	public boolean isTriangleUp() {
@@ -2688,7 +2769,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Indicates whether the array is square or nor
+	 * Indicates if the array is square or nor
 	 * @return true for square matrix, false otherwise
 	 */
 	public boolean isSquare() {
@@ -2948,7 +3029,7 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Private method. Identifies whether a row is or not used to construct the cofactor's matrix (included for convenience)
+	 * Private method. Identifies if a row is used to construct the cofactor's matrix (included for convenience)
 	 * @param listRows List with the rows to check.
 	 * @param item The item to look for.
 	 * @return true if found, otherwise false.
@@ -2962,7 +3043,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Private method. Identifies whether a row is or not used to construct the cofactor's matrix.
+	 * Private method. Identifies if a row is used to construct the cofactor's matrix.
 	 * @param listRows List with the rows to check.
 	 * @param item The item to look for.
 	 * @return true if NOT found, otherwise false.
