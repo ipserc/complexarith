@@ -8,7 +8,7 @@ public class TestTriangLo {
 	public static void showResults(MatrixComplex aMatrix) {
 		int boxSize = 65;
 
-		System.out.println(Complex.boxTitle(boxSize, "TRIANGULARIZATION LO TEST"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "TRIANGULARIZATION LO TEST"));
 		aMatrix.println("aMatrix Original");
 		aMatrix.triangleLo().println("aMatrix Triang Lo NEW");
 		aMatrix.println("aMatrix Verificar");

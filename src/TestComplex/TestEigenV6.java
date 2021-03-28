@@ -14,22 +14,22 @@ public class TestEigenV6 {
      	int boxSize = 65;
 
        	System.out.println("");
-       	System.out.println(Complex.boxTitle(boxSize, "EIGENVALUES & EIGENVECTORS TEST"));
+       	System.out.println(Complex.boxTitleRandom(boxSize, "EIGENVALUES & EIGENVECTORS TEST"));
     	aMatrix.println("aMatrix");
 
-    	System.out.println(Complex.boxText(boxSize, "EigenVectors Expressions"));
+    	System.out.println(Complex.boxTextRandom(boxSize, "EigenVectors Expressions"));
     	System.out.println("Maxima:"+eigenSpace.Maxima_eigenvalues(true));
     	System.out.println("Maxima:"+eigenSpace.Maxima_eigenvectors(true));
     	System.out.println("Maxima:"+eigenSpace.Maxima_charpoly(true));
     	System.out.println("Octave:"+eigenSpace.Octave_eigenvectors());
     	System.out.println("Wolfram:"+eigenSpace.Wolfram_eigenvectors());
 
-    	System.out.println(Complex.boxText(boxSize, "Determinant, Triangle & Characteristic polynomial"));
+    	System.out.println(Complex.boxTextRandom(boxSize, "Determinant, Triangle & Characteristic polynomial"));
     	aMatrix.determinant().println("Determinant:");
     	aMatrix.triangle().heap().println("triangle:");
     	eigenSpace.getCharactPoly().println("Characteristic polynom:");
 
-    	System.out.println(Complex.boxText(boxSize, "EigenValues Calculated"));
+    	System.out.println(Complex.boxTextRandom(boxSize, "EigenValues Calculated"));
     	{
 	    	Complex eVal = eigenSpace.values().getItem(0,0);
 			System.out.println("EigenValue: " + eVal.toString() + 
@@ -44,12 +44,12 @@ public class TestEigenV6 {
 	    	}
     	}
 
-    	System.out.println(Complex.boxText(boxSize, "Chacteristics Equations"));
+    	System.out.println(Complex.boxTextRandom(boxSize, "Chacteristics Equations"));
     	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
 
-    	eigenSpace.vectors().println(Complex.boxText(boxSize, "EigenVectors Calculated"));
+    	eigenSpace.vectors().println(Complex.boxTextRandom(boxSize, "EigenVectors Calculated"));
 
-    	System.out.println(Complex.boxText(boxSize, "Check eigenvectors"));
+    	System.out.println(Complex.boxTextRandom(boxSize, "Check eigenvectors"));
     	int colLen = aMatrix.cols(); //complexMatrix[0].length;
     	eigenVect = new MatrixComplex(1,colLen);
     	
@@ -63,7 +63,7 @@ public class TestEigenV6 {
 	    	eigenVect.times(eigenVal).println("eigval["+eigv+"]·eigenVect"+eigv);
     	}
 
-    	System.out.println(Complex.boxText(boxSize, "Some other calculations"));
+    	System.out.println(Complex.boxTextRandom(boxSize, "Some other calculations"));
     	eigenSpace.vectors().adjoint().times(eigenSpace.vectors()).println("eVT·eV:");
     	Diagfactor diagonal = new Diagfactor(aMatrix);
     	diagonal.diagonalize();

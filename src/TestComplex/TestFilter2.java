@@ -43,11 +43,11 @@ public class TestFilter2 {
 		Fourier signalFiltered;
 		int boxSize = 65;
 
-      	System.out.println(Complex.boxTitle(boxSize, "FOURIER TRANSF FILTER TEST"));
+      	System.out.println(Complex.boxTitleRandom(boxSize, "FOURIER TRANSF FILTER TEST"));
 		/*****************
 		 * SIGNAL SECTION
 		 *****************/
-		System.out.println(Complex.boxText(boxSize, "Signal Section"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Signal Section"));
 		double loLimit = -80;
 		double upLimit = 80;
 		int samplefreq = 12000;
@@ -63,7 +63,7 @@ public class TestFilter2 {
 		/***********************
 		 * FILTER SECTION
 		 ***********************/
-		System.out.println(Complex.boxText(boxSize, "Filter Section"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Filter Section"));
 		// FILTER DEFINITION
 		System.out.println("Creating filter...");
 		gain = 5;
@@ -90,7 +90,7 @@ public class TestFilter2 {
 		/***********************
 		 * FILTER SECTION
 		 ***********************/
-		System.out.println(Complex.boxText(boxSize, "Filter Section"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Filter Section"));
 		// FILTER DEFINITION
 		System.out.println("Creating filter...");
 		gain = 5;
@@ -115,7 +115,7 @@ public class TestFilter2 {
 		/***********************
 		 * FILTER SECTION
 		 ***********************/
-		System.out.println(Complex.boxText(boxSize, "Filter Section"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Filter Section"));
 		// FILTER DEFINITION
 		System.out.println("Creating filter...");
 		gain = 5;

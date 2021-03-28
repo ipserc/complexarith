@@ -6,7 +6,7 @@ import com.ipserc.arith.matrixcomplex.*;
 public class TestCharacPol {
 	
 	private static void ShowResults(MatrixComplex A) {
-		System.out.println(Complex.boxTitle(65, "POLYNOMIAL TEST"));
+		System.out.println(Complex.boxTitleRandom(65, "POLYNOMIAL TEST"));
 		System.out.println("MAXIMA:" + A.toMaxima());
 		System.out.println("OCTAVE :" + A.toOctave());
 		System.out.println("WOLFRAM:" + A.toWolfram());

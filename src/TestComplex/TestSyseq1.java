@@ -23,16 +23,16 @@ public class TestSyseq1 {
 		MatrixComplex solution;
 		int boxSize = 65;
 		
-		System.out.println(Complex.boxTitle(boxSize, "LINEAR EQUATIONS SYSTEM TEST"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "LINEAR EQUATIONS SYSTEM TEST"));
 		
-		fMatrix.print(Complex.boxText(boxSize,"Equation System"));
+		fMatrix.print(Complex.boxTextRandom(boxSize,"Equation System"));
 		
-     	System.out.println(Complex.boxText(boxSize, "System Solve Commands"));
+     	System.out.println(Complex.boxTextRandom(boxSize, "System Solve Commands"));
 		fMatrix.printSystemEqSolve(outputFormat.MAXIMA, true);
 		fMatrix.printSystemEqSolve(outputFormat.OCTAVE, true);
 		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true);
 
-		fMatrix.printSol(Complex.boxText(boxSize, "System Solutions"));
+		fMatrix.printSol(Complex.boxTextRandom(boxSize, "System Solutions"));
 		switch (fMatrix.typeEqSys()) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
@@ -40,7 +40,7 @@ public class TestSyseq1 {
 				break ;
 			} 
 			default: { // MatrixComplex.INDETERMINATE
-		     	System.out.println(Complex.boxText(boxSize, "Solutions check"));				
+		     	System.out.println(Complex.boxTextRandom(boxSize, "Solutions check"));				
 				for (int i = -5; i < 6; ++i) {
 					double n = i/10.0;
 					System.out.println(Complex.repeat("*", 20) + " Sol nbr:" + i); 

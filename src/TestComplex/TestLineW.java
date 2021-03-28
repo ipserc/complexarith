@@ -67,11 +67,11 @@ public class TestLineW {
 		String strPoint;
 		int boxSize = 65;
 
-		System.out.println(Complex.boxTitle(boxSize, "LINE TEST"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "LINE TEST"));
 				
 		Complex.setFormatON();
 
-		System.out.println(Complex.boxText(boxSize, "Line Intersection Test"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Line Intersection Test"));
 		aLine = aLine.pointVector("-1,4,-2,7", "3,-5,-2,3");
 		listLines.add(aLine);
 		aLine.println(toGNUPlot(aLine));
@@ -92,13 +92,13 @@ public class TestLineW {
 		/* */
 		intersect(listLines);
 		
-		System.out.println(Complex.boxText(boxSize, "Line Distance Test"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Line Distance Test"));
 		aLine = new MatrixComplex("2,1,-1,-1");
 		aLine.println("aLine:");
 		strPoint = "3,1,-2";
 		System.out.println("Distance to ("+ strPoint +"):" + aLine.distance(strPoint));
 		
-		System.out.println(Complex.boxText(boxSize, "Line Distance Test"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Line Distance Test"));
 		aLine = new MatrixComplex("0,2,0,3");
 		aLine.println("aLine:");
 		strPoint = "3,1,-2";

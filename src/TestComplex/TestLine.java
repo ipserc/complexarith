@@ -7,7 +7,7 @@ public class TestLine {
 	public static void showResults(Line line, Point point) {
 		int boxSize = 65;
 
-		System.out.println(Complex.boxText(boxSize, "Line point Test"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Line point Test"));
 		line.println("Line A:");
 		point.println("point P:");
 		System.out.printf("Distancia recta y punto:%f\n", line.distance(point));
@@ -23,7 +23,7 @@ public class TestLine {
 	public static void showResults(Line lineA, Line lineB) {
 		int boxSize = 65;
 
-		System.out.println(Complex.boxText(boxSize, "Two Line Test"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Two Line Test"));
 		lineA.println("line A:");
 		lineB.println("line B:");
 		System.out.printf("distance lineA lineB:%f\n", lineA.distance(lineB));	
@@ -38,7 +38,7 @@ public class TestLine {
 		int boxSize = 65;
 
 		lineAB = new Line(pointA, pointB);
-		System.out.println(Complex.boxText(boxSize, "Two Points Line Test"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Two Points Line Test"));
 		pointA.println("point A:");
 		pointB.println("point B:");
 		lineAB.println("line AB:");
@@ -56,7 +56,7 @@ public class TestLine {
 		Point pointB;
 		int boxSize = 65;
 
-		System.out.println(Complex.boxTitle(boxSize, "LINE & POINT CLASS TEST"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "LINE & POINT CLASS TEST"));
 		
 		lineA = new Line("3,-2", "1,1");
 		Point point = new Point("1,3");
@@ -98,7 +98,7 @@ public class TestLine {
 		lineB = new Line("-2,5,0,-6,0,0,0", "2,1,-2,0,-2,0,0");
 		showResults(lineA, lineB);
 
-		System.out.println(Complex.boxTitle(boxSize, "TWO POINT LINE TEST"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "TWO POINT LINE TEST"));
 
 		pointA = new Point("-5,+7");
 		pointB = new Point("-9,-4");

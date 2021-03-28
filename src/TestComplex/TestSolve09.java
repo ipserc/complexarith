@@ -12,7 +12,7 @@ public class TestSolve09 {
     	MatrixComplex pMatrix;
 		int boxSize = 65;
 		
-		System.out.println(Complex.boxTitle(boxSize, "LU FACTORIZATION"));   	
+		System.out.println(Complex.boxTitleRandom(boxSize, "LU FACTORIZATION"));   	
 		//cMatrix.LUfactorize();
     	cMatrix.println("Original Matrix");
     	lMatrix = cMatrix.L();
@@ -34,7 +34,7 @@ public class TestSolve09 {
     	V = A.getV();
     	U = A.getU();
 		
-		System.out.println(Complex.boxTitle(boxSize, "SVD FACTORIZATION"));   	
+		System.out.println(Complex.boxTitleRandom(boxSize, "SVD FACTORIZATION"));   	
     	A.println("A");
     	S.println("S");
     	U.println("U");
@@ -48,16 +48,16 @@ public class TestSolve09 {
 		MatrixComplex hMatrix;
 		int boxSize = 65;
 		
-		System.out.println(Complex.boxTitle(boxSize, "MATRIX SOLVE EQUATION"));   	
+		System.out.println(Complex.boxTitleRandom(boxSize, "MATRIX SOLVE EQUATION"));   	
 		fMatrix.println("fMatrix = Original Matrix");
-		System.out.println(Complex.boxText(boxSize, "Some Matrix Operations"));   	
+		System.out.println(Complex.boxTextRandom(boxSize, "Some Matrix Operations"));   	
 		gMatrix = fMatrix.triangleUp();
 		gMatrix.println("Triangle");
 		System.out.println("rank(gMatrix) = " + gMatrix.rank());		
 		dMatrix = fMatrix.triangleLo();
 		dMatrix.println("Triangle Lo");
 
-		System.out.println(Complex.boxText(boxSize, "Equations Operations"));   	
+		System.out.println(Complex.boxTextRandom(boxSize, "Equations Operations"));   	
 		fMatrix.unkMatrix().println("Unknowns Matrix");
 		int rank1 = fMatrix.unkMatrix().rank();
 			System.out.println("rank(Unknowns Matrix) = " + rank1);
@@ -77,7 +77,7 @@ public class TestSolve09 {
 				return;
 			}
 		//System.out.println("	SOLVE GAUSS with λ " + seed.toString());
-		System.out.println(Complex.boxText(boxSize, "System Equations Solutions"));   	
+		System.out.println(Complex.boxTextRandom(boxSize, "System Equations Solutions"));   	
 		hMatrix = fMatrix.solve(seed);
 		hMatrix.println("Soluciones (hMatrix)");
 		for (int i = 0 ; i < hMatrix.rows(); ++i) {

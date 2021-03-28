@@ -11,14 +11,14 @@ public class TestDeterminant {
     	int boxSize = 65;
 
        	System.out.println("");
-       	System.out.println(Complex.boxTitle2(boxSize, "DETERMINANT TEST"));
-       	fMatrix.println(Complex.boxText(boxSize, "Original Matrix"));
-       	fMatrix.triangle().println(Complex.boxText(boxSize, "fMatrix triangle"));
+       	System.out.println(Complex.boxTitleRandom(boxSize, "DETERMINANT TEST"));
+       	fMatrix.println(Complex.boxTextRandom(boxSize, "Original Matrix"));
+       	fMatrix.triangle().println(Complex.boxTextRandom(boxSize, "fMatrix triangle"));
        	showResultDeterminant(fMatrix);
     	iMatrix = fMatrix.inverse();
-       	iMatrix.println(Complex.boxText3(boxSize, "fMatrix inverse"));
+       	iMatrix.println(Complex.boxTextRandom(boxSize, "fMatrix inverse"));
        	showResultDeterminant(iMatrix); 
-       	fMatrix.times(iMatrix).println(Complex.boxText2(boxSize, "Original * Inverse Matrix"));
+       	fMatrix.times(iMatrix).println(Complex.boxTextRandom(boxSize, "Original * Inverse Matrix"));
 	}
 	
 	private static void showResultDeterminant(MatrixComplex fMatrix) {

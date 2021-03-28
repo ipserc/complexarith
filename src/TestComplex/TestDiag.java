@@ -10,14 +10,14 @@ public class TestDiag {
     	Complex det = new Complex();
 		int boxSize = 65;
 
-		System.out.println(Complex.boxTitle3(boxSize, "DIAGONALIZATION FACTORIZATION TEST"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "DIAGONALIZATION FACTORIZATION TEST"));
     	
-		System.out.println(Complex.boxText2(boxSize, "Diagfactor Expressions"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Diagfactor Expressions"));
 		diagMatrix.println("diagMatrix");
     	System.out.println("MAXIMA :"+diagMatrix.toMaxima_diagonalize());
     	System.out.println("OCTAVE :"+diagMatrix.toOctave_diagonalize());
     	System.out.println("WOLFRAM:"+diagMatrix.toWolfram_diagonalize());
-		System.out.println(Complex.boxText(boxSize, "Diagfactor Results"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Diagfactor Results"));
     	if (!diagMatrix.factorized()) {
     		System.out.println("No factorizable!!!!!!!!!!!");
     		return;
@@ -25,7 +25,7 @@ public class TestDiag {
     	diagMatrix.D().println("D(iagonal) Matrix");
     	diagMatrix.P().transpose().println("P(roper Values) transposed eigenvectors Matrix");
     	
-		System.out.println(Complex.boxText3(boxSize, "Diagfactor Operations"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Diagfactor Operations"));
     	diagMatrix.P().times(diagMatrix.D().times(diagMatrix.P().inverse())).println("P · D · P⁻¹");
     	System.out.println("Determinant(A)=" + diagMatrix.determinant());
 		det = diagMatrix.D().determinant();
@@ -76,13 +76,13 @@ public class TestDiag {
 
 		int boxSize = 65;
 
-		System.out.println(Complex.boxTitle(boxSize, "HERMITIAN MATRIX"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "HERMITIAN MATRIX"));
      	aMatrix = new MatrixComplex(4); 
      	aMatrix.initMatrixRandomRecInt(7);
      	diagMatrix = new Diagfactor(aMatrix.hermitian()); 
     	showResults(diagMatrix);
 
-		System.out.println(Complex.boxTitle(boxSize, "SKEW-HERMITIAN MATRIX"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "SKEW-HERMITIAN MATRIX"));
      	aMatrix = new MatrixComplex(4); 
      	aMatrix.initMatrixRandomRecInt(7); 
      	diagMatrix = new Diagfactor(aMatrix.skewHermitian()); 

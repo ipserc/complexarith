@@ -7,7 +7,7 @@ public class TestPlane {
 	public static void showResults(Plane planeA, Point pointP) {
 		int boxSize = 65;
 
-		System.out.println(Complex.boxText(boxSize, "PLANE & POINT"));
+		System.out.println(Complex.boxTextRandom(boxSize, "PLANE & POINT"));
 		planeA.println("plane A");
 		planeA.generalEq().println("  General Eq:");
 		pointP.println("point P");
@@ -18,7 +18,7 @@ public class TestPlane {
 	public static void showResults(Plane planeA, Line lineA) {
 		int boxSize = 65;
 
-		System.out.println(Complex.boxText(boxSize, "PLANE & LINE"));
+		System.out.println(Complex.boxTextRandom(boxSize, "PLANE & LINE"));
 		planeA.println("plane A");
 		planeA.generalEq().println("  General Eq:");
 		lineA.println("line A");
@@ -35,7 +35,7 @@ public class TestPlane {
 		Line line;
 		int boxSize = 65;
 
-		System.out.println(Complex.boxText(boxSize, "PLANE & PLANE"));
+		System.out.println(Complex.boxTextRandom(boxSize, "PLANE & PLANE"));
 		planeA.println("plane A");
 		planeA.generalEq().println("  General Eq:");
 		planeB.println("plane B");
@@ -60,7 +60,7 @@ public class TestPlane {
 		Line lineA;
 		int boxSize = 65;
 
-		System.out.println(Complex.boxTitle(boxSize, "PLANE TEST"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "PLANE TEST"));
 
 		Complex.setFormatON();
 		Complex.setFixedON(3);

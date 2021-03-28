@@ -15,8 +15,8 @@ public class TestDiagonal {
 		int boxSize = 65;
 		
        	System.out.println("");
-       	System.out.println(Complex.boxTitle3(boxSize, "DIAGONALIZATION TEST"));
-       	System.out.println(Complex.boxText(boxSize, "Matrix"));
+       	System.out.println(Complex.boxTitleRandom(boxSize, "DIAGONALIZATION TEST"));
+       	System.out.println(Complex.boxTextRandom(boxSize, "Matrix"));
        	System.out.println("MCOMPX :"+fMatrix.toMatrixComplex());
        	System.out.println("MAXIMA :"+fMatrix.toMaxima());
        	System.out.println("OCTAVE :"+fMatrix.toOctave());
@@ -29,7 +29,7 @@ public class TestDiagonal {
 		fMatrix.println("--- A");
 		fMatrix.triangle().heap().println("--- Triangle");
 		if (dMatrix.factorized()) {
-	       	System.out.println(Complex.boxText(boxSize, "Diagonal Matrix"));
+	       	System.out.println(Complex.boxTextRandom(boxSize, "Diagonal Matrix"));
 	    	System.out.println("The diagonalization has taken: " + chrono.toString());
 			MatrixComplex D = dMatrix.D();
 			MatrixComplex P = dMatrix.P();

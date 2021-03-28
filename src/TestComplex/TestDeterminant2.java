@@ -13,8 +13,8 @@ public class TestDeterminant2 {
 	   	int boxSize = 65;
 
        	System.out.println("");
-       	System.out.println(Complex.boxTitle(boxSize, "DETERMINANT TEST"));
-       	fMatrix.println(Complex.boxText(boxSize, "Matrix Dimension: " + dim + "x" + dim));
+       	System.out.println(Complex.boxTitleRandom(boxSize, "DETERMINANT TEST"));
+       	fMatrix.println(Complex.boxTextRandom(boxSize, "Matrix Dimension: " + dim + "x" + dim));
 		if (setFormatOff) {
 			Complex.storeFormatStatus();
 	       	Complex.setFormatOFF();

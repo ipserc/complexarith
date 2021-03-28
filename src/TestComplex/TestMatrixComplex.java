@@ -50,7 +50,7 @@ public class TestMatrixComplex {
     	MatrixComplex sMatrix;
 		int boxSize = 65;
 
-		System.out.println(Complex.boxTitle(boxSize, "MATRIX COMPLEX TEST"));
+		System.out.println(Complex.boxTitleRandom(boxSize, "MATRIX COMPLEX TEST"));
 
     	Complex.setFixedON(3);
     	/*
@@ -62,7 +62,7 @@ public class TestMatrixComplex {
     	aMatrix = new MatrixComplex("12,-51,4,3;6,167,-68,1;-4,24,-41,-3");
     	 */
     	
-		System.out.println(Complex.boxText(boxSize, "F Transformations"));
+		System.out.println(Complex.boxTextRandom(boxSize, "F Transformations"));
     	aMatrix = new MatrixComplex(""+
     			" 2-3i, 1, 3, 4;"+
     			" 4, 2, 1+3i, 5;"+
@@ -79,7 +79,7 @@ public class TestMatrixComplex {
     	aMatrix.Ftransf(1, 0,"3-2i");
     	aMatrix.println("03-Ftransff(1, 0,\"3-2i\")·A");
 
-		System.out.println(Complex.boxText(boxSize, "Triangle"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Triangle"));
     	aMatrix = new MatrixComplex(""+
     			" 2, 1, 1, 1;"+
     			" 4, 1, 0,-2;"+
@@ -121,7 +121,7 @@ public class TestMatrixComplex {
     	aMatrix.inverse().println("aMatrix Inverse");
     	aMatrix.inverse().times(bMatrix).println("aMatrix Inverse * bMatrix");
 
-		System.out.println(Complex.boxText(boxSize, "Solve Matrix Eq System"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Solve Matrix Eq System"));
     	aMatrix = new MatrixComplex(""+
     			" 2, 1, 1, 1;"+
     			" 4, 1, 0,-2;"+
@@ -158,7 +158,7 @@ public class TestMatrixComplex {
     	sMatrix = aMatrix.solve();
     	sMatrix.println("sMatrix");
 
-		System.out.println(Complex.boxText(boxSize, "Matrix Cofactors"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Matrix Cofactors"));
     	//aMatrix = new MatrixComplex("00, 01, 02, 03; 10, 11, 12, 13; 20, 21, 22, 23; 40, 41, 32, 33");
     	//aMatrix = new MatrixComplex("10, 11, 12, 13; 20, 21, 22, 23; 30, 31, 32, 33; 40, 41, 42, 43");
     	aMatrix = new MatrixComplex(""+
@@ -183,7 +183,7 @@ public class TestMatrixComplex {
     	bMatrix = aMatrix.cofactor();
     	bMatrix.println("Cofactor:");
     	
-		System.out.println(Complex.boxText(boxSize, "Matrix Hermitian Skewhermitian Conmutator & Anticonmutator"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Matrix Hermitian Skewhermitian Conmutator & Anticonmutator"));
     	aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomRecInt(9);
     	bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomRecInt(9);
     	aMatrix.println("aMatrix");
@@ -199,7 +199,7 @@ public class TestMatrixComplex {
     	cMatrix = hMatrix.anticommutator(fMatrix);
     	cMatrix.println("anticommutator");
     	
-		System.out.println(Complex.boxText(boxSize, "Matrix 1x3 product"));
+		System.out.println(Complex.boxTextRandom(boxSize, "Matrix 1x3 product"));
     	aMatrix = new MatrixComplex("2,-3,4");
     	bMatrix = new MatrixComplex("2,5,-1");
     	cMatrix = aMatrix.transpose().times(bMatrix);

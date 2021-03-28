@@ -12,7 +12,7 @@ public class TestPolynomFromRoots {
 		MatrixComplex roots = new MatrixComplex();
 		int boxSize = 65;
 		
-		System.out.println(Complex.boxText(boxSize, "Polynomial Solutions"));   	
+		System.out.println(Complex.boxTextRandom(boxSize, "Polynomial Solutions"));   	
 		roots = polynom.solve();
 		roots.println("Roots");
 		polynom.println("POLYNOM:");
@@ -47,7 +47,7 @@ public class TestPolynomFromRoots {
 		Polynom[] term = new Polynom[10];
 		int boxSize = 65;
 		
-		System.out.println(Complex.boxTitle(boxSize, "POLYNOMIAL FROM ROOTS TEST"));   	
+		System.out.println(Complex.boxTitleRandom(boxSize, "POLYNOMIAL FROM ROOTS TEST"));   	
 	
 		Complex.setFormatON();
 		Complex.setFixedON(3);
@@ -116,7 +116,7 @@ public class TestPolynomFromRoots {
 		polynom = calcPolynom(term);
 		showResults(polynom);
 
-		System.out.println(Complex.boxTitle(boxSize, "POLYNOMIAL FROM TERMS (x - root) TEST"));   	
+		System.out.println(Complex.boxTitleRandom(boxSize, "POLYNOMIAL FROM TERMS (x - root) TEST"));   	
 		List<Polynom> listTerm = new ArrayList<Polynom>();
 		listTerm.add(new Polynom("1, -5"));
 		listTerm.add(new Polynom("1,  1-2i"));
@@ -128,7 +128,7 @@ public class TestPolynomFromRoots {
 		showResults(polynom);
 		listTerm.clear();
 
-		System.out.println(Complex.boxTitle(boxSize, "POLYNOMIAL FROM COMPLEX LIST ROOTS TEST"));   	
+		System.out.println(Complex.boxTitleRandom(boxSize, "POLYNOMIAL FROM COMPLEX LIST ROOTS TEST"));   	
 		List<Complex> listRoots = new ArrayList<Complex>();
 		listRoots.add(new Complex("-5"));
 		listRoots.add(new Complex("1-2i"));
@@ -140,7 +140,7 @@ public class TestPolynomFromRoots {
 		showResults(polynom);
 		listTerm.clear();
 		
-		System.out.println(Complex.boxTitle(boxSize, "POLYNOMIAL FROM COMMA SEP. STRING ROOTS TEST"));   	
+		System.out.println(Complex.boxTitleRandom(boxSize, "POLYNOMIAL FROM COMMA SEP. STRING ROOTS TEST"));   	
 		polynom = polynom.fromRoots("5,-1+2i,3,-4-4i,-2,-4");
 		showResults(polynom);
 		

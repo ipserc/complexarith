@@ -45,7 +45,7 @@ public class TestComplex {
         Complex e = new Complex();
         Complex f = new Complex();
         
-        System.out.println(Complex.boxTitle(boxSize, "COMPLEX WITH FORMAT OFF TEST"));
+        System.out.println(Complex.boxTitleRandom(boxSize, "COMPLEX WITH FORMAT OFF TEST"));
         Complex.setFormatOFF(true);
         
         System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
@@ -61,7 +61,7 @@ public class TestComplex {
         System.out.println("(a / b) * b	= " + a.divides(b).times(b));
         System.out.println("1/a		= " + a.reciprocal());
 
-        System.out.println(Complex.boxTitle(boxSize, "COMPLEX WITH FORMAT ON TEST"));
+        System.out.println(Complex.boxTitleRandom(boxSize, "COMPLEX WITH FORMAT ON TEST"));
         Complex.setFormatON(true);
         
         System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
@@ -77,8 +77,8 @@ public class TestComplex {
         System.out.println("(a / b) * b	= " + a.divides(b).times(b));
         System.out.println("1/a		= " + a.reciprocal());
 
-        System.out.println(Complex.boxTitle(boxSize, "COMPLEX OPERATIONS TEST"));
-        System.out.println(Complex.boxText(boxSize, "COMPLEX WITH FORMAT & FIXED ON TEST"));
+        System.out.println(Complex.boxTitleRandom(boxSize, "COMPLEX OPERATIONS TEST"));
+        System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX WITH FORMAT & FIXED ON TEST"));
         Complex.setFixedON(3, true);
         
         System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
@@ -107,7 +107,7 @@ public class TestComplex {
         System.out.println("a^(1/2)	[root]	= " + Complex.root(a, 2));
 
         
-        System.out.println(Complex.boxText(boxSize, "COMPLEX ROOT & LOG TEST"));
+        System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX ROOT & LOG TEST"));
         c.setComplex("-1");
         System.out.println("c		= " + c);
         System.out.println("c^(1/2)		= " + Complex.root(c,2));
@@ -149,7 +149,7 @@ public class TestComplex {
         System.out.println("c^(1/2)		= " + Complex.root(c,2));
         System.out.println("log(c)		= " + Complex.log(c));
 
-        System.out.println(Complex.boxText(boxSize, "COMPLEX ALL ROOTS TEST"));
+        System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX ALL ROOTS TEST"));
         c.setComplex("4 - 3i");
         System.out.println("c		= " + c);
         int pot = 5;
@@ -160,7 +160,7 @@ public class TestComplex {
         	System.out.println("a^(" + pot + ")		= " + d.toStringRec() + "  Equals c " + (d.equals(c) ? "True" : "False"));
         }
 
-        System.out.println(Complex.boxText(boxSize, "COMPLEX POWER TEST"));
+        System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX POWER TEST"));
         a.setComplex("2");
         b.setComplex("4");
         System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
@@ -258,7 +258,7 @@ public class TestComplex {
         c = a.power(b);
         System.out.println("c=a^b		= " + c.toStringRec() + " : " + c.toStringPol());
         
-        System.out.println(Complex.boxText(boxSize, "COMPLEX LOG TEST"));
+        System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX LOG TEST"));
         a.setComplex("4-3i");
         b.setComplex("10");
         c = Complex.log10(a);
@@ -268,7 +268,7 @@ public class TestComplex {
         System.out.println("c=log10(a)	= " + c.toStringRec() + " : " + c.toStringPol());
         System.out.println("d=10^(log10(a))	= " + d.toStringRec() + " : " + d.toStringPol());
  
-        System.out.println(Complex.boxText(boxSize, "COMPLEX STORE/RESTORE FORMAT TEST"));
+        System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX STORE/RESTORE FORMAT TEST"));
         System.out.println("Initial format");
         Complex.printFormatStatus();
         System.out.println("Stotre initial format");
@@ -301,7 +301,7 @@ public class TestComplex {
         System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
         
         
-        System.out.println(Complex.boxText(boxSize, "COMPLEX LOG IN BASES TEST"));
+        System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX LOG IN BASES TEST"));
         a.setComplex("1-i");
         System.out.println("log(1-i) in base -1 = "+(Complex.logb(a,-1)).toString());
         System.out.println("log(1-i) in base -3 = "+(Complex.logb(a,-3)).toString());
@@ -339,7 +339,7 @@ public class TestComplex {
 	   b.setComplex("-i");
 	   System.out.println("log("+a.toString()+") in base -i = "+(Complex.logb(a,b)).toString());
 	  
-       System.out.println(Complex.boxText(boxSize, "COMPLEX CALCULATIONS TEST"));
+       System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX CALCULATIONS TEST"));
 	   a.setComplex("-1-3i");
 	   b.setComplex("3+2i");
 	   System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
@@ -359,7 +359,7 @@ public class TestComplex {
 	   d = Complex.exp(Complex.log(c).divides(b));
 	   System.out.println("exp(log(c)/b)	= " + d.toStringRec() + " : " + d.toStringPol());
 	   
-       System.out.println(Complex.boxText(boxSize, "COMPLEX TRIGONOMETRICS TEST"));
+       System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX TRIGONOMETRICS TEST"));
 	   a.setComplex("1+3i");
 	   System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
 	   c = Complex.sin(a);
@@ -423,7 +423,7 @@ public class TestComplex {
 	   c = Complex.arccos(c);
 	   System.out.println("c=arccos(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
 	   
-       System.out.println(Complex.boxText(boxSize, "COMPLEX LOG TEST"));
+       System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX LOG TEST"));
 	   a.setComplex("-2");
 	   System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
 	   c = Complex.log(a);
@@ -453,7 +453,7 @@ public class TestComplex {
 	   c = Complex.log(a);
 	   System.out.println("c=log(c)	= " + c.toStringRec() + " : " + c.toStringPol());       
 	   
-       System.out.println(Complex.boxText(boxSize, "COMPLEX DIVISION TEST"));
+       System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX DIVISION TEST"));
 	   a.setComplex("13");
 	   b.setComplex("7");
 	   System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
@@ -477,7 +477,7 @@ public class TestComplex {
 	   c = a.divides(b);
 	   System.out.println("c=a/b		= " + c.toStringRec() + " : " + c.toStringPol());       
 	   
-       System.out.println(Complex.boxText(boxSize, "COMPLEX CALCULATIONS 2 TEST"));
+       System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX CALCULATIONS 2 TEST"));
 	   a.setComplexPol(9.0E-1, 0);
 	   b.setComplexPol(9.0E-1, 3.141592653589793);
 	   System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());

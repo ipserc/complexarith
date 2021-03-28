@@ -11,8 +11,8 @@ public class dnrPolynom {
 		double loLimit, upLimit;
 		int titleSize = 65;
 
-		System.out.println(Complex.boxTitle(titleSize, "CALCULATE POLYNOMIAL ROOTS"));		
-		System.out.println(Complex.boxText(titleSize, "Polynom"));
+		System.out.println(Complex.boxTitleRandom(titleSize, "CALCULATE POLYNOMIAL ROOTS"));		
+		System.out.println(Complex.boxTextRandom(titleSize, "Polynom"));
 		myPolynom.println("Polynom:");
 		System.out.println("Polynom: " + myPolynom.toPolynom());
 		/*
@@ -24,7 +24,7 @@ public class dnrPolynom {
 		*/
 		roots = myPolynom.solve();
 		roots.quicksort(0);
-		roots.println(Complex.boxText(titleSize, "Roots"));
+		roots.println(Complex.boxTextRandom(titleSize, "Roots"));
 		loLimit = myPolynom.getMinRoot(roots);		
 		upLimit = myPolynom.getMaxRoot(roots);
 		myPolynom.setSampleBase(6000);
