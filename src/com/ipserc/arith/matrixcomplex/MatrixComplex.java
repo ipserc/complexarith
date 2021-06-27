@@ -16,7 +16,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.2 (2021_0319_1200)";
+	private final static String VERSION = "1.3 (2021_0627_2000)";
 
 	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangularization (Chio's rule)
 
@@ -1187,6 +1187,12 @@ public class MatrixComplex {
 	 * UNARY OPERATORS
 	 * ***********************************************
 	 */
+	
+	public void abs() {
+		for (int row = 0; row < this.rows(); ++row)
+			for (int col = 0; col < this.cols(); ++col)
+				this.setItem(row, col, this.getItem(row, col).abs());
+	}
 
 	/**
 	 * Checks if at least one of the values of the array is infinite
@@ -2158,7 +2164,7 @@ public class MatrixComplex {
 
 		//System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
 			//this.println("---------------- Matrix solve");
-		auxMatrix = this.triangleUp();	// .heap();
+		auxMatrix = this.triangleUp(); //.heap();
 		int nbrOfSols = auxMatrix.nbrOfSolutions();
 			//System.out.println("---------------- nbrOfSols:" + nbrOfSols);
 		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
@@ -2175,13 +2181,18 @@ public class MatrixComplex {
 				else {
 					cVal = auxMatrix.getItem(row, colLen-1);
 					cVal = cVal.divides(auxMatrix.getItem(row, colLen-2));
+					// 2021_0627 Introduced to avoid NaN or Infinite solution 
+					if (cVal.isNaN() || cVal.isInfinite()) cVal = Complex.ZERO;
 				}
 				solMatrix.setItem(sol, colSol--, cVal);
 				newMatrix = auxMatrix.setNewMatrixRed(colLen-1, nbrOfSols, solMatrix, sol);
 				if (newMatrix.isNull()) break;
 				MatrixComplex newSolMatrix = newMatrix.solve(lambda);
-				for (int col = 0; col < newSolMatrix.cols(); ++col)
-					solMatrix.setItem(sol, col, newSolMatrix.getItem(0, col));
+				for (int col = 0; col < newSolMatrix.cols(); ++col) {
+					// 2021_0627 Introduced to avoid NaN or Infinite solution 
+					if (!(newSolMatrix.getItem(0, col).isNaN() || newSolMatrix.getItem(0, col).isInfinite())) 
+						solMatrix.setItem(sol, col, newSolMatrix.getItem(0, col));
+				}
 			}
 		}
 		return solMatrix;
@@ -2422,104 +2433,44 @@ public class MatrixComplex {
 		return rank;
 	}
 
-/*
-	 * No he conseguido encontrar un método fiable para hayar el rango en matrices no cuadradas
-	 * Dejo comentado el código para retomarlo algún día
-	 */
-	/**
-	 * Alternative method to calculate the rank based on triangularization.
-	 * Triangularizing arrays will show the rank of the matrix by counting zeros in rows.
-	 * Null columns must be identified.
-	 * @return The rank of the matrix. 
-	 * /
-	public int rank_() {
-		int result, rank = 0;
-		MatrixComplex tempMatrix;
-
-		if (this.isNull()) return 0;
-		
-		tempMatrix = this.copy().triangle().heap();
-		tempMatrix = tempMatrix.removeNullRows();
-		//tempMatrix.println("tempMatrix");
-		tempMatrix = tempMatrix.removeDuplicateRows();
-		tempMatrix.println("tempMatrix");
-		for (int row = 0; row < tempMatrix.rows(); ++row) {
-			result = 0;
-			for (int col = row; col < tempMatrix.cols(); ++col) {
-				if (this.isNullCol(row)) break;
-				result += tempMatrix.getItem(row,col).equalsred(0,0) ? 0 : 1;				
-			}
-			rank += result == 0 ? 0 : 1;
-		}
-
-		return rank > tempMatrix.rows() ? tempMatrix.rows() : rank;
-	}
-
-	public int rank__() {
-		int result, rankHi = 0, rankLo = 0;
-		MatrixComplex tempMatrix;
-
-		if (this.isNull()) return 0;
-		
-		tempMatrix = this.copy().triangle().heap();
-		for (int row = 0; row < tempMatrix.rows(); ++row) {
-			result = 0;
-			for (int col = row; col < tempMatrix.cols(); ++col) {
-				if (this.isNullCol(row)) break;
-				result += tempMatrix.getItem(row,col).equalsred(0,0) ? 0 : 1;				
-			}
-			rankHi += result == 0 ? 0 : 1;
-		}
-		
-		tempMatrix = this.copy().triangleLo().heap();
-		for (int row = 0; row < tempMatrix.rows(); ++row) {
-			result = 0;
-			for (int col = row; col < tempMatrix.cols(); ++col) {
-				if (this.isNullCol(row)) break;
-				result += tempMatrix.getItem(row,col).equalsred(0,0) ? 0 : 1;				
-			}
-			rankLo += result == 0 ? 0 : 1;
-		}
-
-		return rankHi > rankLo ? rankLo : rankHi;
-	}
-
 	public int rank1() {
-		int result, rank = 0;
-		MatrixComplex tempMatrix = this.copy();
-		MatrixComplex redTempMatrix;
-		
-		//Check if is the NULL Matrix, the rank = 0
+		int rank11 = this.rank11();
+		int rank12 = this.rank21();
+		return rank11 < rank12 ? rank11 : rank12;
+	}
+	
+	private int rank11() {
+		int rank = 0;
+		MatrixComplex rankMatrix;
 		if (this.isNull()) return 0;
 		
-		//first reduce tempMatrix
-		do {
-			tempMatrix = tempMatrix.triangle().heap();
-			redTempMatrix = tempMatrix.reduce();
-			if (tempMatrix.dim() == redTempMatrix.dim()) break;
-			tempMatrix = redTempMatrix;
-		} while (true);
+		if (this.cols() < this.rows()) rankMatrix = this.transpose().triangleUp().heap();
+		else rankMatrix = this.copy().triangleUp().heap();
 		
-		//		tempMatrix.println("---------------- rank tempMatrix");
-		int rowLen = tempMatrix.rows(); //complexMatrix.length;
-		int colLen = tempMatrix.cols(); //complexMatrix[0].length;
-		//		System.out.println("---------------- rank colLen:" +  colLen);
-
-		for (int row = 0; row < rowLen; ++row) {
-			result = 0;
-			if (colLen <= row) break;
-			for (int col = 0; col <= row; ++col) {
-				result += tempMatrix.complexMatrix[row][col].equalsred(0,0) ? 0 : 1;				
-			//		System.out.println("---------------- rank result:" +  result);
-			}
-			rank += result == 0 ? 0 : 1;
-			//	System.out.println("---------------- rank.:" +  rank);
-		}
-		//	System.out.println("---------------- rank:" +  rank);
+		rankMatrix = rankMatrix.triangleLo().heap();
+		rankMatrix = rankMatrix.triangleUp().heap();
+		
+		for(int i = 0; i < rankMatrix.rows(); ++i)
+			if (!rankMatrix.isNullRow(i)) ++rank;
 		return rank;
 	}
-	*/
-	
+
+	private int rank21() {
+		int rank = 0;
+		MatrixComplex rankMatrix;
+		if (this.isNull()) return 0;
+		
+		if (this.cols() > this.rows()) rankMatrix = this.transpose().triangleUp().heap();
+		else rankMatrix = this.copy().triangleUp().heap();
+		
+		rankMatrix = rankMatrix.triangleLo().heap();
+		rankMatrix = rankMatrix.triangleUp().heap();
+		
+		for(int i = 0; i < rankMatrix.rows(); ++i)
+			if (!rankMatrix.isNullRow(i)) ++rank;
+		return rank;
+	}
+		
 	/**
 	 * Calculates the nullity of an array.
 	 * @return The nullity of the matrix.
