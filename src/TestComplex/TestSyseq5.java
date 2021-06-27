@@ -12,10 +12,11 @@ public class TestSyseq5 {
 
 	private static void checkSol(MatrixComplex fMatrix, MatrixComplex solution) {
 		MatrixComplex indTerm = fMatrix.indMatrix().transpose();
-		MatrixComplex uknMatrix = fMatrix.unkMatrix().transpose();
+		MatrixComplex uknMatix = fMatrix.unkMatrix().transpose();
 		
-		solution.println                                ("Solution                ");
-		solution.times(uknMatrix).minus(indTerm).println("Check:Matrix * Solution ");
+		indTerm.println                 ("Independent Terms");
+		solution.println                ("Solution         ");
+		solution.times(uknMatix).println("Check            ");
 	}
 
 	private static void solve(Syseq fMatrix) {
