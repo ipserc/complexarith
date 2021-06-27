@@ -28,6 +28,7 @@ public class TestSyseq3 {
 		fMatrix.print(Complex.boxTextRandom(boxSize,"Equation System"));
 		
      	System.out.println(Complex.boxTextRandom(boxSize, "System Solve Commands"));
+     	System.out.println("MComplex:" + fMatrix.toMatrixComplex());
 		fMatrix.printSystemEqSolve(outputFormat.MAXIMA, true);
 		fMatrix.printSystemEqSolve(outputFormat.OCTAVE, true);
 		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true);
