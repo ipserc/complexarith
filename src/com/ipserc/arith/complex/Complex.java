@@ -122,11 +122,11 @@ public class Complex {
 	 * Creates a new complex object initialized to 0+0i
 	 */
 	public Complex() {
-		rep = 0;
-		imp = 0;
-		mod = 0;
-		pha = 0;
-		cre = 0;
+		rep = 0.0;
+		imp = 0.0;
+		mod = 0.0;
+		pha = 0.0;
+		cre = 0.0;
 	}
 
 	/**
@@ -346,7 +346,7 @@ public class Complex {
 	 * @param base Base to generate the random complex.
 	 */
 	private void setComplexRandom(char coordType, int base) {
-		double n1, n2;
+		Double n1, n2;
 		int sign1, sign2;
 
 		sign1 = Math.random() > 0.5 ? 1 : -1;
@@ -357,6 +357,18 @@ public class Complex {
 		this.setComplex(coordType, n1, n2);
 	}
 
+	private void setComplexRandomInt(char coordType, int base) {
+		Double n1, n2;
+		int sign1, sign2;
+
+		sign1 = Math.random() > 0.5 ? 1 : -1;
+		sign2 = Math.random() < 0.5 ? 1 : -1;
+
+		n1 = Math.random() < 0.5 ? 0.0 : 1 * base * sign1;
+		n2 = Math.random() * ((coordType == 'P' || coordType == 'p') ? Math.PI : 1) * base * sign2;
+		this.setComplex(coordType, n1, n2);
+	}
+	
 	/**
 	 * Initializes the Complex Object in Rectangular with two random doubles from -base .. base.
 	 * @param base Base to generate the random complex.
@@ -949,14 +961,14 @@ public class Complex {
 	 * @return
 	 */
 	public static String boxTitleRandom(int size, String title) {
-		Random rndBoxNbr = new Random(System.currentTimeMillis());
-		switch (rndBoxNbr.nextInt(6)+1) {		 
+		switch (randomNbr.nextInt(7)+1) {		 
 			case 1: return boxTitle1(size, title);
 			case 2: return boxTitle2(size, title);
 			case 3: return boxTitle3(size, title);
 			case 4: return boxTitle4(size, title);
 			case 5: return boxTitle5(size, title);
 			case 6: return boxTitle6(size, title);
+			case 7: return boxTitle7(size, title);
 		}
 		return boxTitle1(size, title);
 	}
@@ -1079,8 +1091,22 @@ public class Complex {
 	public static String boxTitle6(int size, String title) {
 		return makeBoxTitle(size, title,
 							"_", "_", "_",
-							"\\", "/",
-							"[", "]",
+							"\\",     "/",
+							"[",      "]",
+							"/", "_", "\\", false);
+	}
+
+	/**
+	 * Returns a text inside of a equal-pipe box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxTitle7(int size, String title) {
+		return makeBoxTitle(size, title,
+							"_", "_", "_",
+							"\\",     "/",
+							"(",      ")",
 							"/", "_", "\\", false);
 	}
 
@@ -1091,13 +1117,14 @@ public class Complex {
 	 * @return
 	 */
 	public static String boxTextRandom(int size, String title) {
-		switch (randomNbr.nextInt(6)+1) {		 
+		switch (randomNbr.nextInt(7)+1) {		 
 			case 1: return boxText1(size, title);
 			case 2: return boxText2(size, title);
 			case 3: return boxText3(size, title);
 			case 4: return boxText4(size, title);
 			case 5: return boxText5(size, title);
 			case 6: return boxText6(size, title);
+			case 7: return boxText7(size, title);
 		}
 		return boxTitle1(size, title);
 	}
@@ -1154,7 +1181,7 @@ public class Complex {
 	 */
 	public static String boxText3(int size, String text) {
 		return makeBoxText(size, text, 
-				"0", "*", "0", 
+				"*", "*", "*", 
 				"|",      "|");
 	}
 
@@ -1194,6 +1221,19 @@ public class Complex {
 				"(",      ")");
 	}
 
+	/**
+	 * Returns a text inside of a colon (:) box
+	 * @param size The minimum size of the box
+	 * @param text The text to put inside the box
+	 * @return The String representation of the box text
+	 */
+	public static String boxText7(int size, String text) {
+		return makeBoxText(size, text, 
+				"·", "-", "·", 
+				"[",      "]");
+	}
+
+	
 	/*
 	 * ***********************************************
 	 * COPY & REPLICATION

@@ -16,7 +16,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.3 (2021_0627_2000)";
+	private final static String VERSION = "1.4 (2021_0718_2300)";
 
 	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangularization (Chio's rule)
 
@@ -1823,13 +1823,13 @@ public class MatrixComplex {
 		if (coefRank == numUnk) return this.isHomogeneous() ? INDETERMINATE : DETERMINATE;
 		else return INDETERMINATE;	
 	}
-	
+
 	/**
-	 * Prints a message indicating the system type of equations according to type "type".
+	 * Returns a string indicating the system type of equations according to type "type".
 	 * @param type INCONSISTENT = -1, INDETERMINATE = 0 or DETERMINATE = 1.
 	 * @param lambda Parameter value to calculate solutions for indeterminate systems.
 	 */
-	public void printTypeEqSys(int type, Complex lambda) {
+	public String strTypeEqSys(int type, Complex lambda) {
 		String text = "";
 		switch (type) {
 			case INCONSISTENT: text = "The system is INCONSISTENT"; 
@@ -1839,7 +1839,16 @@ public class MatrixComplex {
 			case DETERMINATE: text = "The system is DETERMINATE"; 
 				break;
 		}    	
-		System.out.println(text);
+		return text;
+	}
+
+	/**
+	 * Prints a message indicating the system type of equations according to type "type".
+	 * @param type INCONSISTENT = -1, INDETERMINATE = 0 or DETERMINATE = 1.
+	 * @param lambda Parameter value to calculate solutions for indeterminate systems.
+	 */
+	public void printTypeEqSys(int type, Complex lambda) {
+		System.out.println(this.strTypeEqSys(type, lambda) );
 	}
 
 	/**
@@ -2050,6 +2059,7 @@ public class MatrixComplex {
 	 * @return The solution matrix
 	 */
 	public MatrixComplex solveSubstitution(MatrixComplex solMatrix, Complex lambda) {
+		final boolean DEBUG_ON = true; 
 		MatrixComplex auxMatrix;
 		int eqsIdx = this.rows()-1;
 		int nbrSols = this.nbrOfSolutions();
@@ -2057,7 +2067,15 @@ public class MatrixComplex {
 		int rowIdx, colIdx, solIdx, reduxSol = 0;
 		Complex value;
 
-			//System.out.println(HEADINFO + "SOLVED by SUBSTITUTION method ");
+		/* ----------  START DEBUGGING BLOCK   ----------- */
+		if (DEBUG_ON) {
+			System.out.println(HEADINFO + Complex.repeat("+ ", 40));
+			System.out.println(HEADINFO + "SOLVED by SUBSTITUTION method ");
+			this.println(HEADINFO + "this Matrix");
+			auxMatrix.println(HEADINFO + "auxMatrix Matrix");
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+			
 		for (rowIdx = eqsIdx; rowIdx >= 0; --rowIdx) {
 			colIdx = rowIdx;
 			if (auxMatrix.isNullRow(rowIdx) || auxMatrix.isNullCol(colIdx)) {
@@ -2087,6 +2105,12 @@ public class MatrixComplex {
 				solMatrix.setItem(solIdx, rowIdx, value);
 			}
 		}
+		/* ----------  START DEBUGGING BLOCK   ----------- */
+		if (DEBUG_ON) {
+			solMatrix.println(HEADINFO + "solMatrix Matrix");
+			System.out.println(HEADINFO + Complex.repeat("+ ", 40));
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
 		return solMatrix;
 	}
 
@@ -2096,6 +2120,7 @@ public class MatrixComplex {
 	 * @return The column matrix with the solutions if they exist, otherwise null.
 	 */	
 	public MatrixComplex solveGauss3(Complex lambda) {
+		final boolean DEBUG_ON = true; 
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
@@ -2108,19 +2133,41 @@ public class MatrixComplex {
 		MatrixComplex solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
 
 		int typeEqSys = this.typeEqSys();
-		//this.printTypeEqSys(typeEqSys, lambda);
-		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
+
+		/* ----------  START DEBUGGING BLOCK   ----------- */
+		if (DEBUG_ON) {
+			System.out.println(HEADINFO + Complex.repeat("= ", 40));
+			System.out.println(HEADINFO + "Eq. System Type " + this.strTypeEqSys(typeEqSys, lambda));
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+
+		if (typeEqSys == INCONSISTENT) return solMatrix; //solMatrix.divides(0).transpose();
 
 		coefMatrix = this.coefMatrix();
 		indMatrix = this.indMatrix();
 		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
+
+		// INDETERMINATE System
 		solMatrix = solveReduction(solMatrix, lambda);
 		for (int rowIdx = 0 ; rowIdx < solMatrix.rows(); ++rowIdx) {
 			if (solMatrix.isNullRow(rowIdx)) {
 				solMatrix = solveSubstitution(solMatrix, lambda);
-				break;
+				return solMatrix;
 			}
 		}
+		
+		/*
+		MatrixComplex unitMatrix = new MatrixComplex(solMatrix.rows(),1);
+		if (solMatrix.times(coefMatrix.transpose()).minus(unitMatrix.times(indMatrix.transpose())).isNull())
+			solMatrix = solveSubstitution(solMatrix, lambda);
+		*/
+
+		/* ----------  START DEBUGGING BLOCK   ----------- */
+		if (DEBUG_ON) {
+			System.out.println(HEADINFO + Complex.repeat("=  ", 40));
+			}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+
 		return solMatrix;
 	}
 	
@@ -2155,6 +2202,7 @@ public class MatrixComplex {
 	 * @return The new calculated solution matrix
 	 */
 	public MatrixComplex solveReduction(MatrixComplex solMatrix, Complex lambda) {
+		final boolean DEBUG_ON = true;
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		int colSol = rowLen-1;
@@ -2162,39 +2210,71 @@ public class MatrixComplex {
 		MatrixComplex newMatrix;
 		Complex cVal;
 
-		//System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
-			//this.println("---------------- Matrix solve");
 		auxMatrix = this.triangleUp(); //.heap();
 		int nbrOfSols = auxMatrix.nbrOfSolutions();
-			//System.out.println("---------------- nbrOfSols:" + nbrOfSols);
 		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
-			//auxMatrix.coefMatrix().println("---------------- coefMatrix");
-			//System.out.println("----------------");
-		if ( auxMatrix.coefMatrix().isNull() ) return solMatrix;
 
-		for (int sol = 0; sol < nbrOfSols; ++sol) {
-			for (int row = rowLen-1; row >= 0; --row) {
-				if (colSol < 0) break;
-				if (auxMatrix.isNullRow(row)) {
-					cVal = Complex.ZERO; //lambda;
-				}
-				else {
-					cVal = auxMatrix.getItem(row, colLen-1);
-					cVal = cVal.divides(auxMatrix.getItem(row, colLen-2));
-					// 2021_0627 Introduced to avoid NaN or Infinite solution 
-					if (cVal.isNaN() || cVal.isInfinite()) cVal = Complex.ZERO;
-				}
-				solMatrix.setItem(sol, colSol--, cVal);
-				newMatrix = auxMatrix.setNewMatrixRed(colLen-1, nbrOfSols, solMatrix, sol);
-				if (newMatrix.isNull()) break;
-				MatrixComplex newSolMatrix = newMatrix.solve(lambda);
-				for (int col = 0; col < newSolMatrix.cols(); ++col) {
-					// 2021_0627 Introduced to avoid NaN or Infinite solution 
-					if (!(newSolMatrix.getItem(0, col).isNaN() || newSolMatrix.getItem(0, col).isInfinite())) 
-						solMatrix.setItem(sol, col, newSolMatrix.getItem(0, col));
+		/* ----------  START DEBUGGING BLOCK   ----------- */
+		if (DEBUG_ON) {
+			System.out.println(HEADINFO + Complex.repeat("* ", 40));
+			System.out.println(HEADINFO + "SOLVED by REDUCTION method ");
+			this.println(HEADINFO + "this");
+			System.out.println(HEADINFO + "nbrOfSols:" + nbrOfSols);
+			auxMatrix.println(HEADINFO + "auxMatrix");
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+
+		if (!auxMatrix.coefMatrix().isNull()) {
+			for (int sol = 0; sol < nbrOfSols; ++sol) {
+				for (int row = rowLen-1; row >= 0; --row) {
+					if (colSol < 0) break;
+					if (auxMatrix.isNullRow(row)) {
+						cVal = Complex.ZERO; //lambda;
+					}
+					else {
+						cVal = auxMatrix.getItem(row, colLen-1);
+						cVal = cVal.divides(auxMatrix.getItem(row, colLen-2));
+						// 2021_0627 Introduced to avoid NaN or Infinite solution 
+						if (cVal.isNaN() || cVal.isInfinite()) cVal = Complex.ONE;
+					}
+					solMatrix.setItem(sol, colSol--, cVal);
+					newMatrix = auxMatrix.setNewMatrixRed(colLen-1, nbrOfSols, solMatrix, sol);
+
+					/* ----------  START DEBUGGING BLOCK   ----------- */
+					if (DEBUG_ON) {
+						System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ Solution Idx:" + sol);
+						solMatrix.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ solMatrix ");
+						if (newMatrix.rows() > 0) newMatrix.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ newMatrix ");
+					}
+					/* ------------- END DEBUGGING BLOCK ------------- */
+
+					if (newMatrix.isNull()) break;
+					MatrixComplex newSolMatrix = newMatrix.solve(lambda);
+
+					/* ----------  START DEBUGGING BLOCK   ----------- */
+					if (DEBUG_ON) {
+						System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ Solution Idx:" + sol);
+						newSolMatrix.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ newSolMatrix ");
+					}
+					/* ------------- END DEBUGGING BLOCK ------------- */
+
+					for (int col = 0; col < newSolMatrix.cols(); ++col) {
+						// 2021_0627 Introduced to avoid NaN or Infinite solution
+						if (!(newSolMatrix.getItem(0, col).isNaN() || newSolMatrix.getItem(0, col).isInfinite())) {
+							solMatrix.setItem(sol, col, newSolMatrix.getItem(0, col));
+						}
+					}
 				}
 			}
 		}
+
+		/* ----------  START DEBUGGING BLOCK   ----------- */
+		if (DEBUG_ON) {
+			solMatrix.println(HEADINFO + "solMatrix");
+			System.out.println(HEADINFO + Complex.repeat("* ", 40));
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+
 		return solMatrix;
 	}
 	

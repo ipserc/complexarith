@@ -9,7 +9,7 @@ public class Syseq extends MatrixComplex{
 	private Boolean solved = false;
 
 	private final static String HEADINFO = "Syseq --- INFO: ";
-	private final static String VERSION = "1.1 (2021_0207_2100)";
+	private final static String VERSION = "1.2 (2021_0718_2300)";
 
 	/*
 	 * ***********************************************
@@ -72,9 +72,39 @@ public class Syseq extends MatrixComplex{
 	 * @param lambda The complex value to calculate the solutions
 	 */
 	public void solveq(Complex lambda) {
+		final boolean DEBUG_ON = true; 
+		/* -------------   DEBUGGING BLOCK   ------------- */
+		if (DEBUG_ON) {
+			System.out.println(HEADINFO + Complex.repeat("# ", 40));
+			System.out.println(HEADINFO + "PARTICULAR SOLUTION ");
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+
 		partsol = this.solve(lambda);
+
+		/* -------------   DEBUGGING BLOCK   ------------- */
+		if (DEBUG_ON) {
+			System.out.println(HEADINFO + " --- END OF --- PARTICULAR SOLUTION ");
+			System.out.println(HEADINFO + Complex.repeat("# ", 40));
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+
 		if (this.typeEqSys() == INDETERMINATE) {
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				System.out.println(HEADINFO + Complex.repeat("# ", 40));
+				System.out.println(HEADINFO + "HOMOGENOUS SOLUTION ");
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
+
 			homosol = this.homogeneous().solve(lambda);
+			
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				System.out.println(HEADINFO + " --- END OF --- HOMOGENEOUS SOLUTION ");
+				System.out.println(HEADINFO + Complex.repeat("# ", 40));
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
 		}
 		solved = true;
 	}
@@ -110,6 +140,22 @@ public class Syseq extends MatrixComplex{
 	public MatrixComplex solution() {
 		return this.solution(1);
 	}
+	
+	
+	/**
+	 * Checks the solution putting that solution in the equation system and operating 
+	 * If the check operation returns a row with all zeros, the solution is correct
+	 */
+	public void checkSol(MatrixComplex solution) {
+		MatrixComplex indTerm = this.indMatrix().transpose();
+		MatrixComplex uknMatix = this.unkMatrix().transpose();
+		MatrixComplex unitMatrix = new MatrixComplex(solution.rows(),1);
+		unitMatrix.initMatrix(1, 0);
+		
+		solution.println                                                 ("Solution                                      ");
+		solution.times(uknMatix).minus(unitMatrix.times(indTerm)).println("Check: solution.times(uknMatix).minus(indTerm)");
+	}
+
 	
 	/*
 	 * ***********************************************

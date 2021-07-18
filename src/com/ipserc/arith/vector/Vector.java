@@ -193,6 +193,7 @@ public class Vector extends MatrixComplex {
 	 * The outer product of two coordinate vectors u and v, denoted u ⊗ v , is a matrix w such that the coordinates satisfy w(i,j) = u(i)·v(j). 
 	 * The outer product for general tensors is also called the tensor product. 
 	 * The outer product is the result of multiplying the adjoint of "vector" with this.
+	 * Source: https://en.wikipedia.org/wiki/Outer_product
 	 * @param vector The vector to multiply.
 	 * @return an array with the outer product of the two vectors.
 	 */
