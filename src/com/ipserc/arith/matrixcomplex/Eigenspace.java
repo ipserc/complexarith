@@ -9,8 +9,6 @@ package com.ipserc.arith.matrixcomplex;
  */
 
 import com.ipserc.arith.complex.Complex;
-import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.polynom.Polynom;
 import com.ipserc.arith.syseq.Syseq;
 
@@ -22,7 +20,14 @@ import com.ipserc.arith.syseq.Syseq;
 public class Eigenspace extends MatrixComplex {
 	
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.1 (2021_0207_2100)";
+	private final static String VERSION = "1.3 (2021_0929_2100)";
+	/* VERSION Release Note
+	 * 
+	 * 1.3 (2021_0929_2100
+	 * eigenvect uses eigenvect3 which has changed MatrixComplex cMatrix, dMatrix; to Syseq dMatrix; for solving the system equations based on Syseq class.
+	 * eigenvect2 is deprecated.
+	 * 
+	 */
 
 	/**
 	 * Enumeration that gives the value of the order in wihch the eigenvalues, and therefore, the eigenvectors are returned
@@ -58,7 +63,7 @@ public class Eigenspace extends MatrixComplex {
 	
 	/**
 	 * Instantiates an eigenspace class form a complex array previously defined.
-	 * @param cmatrix The MatrixComplex that generates the Eigen Space
+	 * @param cmatrix The MatrixComplex that generates the Eigenspace
 	 */
 	public Eigenspace(MatrixComplex cmatrix) {
 		super();
@@ -70,7 +75,7 @@ public class Eigenspace extends MatrixComplex {
 	/**
 	 * Instantiates an eigenspace class form a complex array previously defined.
 	 * @param seed Is the value of the constant used to find the eigenvectors 
-	 * @param cmatrix The MatrixComplex that generates the Eigen Space
+	 * @param cmatrix The MatrixComplex that generates the Eigenspace
 	 */
 	public Eigenspace(Complex seed, MatrixComplex cmatrix) {
 		super();
@@ -81,7 +86,7 @@ public class Eigenspace extends MatrixComplex {
 	
 	/**
 	 * Instantiates an eigenspace class from matrix represented as a string, rows are separated with ";", cols are separated with ",".
-	 * @param strMatrix The matrix that generates the Eigen Space
+	 * @param strMatrix The matrix that generates the Eigenspace
 	 */
 	public Eigenspace(String strMatrix) {
 		super(strMatrix);
@@ -92,7 +97,7 @@ public class Eigenspace extends MatrixComplex {
 	/**
 	 * Instantiates an eigenspace class from matrix represented as a string, rows are separated with ";", cols are separated with ",".
 	 * @param seed Is the value of the constant used to find the eigenvectors 
-	 * @param strMatrix The matrix that generates the Eigen Space
+	 * @param strMatrix The matrix that generates the Eigenspace
 	 */
 	public Eigenspace(Complex seed, String strMatrix) {
 		super(strMatrix);
@@ -107,7 +112,7 @@ public class Eigenspace extends MatrixComplex {
 	 */
 	
 	/**
-	 * Private Method. Calculates the Eigen Space components. Characteristic Polynomial, Eigenvalues and Eigenvetors
+	 * Private Method. Calculates the Eigenspace components. Characteristic Polynomial, Eigenvalues and Eigenvetors
 	 */
 	private void calculate() {
 		charactPoly = this.charactPoly();
@@ -144,7 +149,7 @@ public class Eigenspace extends MatrixComplex {
 	public MatrixComplex values() {
 		return values;
 	}
-	
+
 	/**
 	 * Returns the characteristic polynomial as a polynomial
 	 * @return The characteristic polynomial
@@ -193,7 +198,15 @@ public class Eigenspace extends MatrixComplex {
 		}
 		return eigenV.rank();
 	}
+
+	public boolean isDiagonaizable() {
 		
+		for (int id = 0; id < values.rows(); ++id) {
+			if (geometricMultiplicity(values.getItem(id,0)) < arithmeticMultiplicity(values.getItem(id,0))) return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * Calculates the eigenvalue, characteristic value, or characteristic root associated with eigenvector v by solving the Characteristic Polynomial.
 	 * An eigenvalue is a scalar associated with a given linear transformation of a vector space and having the property that there is some nonzero vector which when multiplied by the scalar is equal to the vector obtained by letting the transformation operate on the vector; especially :  a root of the characteristic equation of a matrix
@@ -203,7 +216,7 @@ public class Eigenspace extends MatrixComplex {
 		values = charactPoly.solve();
 		// values.quicksortup(0); // DO NOT USE - SVD factorization doesn't allow this
 		// order = Order.UP;
-		// By dafault the order in which the eigenvalues are sorted is from Higher to Lower
+		// By default the order in which the eigenvalues are sorted is from Higher to Lower
 		order = Order.DOWN;
 		values.quicksort(0);
 	}
@@ -229,13 +242,14 @@ public class Eigenspace extends MatrixComplex {
 	 * The eigenvector as a column array
 	 */
 	public void eigenvect() {
-		eigenvectors2();
+		eigenvectors3();
 	}
 	
 	/**
 	 * Private method. Implementation of eigenvect
 	 */
 	private void eigenvectors2() {
+		final boolean DEBUG_ON = false; 
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
@@ -248,8 +262,21 @@ public class Eigenspace extends MatrixComplex {
 		for (int rowEig = 0; rowEig < rowLen;) {
 			eigenval = values.getItem(rowEig, 0);
 			// int arithMult = this.arithmeticMultiplicity(eigenval);
-			cMatrix = (I.times(eigenval)).minus(this);
+			//cMatrix = (I.times(eigenval)).minus(this); - ORIGINAL
+			cMatrix = (this.minus(I.times(eigenval)));
 			dMatrix = cMatrix.augment().heap();
+			
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				dMatrix.println(HEADINFO + "Eq. System for EigenVectors");
+				eigenval.println(HEADINFO + "eigenval:");
+		     	System.out.println("MComplex:" + dMatrix.toMatrixComplex());
+				//dMatrix.printSystemEqSolve(outputFormat.MAXIMA, true);
+				//dMatrix.printSystemEqSolve(outputFormat.OCTAVE, true);
+				//dMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true);
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
+
 			// System.out.println("Ec.Caract.["+rowEig+"]" + dMatrix.toMatrixComplex());
 			eigenVect = dMatrix.solve(seed);
 			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
@@ -257,6 +284,53 @@ public class Eigenspace extends MatrixComplex {
 			}
 			rowEig += eigenVect.rows();
 			// rowEig += arithMult;
+		}
+	}
+	
+	private void eigenvectors3() {
+		final boolean DEBUG_ON = false; 
+		int rowLen = this.rows();
+		int colLen = this.cols();
+
+		MatrixComplex I = MatrixComplex.eye(rowLen);
+		MatrixComplex eigenVect;
+		MatrixComplex cMatrix; 
+		Syseq dMatrix;
+		Complex eigenval;
+		vectors = new MatrixComplex(rowLen, colLen);
+		
+		for (int rowEig = 0; rowEig < rowLen;) {
+			eigenval = values.getItem(rowEig, 0);
+			//cMatrix = (I.times(eigenval)).minus(this); //- ORIGINAL
+			cMatrix = (this.minus(I.times(eigenval)));
+			dMatrix = new Syseq(cMatrix.augment().heap());
+			
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				dMatrix.println(HEADINFO + "Eq. System for EigenVectors");
+				eigenval.println(HEADINFO + "eigenval:");
+		     	System.out.println("MComplex:" + dMatrix.toMatrixComplex());
+		     	System.out.println("MComplex:new Syseq(" + dMatrix.preMatrixComplex() +");");
+				dMatrix.printSystemEqSolve(outputFormat.MAXIMA, true);
+				dMatrix.printSystemEqSolve(outputFormat.OCTAVE, true);
+				dMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true);
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
+
+			eigenVect = dMatrix.solution(1);
+			
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				System.out.println("Ec.Caract.["+rowEig+"]" + dMatrix.toMatrixComplex());
+				eigenVect.println(HEADINFO + "eigenVect:");
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
+			
+			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
+				vectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
+			}
+			rowEig += eigenVect.rows();
+			//rowEig += this.arithmeticMultiplicity(eigenval);;
 		}
 	}
 	
@@ -301,7 +375,7 @@ public class Eigenspace extends MatrixComplex {
 	 * @return The eig command for Octave
 	 */
 	public String Octave_eigenvectors() {
-		return "[V,lambda] = eig("+this.toMatlab()+")";
+		return "[eVects,eVals] = eig("+this.toMatlab()+",\"vector\")";
 	}
 
 	/**
@@ -331,7 +405,7 @@ public class Eigenspace extends MatrixComplex {
 			cMatrix = (I.times(eigenval)).minus(this);
 			dMatrix = cMatrix.augment().heap();
 			system.complexMatrix = dMatrix.complexMatrix;
-			System.out.print("Ec.Caract.["+rowEig+"]: " ); system.printSystemEqSolve(format, display);
+			System.out.print("Charact.Eq.["+rowEig+"]: " ); system.printSystemEqSolve(format, display);
 			rowEig += this.arithmeticMultiplicity(eigenval);
 		}
 	}

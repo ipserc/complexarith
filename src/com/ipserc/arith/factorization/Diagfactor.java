@@ -164,6 +164,7 @@ public class Diagfactor extends MatrixComplex {
 	 * The factorization gives A=P·D·P⁻¹
 	 */
 	public void diagonalize() {
+		final boolean DEBUG_ON = false; 
 		int rowLen = this.complexMatrix.length; 
 		int colLen= this.complexMatrix[0].length;
 		if (colLen != rowLen) {
@@ -176,10 +177,21 @@ public class Diagfactor extends MatrixComplex {
 		
 		if (!this.isDiagonalizable(eigenspace)) {
 			factorized = false;
-			System.out.println(HEADINFO + "The Matrix cannot be diagonalized");
+
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				System.out.println(HEADINFO + "The Matrix cannot be diagonalized");
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
+
 			return;
 		}
-		else System.out.println(HEADINFO + "The Matrix CAN BE diagonalized");
+		else 
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				System.out.println(HEADINFO + "The Matrix CAN BE diagonalized");
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
 
 		// P: Transformation Matrix, the eigenvalues in columns
 		cP = eigenspace.vectors().transpose();

@@ -19,7 +19,16 @@ public class Polynom extends MatrixComplex {
 	private static double sampleBase = 300;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.0 (2021_0130_1300)";
+	private final static String VERSION = "1.2 (2021_0929_2000)";
+	/* VERSION Release Note
+	 * 
+	 * 1.2 (2021_0929_2000)
+	 * solveWeierstrass uses Complex.round(root,numOfDecs) to return the value of each root found. This gives a more precise value of the root. The numOfDecs is calculated by the method based on the
+	 * PRECISION defined in Complex using the following rule:
+	 * 		double maxPrec = Math.sqrt(precision);
+	 *		int numOfDecs = (int) Math.abs(Math.log10(maxPrec));
+	 *
+	 */
 
 	/*
 	 * ***********************************************
@@ -489,6 +498,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solveWeierstrass(double precision) {
+		final boolean DEBUG_ON = false; 
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		Complex cDenom = new Complex(1,0);
@@ -540,11 +550,39 @@ public class Polynom extends MatrixComplex {
 			}
 
 			//Sometimes ending condition doesn't work
-			if (iter++ > 2000) finished = true;
+			if (iter++ > 5000) finished = true;
 		} while (!finished);			
 
-		for (int i = 0; i < colLen; ++i) cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i];
-		System.out.println(HEADINFO + "solveWeierstrass: " + "iterations for roots:" + iter);
+		//int numOfDecs = (int) Math.abs(Math.log10(precision)) / 2 + 1;
+		//numOfDecs = numOfDecs-1 > 0 ? --numOfDecs : numOfDecs;
+		double maxPrec = Math.sqrt(precision);
+		int numOfDecs = (int) Math.abs(Math.log10(maxPrec));
+
+		/* -------------   DEBUGGING BLOCK   ------------- */
+		if (DEBUG_ON) {
+			System.out.println(HEADINFO + "precision:" + precision);
+			System.out.println(HEADINFO + "maxPrec   :" + maxPrec);
+			System.out.println(HEADINFO + "numOfDecs :" + numOfDecs);
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+
+		for (int i = 0; i < colLen; ++i) {
+			/*
+			if (cCoef.complexMatrix[0][i].isZeroRed()) cSol.complexMatrix[i][0] = Complex.ZERO;
+			else cSol.complexMatrix[i][0] = Complex.round(cCoef.complexMatrix[0][i],numOfDecs); //cCoef.complexMatrix[0][i]; //
+			*/
+			if (Math.abs(cCoef.complexMatrix[0][i].rep()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(0, cCoef.complexMatrix[0][i].imp());
+			if (Math.abs(cCoef.complexMatrix[0][i].imp()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(cCoef.complexMatrix[0][i].rep(), 0);
+			cSol.complexMatrix[i][0] = Complex.round(cCoef.complexMatrix[0][i],numOfDecs); //DOESN'T WORK. round IS NOT OK
+			//cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i];
+		}
+
+		/* -------------   DEBUGGING BLOCK   ------------- */
+		if (DEBUG_ON) {
+			System.out.println(HEADINFO + "solveWeierstrass: " + "iterations for roots:" + iter);
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+
 		return cSol;
 	}    
 

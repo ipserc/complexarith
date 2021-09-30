@@ -56,7 +56,16 @@ public class Complex {
 	 * ***********************************************
 	 */
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.3 (2021_0327_2330)";
+	private final static String VERSION = "1.5 (2021_0929_2100)";
+	/* VERSION Release Note
+	 * 
+	 * 1.5 (2021_0929_2100)
+	 * added trunc method to truncate a double value.
+	 * added trunc method to truncate a Complex value.
+	 * round method uses BigDecimal.setScale(decs, RoundingMode.HALF_UP); for roundimg the double
+	 * round(Complex complex, int decs) uses the round method with the modulus of the complex leaving the phase unaltered
+	 * 
+	 */
 
 	public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
 	public final static double TWO_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
@@ -1322,7 +1331,8 @@ public class Complex {
 	 * @return true if this Complex value is zero, false otherwise.
 	 */
 	public boolean isZero() {
-		if (this.mod() <= ZERO_THRESHOLD) return true;
+		//if (this.mod() <= ZERO_THRESHOLD) return true;
+		if (Math.abs(this.rep()) <= ZERO_THRESHOLD && Math.abs(this.imp()) <= ZERO_THRESHOLD) return true;
 		else return false;
 	}
 	
@@ -1331,7 +1341,8 @@ public class Complex {
 	 * @return true if this Complex value is reduced zero, false otherwise.
 	 */
 	public boolean isZeroRed() {
-		if (this.mod() <= ZERO_THRESHOLD_R) return true;
+		//if (this.mod() <= ZERO_THRESHOLD_R) return true;
+		if (Math.abs(this.rep()) <= ZERO_THRESHOLD_R && Math.abs(this.imp()) <= ZERO_THRESHOLD_R) return true;
 		else return false;
 	}
 	
@@ -2199,16 +2210,65 @@ public class Complex {
 	}
 
 	/**
+	 * Truncates a double number to decs decimals
+	 * @param complex The number to round
+	 * @param d The number of decimals
+	 * @return The rounded number
+	 */
+	static public double trunc(double num, int d) {
+		String format = "%." + d +"f";
+		String strNum = String.format(format, num).replace(",", ".");
+		double roundNbr = Double.parseDouble(strNum);
+		return roundNbr;
+	}
+
+	/**
+	 * Truncates a complex from its Rectangular components
+	 * @param num Complex to truncate
+	 * @param d Nbr of decimals to keep
+	 * @return the new truncated complex
+	 */
+	static public Complex trunc(Complex num, int d) {
+		Complex truncated = new Complex();
+		truncated.setComplexRec(Complex.trunc(num.rep, d), Complex.trunc(num.imp, d));
+		return truncated;
+	}
+	
+	/**
 	 * Rounds a double number to decs decimals
-	 * @param num The number to round
+	 * @param complex The number to round
+	 * @param d The number of decimals
+	 * @return The rounded number
+	 */
+	private static double round(double value, int decs) {
+	    if (decs < 0) throw new IllegalArgumentException();
+
+	    BigDecimal bd = new BigDecimal(Double.toString(value));
+	    bd = bd.setScale(decs, RoundingMode.HALF_UP);
+	    return bd.doubleValue();
+	}
+	
+	/**
+	 * Rounds a complex number to decs decimals
+	 * @param complex The number to round
 	 * @param decs The number of decimals
 	 * @return The rounded number
 	 */
-	static public double round(double num, int decs) {
-		String format = "%." + decs +"f";
-		String strNum = String.format(format, num).replace(",", ".");
-		double round = Double.parseDouble(strNum);
-		return round;
+	static public Complex round(Complex complex, int decs) {
+		return round2(complex, decs);
+	}
+
+	/**
+	 * Rounds a complex number to decs decimals
+	 * @param complex The number to round
+	 * @param decs The number of decimals
+	 * @return The rounded number
+	 */
+	static public Complex round1(Complex complex, int decs) {
+		double rep, imp;
+		rep = round(complex.rep, decs);
+		imp = round(complex.rep, decs);
+		return new Complex(rep, imp);
 	}
 
 	/**
@@ -2217,9 +2277,9 @@ public class Complex {
 	 * @param decs The number of decimals
 	 * @return The rounded complex number
 	 */
-	static public Complex round(Complex num, int decs) {
+	static public Complex round2(Complex complex, int decs) {
 		Complex rndComplex = new Complex();
-		rndComplex.setComplexPol(round(num.mod, decs), num.pha);
+		rndComplex.setComplexPol(round(complex.mod, decs), complex.pha);
 		return rndComplex;
 	}
 

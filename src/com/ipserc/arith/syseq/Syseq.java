@@ -9,7 +9,13 @@ public class Syseq extends MatrixComplex{
 	private Boolean solved = false;
 
 	private final static String HEADINFO = "Syseq --- INFO: ";
-	private final static String VERSION = "1.2 (2021_0718_2300)";
+	private final static String VERSION = "1.3 (2021_0224_1312)";
+	/* VERSION Release Note
+	 * 
+	 * 1.3 (2021_0224_1312)
+	 * 
+	 * 
+	 */
 
 	/*
 	 * ***********************************************
@@ -58,7 +64,7 @@ public class Syseq extends MatrixComplex{
 	 * @param matrix The matrix with the equation system values
 	 */
 	public Syseq(MatrixComplex matrix) {
-		this.complexMatrix = matrix.complexMatrix;
+		this.complexMatrix = matrix.complexMatrix.clone();
 	}
 
 	/*
@@ -72,7 +78,7 @@ public class Syseq extends MatrixComplex{
 	 * @param lambda The complex value to calculate the solutions
 	 */
 	public void solveq(Complex lambda) {
-		final boolean DEBUG_ON = true; 
+		final boolean DEBUG_ON = false; 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
 			System.out.println(HEADINFO + Complex.repeat("# ", 40));
@@ -84,6 +90,7 @@ public class Syseq extends MatrixComplex{
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
+			partsol.println(HEADINFO + " partsol:");
 			System.out.println(HEADINFO + " --- END OF --- PARTICULAR SOLUTION ");
 			System.out.println(HEADINFO + Complex.repeat("# ", 40));
 		}
@@ -97,10 +104,12 @@ public class Syseq extends MatrixComplex{
 			}
 			/* ------------- END DEBUGGING BLOCK ------------- */
 
-			homosol = this.homogeneous().solve(lambda);
+			if (this.isHomogeneous()) homosol = partsol;
+			else homosol = this.homogeneous().solve(lambda);
 			
 			/* -------------   DEBUGGING BLOCK   ------------- */
 			if (DEBUG_ON) {
+				homosol.println(HEADINFO + " homosol:");
 				System.out.println(HEADINFO + " --- END OF --- HOMOGENEOUS SOLUTION ");
 				System.out.println(HEADINFO + Complex.repeat("# ", 40));
 			}
@@ -126,9 +135,11 @@ public class Syseq extends MatrixComplex{
 		
 		if (!solved) this.solveq();
 		switch (this.typeEqSys()) {
-			case DETERMINATE: sol = partsol; break;
-			case INDETERMINATE: sol =  partsol.plus(homosol.times(n)); break;
-			case INCONSISTENT: sol = partsol; break;
+			case DETERMINATE:	sol = partsol; break;
+			case INDETERMINATE:	if (this.isHomogeneous()) sol = partsol.times(n); 
+								else sol = partsol.plus(homosol.times(n));
+								break;
+			case INCONSISTENT:	sol = partsol; break;
 		}
 		return sol;
 	}
@@ -140,7 +151,6 @@ public class Syseq extends MatrixComplex{
 	public MatrixComplex solution() {
 		return this.solution(1);
 	}
-	
 	
 	/**
 	 * Checks the solution putting that solution in the equation system and operating 
@@ -155,7 +165,6 @@ public class Syseq extends MatrixComplex{
 		solution.println                                                 ("Solution                                      ");
 		solution.times(uknMatix).minus(unitMatrix.times(indTerm)).println("Check: solution.times(uknMatix).minus(indTerm)");
 	}
-
 	
 	/*
 	 * ***********************************************
@@ -193,11 +202,11 @@ public class Syseq extends MatrixComplex{
 		System.out.println(title);
 		if (!solved) this.solveq();
 		if (typeEqSys() == INCONSISTENT) {
-			System.out.println("There are no solutions for an INCONSISTENT Equation System");
+			System.out.println(HEADINFO + ":There are no solutions for an INCONSISTENT Equation System");
 		}
 		else {
 			partsol.println("Particular  Solution");
-			if (homosol != null) homosol.println("Homogeneous Solution");
+			if (homosol != null && !isHomogeneous()) homosol.println("Homogeneous Solution");
 		}
 	}
 
@@ -207,7 +216,7 @@ public class Syseq extends MatrixComplex{
 	public String MatrixComplex_sysEq() {
 		String toMMatrixComplex;
 		toMMatrixComplex = this.preMatrixComplex();
-		toMMatrixComplex = "Syseq aMatrix = new Syseq("+");";
+		toMMatrixComplex = "Syseq aMatrix = new Syseq("+ toMMatrixComplex +");";
 		return toMMatrixComplex;
 	}
 	
