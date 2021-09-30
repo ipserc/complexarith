@@ -1,5 +1,5 @@
 /**
- * /usr/lib/jvm/java-11-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin TestComplex.TestSyseq1
+ * /usr/lib/jvm/java-11-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin TestComplex.TestSyseq8
  */
 package TestComplex;
 
@@ -8,7 +8,7 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.syseq.*;
 
-public class TestSyseq1 {
+public class TestSyseq8 {
 
 	private static void solve(Syseq fMatrix) {
 		MatrixComplex solution;
@@ -46,7 +46,7 @@ public class TestSyseq1 {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
+public static void main(String[] args) {
 		Syseq fMatrix = new Syseq();
 		
 		Syseq.version();
@@ -54,59 +54,50 @@ public class TestSyseq1 {
 		Complex.setFormatON();
 		Complex.setFixedON(3);
 		
-		fMatrix = new Syseq(  " 1,-2, 3 ,1; "
-							+ "-2, 5,-1, 2; "
+		fMatrix = new Syseq(  " 1,-2, 3 ,0; "
+							+ "-2, 5,-1, 0; "
 							+ " 4,-9, 7, 0");
 		solve(fMatrix);
 
-		fMatrix = new Syseq(  " 3, 1,-1,-4,  6;"
-							+ " 1,-2, 3, 1,  2;"
-							+ "-2, 5,-1, 2, -3;"
-							+ "10,-7, 5,-8, 19");
+		fMatrix = new Syseq(  " 3, 1,-1,-4,  0;"
+							+ " 1,-2, 3, 1,  0;"
+							+ "-2, 5,-1, 2,  0;"
+							+ "10,-7, 5,-8,  0");
 		solve(fMatrix);
 		
-		fMatrix = new Syseq(  " 1, 2, 1, -1;"
-				            + " 2, 4, 2, -2;"
-				            + " 3, 6, 3, -3");
+		fMatrix = new Syseq(  " 1, 2, 1, 0;"
+				            + " 2, 4, 2, 0;"
+				            + " 3, 6, 3, 0");
 		solve(fMatrix);
 		
-		fMatrix = new Syseq(   " 1, -3,  4,  2,-1,  3;"
-							+  " 3, -9, 12,  6,-3,  9;"
-							+  "-1, -5,  2,  0,-3,  1;"
-							+  " 4,-12, 16,  8,-4, 12;"
-							+  "-5, 15,-20,-10, 5,-15;");
+		fMatrix = new Syseq(   " 1, -3,  4,  2,-1,  0;"
+							+  " 3, -9, 12,  6,-3,  0;"
+							+  "-1, -5,  2,  0,-3,  0;"
+							+  " 4,-12, 16,  8,-4,  0;"
+							+  "-5, 15,-20,-10, 5,  0;");
 		solve(fMatrix);
 
-		fMatrix = new Syseq(  " 1, -3,  1;"
-							+ "-2,  3, -1");
+		fMatrix = new Syseq(  " 1, -3,  0;"
+							+ "-2,  3, 0");
 		solve(fMatrix);
 
 		fMatrix = new Syseq(  " 1, -3, 0;"
 							+ " 2, -6, 0");
 		solve(fMatrix);
 		
-		fMatrix = new Syseq(  " 1, -3,  1;"
-							+ "-2,  6,  1");
+		fMatrix = new Syseq(  " 1, -3,  0;"
+							+ "-2,  6,  0");
 		solve(fMatrix);
 		
-		fMatrix = new Syseq(  " 1, -3,  1;"
-							+ "-2,  6, -2");
+		fMatrix = new Syseq(  " 1, -3,  0;"
+							+ "-2,  6, 0");
 		solve(fMatrix);
 
-		fMatrix = new Syseq(   " 1, -3,  4,  2,-1,  3;"
-							+  " 3, -9, 12,  6,-3,  9;"
-							+  "-1, -5, 2i,  0,-3,  1;"
-							+  " 4,-12, 16,  8,-4, 12;"
-							+  "-5, 15,-20,-10, 5,-15;");
-		solve(fMatrix);
-
-		fMatrix = new Syseq(5); fMatrix.initMatrixRandomRecInt(10);
-		solve(fMatrix);
-		
-		fMatrix = new Syseq(3); fMatrix.initMatrixRandomInteger(1);
-		solve(fMatrix);
-		
-		fMatrix = new Syseq(7); fMatrix.initMatrixRandomInteger(10);
+		fMatrix = new Syseq(   " 1, -3,  4,  2,-1,  0;"
+							+  " 3, -9, 12,  6,-3,  0;"
+							+  "-1, -5, 2i,  0,-3,  0;"
+							+  " 4,-12, 16,  8,-4, 0;"
+							+  "-5, 15,-20,-10, 5,0;");
 		solve(fMatrix);
 			
 		fMatrix = new Syseq("2.000,-2.000,-4.000,0.000;-2.000,2.000,4.000,0.000;0.000,0.000,0.000-0.000i,0.000");
@@ -119,18 +110,18 @@ public class TestSyseq1 {
 		solve(fMatrix);
 		
 		fMatrix = new Syseq(""+
-				  " 1.00,-1.00,-1.00, 1.00, 1.00;"
-				+ " 1.00, 1.00,-1.00,-1.00,-1.00;"
-				+ "-1.00,-1.00, 1.00, 1.00, 1.00;"
-				+ " 1.00,-1.00,-1.00,-1.00,-1.00");
+				  " 1.00,-1.00,-1.00, 1.00, 0.00;"
+				+ " 1.00, 1.00,-1.00,-1.00,-0.00;"
+				+ "-1.00,-1.00, 1.00, 1.00, 0.00;"
+				+ " 1.00,-1.00,-1.00,-1.00,-0.00");
 		solve(fMatrix);
 		
 		fMatrix = new Syseq(""+
-				"  1 , -1 ,  1 ,  1 , -1 , -1 ;"
-			+	"  1 , -1 , -1 ,  1 , -1 , -1 ;"
-			+	"  1 , -1 , -1 ,  1 , -1 ,  1 ;"
-			+	" -1 , -1 ,  1 ,  1 , -1 ,  1 ;"
-			+	" -1 , -1 ,  1 , -1 , -1 ,  1 ");
+				"  1 , -1 ,  1 ,  1 , -1 , -0 ;"
+			+	"  1 , -1 , -1 ,  1 , -1 , -0 ;"
+			+	"  1 , -1 , -1 ,  1 , -1 ,  0 ;"
+			+	" -1 , -1 ,  1 ,  1 , -1 ,  0 ;"
+			+	" -1 , -1 ,  1 , -1 , -1 ,  0 ");
 		solve(fMatrix);
 		
 	}

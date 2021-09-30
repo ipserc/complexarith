@@ -8,16 +8,28 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.syseq.*;
 
-public class TestSyseq4 {
+public class TestSyseq7 {
+
+	private static void checkSol(MatrixComplex fMatrix, MatrixComplex solution) {
+		MatrixComplex indTerm = fMatrix.indMatrix().transpose();
+		MatrixComplex uknMatix = fMatrix.unkMatrix().transpose();
+		
+		indTerm.println                 ("Independent Terms");
+		solution.println                ("Solution         ");
+		solution.times(uknMatix).println("Check            ");
+	}
 
 	private static void solve(Syseq fMatrix) {
 		MatrixComplex solution;
 		int boxSize = 65;
 		
+		System.out.println(Complex.boxTitleRandom(boxSize, "LINEAR EQUATIONS SYSTEM TEST"));
+		
 		fMatrix.print(Complex.boxTextRandom(boxSize,"Equation System"));
 		
      	System.out.println(Complex.boxTextRandom(boxSize, "System Solve Commands"));
-     	fMatrix.printSystemEqSolve(outputFormat.MAXIMA, true);
+     	System.out.println("MComplex:" + fMatrix.toMatrixComplex());
+		fMatrix.printSystemEqSolve(outputFormat.MAXIMA, true);
 		fMatrix.printSystemEqSolve(outputFormat.OCTAVE, true);
 		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true);
 
@@ -25,8 +37,7 @@ public class TestSyseq4 {
 		switch (fMatrix.typeEqSys()) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
-		     	System.out.println(Complex.boxTextRandom(boxSize, "Solutions check"));				
-		     	fMatrix.checkSol(fMatrix.solution());
+				checkSol(fMatrix, fMatrix.solution());
 				break ;
 			} 
 			default: { // MatrixComplex.INDETERMINATE
@@ -35,7 +46,7 @@ public class TestSyseq4 {
 					double n = i/10.0;
 					System.out.println(Complex.repeat("*", 20) + " Sol nbr:" + i); 
 					solution = fMatrix.solution(n);
-					fMatrix.checkSol(solution);
+					checkSol(fMatrix, solution);
 				}		
 			}
 		}
@@ -45,25 +56,18 @@ public class TestSyseq4 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Syseq aMatrix;
-		int boxSize = 65;
-		int filas = 5;
+		Syseq fMatrix = new Syseq();
+		
+		Syseq.version();
 
-     	Complex.setFormatON();
-     	Complex.setFixedON(3);
-
-     	Syseq.version();
-
-		System.out.println(Complex.boxTitleRandom(boxSize, "SYSEQ TEST"));
-		System.out.println("Testing with Sys. Eq. of " +filas);
-		for(int i = 1; i < 10; ++i) {
-			System.out.println(Complex.boxTitleRandom(boxSize, "LINEAR EQUATIONS SYSTEM TEST"));
-			System.out.println(Complex.boxTextRandom(boxSize, "TEST #"+i));   	
-	     	aMatrix = new Syseq(filas);
-			aMatrix.initMatrixRandomInteger(1);
-			aMatrix.println("Matrix");
-	    	System.out.println("MATRIX COMPLEX:"+aMatrix.toMatrixComplex());
-			solve(aMatrix);
-		}
+		Complex.setFormatON();
+		Complex.setFixedON(3);
+		
+		fMatrix = new Syseq(""+
+				  " 1.00,-1.00,-1.00, 1.00, 1.00;"
+				+ " 1.00, 1.00,-1.00,-1.00,-1.00;"
+				+ "-1.00,-1.00, 1.00, 1.00, 1.00;"
+				+ " 1.00,-1.00,-1.00,-1.00,-1.00");
+		solve(fMatrix);
 	}
 }

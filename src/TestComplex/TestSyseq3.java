@@ -10,15 +10,6 @@ import com.ipserc.arith.syseq.*;
 
 public class TestSyseq3 {
 
-	private static void checkSol(MatrixComplex fMatrix, MatrixComplex solution) {
-		MatrixComplex indTerm = fMatrix.indMatrix().transpose();
-		MatrixComplex uknMatix = fMatrix.unkMatrix().transpose();
-		
-		indTerm.println                 ("Independent Terms");
-		solution.println                ("Solution         ");
-		solution.times(uknMatix).println("Check            ");
-	}
-
 	private static void solve(Syseq fMatrix) {
 		MatrixComplex solution;
 		int boxSize = 65;
@@ -37,7 +28,7 @@ public class TestSyseq3 {
 		switch (fMatrix.typeEqSys()) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
-				checkSol(fMatrix, fMatrix.solution());
+				fMatrix.checkSol(fMatrix.solution());
 				break ;
 			} 
 			default: { // MatrixComplex.INDETERMINATE
@@ -46,7 +37,7 @@ public class TestSyseq3 {
 					double n = i/10.0;
 					System.out.println(Complex.repeat("*", 20) + " Sol nbr:" + i); 
 					solution = fMatrix.solution(n);
-					checkSol(fMatrix, solution);
+					fMatrix.checkSol(solution);
 				}		
 			}
 		}
@@ -94,6 +85,7 @@ public class TestSyseq3 {
 			+	"-1.0,-1.0i, 1.0,-2.0i, 2.0");
 		solve(fMatrix);
 		
+		System.out.println(Complex.repeat("-",65));
 		MatrixComplex matrix = new MatrixComplex(7,8);
 		matrix.initMatrixRandomRec(5);
 		System.out.println(matrix.toMatrixComplex());

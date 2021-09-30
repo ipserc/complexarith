@@ -1,5 +1,5 @@
 /**
- * /usr/lib/jvm/java-11-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin TestComplex.TestSyseq1
+ * /usr/lib/jvm/java-11-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin TestComplex.TestSyseq8
  */
 package TestComplex;
 
@@ -8,14 +8,14 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.syseq.*;
 
-public class TestSyseq2 {
+public class TestSyseq10 {
 
 	private static void solve(Syseq fMatrix) {
 		MatrixComplex solution;
 		int boxSize = 65;
 		
 		System.out.println(Complex.boxTitleRandom(boxSize, "LINEAR EQUATIONS SYSTEM TEST"));
-
+		
 		fMatrix.print(Complex.boxTextRandom(boxSize,"Equation System"));
 		
      	System.out.println(Complex.boxTextRandom(boxSize, "System Solve Commands"));
@@ -46,36 +46,18 @@ public class TestSyseq2 {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		Syseq fMatrix = new Syseq();
+public static void main(String[] args) {
+		Complex.setFormatON();
+		Complex.setFixedON(3);
+		Syseq.version();
 		
-     	Complex.setFormatON();
-     	//Complex.setFixedON(3);
+		//Syseq aMatrix = new Syseq(("-1.000,-4.000,-3.000,0.000;4.000,7.000,3.000,0.000;-3.000,-3.000,0.000,0.000"));
+		//Syseq aMatrix  = new Syseq("4.000,4.000,3.000,0.000;-4.000,-4.000,-3.000,0.000;3.000,3.000,3.000,0.000");
+		Syseq aMatrix = new Syseq(("-4.000,-4.000,-3.000,0.000;4.000,4.000,3.000,0.000;-3.000,-3.000,-3.000,0.000"));
+		//Syseq aMatrix = new Syseq("-0.300-3.074i,-1.000i,-1.000i,0.000;1.000i,-0.300-1.074i,1.000,0.000;-1.000i,-1.000,-0.300-1.074i,0.000");
+		//Syseq aMatrix = new Syseq("0.727-1.142i,-1.000i,-1.000i,0.000;1.000i,0.727+0.858i,1.000,0.000;-1.000i,-1.000,0.727+0.858i,0.000");
+		//Syseq aMatrix = new Syseq("-0.427+0.216i,-1.000i,-1.000i,0.000;1.000i,-0.427+2.216i,1.000,0.000;-1.000i,-1.000,-0.427+2.216i,0.000");
 
-     	fMatrix.version();
-
-     	/**/
-     	fMatrix = new Syseq(""+
-     			"  1.000 ,  1.000 ,  1.000 , 0;" +
-     			" -1.000 , -1.000 , -1.000 , 0;" +
-     			"  1.000 ,  1.000 , -1.000 , 0");
-		solve(fMatrix);
-		/**/
-     	
-		/**/
-		fMatrix = new Syseq(""+
-				"	-1.000,	-1.000,	-1.000,	0.000;"
-				+ "	 1.000,	 1.000,	 1.000,	0.000;"
-				+ "	-1.000,	-1.000,	 1.000,	0.000");
-		solve(fMatrix);
-		/**/
-		
-		/**/
-		fMatrix = new Syseq(""+
-				"	-2.000,	-1.000,	-1.000,	0.000;"
-				+ "	 1.000,	 0.000,	 1.000,	0.000;"
-				+ "	-1.000,	-1.000,	 0.000,	0.000");
-		solve(fMatrix);
-		/**/
+		solve(aMatrix);
 	}
 }
