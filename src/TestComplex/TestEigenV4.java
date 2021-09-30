@@ -5,7 +5,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
 
-public class TestEigenV5 {
+public class TestEigenV4 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
@@ -102,30 +102,41 @@ public class TestEigenV5 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-    	MatrixComplex aMatrix;
+    	MatrixComplex aMatrix = new MatrixComplex();
 
      	Complex.setFormatON();
      	Complex.setFixedON(3);
      	Eigenspace.version();
 
-     	aMatrix = new MatrixComplex(
-     			  " 3, 2,-1;"
-     			+ " 2 ,3, 1;"
-     			+ " 0, 0, 5"); 
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000i ,  1.000i ,  1.000i ;" +
+     			" -1.000i , -1.000i , -1.000i ;" +
+     			"  1.000i ,  1.000i , -1.000i ");
      	doEigenCalculations(aMatrix);
-     	
-     	/**/
-		MatrixComplex D = new MatrixComplex(
-				  " 1, 0, 0;"
-				+ " 0, 5, 0;"
-				+ " 0, 0, 5");
-		
-		MatrixComplex P = new MatrixComplex(
-				  "-1,-0.5, 1;"
-				+ " 1, 0, 1;"
-				+ " 0, 1, 0");
-		
-		P.times(D).times(P.inverse()).println("Matriz");
-	/**/
+
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000i ,  1.000i ,  1.000i ;" +
+     			" -1.000i , -1.000i , -1.000  ;" +
+     			"  1.000i ,  1.000  , -1.000i ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000i ,  1.000  ,  1.000i ;" +
+     			" -1.000  , -1.000i , -1.000  ;" +
+     			"  1.000i ,  1.000  , -1.000i ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			"  1.000  ,  1.000i ,  1.000 ;" +
+     			" -1.000i , -1.000i  , -1.000i;" +
+     			"  1.000  ,  1.000i , -1.000 ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			"  2  ,  2  ,  1 ;" +
+     			"  1  ,  3  ,  1 ;" +
+     			"  1  ,  2  ,  2 ");
+     	doEigenCalculations(aMatrix);
+
 	}
 }

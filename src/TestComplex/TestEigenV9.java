@@ -5,7 +5,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
 
-public class TestEigenV5 {
+public class TestEigenV9 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
@@ -97,7 +97,7 @@ public class TestEigenV5 {
     	System.out.println();
     	System.out.println();
 	}
-	
+
 	/**
 	 * @param args
 	 */
@@ -108,24 +108,55 @@ public class TestEigenV5 {
      	Complex.setFixedON(3);
      	Eigenspace.version();
 
-     	aMatrix = new MatrixComplex(
-     			  " 3, 2,-1;"
-     			+ " 2 ,3, 1;"
-     			+ " 0, 0, 5"); 
+     	aMatrix = new MatrixComplex(""+
+     			" 3, 2;"+
+     			" 0, 1");
+     	doEigenCalculations(aMatrix);
+     	aMatrix = aMatrix.transpose();
+     	doEigenCalculations(aMatrix);
+    	
+     	aMatrix = new MatrixComplex(""
+     			+ " 3,  2, -1;"
+     			+ " 2, -1, -2;"
+     			+ "-2,  6,  4"
+     			);
+     	doEigenCalculations(aMatrix);
+     	aMatrix = aMatrix.transpose();
      	doEigenCalculations(aMatrix);
      	
-     	/**/
-		MatrixComplex D = new MatrixComplex(
-				  " 1, 0, 0;"
-				+ " 0, 5, 0;"
-				+ " 0, 0, 5");
-		
-		MatrixComplex P = new MatrixComplex(
-				  "-1,-0.5, 1;"
-				+ " 1, 0, 1;"
-				+ " 0, 1, 0");
-		
-		P.times(D).times(P.inverse()).println("Matriz");
-	/**/
+     	aMatrix = new MatrixComplex(""
+     			+ " 3, -1,  1;"
+     			+ " 2,  4,  2;"
+     			+ "-2,  3,  0"
+     			);
+     	doEigenCalculations(aMatrix);
+     	aMatrix = aMatrix.transpose();
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""
+     			+ " 3,  1,  1;"
+     			+ " 3,  4,  2;"
+     			+ "-5,  3, -1"
+     			);
+     	doEigenCalculations(aMatrix);
+     	aMatrix = aMatrix.transpose();
+     	doEigenCalculations(aMatrix);
+     	
+     	aMatrix = new MatrixComplex(""
+     			+ " 5, -2, -3;"
+     			+ " 2,  0, -2;"
+     			+ " 3, -2, -1"
+     			);
+     	doEigenCalculations(aMatrix);
+     	aMatrix = aMatrix.transpose();
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""
+     			+ " 1,  2;"
+     			+ "-2, -1"
+     			);
+     	doEigenCalculations(aMatrix);
+     	aMatrix = aMatrix.transpose();
+     	doEigenCalculations(aMatrix);
 	}
 }

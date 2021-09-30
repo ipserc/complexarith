@@ -44,11 +44,17 @@ public class TestEigenV2 {
 	    	}
     	}
 
-    	System.out.println(Complex.boxTextRandom(boxSize, "Chacteristics Equations"));
-    	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
-
+    	System.out.println(Complex.boxTextRandom(boxSize, "Characteristics Equations"));
+    	System.out.println(Complex.boxTextRandom(boxSize, "OCTAVE"));
+    	eigenSpace.printCharactEq(outputFormat.OCTAVE, true);
+       	System.out.println(Complex.boxTextRandom(boxSize, "MAXIMA"));
+    	eigenSpace.printCharactEq(outputFormat.MAXIMA, true);
+       	System.out.println(Complex.boxTextRandom(boxSize, "MATRIXCOMPLEX"));
+    	eigenSpace.printCharactEq(outputFormat.MATRIXCOMPLEX, true);
+ 
     	eigenSpace.vectors().println(Complex.boxTextRandom(boxSize, "EigenVectors Calculated"));
-
+    	System.out.println("EigenVectors - Determinant:"+eigenSpace.vectors().determinant());
+   	
     	System.out.println(Complex.boxTextRandom(boxSize, "Check eigenvectors"));
     	int colLen = aMatrix.cols(); //complexMatrix[0].length;
     	eigenVect = new MatrixComplex(1,colLen);
@@ -66,11 +72,17 @@ public class TestEigenV2 {
     	System.out.println(Complex.boxTextRandom(boxSize, "Some other calculations"));
     	eigenSpace.vectors().adjoint().times(eigenSpace.vectors()).println("eVT·eV:");
     	Diagfactor diagonal = new Diagfactor(aMatrix);
-    	diagonal.diagonalize();
-    	if (diagonal.factorized()) {
-	    	diagonal.D().println("Matriz Diagonal (D):");
-	    	diagonal.P().println("Matriz Valores Propios (P):");
-	    	diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println("P·D·P⁻¹:");
+    	if (eigenSpace.isDiagonaizable()) {
+        	System.out.println(Complex.boxTextRandom(boxSize, "IS DIAGONALIZABLE"));
+        	diagonal.diagonalize();
+        	if (diagonal.factorized()) {
+    	    	diagonal.D().println("Matriz Diagonal (D):");
+    	    	diagonal.P().println("Matriz Valores Propios (P):");
+    	    	diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println("P·D·P⁻¹:");
+        	}
+    	}
+    	else {
+        	System.out.println(Complex.boxTextRandom(boxSize, "IS NOT!!!!!!!!!!!!!! DIAGONALIZABLE"));    		
     	}
     	/*
     	System.out.print("press any key");
@@ -80,6 +92,10 @@ public class TestEigenV2 {
 			e.printStackTrace();
 		}
 		*/
+       	System.out.println(Complex.boxTextRandom(boxSize, "-- END EIGENVALUES & EIGENVECTORS TEST END --"));
+    	System.out.println();
+    	System.out.println();
+    	System.out.println();
 	}
 	
 	/**
@@ -135,6 +151,7 @@ public class TestEigenV2 {
      			" -1.000 , -1.000 , -1.000 ;" +
      			"  1.000 ,  1.000 , -1.000 ");
      	doEigenCalculations(aMatrix);
+     	
      	aMatrix = new MatrixComplex(""+
      			" -1.000 ,  3.000 ,  6.000 , -2.000 ,  3.000;" +
      			"  2.000 , -1.000 , -1.000 ,  2.000 , -1.000;" +
@@ -142,11 +159,40 @@ public class TestEigenV2 {
      			"  3.000 ,  0.000 , -1.000 ,  4.000 , -2.000;" +
      			" -1.000 , -1.000 , -2.000 , -5.000 , -2.000");
      	doEigenCalculations(aMatrix);
+     	
      	aMatrix = new MatrixComplex(""+
      			"  4.000 , -1.000 ,  1.000 ;" +
      			"  0.000 ,  1.000 ,  3.000 ;" +
      			"  0.000 ,  2.000 ,  2.000 ");
      	doEigenCalculations(aMatrix);
 /* */
+
+     	aMatrix = new MatrixComplex(""+
+     			"  4.000 , -1.000 ,  6.000 ;" +
+     			"  2.000 ,  1.000 ,  6.000 ;" +
+     			"  2.000 , -1.000 ,  8.000 ");
+     	doEigenCalculations(aMatrix);
+     	
+     	aMatrix = new MatrixComplex(""+
+     			"  4.000 , -1.000 ,  6.000 ;" +
+     			"  0.000 ,  1.000 ,  6.000 ;" +
+     			"  0.000 ,  0.000 ,  8.000 ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			" -1.000 ,  3.000 ,  6.000 , -2.000 ,  3.000;" +
+     			" -1.000 ,  4.000 ,  6.000 , -2.000 ,  3.000;" +
+     			" -1.000 ,  3.000 ,  6.000 , -2.000 ,  3.000;" + 
+     			" -1.000 ,  3.000 ,  6.000 , -2.000 ,  3.000;" +
+     			" -1.000 ,  3.000 ,  6.000 , -2.000 ,  3.000");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			" -1.000 ,  3.000 ,  6.000;" +
+     			" -2.000 ,  5.000 ,  5.000;" +
+     			" -1.000 ,  2.000 , -1.000");
+     	//aMatrix = aMatrix.hermitian();
+     	doEigenCalculations(aMatrix);
+
 	}
 }

@@ -2,10 +2,11 @@ package TestComplex;
 
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
+import com.ipserc.arith.syseq.Syseq;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
 
-public class TestEigenV5 {
+public class TestEigenV10 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
@@ -31,6 +32,11 @@ public class TestEigenV5 {
 
     	System.out.println(Complex.boxTextRandom(boxSize, "EigenValues Calculated"));
     	{
+    		eigenSpace.values().println("Eigenvalues Array");
+    		/*
+    		 * Get the 1st eigenvalue
+    		 * keep it to compare with the next one, if is the same one jump to the next inside the loop
+    		 */
 	    	Complex eVal = eigenSpace.values().getItem(0,0);
 			System.out.println("EigenValue: " + eVal.toString() + 
 					" - arith mult:" + eigenSpace.arithmeticMultiplicity(eVal) + 
@@ -49,6 +55,8 @@ public class TestEigenV5 {
     	eigenSpace.printCharactEq(outputFormat.OCTAVE, true);
        	System.out.println(Complex.boxTextRandom(boxSize, "MAXIMA"));
     	eigenSpace.printCharactEq(outputFormat.MAXIMA, true);
+       	System.out.println(Complex.boxTextRandom(boxSize, "WOLFRAM"));
+    	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
        	System.out.println(Complex.boxTextRandom(boxSize, "MATRIXCOMPLEX"));
     	eigenSpace.printCharactEq(outputFormat.MATRIXCOMPLEX, true);
  
@@ -72,17 +80,11 @@ public class TestEigenV5 {
     	System.out.println(Complex.boxTextRandom(boxSize, "Some other calculations"));
     	eigenSpace.vectors().adjoint().times(eigenSpace.vectors()).println("eVT·eV:");
     	Diagfactor diagonal = new Diagfactor(aMatrix);
-    	if (eigenSpace.isDiagonaizable()) {
-        	System.out.println(Complex.boxTextRandom(boxSize, "IS DIAGONALIZABLE"));
-        	diagonal.diagonalize();
-        	if (diagonal.factorized()) {
-    	    	diagonal.D().println("Matriz Diagonal (D):");
-    	    	diagonal.P().println("Matriz Valores Propios (P):");
-    	    	diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println("P·D·P⁻¹:");
-        	}
-    	}
-    	else {
-        	System.out.println(Complex.boxTextRandom(boxSize, "IS NOT!!!!!!!!!!!!!! DIAGONALIZABLE"));    		
+    	diagonal.diagonalize();
+    	if (diagonal.factorized()) {
+	    	diagonal.D().println("Matriz Diagonal (D):");
+	    	diagonal.P().println("Matriz Valores Propios (P):");
+	    	diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println("P·D·P⁻¹:");
     	}
     	/*
     	System.out.print("press any key");
@@ -93,11 +95,33 @@ public class TestEigenV5 {
 		}
 		*/
        	System.out.println(Complex.boxTextRandom(boxSize, "-- END EIGENVALUES & EIGENVECTORS TEST END --"));
-    	System.out.println();
-    	System.out.println();
-    	System.out.println();
+       	System.out.println("");
+     	{
+     		// Forma de Jordan de los autovalores
+     		/*
+     		MatrixComplex jMatrix = new MatrixComplex(""
+     				+ "1,1,0;"
+     				+ "0,1,0;"
+     				+ "0,0,2");
+     		*/
+     	   	for (int i = 0; i < eigenSpace.values().rows(); ++i) {
+     	   		int arithMult = eigenSpace.arithmeticMultiplicity(eigenSpace.values().getItem(i,0));
+     	   		int geomMult = eigenSpace.geometricMultiplicity(eigenSpace.values().getItem(i,0));
+     	   		if ( arithMult > 1) {
+     	   			
+     	   		}
+     		
+     		MatrixComplex CI_matrix = (aMatrix.minus(aMatrix.eye())).power(2).augment();
+     		Syseq sysCI_matrix = new Syseq(CI_matrix);
+     		sysCI_matrix.checkSol(sysCI_matrix.solution());
+     		MatrixComplex sol1 = new MatrixComplex(1,1);
+     		sol1.complexMatrix[0] = sysCI_matrix.solution().complexMatrix[0].clone();
+     		sol1.println("Sol1");
+     		
+     	   	}
+     	}
 	}
-	
+
 	/**
 	 * @param args
 	 */
@@ -108,24 +132,21 @@ public class TestEigenV5 {
      	Complex.setFixedON(3);
      	Eigenspace.version();
 
-     	aMatrix = new MatrixComplex(
-     			  " 3, 2,-1;"
-     			+ " 2 ,3, 1;"
-     			+ " 0, 0, 5"); 
+     	/*
+     	aMatrix = new MatrixComplex(""
+     			+ " 3,  1,  1;"
+     			+ " 3,  4,  2;"
+     			+ "-5,  3, -1"
+     			);
+     	*/
+     	
+     	aMatrix = new MatrixComplex(""
+     			+ " 0,  2,  2;"
+     			+ " 2,  0, -1;"
+     			+ "-1, -1,  0"
+     			);
+
      	doEigenCalculations(aMatrix);
      	
-     	/**/
-		MatrixComplex D = new MatrixComplex(
-				  " 1, 0, 0;"
-				+ " 0, 5, 0;"
-				+ " 0, 0, 5");
-		
-		MatrixComplex P = new MatrixComplex(
-				  "-1,-0.5, 1;"
-				+ " 1, 0, 1;"
-				+ " 0, 1, 0");
-		
-		P.times(D).times(P.inverse()).println("Matriz");
-	/**/
 	}
 }

@@ -5,7 +5,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
 
-public class TestEigenV5 {
+public class TestEigenV3 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
@@ -102,30 +102,58 @@ public class TestEigenV5 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-    	MatrixComplex aMatrix;
+    	MatrixComplex aMatrix = new MatrixComplex();
 
      	Complex.setFormatON();
      	Complex.setFixedON(3);
      	Eigenspace.version();
 
-     	aMatrix = new MatrixComplex(
-     			  " 3, 2,-1;"
-     			+ " 2 ,3, 1;"
-     			+ " 0, 0, 5"); 
+     	aMatrix = new MatrixComplex(""+
+     			"  4.000 , -1.000 ,  1.000 ;" +
+     			"  0.000 ,  1.000 ,  3.000 ;" +
+     			"  0.000 ,  2.000 ,  2.000 ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			"  4.100 , -1.000 ,  1.100 ;" +
+     			"  0.000 ,  1.000 ,  3.000 ;" +
+     			"  0.100 ,  2.000 ,  2.000 ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			"  5 , -2 , -3 ;" +
+     			"  2 ,  0 , -2 ;" +
+     			"  3 , -2 , -1 ");
      	doEigenCalculations(aMatrix);
      	
-     	/**/
-		MatrixComplex D = new MatrixComplex(
-				  " 1, 0, 0;"
-				+ " 0, 5, 0;"
-				+ " 0, 0, 5");
-		
-		MatrixComplex P = new MatrixComplex(
-				  "-1,-0.5, 1;"
-				+ " 1, 0, 1;"
-				+ " 0, 1, 0");
-		
-		P.times(D).times(P.inverse()).println("Matriz");
-	/**/
+     	aMatrix = new MatrixComplex(""+
+     			"  1 , -1 ,  2 ;" +
+     			" -1 ,  1 , -2 ;" +
+     			"  2 , -2 ,  4 ");
+     	doEigenCalculations(aMatrix);
+     	
+     	aMatrix = new MatrixComplex(""+
+     			"  4 , -1 ,  6 ;" +
+     			"  2 ,  1 ,  6 ;" +
+     			"  2 , -1 ,  8 ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			"  1 ,  3 ,  3 ;" +
+     			" -3 , -5 , -3 ;" +
+     			"  3 ,  3 ,  1 ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			"  2 ,  4 ,  3 ;" +
+     			" -4 , -6 , -3 ;" +
+     			"  3 ,  3 ,  1 ");
+     	doEigenCalculations(aMatrix);
+
+     	aMatrix = new MatrixComplex(""+
+     			"  2 ,  4 ,  3 ;" +
+     			" -4 , -6 , -3 ;" +
+     			" -3 ,  7 ,  1 ");
+     	doEigenCalculations(aMatrix);
 	}
 }
