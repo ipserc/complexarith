@@ -49,9 +49,9 @@ public class Vector extends MatrixComplex {
 	}
 
 	/**
-	 * Instantiates a new vector initialized to the values given in "cadena". "cadena" is the string representation of the. The vector is a string with the coefficients separated by commas.
+	 * Instantiates a new vector initialized with the values given in "cadena". "cadena" is the string representation of the. The vector is a string with the coefficients separated by commas.
 	 * If the vector has more than one row, the constructor returns null.
-	 * @param cadena The vector as a string with the coefficients separated by commas.
+	 * @param cadena The vector with with the coefficients given in "cadena".
 	 */
 	public Vector(String cadena) {
 		super(cadena);
@@ -60,7 +60,23 @@ public class Vector extends MatrixComplex {
 			System.err.println(HEADINFO + "Not valid vector: vector set to null vector.");
 			this.complexMatrix = null;
 		}
-	}    
+	}
+	
+	/**
+	 * Instantiates a new vector initialized with the values given in the row. row is a MatrixComplex one row dimensional array.
+	 * If the row has more than one row, the constructor returns null.
+	 * @param cadena The vector with the coefficients given by row.
+	 */
+	public Vector(MatrixComplex row) {
+		super(1, row.cols());
+		if (row.rows() > 1) {
+			System.err.println(HEADINFO + "Not valid vector: vector set to null vector.");
+			this.complexMatrix = null;
+		}
+		else {
+			this.complexMatrix = row.complexMatrix.clone();
+		}
+	}
 
 	/*
 	 * ***********************************************

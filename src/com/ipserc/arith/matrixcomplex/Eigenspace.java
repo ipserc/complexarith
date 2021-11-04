@@ -11,6 +11,7 @@ package com.ipserc.arith.matrixcomplex;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.polynom.Polynom;
 import com.ipserc.arith.syseq.Syseq;
+import com.ipserc.arith.vector.*;
 
 /**
  * 
@@ -134,6 +135,14 @@ public class Eigenspace extends MatrixComplex {
 		return vectors;
 	}
 	
+	public MatrixComplex vector(int idx) {
+		MatrixComplex row; 
+		if (idx >= vectors.rows()) return (MatrixComplex)null;
+		row = new MatrixComplex(1, vectors.cols());
+		row.complexMatrix[0] = vectors.complexMatrix[idx];
+		return row;
+	}
+	
 	/**
 	 * Returns the eigenvectors as a MatrixComplex with the vectors in the array rows
 	 * @return The eigenvectors
@@ -178,9 +187,34 @@ public class Eigenspace extends MatrixComplex {
 	 * @return The arithmetic multiplicity
 	 */
 	public int arithmeticMultiplicity(Complex eigenVal) {
+		//return arithmeticMultiplicity(eigenVal, Complex.getSignificative());
+		/**/
+		return arithmeticMultiplicity(eigenVal, this.bestNumDecs());
+		/**/
+	}
+	
+	/**
+	 * Returns the arithmetic multiplicity of an specific eigenvalue using an specific number of decimals of precision
+	 * @param eigenVal The value to evaluate the arithmetic multiplicity
+	 * @param digits The number of decimals of precision
+	 * @return The arithmetic multiplicity
+	 */
+	public int arithmeticMultiplicity(Complex eigenVal, int digits) {
+		boolean DEBUG_ON = false;
 		int arithMult = 0;
 		for (int i = 0; i < this.rows(); ++i) {
-			if (values.getItem(i,0).equalsred(eigenVal)) ++arithMult;
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				Complex.storeFormatStatus();
+				Complex.setFixedOFF(); ;
+				values.getItem(i,0).println("values.getItem("+i+",0):");
+				eigenVal.println("eigenVal:");
+				values.getItem(i,0).minus(eigenVal).println("value - eignval:");
+				Complex.restoreFormatStatus();
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
+
+			if (values.getItem(i,0).equalsred(eigenVal,digits)) ++arithMult;
 		}
 		return arithMult;
 	}
@@ -199,8 +233,20 @@ public class Eigenspace extends MatrixComplex {
 		return eigenV.rank();
 	}
 
+	/**
+	 * Determines whether a matrix is diagonalizable or not
+	 * @return True if the matrix is diagonalizable, otherwise False
+	 */
 	public boolean isDiagonaizable() {
-		
+		boolean DEBUG_ON = false;
+		if (vectors.determinant().equalsred(0,0)) {
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				System.out.println("vectors.determinant().equalsred(0,0)");
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
+			return false;
+		}
 		for (int id = 0; id < values.rows(); ++id) {
 			if (geometricMultiplicity(values.getItem(id,0)) < arithmeticMultiplicity(values.getItem(id,0))) return false;
 		}
@@ -326,11 +372,28 @@ public class Eigenspace extends MatrixComplex {
 			}
 			/* ------------- END DEBUGGING BLOCK ------------- */
 			
+			//for (int sol = 0; sol < eigenVect.rows()-rowEig; ++sol) {
 			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
+				/* -------------   DEBUGGING BLOCK   ------------- */
+				if (DEBUG_ON) {
+					System.out.println("rowEig.................................:" + rowEig);
+					System.out.println("sol....................................:" + sol);
+				}
+				/* ------------- END DEBUGGING BLOCK ------------- */
+				
+				if (rowEig+sol >= vectors.rows()) break;
+				
+				/* -------------   DEBUGGING BLOCK   ------------- */
+				if (DEBUG_ON) {
+					System.out.println("vectors.complexMatrix["+(rowEig+sol)+"]:" + vectors.complexMatrix[rowEig+sol]);
+					System.out.println("eigenVect.complexMatrix["+sol+"].......:" + eigenVect.complexMatrix[sol]);
+				}
+				/* ------------- END DEBUGGING BLOCK ------------- */
+				
 				vectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
 			}
 			rowEig += eigenVect.rows();
-			//rowEig += this.arithmeticMultiplicity(eigenval);;
+			//rowEig += this.arithmeticMultiplicity(eigenval);
 		}
 	}
 	

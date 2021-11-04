@@ -342,7 +342,7 @@ public class Fourier extends MatrixComplex {
 	private Boolean isContinue(Complex p) {
 		Complex fp, fp1;
 		fp = func.apply(p);
-		fp1 = func.apply(p.plus(Complex.getPrecision()*2));
+		fp1 = func.apply(p.plus(Complex.precision()*2));
 		//	fp.println("-----> fp :");
 		//	fp1.println("-----> fp1:");
 		if (fp1.equals(fp)) return true;

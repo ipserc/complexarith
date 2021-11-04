@@ -38,11 +38,13 @@ import java.lang.Math;
 import java.math.*;
 import java.util.Locale;
 import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.util.Random;
+import java.io.*;
 
 /**
  * Complex class to work with complex numbers
@@ -62,7 +64,7 @@ public class Complex {
 	 * 1.5 (2021_0929_2100)
 	 * added trunc method to truncate a double value.
 	 * added trunc method to truncate a Complex value.
-	 * round method uses BigDecimal.setScale(decs, RoundingMode.HALF_UP); for roundimg the double
+	 * round method uses BigDecimal.setScale(decs, RoundingMode.HALF_UP); for rounding the double
 	 * round(Complex complex, int decs) uses the round method with the modulus of the complex leaving the phase unaltered
 	 * 
 	 */
@@ -76,20 +78,36 @@ public class Complex {
 	public final static Complex ZERO = new Complex(0,0);
 	public final static Complex ONE = new Complex(1,0);
 	public final static Complex mONE = new Complex(-1,0);
-	//public final static Complex _j_ = new Complex(0,1);
 	public final static double LIM_INF = 2147483647; //2147483647
 	
-	private final static double PRECISION = 1E-13;
-	private final static double ZERO_THRESHOLD = PRECISION*10;//9.999999999999E-13; //Zero threshold for formatting numbers
-	private final static double ZERO_THRESHOLD_R = Math.sqrt(PRECISION);//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
+	/*************************************************
+	private final static double PRECISION = 1E-9;	//1E-13;
+	private final static double ZERO_THRESHOLD = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
+	private final static double ZERO_THRESHOLD_R = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
 	private final static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	private final static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE); 
-
+	*************************************************/
+	
 	/*
 	 * ***********************************************
 	 * MEMBER VARS
 	 * ***********************************************
 	 */
+
+	/* Precision Block */
+	private static double PRECISION = 1E-13;
+	private static double ZERO_THRESHOLD = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
+	private static double ZERO_THRESHOLD_R = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
+	private static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
+	private static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE); 
+	/* BACK UP to allow restoring status */
+	private static double PRECISION_BCK = PRECISION;
+	private static double ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
+	private static double ZERO_THRESHOLD_R_BCK = ZERO_THRESHOLD_R;
+	private static int SIGNIFICATIVE_BCK = SIGNIFICATIVE;
+	private static long DIGITS_BCK = DIGITS; 
+	
+	/* Formating block */
 	private static boolean FORMAT_NBR = false; //Member Variable. Flag for formatting numbers
 	private static boolean FIXED_NOTATION = false; //Member Variable. Flag for comma fixed notation
 	private static boolean SCIENTIFIC_NOTATION = false; //Member Variable. Flag for scientific notation
@@ -119,6 +137,11 @@ public class Complex {
 	 */
 	public static void version() {
 		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+	}
+
+	public static void facts() {
+		System.out.println(HEADINFO + "VERSION.........:" + VERSION); 
+		show_precision();
 	}
 
 	/*
@@ -471,13 +494,6 @@ public class Complex {
 	 */
 
 	/**
-	 * Gets the precision used for calculations.
-	 * @return The value of the constant PRECISION. 
-	 */
-	public static double getPrecision() { 
-		return PRECISION; }
-
-	/**
 	 * Gets the Complex REal value for comparisons.
 	 * @return The Complex REal value.
 	 */
@@ -825,9 +841,9 @@ public class Complex {
 		else if (FIXED_NOTATION) sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
 			//else sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
 
-		if (fImp == 0.0 ) 
+		if (fImp == 0.0 || Double.parseDouble(sfImp) == 0.0)
 			return sfRep + "";
-		if (fRep == 0.0)  
+		if (fRep == 0.0 || Double.parseDouble(sfRep) == 0.0)  
 			return sfImp + imu;
 		if (fImp <  0.0) 
 			return sfRep + sfImp + imu;
@@ -944,6 +960,154 @@ public class Complex {
 		System.out.print(str);
 		System.out.println(this.toString());
 	}
+
+	/*
+	 * ***********************************************
+	 * PRECISION
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Shows the Precision parameters used
+	 */
+	public static void show_precision() {
+		System.out.println(HEADINFO + "PRECISION.......:" + PRECISION); 
+		System.out.println(HEADINFO + "ZERO_THRESHOLD..:" + ZERO_THRESHOLD); 
+		System.out.println(HEADINFO + "ZERO_THRESHOLD_R:" + ZERO_THRESHOLD_R); 
+		System.out.println(HEADINFO + "SIGNIFICATIVE...:" + SIGNIFICATIVE);
+		System.out.println(HEADINFO + "DIGITS..........:" + DIGITS);		
+		System.out.println(HEADINFO + "LIM_INF.........:" + LIM_INF); 
+		System.out.println(HEADINFO + "LIM_NUMDECS.....:" + LIM_NUMDECS); 
+		System.out.println(HEADINFO + "LIM_PRECISION...:" + LIM_PRECISION); 
+	}
+
+	/**
+	 * Gets the PRECISION used for calculations.
+	 * @return The value of the constant PRECISION. 
+	 */
+	public static double precision() {
+	    return PRECISION; 
+	}
+
+	/**
+	 * Sets the PRECISION used for calculations WIHTOUT updating the rest of Precision parameters
+	 */
+	public static void precision_(double value) {
+	    PRECISION = value;
+	}
+
+	/**
+	 * Sets the PRECISION used for calculations UPDATING the rest of Precision parameters
+	 */
+	public static void precision(double value) {
+		store_precision();
+	    PRECISION = value;
+	    ZERO_THRESHOLD = PRECISION*10;
+	    ZERO_THRESHOLD_R = Math.sqrt(PRECISION);
+	    SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
+	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
+	}
+
+	/**
+	 * Gets the ZERO_THRESHOLD used for calculations.
+	 * @return The value of the constant ZERO_THRESHOLD. 
+	 */
+	public static double zero_treshold() {
+	    return ZERO_THRESHOLD; 
+	}
+
+	/**
+	 * Sets the ZERO_THRESHOLD used for calculations WIHTOUT updating the rest of Precision parameters
+	 */
+	public static void zero_threshold_(double value) {
+	    ZERO_THRESHOLD = value;
+	}
+
+	/**
+	 * Sets the ZERO_THRESHOLD used for calculations UPDATING the rest of Precision parameters
+	 */
+	public static void zero_threshold(double value) {
+		store_precision();
+	    ZERO_THRESHOLD = value;
+	    SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
+	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
+	}
+
+	/**
+	 * Gets the ZERO_THRESHOLD_R used for calculations.
+	 * @return The value of the constant ZERO_THRESHOLD_R. 
+	 */
+	public static double zero_treshold_r() {
+	    return ZERO_THRESHOLD_R; 
+	}
+
+	/**
+	 * Sets the ZERO_THRESHOLD_R used for calculations
+	 */
+	public static void zero_threshold_r(double value) {
+	    ZERO_THRESHOLD_R = value;
+	}
+
+	/**
+	 * Gets the SIGNIFICATIVE used for calculations.
+	 * @return The value of the constant SIGNIFICATIVE. 
+	 */
+	public static int significative() {
+	    return SIGNIFICATIVE; 
+	}
+
+	/**
+	 * Sets the SIGNIFICATIVE used for calculations WIHTOUT updating the rest of Precision parameters
+	 */
+	public static void significative_(int value) {
+	    SIGNIFICATIVE = value;
+	}
+
+	/**
+	 * Sets the SIGNIFICATIVE used for calculations UPDATING the rest of Precision parameters
+	 */
+	public static void significative(int value) {
+		store_precision();
+	    SIGNIFICATIVE = value;
+	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
+	}
+
+	/**
+	 * Gets the DIGITS used for calculations.
+	 * @return The value of the constant DIGITS. 
+	 */
+	public static long digits() {
+	    return DIGITS; 
+	}
+
+	/**
+	 * Sets the DIGITS used for calculations
+	 */
+	public static void digits(long value) {
+	    DIGITS = value;
+	}
+
+	/**
+	 * Stores the Precision parameters for recover them later
+	 */
+	public static void store_precision() {
+	    PRECISION_BCK = PRECISION;
+	    ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
+	    ZERO_THRESHOLD_R_BCK = ZERO_THRESHOLD_R;
+	    SIGNIFICATIVE_BCK = SIGNIFICATIVE;
+	    DIGITS_BCK = DIGITS;
+	}
+
+	/**
+	 * Recovers the Precision parameters stored before
+	 */
+	public static void restore_precision() {
+	    PRECISION = PRECISION_BCK;
+	    ZERO_THRESHOLD = ZERO_THRESHOLD_BCK;
+	    ZERO_THRESHOLD_R = ZERO_THRESHOLD_R_BCK;
+	    SIGNIFICATIVE = SIGNIFICATIVE_BCK;
+	    DIGITS = DIGITS_BCK;
+	}	
 	
 	/*
 	 * ***********************************************
@@ -1242,7 +1406,6 @@ public class Complex {
 				"[",      "]");
 	}
 
-	
 	/*
 	 * ***********************************************
 	 * COPY & REPLICATION
@@ -1286,20 +1449,20 @@ public class Complex {
 	}
 
 	/** 
-	 * Returns a new Complex object which value is the reciprocal of this (1/this).
-	 * @return The new Complex Object with the reciprocal.
+	 * Returns a new Complex object which value is the inverse of this (1/this).
+	 * @return The new Complex Object with the inverse.
 	 */
-	public Complex reciprocal() {
+	public Complex inverse() {
 		return new Complex('P', 1/this.mod, -this.pha);
 	}
 
 	/** 
-	 * Shortcut to reciprocal.
-	 * Returns a new Complex object which value is the reciprocal of this.
+	 * Shortcut to inverse.
+	 * Returns a new Complex object which value is the inverse of this.
 	 * @return The new Complex Object with the reciprocal.
 	 */
-	public Complex inverse() {
-		return this.reciprocal();
+	public Complex reciprocal() {
+		return this.inverse();
 	}
 
 	/*
@@ -1417,6 +1580,37 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equalsred(double n1, double n2) {
+		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
+		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+	}
+
+	/**
+	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
+	 * @param cNum The complex number.
+	 * @param numDecs The number of precision decimals.
+	 * @return The result of the comparison.
+	 */
+	public boolean equalsred(Complex cNum, int numDecs) {
+		Complex _this_ = Complex.round(this, numDecs);
+		Complex _cNum_ = Complex.round(cNum, numDecs);
+		//System.out.println("this.rep  :" +  this.rep  + "  this.imp :" +  this .imp);
+		//System.out.println("_this_.rep:" + _this_.rep + " _this_.imp:" + _this_.imp);
+		//System.out.println(" cNum.rep :" +  cNum .rep + "  cNum.imp :" +  cNum .imp);
+		//System.out.println("_cNum_.rep:" + _cNum_.rep + " _cNum_.imp:" + _cNum_.imp);
+		return _this_.equalsred(_cNum_.rep, _cNum_.imp, numDecs);
+	}
+
+	/**
+	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
+	 * @param n1 The real part.
+	 * @param n2 The imaginary part.
+	 * @param numDecs The number of precision decimals.
+	 * @return The result of the comparison.
+	 */
+	public boolean equalsred(double n1, double n2, int numDecs) {
+		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
+		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
 		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
 	}
 
@@ -2249,37 +2443,37 @@ public class Complex {
 	}
 	
 	/**
-	 * Rounds a complex number to decs decimals
+	 * Rounds a complex number to decs decimals using default method
 	 * @param complex The number to round
 	 * @param decs The number of decimals
 	 * @return The rounded number
 	 */
 	static public Complex round(Complex complex, int decs) {
-		return round2(complex, decs);
+		return roundRec(complex, decs);
 	}
 
 	/**
-	 * Rounds a complex number to decs decimals
+	 * Rounds a complex number to decs decimals using Rectangular Coordinates
 	 * @param complex The number to round
 	 * @param decs The number of decimals
 	 * @return The rounded number
 	 */
-	static public Complex round1(Complex complex, int decs) {
+	static public Complex roundRec(Complex complex, int decs) {
 		double rep, imp;
 		rep = round(complex.rep, decs);
-		imp = round(complex.rep, decs);
+		imp = round(complex.imp, decs);
 		return new Complex(rep, imp);
 	}
 
 	/**
-	 * Rounds a complex number to decs decimals
+	 * Rounds a complex number to decs decimals using Polar Coordinates
 	 * @param num The complex number to round
 	 * @param decs The number of decimals
 	 * @return The rounded complex number
 	 */
-	static public Complex round2(Complex complex, int decs) {
+	static public Complex roundPol(Complex complex, int decs) {
 		Complex rndComplex = new Complex();
-		rndComplex.setComplexPol(round(complex.mod, decs), complex.pha);
+		rndComplex.setComplexPol(round(complex.mod, decs), round(complex.pha, decs));
 		return rndComplex;
 	}
 

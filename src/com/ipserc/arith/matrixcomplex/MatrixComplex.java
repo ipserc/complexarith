@@ -529,6 +529,15 @@ public class MatrixComplex {
 		return token;
 	}
 
+	/**
+	 * Returns the best number of significant decimals based on the condition number
+	 * @return the best number of significant decimals
+	 */
+	public int bestNumDecs() {
+		int numDecs = (int)(this.cond()/2);
+		return numDecs > Complex.getSignificative() ? Complex.getSignificative() : numDecs;
+	}
+	
 	/*
 	 * ***********************************************
 	 * COPY & REPLICATION
@@ -1561,18 +1570,18 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns the diagonal matrix using triangularization Lo-Up
-	 * @return The diagonal matrix 
+	 * Generates a diagonal matrix using triangularization Low and then Up
+	 * @return The diagonal matrix
 	 */  
-	public MatrixComplex diagonal() {
+	public MatrixComplex diagonalLo() {
 		return (this.triangleLo()).triangleUp();
 	}
 
 	/**
-	 * Returns the matrix codiagonalized using triangularization Up-Lo
-	 * @return The matrix codiagonalized
+	 * Generates a diagonal matrix using triangularization Up and then Lo
+	 * @return The diagonal matrix
 	 */  
-	public MatrixComplex codiagonal() {
+	public MatrixComplex diagonalUp() {
 		return (this.triangleUp()).triangleLo();
 	}
 
@@ -1781,6 +1790,22 @@ public class MatrixComplex {
 		return eye;
 	}
 
+	/**
+	 * Cpoies the 1xN values of a one row array and put one by one in a diagonal NxN matrix
+	 * @param values The values of a one row array
+	 * @return The diagonal NxN matrix
+	 */
+	public static MatrixComplex diagonal(MatrixComplex values) {
+		MatrixComplex newValArray = values.clone();
+		if (newValArray.rows() == 1) newValArray = newValArray.transpose();
+		
+		MatrixComplex sqDiagonal = new MatrixComplex(newValArray.rows());
+		for (int row = 0; row < newValArray.rows(); ++row) {
+			sqDiagonal.setItem(row, row, newValArray.getItem(row, 0));
+		}
+		return sqDiagonal;
+	}
+	
 	/*
 	 * ***********************************************
 	 * EQUATION SYSTEMS
@@ -1792,7 +1817,7 @@ public class MatrixComplex {
 	 * The new matrix is the original one with the independent terms removed.
 	 * @return The new matrix with the coefficients copied without independent terms.
 	 */
-	public MatrixComplex coefMatrix() {
+ 	public MatrixComplex coefMatrix() {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		MatrixComplex coefMatrix = new MatrixComplex(rowLen, colLen-1);
@@ -2456,7 +2481,7 @@ public class MatrixComplex {
 		return solveGauss2(lambda);
 	}
 	
-	// START --- 2021_0807 Returned to the initial solveGauss0 Method 
+	// START --- 2021_0807 Turn back to the initial solveGauss0 Method 
 	
 	/**
 	 * Private function that generates the new reduced equations system to find out its solutions
@@ -2486,236 +2511,6 @@ public class MatrixComplex {
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The column matrix with the solutions if they exist, otherwise null.
 	 */	
-	public MatrixComplex solveGauss0(Complex lambda) {
-		final boolean DEBUG_ON = false;
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		if (rowLen+1 > colLen) {
-			System.out.println(HEADINFO + "solveGauss: " + "Not valid matrix: The matrix doesn't represent an equation system.");
-		}
-
-		MatrixComplex auxMatrix, coefMatrix, indMatrix;
-		MatrixComplex solMatrix = new MatrixComplex(1, colLen-1);
-
-		int typeEqSys = this.typeEqSys();
-		
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			this.printTypeEqSys(typeEqSys, lambda);
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-			
-		if (typeEqSys == INCONSISTENT) return solMatrix.divides(0).transpose();
-
-		coefMatrix = this.coefMatrix();
-		indMatrix = this.indMatrix();
-		if (typeEqSys == DETERMINATE) return coefMatrix.dividesleft(indMatrix).transpose();
-	
-		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
-			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial soution!!!!!!!!!!");
-			return solMatrix;
-		}
-		
-		if (rowLen == 1 && colLen == 2) {
-			solMatrix.setItem(0, 0, lambda);
-			return solMatrix;
-		}
-		/*
-		 * The complete system of equations is solved by triangularization
-		 * The solutions are calculated by process known as back-substitution
-		 */
-		/*
-		 * System reduction is used to find a particular solution for indeterminate compatible systems
-		 * Based on the number of solutions unknowns are fixed in a orthogonal base to determine the 
-		 * linear independent solutions 
-		 * A value for lambda is given to calculate the indeterminate solutions
-		 */
-		auxMatrix = this.triangleUp().heap();
-		indMatrix = auxMatrix.indMatrix();
-		MatrixComplex newMatrix;
-		int nbrOfSols = auxMatrix.nbrOfSolutions();
-
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ solveGauss0");
-			auxMatrix.println(HEADINFO + "auxMatrix");
-			System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ nbrOfSols:" + nbrOfSols);
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
-		for (int sol = 0; sol < nbrOfSols; ++sol) {
-			for (int col = 0; col < nbrOfSols; ++col) {
-				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-			}
-			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);
-			newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-			rowSolMatrix = newMatrix.solve();	
-			/*
-			 * Check if the solutions calculated are valid
-			 * If not, uses the inverse rule to assign the fixed value to the solution
-			 * TODO This is a brute force solution. I need to find out the condition in the equations system that forces to change the rule
-			 */
-			if (!Double.isFinite(rowSolMatrix.times(rowSolMatrix.transpose()).getItem(0,0).rep())) {
-				for (int col = 0; col < nbrOfSols; ++col) {
-					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				}
-				newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-				rowSolMatrix = newMatrix.solve();
-			}
-			if (newMatrix.typeEqSys() == INCONSISTENT) {
-				this.printTypeEqSys(INCONSISTENT, lambda);
-				return solMatrix.divides(0);
-			}
-			else {
-				for (int col = nbrOfSols; col < colLen-1; ++col) {
-					solMatrix.setItem(sol, col, rowSolMatrix.getItem(0, col-nbrOfSols));
-				}
-			}
-		}
-		//solMatrix.println(HEADINFO + "solveGauss: " + "solMatrix");
-
-		/* Check sols for INDETERMINATE Systems */
-		MatrixComplex nullRow = new MatrixComplex(1, rowLen); // By default initialized to ZERO nullRow.initMatrix(0, 0);
-		for (int solIdx = 0; solIdx < solMatrix.rows(); ++solIdx) {
-			if (this.checkSingleSol(solMatrix.getRow(solIdx))) continue;
-			else solMatrix.complexMatrix[solIdx] = nullRow.complexMatrix[0].clone();
-		}
-
-		return solMatrix;
-	}
-	
-	public MatrixComplex solveGauss1(Complex lambda) {
-		final boolean DEBUG_ON = false;
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		if (rowLen+1 > colLen) {
-			System.out.println(HEADINFO + "solveGauss: " + "Not valid matrix: The matrix doesn't represent an equation system.");
-		}
-
-		MatrixComplex auxMatrix, coefMatrix, indMatrix;
-		MatrixComplex solMatrix = new MatrixComplex(1, colLen-1);
-
-		int typeEqSys = this.typeEqSys();
-		
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			this.printTypeEqSys(typeEqSys, lambda);
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-			
-		if (typeEqSys == INCONSISTENT) {
-			if (DEBUG_ON) {
-				System.out.println(HEADINFO + "solveGauss: " + "This system is INCONSISTENT. It hasn't got any solution!!!!!!!!!!");
-			}
-			// This is required to mark the Inconsistent solution for later operations 
-			return solMatrix.divides(0).transpose();
-		}
-
-		coefMatrix = this.coefMatrix();
-		indMatrix = this.indMatrix();
-		if (typeEqSys == DETERMINATE) {
-			if (DEBUG_ON) {
-				System.out.println(HEADINFO + "solveGauss: " + "This system is DETERMINATE. Here is the unique solution!!!!!!!!!!");
-			}
-			return coefMatrix.dividesleft(indMatrix).transpose();
-		}
-	
-		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
-			System.out.println(HEADINFO + "solveGauss: " + "This system only has got the trivial solution!!!!!!!!!!");
-			return solMatrix;
-		}
-		
-		// AND THIS IS FOR... ??????
-		if (rowLen == 1 && colLen == 2) {
-			if (DEBUG_ON) {
-				System.out.println(HEADINFO + "solveGauss: " + "AND THIS IS FOR... ??????");
-			}
-			solMatrix.setItem(0, 0, lambda);
-			return solMatrix;
-		}
-		
-		/*
-		 * The complete system of equations is solved by triangularization
-		 * The solutions are calculated by process known as back-substitution
-		 */
-		/*
-		 * System reduction is used to find a particular solution for indeterminate compatible systems
-		 * Based on the number of solutions unknowns are fixed in a orthogonal base to determine the 
-		 * linear independent solutions 
-		 * A value for lambda is given to calculate the indeterminate solutions
-		 */
-		auxMatrix = this.triangleUp().heap();
-		indMatrix = auxMatrix.indMatrix();
-		MatrixComplex newMatrix;
-		int nbrOfSols = auxMatrix.nbrOfSolutions();
-
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ solveGauss1");
-			auxMatrix.println(HEADINFO + "auxMatrix");
-			System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ nbrOfSols:" + nbrOfSols);
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
-		for (int sol = 0; sol < nbrOfSols; ++sol) {
-			for (int col = 0; col < nbrOfSols; ++col) {
-				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-			}
-			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);
-			newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-			rowSolMatrix = newMatrix.solve();	
-			/*
-			 * Check if the solutions calculated are valid
-			 * If not, uses the inverse rule to assign the fixed value to the solution
-			 * TODO This is a brute force solution. I need to find out the condition in the equations system that forces to change the rule
-			 */
-			if (rowSolMatrix.isInfinite() || rowSolMatrix.isNaN()) {
-			//if (newMatrix.typeEqSys() == INCONSISTENT) {
-				for (int col = 0; col < nbrOfSols; ++col) {
-					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				}
-				newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-				rowSolMatrix = newMatrix.solve();
-			}
-			if (newMatrix.typeEqSys() == INCONSISTENT) {
-				this.printTypeEqSys(INCONSISTENT, lambda);
-				return solMatrix.divides(0);
-			}
-			else {
-				for (int col = nbrOfSols; col < colLen-1; ++col) {
-					solMatrix.setItem(sol, col, rowSolMatrix.getItem(0, col-nbrOfSols));
-				}
-			}
-		}
-		
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			solMatrix.println(HEADINFO + "solveGauss: " + "solMatrix");
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		/* Check sols for INDETERMINATE Systems */
-		MatrixComplex nullRow = new MatrixComplex(1, rowLen); // By default initialized to ZERO nullRow.initMatrix(0, 0);
-		for (int solIdx = 0; solIdx < solMatrix.rows(); ++solIdx) {
-			if (this.checkSingleSol(solMatrix.getRow(solIdx))) continue;
-			else solMatrix.complexMatrix[solIdx] = nullRow.complexMatrix[0].clone();
-		}
-
-		return solMatrix;
-	}
-
 	public MatrixComplex solveGauss2(Complex lambda) {
 		final boolean DEBUG_ON = false;
 		final String METH_NAME = "solveGauss2";
@@ -2866,149 +2661,7 @@ public class MatrixComplex {
 		return solMatrix;
 	}
 	
-	public MatrixComplex COPIA_solveGauss2_COPIA(Complex lambda) {
-		final boolean DEBUG_ON = false;
-		final String METH_NAME = "solveGauss2";
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		if (rowLen+1 > colLen) {
-			System.out.println(HEADINFO + METH_NAME + ": " + "Not valid matrix: The matrix doesn't represent an equation system.");
-		}
-
-		MatrixComplex auxMatrix, coefMatrix, indMatrix;
-		MatrixComplex solMatrix = new MatrixComplex(1, colLen-1);
-
-		int typeEqSys = this.typeEqSys();
-		
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			this.printTypeEqSys(typeEqSys, lambda);
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-			
-		if (typeEqSys == INCONSISTENT) {
-			if (DEBUG_ON) {
-				System.out.println(HEADINFO + METH_NAME + ": " + "This system is INCONSISTENT. It hasn't got any solution!!!!!!!!!!");
-			}
-			// This is required to mark the Inconsistent solution for later operations 
-			return solMatrix.divides(0).transpose();
-		}
-
-		coefMatrix = this.coefMatrix();
-		indMatrix = this.indMatrix();
-		if (typeEqSys == DETERMINATE) {
-			if (DEBUG_ON) {
-				System.out.println(HEADINFO + METH_NAME + ": " + "This system is DETERMINATE. Here is the unique solution!!!!!!!!!!");
-			}
-			return coefMatrix.dividesleft(indMatrix).transpose();
-		}
-		
-		if (this.isHomogeneous() && !coefMatrix.determinant().equalsred(Complex.ZERO)) {
-			System.out.println(HEADINFO + METH_NAME + ": " + "This system only has got the trivial solution!!!!!!!!!!");
-			return solMatrix;
-		}
-		
-		// AND THIS IS FOR... ??????
-		if (rowLen == 1 && colLen == 2) {
-			if (DEBUG_ON) {
-				System.out.println(HEADINFO + METH_NAME + ": " + "AND THIS IS FOR... ??????");
-			}
-			solMatrix.setItem(0, 0, lambda);
-			return solMatrix;
-		}
-		
-		/*
-		 * The complete system of equations is solved by triangularization
-		 * The solutions are calculated by process known as back-substitution
-		 */
-		/*
-		 * System reduction is used to find a particular solution for indeterminate compatible systems
-		 * Based on the number of solutions unknowns are fixed in a orthogonal base to determine the 
-		 * linear independent solutions 
-		 * A value for lambda is given to calculate the indeterminate solutions
-		 */
-		auxMatrix = this.triangleUp().heap();
-		indMatrix = auxMatrix.indMatrix();
-		MatrixComplex newMatrix;
-		int nbrOfSols = auxMatrix.nbrOfSolutions();
-
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ " + METH_NAME);
-			auxMatrix.println(HEADINFO + "auxMatrix");
-			System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ nbrOfSols:" + nbrOfSols);
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		solMatrix = new MatrixComplex(nbrOfSols, colLen-1);
-		for (int sol = 0; sol < nbrOfSols; ++sol) {
-			for (int col = 0; col < nbrOfSols; ++col) {
-				// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-				if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				else solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-			}
-			MatrixComplex rowSolMatrix = new MatrixComplex(1, rowLen-nbrOfSols);
-			newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-			
-			/* ----------  START DEBUGGING BLOCK   ----------- */
-			if (DEBUG_ON) {
-				newMatrix.println(HEADINFO + METH_NAME + ": " + "newMatrix");
-			}
-			/* ------------- END DEBUGGING BLOCK ------------- */
-			
-			/*
-			 * Check if the solutions calculated are valid
-			 * If not, uses the inverse rule to assign the fixed value to the solution
-			 * TODO This is a brute force solution. I need to find out the condition in the equations system that forces to change the rule
-			 */
-			if (newMatrix.typeEqSys() == INCONSISTENT) {
-				for (int col = 0; col < nbrOfSols; ++col) {
-					// TODO I don't know WHY this "if" works, I have to investigate it sooner or later
-					if (this.isHomogeneous()) solMatrix.setItem(sol, col, sol == col ? Complex.ZERO : lambda);
-					else solMatrix.setItem(sol, col, sol != col ? Complex.ZERO : lambda);
-				}
-				newMatrix = setNewMatrix(auxMatrix, nbrOfSols, rowLen, colLen, sol, solMatrix);
-								
-				/* ----------  START DEBUGGING BLOCK   ----------- */
-				if (DEBUG_ON) {
-					System.out.println(HEADINFO + METH_NAME +": " + "newMatrix was INCONSISTENTE. Using a new matrix instead");
-					newMatrix.println(HEADINFO + METH_NAME + ": " + "newMatrix");
-				}
-				/* ------------- END DEBUGGING BLOCK ------------- */
-
-			}
-			
-			rowSolMatrix = newMatrix.solve();
-			
-			if (newMatrix.typeEqSys() == INCONSISTENT) {
-				this.printTypeEqSys(INCONSISTENT, lambda);
-				return solMatrix.divides(0);
-			}
-			else {
-				for (int col = nbrOfSols; col < colLen-1; ++col) {
-					solMatrix.setItem(sol, col, rowSolMatrix.getItem(0, col-nbrOfSols));
-				}
-			}
-		}
-		
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			solMatrix.println(HEADINFO + METH_NAME + ": " + "solMatrix");
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		/* Check sols for INDETERMINATE Systems */
-		MatrixComplex nullRow = new MatrixComplex(1, rowLen); // By default initialized to ZERO nullRow.initMatrix(0, 0);
-		for (int solIdx = 0; solIdx < solMatrix.rows(); ++solIdx) {
-			if (this.checkSingleSol(solMatrix.getRow(solIdx))) continue;
-			else solMatrix.complexMatrix[solIdx] = nullRow.complexMatrix[0].clone();
-		}
-
-		return solMatrix;
-	}
-	
-	// END --- 2021_0807 Returned to the initial solveGauss0 Method 
+	// END --- 2021_0807 Turn back to the initial solveGauss0 Method 
 	
 	/**
 	 * finds the solutions to a equation systems using the Cramer's rule

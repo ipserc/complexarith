@@ -139,9 +139,9 @@ public class Diagfactor extends MatrixComplex {
 		geomMult = eigenspace.geometricMultiplicity(eigenValue);
 		if (arithMult != geomMult) return false;
 
-		sumArithMult += arithMult;
+		sumArithMult += arithMult;		
 		for (int row = 1; row < this.rows(); ++row) {
-			if (eigenValue.equalsred(eigenspace.values().getItem(row, 0))) continue;
+			if (eigenValue.equalsred(eigenspace.values().getItem(row, 0), this.bestNumDecs())) continue;
 			else eigenValue = eigenspace.values().getItem(row, 0);
 			arithMult = eigenspace.arithmeticMultiplicity(eigenValue);
 			geomMult = eigenspace.geometricMultiplicity(eigenValue);

@@ -592,7 +592,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solveWeierstrass() {
-		return solveWeierstrass(Complex.getPrecision());
+		return solveWeierstrass(Complex.precision());
 	}
 
 	/**
@@ -609,7 +609,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solve() {
-		return solveWeierstrass(Complex.getPrecision());
+		return solveWeierstrass(Complex.precision());
 	}
 
 	/**
