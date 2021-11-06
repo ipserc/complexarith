@@ -16,11 +16,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.7 (2021_0929_2000)";
+	private final static String VERSION = "1.8 (2021_1106_1400)";
 	/* VERSION Release Note
 	 * 
 	 * 1.7 (2021_0929_2000)
 	 * solveGauss is now using the solveGauss2 Method. solveReduction and solveSubstition dosen't work right and are deprecated.
+	 * 
+	 * 1.8 (2021_1106_1400)
+	 * augment(matrixComplex interms) is now using augment2(matrixComplex interms) which returns an augmented matrix with full columns. 
+	 * augment1(matrixComplex interms) is DEPRECATED and is kept only for recovery.
+	 * gramSchmidtGauss() added. It should be used only with square matrices.
 	 * 
 	 */
 
@@ -3232,6 +3237,40 @@ public class MatrixComplex {
 		return gramschmidt;
 	}
 
+	/*
+	 * https://es.wikipedia.org/wiki/Proceso_de_ortogonalizaci%C3%B3n_de_Gram-Schmidt
+	 * Proceso de ortogonalización de Gram-Schmidt con el método de Gauss
+	 */
+	/**
+	 * Gram-Schmidt orthogonalization process via Gaussian elimination. 
+	 * @return The matrix with the orthogonal base that generates the same vector subspace.
+	 */
+	public MatrixComplex gramSchmidtGauss() {
+		final boolean DEBUG_ON = true; 
+		MatrixComplex auxMatrix = this.times(this.transpose());
+		
+		MatrixComplex augmentedMatrix = auxMatrix.copy();
+		augmentedMatrix = augmentedMatrix.augment(this);
+
+		/* -------------   DEBUGGING BLOCK   ------------- */
+		if (DEBUG_ON) {
+			augmentedMatrix.println(HEADINFO + "augmentedMatrix");
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+		
+		augmentedMatrix = augmentedMatrix.triangle();
+		
+		MatrixComplex gramSchmidtMatrix = new MatrixComplex(this.rows(), this.cols());
+		for (int row = 0; row < gramSchmidtMatrix.rows(); ++row) {
+			for (int col = 0; col < gramSchmidtMatrix.cols(); ++col) {
+				gramSchmidtMatrix.setItem(row, col, augmentedMatrix.getItem(row, col+this.cols()));
+			}
+		}
+		
+		return gramSchmidtMatrix.transpose();
+	}
+
+	
 	/**
 	 * Gram-Schmidt Full orthogonalization process.
 	 * The calculated orthogonal matrix is extended to the full dimension of the matrix.
@@ -3414,12 +3453,22 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns a new augmented array with a column of terms.
-	 * Copy the original matrix and add the column "interms".
+	 * Shortcut to the default augment method
 	 * @param interms The column to be added.
 	 * @return The augmented matrix.
 	 */
 	public MatrixComplex augment(MatrixComplex interms) {
+		return augment2(interms);
+	}
+	
+	/**
+	 * DEPRECATED Returns a new augmented array with the FIRST column of terms.
+	 * DEPRECATED Copies the original matrix and add the FIRST column "interms".
+	 * DEPRECATED Left only for fail recovery of augment1()
+	 * @param interms The column to be added.
+	 * @return The augmented matrix.
+	 */
+	public MatrixComplex augment1(MatrixComplex interms) {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		int row, col;
@@ -3430,6 +3479,29 @@ public class MatrixComplex {
 				extendedMatrix.complexMatrix[row][col] = this.complexMatrix[row][col];
 			}
 			extendedMatrix.complexMatrix[row][col] = interms.complexMatrix[row][0];
+		}
+		return extendedMatrix;
+	}
+
+	/**
+	 * Returns a new augmented array with ALL the columns of terms.
+	 * Copies the original matrix and add the ALL the columns of "interms".
+	 * @param interms The column to be added.
+	 * @return The augmented matrix.
+	 */
+	public MatrixComplex augment2(MatrixComplex interms) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		int row, col;
+
+		MatrixComplex extendedMatrix = new MatrixComplex(rowLen, colLen+interms.cols());
+		for (row = 0; row < rowLen; ++row) {
+			for (col = 0; col < colLen; ++col) {
+				extendedMatrix.complexMatrix[row][col] = this.complexMatrix[row][col];
+			}
+			for (int incol = 0; incol < interms.cols(); ++incol) {
+				extendedMatrix.complexMatrix[row][col+incol] = interms.complexMatrix[row][incol];
+			}
 		}
 		return extendedMatrix;
 	}
