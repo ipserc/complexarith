@@ -3246,7 +3246,7 @@ public class MatrixComplex {
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
 	 */
 	public MatrixComplex gramSchmidtGauss() {
-		final boolean DEBUG_ON = true; 
+		final boolean DEBUG_ON = false; 
 		MatrixComplex auxMatrix = this.times(this.transpose());
 		
 		MatrixComplex augmentedMatrix = auxMatrix.copy();
