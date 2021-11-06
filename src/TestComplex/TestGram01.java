@@ -23,6 +23,12 @@ public class TestGram01 {
 		gMatrix = aMatrix.gramSchmidtFull();
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Full"));
 		gMatrix.println("Gram-Schmidt Full Matrix");
+
+		if (aMatrix.isSquare()) {
+			System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Gauss"));
+			gMatrix = aMatrix.gramSchmidtGauss();
+			gMatrix.println("Gram-Schmidt Gauss Matrix");
+		}
 	}
 	
 	/**

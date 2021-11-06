@@ -25,6 +25,15 @@ public class TestGram02 {
 		gMatrix.println("Gram-Schmidt Full Matrix");
 		System.out.println(gMatrix.toOctave());
 		System.out.println(gMatrix.toMatrixComplex());
+
+		if (aMatrix.isSquare()) {
+			System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Gauss"));
+			gMatrix = aMatrix.gramSchmidtGauss();
+			gMatrix.println("Gram-Schmidt Gauss Matrix");
+			gnMatrix = gMatrix.normalize();
+			gnMatrix.println("G Normalized");
+
+		}
 	}
 	
 	/**
@@ -39,5 +48,28 @@ public class TestGram02 {
 		aMatrix = new MatrixComplex("1.000i,1.000i,1.000i;-1.000i,-1.000i,-1.000i;1.000i,1.000i,-1.000i");
 		showResults(aMatrix);
 
+		aMatrix = new MatrixComplex(
+				  " 1, 1, 1;"
+				+ " 1,-1,-1;"
+				+ " 1, 1,-1");
+		showResults(aMatrix);
+
+		aMatrix = new MatrixComplex(
+				  "  3,  1, -2;"
+				+ " -2, -1, -3;"
+				+ "  1,  2, -1");
+		showResults(aMatrix);
+
+		aMatrix = new MatrixComplex(
+				  "  3 ,  i,  -2;"
+				+ " -2i, -1,  -3i;"
+				+ "  1 ,  2i, -1");
+		showResults(aMatrix);
+
+		aMatrix = new MatrixComplex(
+				  "  2,  1,  1;"
+				+ "  1,  0, 10;"
+				+ "  2, -3, 11");
+		showResults(aMatrix);
 	}
 }
