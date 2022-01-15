@@ -41,6 +41,11 @@ public class LUfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "LUfactor --- INFO: ";
 	private final static String VERSION = "1.3 (2021_0319_1200)";
+	/* VERSION Release Note
+	 * 
+	 * 1.3 (2021_0319_1200)
+	 */
+
 	
 	/*
 	 * ***********************************************
