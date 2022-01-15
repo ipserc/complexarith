@@ -10,6 +10,7 @@ public class solveV4 extends MatrixComplex {
 	public static void main(String[] args) {
 		MatrixComplex equationSystem;
 		MatrixComplex solutions;
+		boolean Reduced = true;
 		
 		equationSystem = new MatrixComplex(   " 2,-1, 2, 3;"
 											+ " 1, 0,-1,-1;"
@@ -27,10 +28,9 @@ public class solveV4 extends MatrixComplex {
 											+ " 0,-1, 2, 2,-1;"
 											+ " 1, 1,-1, 3, 3;"
 											+ " 1, 1,-1, 3, 3");
-		equationSystem.triangle().println("***** TRIANGULO");
-		equationSystem.solve(Complex.ONE).println("***** SOLUTIONS");
-		
 
+		equationSystem.triangle().println("***** TRIANGULO");
+		equationSystem.solve(Complex.ONE, Reduced).println("***** SOLUTIONS");
 	}
 
 }

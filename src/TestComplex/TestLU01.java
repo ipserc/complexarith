@@ -14,8 +14,8 @@ public class TestLU01 {
     	
 		System.out.println(Complex.boxTextRandom(boxSize, "LU Results"));
 		System.out.println("Diagonalization Method LU." + luMatrix.getMethodName());
-    	System.out.println("Is Symmetryc    :" + luMatrix.isSimmetryc());
-    	System.out.println("Is AntiSymmetryc:" + luMatrix.isAntiSimmetryc());
+    	System.out.println("Is Symmetryc    :" + luMatrix.isSymmetric());
+    	System.out.println("Is AntiSymmetryc:" + luMatrix.isAntiSymmetric());
     	System.out.println("Is Hermitian    :" + luMatrix.isHermitian());
     	System.out.println("Is SkewHermitian:" + luMatrix.isSkewHermitian());
 		luMatrix.println("luMatrix");

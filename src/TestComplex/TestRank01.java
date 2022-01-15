@@ -6,6 +6,8 @@ import com.ipserc.chronometer.Chronometer;
 
 public class TestRank01 {
 
+	private static boolean Reduced = false;
+	
 	private static void showResults(MatrixComplex aMatrix) {
 		int boxSize = 65;
 		Chronometer chrono = new Chronometer();
@@ -19,14 +21,14 @@ public class TestRank01 {
 		aMatrix.triangle().println("aMatrix Triang");
 		aMatrix.triangleLo().println("aMatrix Triang lo");
 		chrono.start();
-		System.out.println("Rank0(aMatrix)  :" + aMatrix.rank0());
+		System.out.println("Rank0(aMatrix)  :" + aMatrix.rank0(Reduced));
 		chrono.stop();
 		System.out.println("Tiempo: " + chrono.toString());
 		chrono.start();
-		System.out.println("Rank1(aMatrix) :" + aMatrix.rank1());
+		System.out.println("Rank1(aMatrix) :" + aMatrix.rank1(Reduced));
 		chrono.stop();
 		System.out.println("Tiempo: " + chrono.toString());
-		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity());
+		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity(Reduced));
 	}
 	/**
 	 * @param args

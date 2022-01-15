@@ -4,6 +4,7 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 public class TestHeapHollow01 {
+	private static boolean Reduced = true;
 
 	private static void showResults(MatrixComplex aMatrix) {
 		int boxSize = 65;
@@ -16,8 +17,8 @@ public class TestHeapHollow01 {
 		System.out.println("WOLFRAM: rank("+aMatrix.toWolfram()+")");
 		aMatrix.triangle().println("aMatrix Triang");
 		aMatrix.triangleLo().println("aMatrix Triang lo");
-		System.out.println("Rank(aMatrix)  :" + aMatrix.rank());
-		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity());
+		System.out.println("Rank(aMatrix)  :" + aMatrix.rank(Reduced));
+		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity(Reduced));
 	}
 	/**
 	 * @param args
@@ -35,7 +36,7 @@ public class TestHeapHollow01 {
 				"-3,-5,  9, 3,-1,-8;"+
 				" 5, 9,-15,-5, 3,14;"+
 				" 2, 4, -6,-2, 3, 6" );
-		//showResults(aMatrix);		
+		showResults(aMatrix);		
 		upT = aMatrix.triangle();
 		loT = aMatrix.triangleLo();
 		
@@ -57,7 +58,7 @@ public class TestHeapHollow01 {
 				"-1, 3, -5, -2;"+
 				"2, -1, 3, 3;"+
 				"3, -8, 14, 6");
-		//showResults(aMatrix);
+		showResults(aMatrix);
 		upT = aMatrix.triangle();
 		loT = aMatrix.triangleLo();
 		

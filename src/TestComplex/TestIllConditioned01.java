@@ -8,6 +8,7 @@ import com.ipserc.arith.syseq.Syseq;
 import com.ipserc.chronometer.Chronometer;
 
 public class TestIllConditioned01 {
+	private static boolean Reduced = true;
 
 	private static void checkSol(MatrixComplex fMatrix, MatrixComplex solution) {
 		MatrixComplex indTerm = fMatrix.indMatrix().transpose();
@@ -33,7 +34,7 @@ public class TestIllConditioned01 {
 		System.out.println("OCTAVE : rank("+fMatrix.unkMatrix().toOctave()+")");
 
 		fMatrix.printSol(Complex.boxTextRandom(boxSize, "System Solutions"));
-		switch (fMatrix.typeEqSys()) {
+		switch (fMatrix.typeEqSys(Reduced)) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
 				System.out.println("Matrix Cond Nbr:" + fMatrix.unkMatrix().cond());
@@ -60,7 +61,7 @@ public class TestIllConditioned01 {
 	}
 
 	private MatrixComplex solve3(MatrixComplex calcMatrix) {
-		MatrixComplex solMatrix = new MatrixComplex(calcMatrix.nbrOfSolutions(), calcMatrix.rows());
+		MatrixComplex solMatrix = new MatrixComplex(calcMatrix.nbrOfSolutions(Reduced), calcMatrix.rows());
 		MatrixComplex tmpMatrix = calcMatrix.clone();
 		MatrixComplex tMatrix = tmpMatrix.triangle();
 		MatrixComplex unkMatrix = tmpMatrix.unkMatrix();
@@ -73,7 +74,7 @@ public class TestIllConditioned01 {
 			solMatrix.setItem(row,tMatrix.rows()-1, Complex.ZERO);
 		}
 		else {
-			solMatrix.setItem(row,tMatrix.rows()-1, tMatrix());
+			solMatrix.setItem(row, tMatrix.rows()-1, tMatrix().get);
 		}
 		
 		for (row = 0; row < newcalcMatrix.rows(); ++row) {

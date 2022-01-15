@@ -1,6 +1,7 @@
 package TestComplex;
 
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.chronometer.Chronometer;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.*;
 
@@ -103,5 +104,13 @@ public class TestQRfactor01 {
 		fMatrix.qrHouseholder();
     	showResults(fMatrix);
     	
+    	fMatrix = new QRfactor(35);
+    	fMatrix.initMatrixRandomInteger(9);
+    	/*CHRONO*/ Chronometer QRChrono = new Chronometer();
+		fMatrix.qrHouseholder();
+		/*CHRONO*/ QRChrono.stop();
+    	showResults(fMatrix);
+		/*CHRONO*/ System.out.println("Computing Time QR:" + QRChrono.toString());
+   	
 	}
 }

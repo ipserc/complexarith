@@ -5,6 +5,7 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.chronometer.Chronometer;
 
 public class TestRankCheck01 {
+	private static boolean Reduced = true;
 
 	private static void showResults(MatrixComplex aMatrix, int i) {
 		Chronometer chrono = new Chronometer();
@@ -14,12 +15,12 @@ public class TestRankCheck01 {
 		
 		/**/
 		chrono.start();
-		rank0 = aMatrix.rank0();
+		rank0 = aMatrix.rank0(Reduced);
 		chrono.stop();
 		chrono0 = chrono.toString();
 		/**/
 		chrono.start();
-		rank1 = aMatrix.rank1();
+		rank1 = aMatrix.rank1(Reduced);
 		chrono.stop();
 		chrono1 = chrono.toString();
 		if (rank0 != rank1) {
@@ -30,7 +31,7 @@ public class TestRankCheck01 {
 			System.out.println("Rank1(aMatrix) :" + rank1);
 			System.out.println("Tiempo: " + chrono1);
 			System.out.println("OCTAVE : rank("+aMatrix.toOctave()+")");
-			System.out.println("Nullity(aMatrix) :" + aMatrix.nullity());
+			System.out.println("Nullity(aMatrix) :" + aMatrix.nullity(Reduced));
 		}
 
 	}
