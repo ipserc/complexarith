@@ -7,6 +7,11 @@ public class Vector extends MatrixComplex {
 
 	private final static String HEADINFO = "Vector --- INFO: ";
 	private final static String VERSION = "1.0 (2020_0824_1800)";
+	/* VERSION Release Note
+	 * 
+	 * 1.0 (2020_0824_1800)
+	 */
+
 
 	/*
 	 * ***********************************************
