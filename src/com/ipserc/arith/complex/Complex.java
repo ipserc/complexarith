@@ -111,12 +111,12 @@ public class Complex {
 	private static boolean FORMAT_NBR = false; //Member Variable. Flag for formatting numbers
 	private static boolean FIXED_NOTATION = false; //Member Variable. Flag for comma fixed notation
 	private static boolean SCIENTIFIC_NOTATION = false; //Member Variable. Flag for scientific notation
-	private static int MAX_DECIMALS = 3; //Member Variable
+	private static int MAX_DECIMALS = 5; //Member Variable
 	/* BACK UP to allow restoring status */
 	private static boolean FORMAT_NBR_BCK = false; //Member Variable. Flag for formatting numbers
 	private static boolean FIXED_NOTATION_BCK = false; //Member Variable. Flag for comma fixed notation
 	private static boolean SCIENTIFIC_NOTATION_BCK = false; //Member Variable. Flag for scientific notation
-	private static int MAX_DECIMALS_BCK = 3; //Member Variable
+	private static int MAX_DECIMALS_BCK = 5; //Member Variable
 
 	private double rep;	// the real part
 	private double imp;	// the imaginary part
