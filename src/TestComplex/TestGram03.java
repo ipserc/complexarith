@@ -3,7 +3,7 @@ package TestComplex;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
-public class TestGram02 {
+public class TestGram03 {
 
 	public static void showResults(MatrixComplex aMatrix) {
 		MatrixComplex gMatrix;
@@ -14,12 +14,20 @@ public class TestGram02 {
 		aMatrix.println("aMatrix");
 		gMatrix = aMatrix.gramSchmidt();
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt"));
-		gMatrix.println("Gram-Schmidt Matrix");
+		gMatrix.println("Gram-Schmidt Matrix (G)");
 		// aMatrix.adjoint().times(gMatrix).println("AxG");
 		// gMatrix.adjoint().times(gMatrix).println("GxG");
 		gnMatrix = gMatrix.normalize();
 		gnMatrix.println("Gram-Schmidt Normalized (GN)");
-		gnMatrix.adjoint().times(gnMatrix).println("GN* x GN");
+		{
+			Complex det = gnMatrix.determinant();
+			det.println("Det(GN)=");
+			System.out.println("|Det(GN)|=" + det.mod());
+			System.out.println("Is GN Unitary?:" + (gnMatrix.isUnitary(false) ? "Yes" : "No"));
+			//gnMatrix.inverse().println("GN⁻¹");
+			//gnMatrix.adjoint().println("GNAd");
+			//gnMatrix.adjoint().times(gnMatrix).println("GNAd x GN");
+		}
 		gMatrix = aMatrix.gramSchmidtFull();
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Full"));
 		gMatrix.println("Gram-Schmidt Full Matrix");
@@ -32,7 +40,15 @@ public class TestGram02 {
 			gMatrix.println("Gram-Schmidt Gauss Matrix");
 			gnMatrix = gMatrix.normalize();
 			gnMatrix.println("G Normalized");
-
+			{
+				Complex det = gnMatrix.determinant();
+				det.println("Det(GN)=");
+				System.out.println("|Det(GN)|=" + det.mod());
+				System.out.println("Is GN Unitary?:" + (gnMatrix.isUnitary(false) ? "Yes" : "No"));
+				//gnMatrix.inverse().println("GN⁻¹");
+				//gnMatrix.adjoint().println("GNAd");
+				//gnMatrix.adjoint().times(gnMatrix).println("GNAd x GN");
+			}
 		}
 	}
 	
@@ -45,31 +61,10 @@ public class TestGram02 {
 		Complex.setFormatON();
 		Complex.setFixedON(3);
 		
-		aMatrix = new MatrixComplex("1.000i,1.000i,1.000i;-1.000i,-1.000i,-1.000i;1.000i,1.000i,-1.000i");
+		aMatrix = new MatrixComplex(5); aMatrix.initMatrixRandomInteger(7);
 		showResults(aMatrix);
 
-		aMatrix = new MatrixComplex(
-				  " 1, 1, 1;"
-				+ " 1,-1,-1;"
-				+ " 1, 1,-1");
-		showResults(aMatrix);
-
-		aMatrix = new MatrixComplex(
-				  "  3,  1, -2;"
-				+ " -2, -1, -3;"
-				+ "  1,  2, -1");
-		showResults(aMatrix);
-
-		aMatrix = new MatrixComplex(
-				  "  3 ,  i,  -2;"
-				+ " -2i, -1,  -3i;"
-				+ "  1 ,  2i, -1");
-		showResults(aMatrix);
-
-		aMatrix = new MatrixComplex(
-				  "  2,  1,  1;"
-				+ "  1,  0, 10;"
-				+ "  2, -3, 11");
+		aMatrix = new MatrixComplex(5); aMatrix.initMatrixRandomPol(7);
 		showResults(aMatrix);
 	}
 }

@@ -99,5 +99,16 @@ public class TestTriang01 {
 		aMatrix.println();
 		/ * */
 
+    	aMatrix = new MatrixComplex( "" 
+				+ "-1,-1, 0, 0;"
+				+ " 0, 2, 2, 0;"
+				+ " 2, 0,-1, 0"); 
+    	showResults(aMatrix);
+
+    	aMatrix = new MatrixComplex( "" 
+				+ " 1, 2, 3, 0;"
+				+ " 2, 1, 2, 0;"
+				+ " 3, 3, 5, 0");
+    	showResults(aMatrix);
 	}
 }

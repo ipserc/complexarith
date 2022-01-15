@@ -15,6 +15,7 @@ import com.ipserc.arith.matrixcomplex.*;
 import java.util.ArrayList;
 
 public class TestLineW01 {
+	private static boolean Reduced = true;
 
 	public static MatrixComplex intersect(List<MatrixComplex> listLines) {
 		MatrixComplex lineSystem = new MatrixComplex(listLines.size());
@@ -27,16 +28,16 @@ public class TestLineW01 {
 		}
 		
 		lineSystem = lineSystem.completepEqSys();
-		if (lineSystem.typeEqSys() == 0) {
+		if (lineSystem.typeEqSys(Reduced) == 0) {
 			for (i = 0; i < lineSystem.complexMatrix[0].length; ++i) {
 				cNum.setComplexRec(i, 0);
-				solutions = lineSystem.solveGauss(cNum);
+				solutions = lineSystem.solveGauss(cNum, Reduced);
 				solutions.println("Intersection");
 				//lineSystem.coefMatrix().times(solutions).println("Proof check");
 			}
 		}
 		else {
-			solutions = lineSystem.solve();
+			solutions = lineSystem.solve(Reduced);
 			solutions.println("Intersection");
 		}
 		return solutions;

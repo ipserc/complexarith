@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class TestMatrixComplex01 {
+	private static boolean Reduced = true;
 	
     public static void main(String[] args) {
     	MatrixComplex aMatrix;
@@ -127,7 +128,7 @@ public class TestMatrixComplex01 {
     			" 4, 1, 0,-2;"+
     			"-2, 2, 1, 7");
     	aMatrix.println("05-aMatrix A");
-    	sMatrix = aMatrix.solve();
+    	sMatrix = aMatrix.solve(Reduced);
     	sMatrix.println("06-sMatrix");
     	
     	aMatrix = new MatrixComplex(""+
@@ -135,7 +136,7 @@ public class TestMatrixComplex01 {
     			" 2i,2, 1, 2;"+
     			" 1, 1i,0, 2");
     	aMatrix.println("07-aMatrix A");
-    	sMatrix = aMatrix.solve();
+    	sMatrix = aMatrix.solve(Reduced);
     	sMatrix.println("08-sMatrix");
     	bMatrix = new MatrixComplex(""+
     			" 1, 1, 1;"+
@@ -146,7 +147,7 @@ public class TestMatrixComplex01 {
     	aMatrix = new MatrixComplex(11, 12);
     	aMatrix.initMatrixRandomPolInt(10);
     	aMatrix.println("09-aMatrix A");
-    	sMatrix = aMatrix.solve();
+    	sMatrix = aMatrix.solve(Reduced);
     	sMatrix.println("10-sMatrix");
     	    	
     	aMatrix = new MatrixComplex(""+
@@ -155,7 +156,7 @@ public class TestMatrixComplex01 {
     			" 1,-1, 0, 1, 0;"+
     			" 0, 0, 1, 0,-1");
     	aMatrix.println("aMatrix A");
-    	sMatrix = aMatrix.solve();
+    	sMatrix = aMatrix.solve(Reduced);
     	sMatrix.println("sMatrix");
 
 		System.out.println(Complex.boxTextRandom(boxSize, "Matrix Cofactors"));
@@ -199,10 +200,10 @@ public class TestMatrixComplex01 {
     	cMatrix = hMatrix.anticommutator(fMatrix);
     	cMatrix.println("anticommutator");
     	
-		System.out.println(Complex.boxTextRandom(boxSize, "Matrix 1x3 product"));
-    	aMatrix = new MatrixComplex("2,-3,4");
+		System.out.println(Complex.boxTextRandom(boxSize, "Matrix 3x1 · 1x3 product"));
+    	aMatrix = new MatrixComplex("2;-3;4");
     	bMatrix = new MatrixComplex("2,5,-1");
-    	cMatrix = aMatrix.transpose().times(bMatrix);
+    	cMatrix = aMatrix.times(bMatrix);
     	aMatrix.println("aMatrix");
     	bMatrix.println("bMatrix");    	
     	cMatrix.println("aMatrixT.times(bMatrix)");

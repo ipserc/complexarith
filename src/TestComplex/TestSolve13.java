@@ -4,6 +4,7 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 public class TestSolve13 {
+	private static boolean Reduced = true;
 
 	private static void showResults(MatrixComplex fMatrix) {
 		MatrixComplex dMatrix;
@@ -16,21 +17,21 @@ public class TestSolve13 {
 		System.out.println(Complex.boxTextRandom(boxSize, "Some Matrix Operations"));   	
 		gMatrix = fMatrix.triangleUp();
 		gMatrix.println("Triangle");
-		System.out.println("rank(gMatrix) = " + gMatrix.rank());		
+		System.out.println("rank(gMatrix) = " + gMatrix.rank(Reduced));		
 		dMatrix = fMatrix.triangleLo();
 		dMatrix.println("Triangle Lo");
 
 		System.out.println(Complex.boxTextRandom(boxSize, "Equations Operations"));   	
 		fMatrix.unkMatrix().println("Unknowns Matrix");
-		int rank1 = fMatrix.unkMatrix().rank();
+		int rank1 = fMatrix.unkMatrix().rank(Reduced);
 			System.out.println("rank(Unknowns Matrix) = " + rank1);
 			fMatrix.unkMatrix().determinant().println("unkMatrix().det=");
-		int nbrSolutions = fMatrix.nbrOfSolutions();
+		int nbrSolutions = fMatrix.nbrOfSolutions(Reduced);
 		/************************************************************
 		 * seed to calculate the solution for indeterminate systems *
 		 ************************************************************/
 		Complex seed = new Complex(1.334567,-2.72345);
-		int typeEqSys = fMatrix.typeEqSys();
+		int typeEqSys = fMatrix.typeEqSys(Reduced);
 		fMatrix.printTypeEqSys(typeEqSys, seed);	
 		if (typeEqSys == MatrixComplex.DETERMINATE)
 			System.out.println("Se devuelve 1 solución única.");
@@ -41,7 +42,7 @@ public class TestSolve13 {
 			}
 		//System.out.println("	SOLVE GAUSS with λ " + seed.toString());
 		System.out.println(Complex.boxTextRandom(boxSize, "System Equations Solutions"));   	
-		hMatrix = fMatrix.solve(seed);
+		hMatrix = fMatrix.solve(seed, Reduced);
 		hMatrix.println("Soluciones (hMatrix)");
 		for (int i = 0 ; i < hMatrix.rows(); ++i) {
 			MatrixComplex solMatrix = new MatrixComplex(1,hMatrix.cols());
@@ -50,9 +51,9 @@ public class TestSolve13 {
 			solMatrix.println("Soluciones (solMatrix)");
 			fMatrix.coefMatrix().times(solMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
 		}
-		if (fMatrix.typeEqSys() == MatrixComplex.DETERMINATE) {
+		if (fMatrix.typeEqSys(Reduced) == MatrixComplex.DETERMINATE) {
 			System.out.println("	SOLVE CRAMER");		
-			hMatrix = fMatrix.solveCramer();
+			hMatrix = fMatrix.solveCramer(Reduced);
 			hMatrix.println("Soluciones Cramer (hMatrix)");
 			fMatrix.coefMatrix().times(hMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");			
 		}

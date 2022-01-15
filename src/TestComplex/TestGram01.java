@@ -15,11 +15,11 @@ public class TestGram01 {
 		gMatrix = aMatrix.gramSchmidt();
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt"));
 		gMatrix.println("Gram-Schmidt Matrix");
-		aMatrix.adjoint().times(gMatrix).println("AxG");
-		gMatrix.adjoint().times(gMatrix).println("GxG");
+		//aMatrix.adjoint().times(gMatrix).println("AxG");
+		//gMatrix.adjoint().times(gMatrix).println("GxG");
 		gnMatrix = gMatrix.normalize();
-		gnMatrix.println("G Normalized");
-		gnMatrix.adjoint().times(gnMatrix).println("GN*xGN");
+		gnMatrix.println("Gram-Schmidt Matrix Normalized (GN)");
+		gnMatrix.adjoint().times(gnMatrix).println("GN* x GN");
 		gMatrix = aMatrix.gramSchmidtFull();
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Full"));
 		gMatrix.println("Gram-Schmidt Full Matrix");
