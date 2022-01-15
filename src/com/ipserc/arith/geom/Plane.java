@@ -14,9 +14,15 @@ import com.ipserc.arith.matrixcomplex.*;
 public class Plane {
 	private Vector normal;
 	private Point point;
+	private boolean Reduced = true;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
 	private final static String VERSION = "1.0 (2021_0206_0100)";
+	/* VERSION Release Note
+	 * 
+	 * 1.0 (2021_0206_0100)
+	 */
+
 
 	/*
 	 * ***********************************************
@@ -381,7 +387,7 @@ public class Plane {
 			}
 			aMatrix.complexMatrix[1][i] = plane.normal.dotprod(plane.toVector(plane.point));
 				aMatrix.println("Sistema ecuaciones");
-			MatrixComplex solutions = aMatrix.solve();
+			MatrixComplex solutions = aMatrix.solve(Reduced);
 			
 			Point point = new Point();
 			point.complexMatrix = solutions.transpose().complexMatrix.clone();
