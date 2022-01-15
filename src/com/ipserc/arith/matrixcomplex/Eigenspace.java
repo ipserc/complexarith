@@ -42,6 +42,7 @@ public class Eigenspace extends MatrixComplex {
 	private Polynom charactPoly;
 	private Complex seed;
 	private Order order;
+	private boolean Reduced = true;
 
 	/*
 	 * ***********************************************
@@ -213,8 +214,11 @@ public class Eigenspace extends MatrixComplex {
 				Complex.restoreFormatStatus();
 			}
 			/* ------------- END DEBUGGING BLOCK ------------- */
-
-			if (values.getItem(i,0).equalsred(eigenVal,digits)) ++arithMult;
+			if (Reduced) {
+				if (values.getItem(i,0).equalsred(eigenVal,digits)) ++arithMult;
+			}
+			else
+				if (values.getItem(i,0).equals(eigenVal)) ++arithMult;
 		}
 		return arithMult;
 	}
@@ -228,9 +232,13 @@ public class Eigenspace extends MatrixComplex {
 		MatrixComplex eigenV = new MatrixComplex(vectors.rows(), vectors.cols());
 
 		for (int i = 0; i < this.rows(); ++i) {
-			if (values.getItem(i,0).equalsred(eigenVal)) eigenV.complexMatrix[i] = vectors.complexMatrix[i];
+			if (Reduced) {
+				if (values.getItem(i,0).equalsred(eigenVal)) eigenV.complexMatrix[i] = vectors.complexMatrix[i];
+			}
+			else 
+				if (values.getItem(i,0).equals(eigenVal)) eigenV.complexMatrix[i] = vectors.complexMatrix[i];
 		}
-		return eigenV.rank();
+		return eigenV.rank(Reduced);
 	}
 
 	/**
@@ -324,7 +332,7 @@ public class Eigenspace extends MatrixComplex {
 			/* ------------- END DEBUGGING BLOCK ------------- */
 
 			// System.out.println("Ec.Caract.["+rowEig+"]" + dMatrix.toMatrixComplex());
-			eigenVect = dMatrix.solve(seed);
+			eigenVect = dMatrix.solve(seed, Reduced);
 			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
 				vectors.complexMatrix[rowEig+sol] = eigenVect.complexMatrix[sol].clone();
 			}
@@ -353,8 +361,9 @@ public class Eigenspace extends MatrixComplex {
 			
 			/* -------------   DEBUGGING BLOCK   ------------- */
 			if (DEBUG_ON) {
+				eigenval.println("\n" + HEADINFO + " * * * * * eigenval:");
 				dMatrix.println(HEADINFO + "Eq. System for EigenVectors");
-				eigenval.println(HEADINFO + "eigenval:");
+				dMatrix.triangle().println(HEADINFO + "Eq. System TRIANGLE for EigenVectors");
 		     	System.out.println("MComplex:" + dMatrix.toMatrixComplex());
 		     	System.out.println("MComplex:new Syseq(" + dMatrix.preMatrixComplex() +");");
 				dMatrix.printSystemEqSolve(outputFormat.MAXIMA, true);
