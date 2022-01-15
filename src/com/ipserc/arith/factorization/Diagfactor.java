@@ -40,7 +40,11 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
 	private final static String VERSION = "1.0 (2020_0824_1800)";
-
+	/* VERSION Release Note
+	 * 
+	 * 1.0 (2020_0824_1800)
+	 */
+	
 	/*
 	 * ***********************************************
 	 * 	VERSION 
@@ -115,6 +119,14 @@ public class Diagfactor extends MatrixComplex {
 	 * @return The factorization status.
 	 */
 	public boolean factorized() {
+		return factorized;
+	}
+
+	/**
+	 * Gets the class member variable with the status of the factorization.
+	 * @return The whether the matrix is diagonalized or not.
+	 */
+	public boolean isDiagonalizable() {
 		return factorized;
 	}
 	
