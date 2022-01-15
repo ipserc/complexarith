@@ -9,6 +9,11 @@ public class Line {
 	
 	private final static String HEADINFO = "Line --- INFO: ";
 	private final static String VERSION = "1.0 (2021_0206_0100)";
+	/* VERSION Release Note
+	 * 
+	 * 1.0 (2021_0206_0100)
+	 */
+
 
 	/*
 	 * ***********************************************
