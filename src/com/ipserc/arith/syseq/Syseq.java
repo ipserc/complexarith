@@ -7,6 +7,7 @@ public class Syseq extends MatrixComplex{
 	private MatrixComplex partsol;	// Solution for the system
 	private MatrixComplex homosol;	// Solution for the homogeneous system
 	private Boolean solved = false;
+	private boolean Reduced = true;
 
 	private final static String HEADINFO = "Syseq --- INFO: ";
 	private final static String VERSION = "1.3 (2021_0224_1312)";
@@ -16,7 +17,7 @@ public class Syseq extends MatrixComplex{
 	 * 
 	 * 
 	 */
-
+	
 	/*
 	 * ***********************************************
 	 * 	VERSION 
@@ -86,7 +87,7 @@ public class Syseq extends MatrixComplex{
 		}
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
-		partsol = this.solve(lambda);
+		partsol = this.solve(lambda, Reduced);
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
@@ -96,7 +97,7 @@ public class Syseq extends MatrixComplex{
 		}
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
-		if (this.typeEqSys() == INDETERMINATE) {
+		if (this.typeEqSys(Reduced) == INDETERMINATE) {
 			/* -------------   DEBUGGING BLOCK   ------------- */
 			if (DEBUG_ON) {
 				System.out.println(HEADINFO + Complex.repeat("# ", 40));
@@ -104,8 +105,8 @@ public class Syseq extends MatrixComplex{
 			}
 			/* ------------- END DEBUGGING BLOCK ------------- */
 
-			if (this.isHomogeneous()) homosol = partsol;
-			else homosol = this.homogeneous().solve(lambda);
+			if (this.isHomogeneous(Reduced)) homosol = partsol;
+			else homosol = this.homogeneous().solve(lambda, Reduced);
 			
 			/* -------------   DEBUGGING BLOCK   ------------- */
 			if (DEBUG_ON) {
@@ -134,9 +135,9 @@ public class Syseq extends MatrixComplex{
 		MatrixComplex sol = new MatrixComplex();
 		
 		if (!solved) this.solveq();
-		switch (this.typeEqSys()) {
+		switch (this.typeEqSys(Reduced)) {
 			case DETERMINATE:	sol = partsol; break;
-			case INDETERMINATE:	if (this.isHomogeneous()) sol = partsol.times(n); 
+			case INDETERMINATE:	if (this.isHomogeneous(Reduced)) sol = partsol.times(n); 
 								else sol = partsol.plus(homosol.times(n));
 								break;
 			case INCONSISTENT:	sol = partsol; break;
@@ -165,6 +166,60 @@ public class Syseq extends MatrixComplex{
 		solution.println                                                 ("Solution                                      ");
 		solution.times(uknMatix).minus(unitMatrix.times(indTerm)).println("Check: solution.times(uknMatix).minus(indTerm)");
 	}
+
+	/*
+	 * ***********************************************
+	 * FUNCTIONS
+	 * ***********************************************
+	 */
+
+	/**
+	 * Checks if the unknown coefficient matrix is symmetric or not
+	 * @return True if the matrix is symmetric
+	 */
+	public boolean isSymmetric() {
+		return this.unkMatrix().isSymmetric();
+	}
+
+	/**
+	 * Checks if the unknown coefficient matrix is antisymmetric or not
+	 * @return True if the matrix is antisymmetric
+	 */
+	public boolean isAntiSymmetric() {
+		return this.unkMatrix().isAntiSymmetric();
+	}
+
+	/**
+	 * Checks if the unknown coefficient matrix is skew-symmetric or not
+	 * @return True if the matrix is skew-symmetric
+	 */
+	public boolean isSkewSymmetric() {
+		return this.unkMatrix().isSkewSymmetric();
+	}
+	
+	/**
+	 * Checks if the unknown coefficient matrix is hermitian or not
+	 * @return True if the matrix is hermitian
+	 */
+	public boolean isHermitian() {
+		return this.unkMatrix().isHermitian();
+	}
+	
+	/**
+	 * Checks if the unknown coefficient matrix is antihermitian or not
+	 * @return True if the matrix is antihermitian
+	 */
+	public boolean isAntiHermitian() {
+		return this.unkMatrix().isAntiHermitian();		
+	}
+	
+	/**
+	 * Checks if the unknown coefficient matrix is skewhermitian (antihermitian) or not
+	 * @return True if the matrix is skewhermitian
+	 */
+	public boolean isSkewHermitian() {
+		return isAntiHermitian();
+	}
 	
 	/*
 	 * ***********************************************
@@ -185,7 +240,7 @@ public class Syseq extends MatrixComplex{
 			}
 			System.out.println(" = "+getItem(row, col));
 		}
-		printTypeEqSys();
+		printTypeEqSys(Reduced);
 	}
 
 	/**
@@ -201,12 +256,12 @@ public class Syseq extends MatrixComplex{
 	public void printSol(String title) {
 		System.out.println(title);
 		if (!solved) this.solveq();
-		if (typeEqSys() == INCONSISTENT) {
+		if (typeEqSys(Reduced) == INCONSISTENT) {
 			System.out.println(HEADINFO + ":There are no solutions for an INCONSISTENT Equation System");
 		}
 		else {
 			partsol.println("Particular  Solution");
-			if (homosol != null && !isHomogeneous()) homosol.println("Homogeneous Solution");
+			if (homosol != null && !isHomogeneous(Reduced)) homosol.println("Homogeneous Solution");
 		}
 	}
 
