@@ -11,6 +11,11 @@ public class Sigfunc {
 
 	private final static String HEADINFO = "Sigfunc --- INFO: ";
 	private final static String VERSION = "1.1 (2021_0228_0045)";
+	/* VERSION Release Note
+	 * 
+	 * 1.1 (2021_0228_0045)
+	 */
+
 
 	/*
 	 * ***********************************************
