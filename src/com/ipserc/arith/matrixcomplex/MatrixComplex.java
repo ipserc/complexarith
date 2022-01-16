@@ -21,11 +21,12 @@ public class MatrixComplex {
 	 * 
 	 * 1.9 (2022_0106_1400)
 	 * solveGauss(Complex lambda, boolean Reduced) is now the method used to solve Equation Systems
-	 * It uses the Gaussian Elimination and Back Substitution from a diagonalized matrix. 
-	 * The matrix is "perfect" diagonalized to accommodate the rows in the position into the system where the not null main diagonal terms occupy the row corresponding with their column number
-	 * It takes on account the use of the value lambda for the unknown, and so on, to find the base solution "solBase" for each equation
-	 * The solBase keeps the fixed values for the unknowns with the null equations of the system
-	 * With the solBase calculated, the rest of the solutions are calculated by the Gaussian Elimination and Back Substitution method
+	 * 		It uses the Gaussian Elimination and Back Substitution from a diagonalized matrix. 
+	 * 		The matrix is "perfect" diagonalized to accommodate the rows in the position into the system where the not null main diagonal terms occupy the row corresponding with their column number
+	 * 		It takes on account the use of the value lambda for the unknown, and so on, to find the base solution "solBase" for each equation
+	 * 		The solBase keeps the fixed values for the unknowns with the null equations of the system
+	 * 		With the solBase calculated, the rest of the solutions are calculated by the Gaussian Elimination and Back Substitution method
+	 * MatrixComplex power(int power). Now power can be negative.
 	 * 
 	 * 1.8 (2021_1106_1400)
 	 * augment(matrixComplex interms) is now using augment2(matrixComplex interms) which returns an augmented matrix with full columns. 
@@ -1175,17 +1176,25 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the power of a Matrix
+	 * Calculates the power of a Matrix, power can be positive or negative
 	 * @param power The power at which the matrix is ​​raised. Only positive integers are allowed
 	 * @return The matrix raised to power
 	 */
 	public MatrixComplex power(int power) {
+		boolean inverse = false;
 		MatrixComplex powerMatrix = new MatrixComplex(this.rows(), this.cols());
 		powerMatrix.initMatrixDiag(1, 0);
 		if (power == 0) return powerMatrix;
+		if (power < 0) {
+			inverse = true;
+			power = -power;
+		}
 		for (int i = 1; i <= power; ++i)
 			powerMatrix = powerMatrix.times(this);
-		return powerMatrix;
+		if (inverse)
+			return powerMatrix.inverse();
+		else
+			return powerMatrix;
 	}
 	
 	/*
@@ -2480,11 +2489,12 @@ public class MatrixComplex {
 		Complex coefSol;
 		
 		// Se construye la base para las soluciones recorriendo la matriz triangular perfecta
-		// y rellenando cada fila de la bsecon lamba en la posición en que la diagonal principal
+		// y rellenando cada fila de la base con lambda en la posición en que la diagonal principal
 		// de la matriz triangular perfecta es cero
-		// The basis for the solutions is built by traversing the perfect triangular matrix
-		// and filling each row of the bsecon lamba in the position where the main diagonal
-		// of the perfect triangular matrix is zero 
+		//
+		// Build the basis for the solutions by traversing the perfect triangular matrix
+		// and padding each base row with lambda at the position where the leading diagonal
+		// of the perfect triangular matrix is zero
 		for (int row = 0, solNbr = 0; row < rowLen && solNbr < nbrOfSols; ++row) {
 			if (auxMatrix.getItem(row ,row).equalsred(Complex.ZERO)) {
 				solBase.setItem(solNbr++, row, lambda);
