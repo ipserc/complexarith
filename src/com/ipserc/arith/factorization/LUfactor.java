@@ -40,10 +40,10 @@ public class LUfactor extends MatrixComplex {
 	private LUmethod method = LUmethod.NONE;
 
 	private final static String HEADINFO = "LUfactor --- INFO: ";
-	private final static String VERSION = "1.3 (2021_0319_1200)";
+	private final static String VERSION = "1.4 (2022_0209_2130)";
 	/* VERSION Release Note
 	 * 
-	 * 1.4 (2022_0209_2130
+	 * 1.4 (2022_0209_2130)
 	 * private MatrixComplex CHOLESKYcoef() sqrrot changed to sqrt
 	 * 
 	 * 1.3 (2021_0319_1200)
