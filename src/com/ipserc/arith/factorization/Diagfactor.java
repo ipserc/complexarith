@@ -38,9 +38,13 @@ public class Diagfactor extends MatrixComplex {
 	private MatrixComplex cD;
 	private MatrixComplex cP;
 	private boolean factorized = false;
+
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.0 (2020_0824_1800)";
+	private final static String VERSION = "1.1 (2021_0123_0100)";
 	/* VERSION Release Note
+	 * 
+	 * 1.1 (2021_0123_0100)
+	 * toWolfram_diagonalize() --> Diagonalize[....] 
 	 * 
 	 * 1.0 (2020_0824_1800)
 	 */
@@ -93,10 +97,10 @@ public class Diagfactor extends MatrixComplex {
 
 	/*
 	 * ***********************************************
-	 * 	GETTERS 
+	 * GETTERS
 	 * ***********************************************
 	 */
-
+	
 	/**
 	 * Gets the diagonal matrix
 	 * @return D
@@ -124,7 +128,7 @@ public class Diagfactor extends MatrixComplex {
 
 	/**
 	 * Gets the class member variable with the status of the factorization.
-	 * @return The whether the matrix is diagonalized or not.
+	 * @return Whether the matrix is diagonalized or not.
 	 */
 	public boolean isDiagonalizable() {
 		return factorized;
@@ -143,28 +147,56 @@ public class Diagfactor extends MatrixComplex {
 	 * @return true if the matrix is diagonalizable, otherwise false
 	 */
 	public boolean isDiagonalizable(Eigenspace eigenspace) {
+		return eigenspace.isDiagonaizable();
+	}
+	
+	/**
+	 * DEPRECATED. USELESS it needs an Eigenspace and then can use Eigenspace isDiagonaizable() method
+	 * @param eigenspace
+	 * @return
+	 */
+	public boolean isDiagonalizable__(Eigenspace eigenspace) {
+		final boolean DEBUG_ON = false;
+		final String METH_NAME = "isDiagonalizable";
 		int arithMult, geomMult;
 		int sumArithMult = 0;
-		Complex eigenValue = eigenspace.values().getItem(0, 0);
 
+		Complex eigenValue = eigenspace.eigenvalues().getItem(0, 0);
 		arithMult = eigenspace.arithmeticMultiplicity(eigenValue);
 		geomMult = eigenspace.geometricMultiplicity(eigenValue);
+		/* -------------   DEBUGGING BLOCK   ------------- */
+		if (DEBUG_ON) {
+			System.out.printf(HEADINFO + METH_NAME + ": eigenValue = %s\n", eigenValue.toString());			
+			System.out.printf(HEADINFO + METH_NAME + ": arithMult = %d\n", arithMult);
+			System.out.printf(HEADINFO + METH_NAME + ": geomMult  = %d\n", geomMult);
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
+		
 		if (arithMult != geomMult) return false;
 
 		sumArithMult += arithMult;		
-		for (int row = 1; row < this.rows(); ++row) {
-			if (eigenValue.equalsred(eigenspace.values().getItem(row, 0), this.bestNumDecs())) continue;
-			else eigenValue = eigenspace.values().getItem(row, 0);
+		for (int row = 1; row < eigenspace.eigenvalues().rows(); ++row) {
+			// ***** if (eigenValue.equalsred(eigenspace.values().getItem(row, 0), this.bestNumDecs())) continue;
+			if (eigenValue.equals(eigenspace.eigenvalues().getItem(row, 0), this.bestNumDecs())) continue;
+			eigenValue = eigenspace.eigenvalues().getItem(row, 0);
 			arithMult = eigenspace.arithmeticMultiplicity(eigenValue);
 			geomMult = eigenspace.geometricMultiplicity(eigenValue);
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				System.out.printf(HEADINFO + METH_NAME + ": eigenValue = %s\n", eigenValue.toString());			
+				System.out.printf(HEADINFO + METH_NAME + ": arithMult = %d\n", arithMult);
+				System.out.printf(HEADINFO + METH_NAME + ": geomMult  = %d\n", geomMult);
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
 			if (arithMult != geomMult) return false;
 			sumArithMult += arithMult;
 		}
 		if (sumArithMult == this.rows()) return true;
-		
-		return false;
+		else return false;
 	}
 
+
+	
 	/*
 	 * ***********************************************
 	 * 	OPERATION 
@@ -177,6 +209,7 @@ public class Diagfactor extends MatrixComplex {
 	 */
 	public void diagonalize() {
 		final boolean DEBUG_ON = false; 
+		final String METH_NAME = "diagonalize";
 		int rowLen = this.complexMatrix.length; 
 		int colLen= this.complexMatrix[0].length;
 		if (colLen != rowLen) {
@@ -184,10 +217,19 @@ public class Diagfactor extends MatrixComplex {
 			System.exit(-1);
 		}
 		Eigenspace eigenspace = new Eigenspace(this);
+	
+		/* -------------   DEBUGGING BLOCK   ------------- */
+		if (DEBUG_ON) {
+			eigenspace.println(HEADINFO + METH_NAME + ":eigenspace");
+			eigenspace.solutions().println(HEADINFO + METH_NAME + ":eigenspace vectors");
+			eigenspace.eigenvalues().println(HEADINFO + METH_NAME + ":eigenspace values");
+		}
+		/* ------------- END DEBUGGING BLOCK ------------- */
 		//MatrixComplex eigenVal = this.eigenvalues();
 		//eigenVal.quicksort(0);
 		
-		if (!this.isDiagonalizable(eigenspace)) {
+		//if (!this.isDiagonalizable(eigenspace)) {
+		if (!eigenspace.isDiagonaizable()) {
 			factorized = false;
 
 			/* -------------   DEBUGGING BLOCK   ------------- */
@@ -206,12 +248,12 @@ public class Diagfactor extends MatrixComplex {
 			/* ------------- END DEBUGGING BLOCK ------------- */
 
 		// P: Transformation Matrix, the eigenvalues in columns
-		cP = eigenspace.vectors().transpose();
+		cP = eigenspace.solutions().transpose();
 
 		// D: diagonal eigenvalues square root matrix
 		cD = new MatrixComplex(rowLen, colLen);
 		for (int i = 0; i < colLen; ++i)
-			cD.complexMatrix[i][i] = eigenspace.values().complexMatrix[i][0];
+			cD.complexMatrix[i][i] = eigenspace.roots().complexMatrix[i][0];
 		//cD.println("--- Diagonal");
 		//(cP.times(cD).times(cP.inverse())).println("A=P·D·P⁻¹");
 		factorized = true;
@@ -261,7 +303,7 @@ public class Diagfactor extends MatrixComplex {
 	 */
 	public String toWolfram_diagonalize() {
 		String toWolfram;
-		toWolfram = "diagonalize("+this.toWolfram()+")";
+		toWolfram = "Diagonalize["+this.toWolfram()+"]";
 		return toWolfram;
 	}
 
