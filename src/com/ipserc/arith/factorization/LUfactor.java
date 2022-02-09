@@ -43,6 +43,9 @@ public class LUfactor extends MatrixComplex {
 	private final static String VERSION = "1.3 (2021_0319_1200)";
 	/* VERSION Release Note
 	 * 
+	 * 1.4 (2022_0209_2130
+	 * private MatrixComplex CHOLESKYcoef() sqrrot changed to sqrt
+	 * 
 	 * 1.3 (2021_0319_1200)
 	 */
 
@@ -269,7 +272,8 @@ public class LUfactor extends MatrixComplex {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
-		if (this.determinant().equalsred(Complex.ZERO)) return;
+		// **** if (this.determinant().equalsred(Complex.ZERO)) return;
+		if (this.determinant().equals(Complex.ZERO)) return;
 		
 		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
 		cL = new MatrixComplex(rowLen, colLen);
@@ -358,7 +362,8 @@ public class LUfactor extends MatrixComplex {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
-		if (this.determinant().equalsred(Complex.ZERO)) return;
+		// **** if (this.determinant().equalsred(Complex.ZERO)) return;
+		if (this.determinant().equals(Complex.ZERO)) return;
 		
 		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
 		cL = new MatrixComplex(rowLen, colLen); cL.initMatrixDiag(1,0);
@@ -415,7 +420,7 @@ public class LUfactor extends MatrixComplex {
 		Complex coef = new Complex();
 
 		//Step 1
-		coefMatrix.setItem(0,0,Complex.sqrroot(this.getItem(0,0)));
+		coefMatrix.setItem(0,0,Complex.sqrt(this.getItem(0,0)));
 		
 		//Step 2
 		for (int row = 1; row < this.rows(); ++row) {
@@ -430,7 +435,7 @@ public class LUfactor extends MatrixComplex {
 			for (int k = 0; k < col; ++k) {
 				coef = coef.plus(coefMatrix.getItem(col,k).power(2));
 			}
-			coefMatrix.setItem(col,col,Complex.sqrroot(this.getItem(col,col).minus(coef)));
+			coefMatrix.setItem(col,col,Complex.sqrt(this.getItem(col,col).minus(coef)));
 			
 			//Step 5
 			for (int row = col+1; row < this.rows(); ++row) {
@@ -448,7 +453,7 @@ public class LUfactor extends MatrixComplex {
 		for (int k = 0; k < n-1; ++k) {
 			coef = coef.plus(coefMatrix.getItem(n,k).power(2));						
 		}
-		coefMatrix.setItem(n,n,Complex.sqrroot(this.getItem(n,n).minus(coef)));
+		coefMatrix.setItem(n,n,Complex.sqrt(this.getItem(n,n).minus(coef)));
 		
 		return coefMatrix;
 	}
@@ -464,7 +469,8 @@ public class LUfactor extends MatrixComplex {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		
-		if (this.determinant().equalsred(Complex.ZERO)) return;
+		// **** if (this.determinant().equalsred(Complex.ZERO)) return;
+		if (this.determinant().equals(Complex.ZERO)) return;
 		
 		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
 		cL = new MatrixComplex(rowLen, colLen);
