@@ -28,8 +28,11 @@ public class SVDfactor extends MatrixComplex {
 	private MatrixComplex cU;
 
 	private final static String HEADINFO = "SVDfactor --- INFO: ";
-	private final static String VERSION = "1.0 (2020_0824_1800)";
+	private final static String VERSION = "1.1 (2022_0123_0100)";
 	/* VERSION Release Note
+	 * 
+	 * 1.1 (2022_0123_0100)
+	 * toWolfram_svd() --> svd[...]
 	 * 
 	 * 1.0 (2020_0824_1800)
 	 */
@@ -278,7 +281,7 @@ public class SVDfactor extends MatrixComplex {
 	 */
 	public String toWolfram_svd() {
 		String toWolfram;
-		toWolfram = "svd("+this.toWolfram()+")";
+		toWolfram = "svd["+this.toWolfram()+"]";
 		return toWolfram;
 	}
 }
