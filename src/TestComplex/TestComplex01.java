@@ -46,6 +46,7 @@ public class TestComplex01 {
         Complex f = new Complex();
         
         System.out.println(Complex.boxTitleRandom(boxSize, "COMPLEX WITH FORMAT OFF TEST"));
+        Complex.facts();
         Complex.setFormatOFF(true);
         
         System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
@@ -56,6 +57,8 @@ public class TestComplex01 {
         System.out.println("b + a		= " + b.plus(a));
         System.out.println("a - b		= " + a.minus(b));
         System.out.println("a * b		= " + a.times(b));
+        System.out.println("a * 100		= " + a.times(100));
+        System.out.println("a * 100i	= " + a.times(new Complex("100i")));
         System.out.println("b * a		= " + b.times(a));
         System.out.println("a / b		= " + a.divides(b));
         System.out.println("(a / b) * b	= " + a.divides(b).times(b));
@@ -72,6 +75,8 @@ public class TestComplex01 {
         System.out.println("b + a		= " + b.plus(a));
         System.out.println("a - b		= " + a.minus(b));
         System.out.println("a * b		= " + a.times(b));
+        System.out.println("a * 100		= " + a.times(100));
+        System.out.println("a * 100i	= " + a.times(new Complex("100i")));
         System.out.println("b * a		= " + b.times(a));
         System.out.println("a / b		= " + a.divides(b));
         System.out.println("(a / b) * b	= " + a.divides(b).times(b));
@@ -89,6 +94,8 @@ public class TestComplex01 {
         System.out.println("b + a		= " + b.plus(a));
         System.out.println("a - b		= " + a.minus(b));
         System.out.println("a * b		= " + a.times(b));
+        System.out.println("a * 100		= " + a.times(100));
+        System.out.println("a * 100i	= " + a.times(new Complex("100i")));
         System.out.println("b * a		= " + b.times(a));
         System.out.println("a / b		= " + a.divides(b));
         System.out.println("(a / b) * b	= " + a.divides(b).times(b));
@@ -271,7 +278,7 @@ public class TestComplex01 {
         System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX STORE/RESTORE FORMAT TEST"));
         System.out.println("Initial format");
         Complex.printFormatStatus();
-        System.out.println("Stotre initial format");
+        System.out.println("Store initial format");
         Complex.storeFormatStatus();
         System.out.println("New format");
         Complex.setScientificON(3, true);

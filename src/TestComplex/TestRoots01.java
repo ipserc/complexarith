@@ -36,9 +36,13 @@ public class TestRoots01 {
 	public static void main(String[] args) {
     	Polynom aPolynom;
 
-    	Complex.setFixedON(3);
+    	//Complex.setFixedON(3);
     	Complex.setFormatON();
 
+    	//(-1.000)x^3+(5.000)x^2+(-3.000)x+(-9.000)
+    	aPolynom = new Polynom("-1,5,-3,-9");
+    	showResults(aPolynom);
+/*    	
     	//-x²+2ix+1
     	aPolynom = new Polynom("-1,2i,1");
     	showResults(aPolynom);
@@ -73,17 +77,16 @@ public class TestRoots01 {
        	// 3x⁷-5x⁶+2x⁴-x³-x²+2x-6
        	aPolynom = new Polynom("3,-5,0,2,-1,-1,2,-6");
     	showResults(aPolynom);
-/**/
+
     	// 4x⁴-3x³+2x²-x
        	aPolynom = new Polynom("4,-3,2,-1,0");
     	showResults(aPolynom);
 
-    	
     	aPolynom = new Polynom("-2.0i,1.0i,1.0i,-3.0i,-2.0i,2.0i,-2.0i,-2.0i,-1.0i,-2.0i,2.0i,1.0i,2.0i,-3.0i,0.0,0.0,0.0");
        	//aPolynom = new MatrixComplex(1,17); aPolynom.initPolynomRandomImagInt(3);
        	System.out.println(aPolynom.toMatrixComplex());
     	showResults(aPolynom);       	
-/**/
+
     	aPolynom = new Polynom(16); aPolynom.initMatrixRandomRecInt(9);
     	System.out.println(aPolynom.toMatrixComplex());
     	showResults(aPolynom);       	
@@ -119,7 +122,7 @@ public class TestRoots01 {
     	aPolynom = aPolynom.chebyshev(16, 1);
     	showResults(aPolynom); 
 
-/**/
+	/**/
 	}
 
 }

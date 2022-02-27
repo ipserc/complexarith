@@ -49,7 +49,8 @@ public class TestDeterminant01 {
     	MatrixComplex fMatrix;
     	MatrixComplex hMatrix;
 
-    	Complex.setFixedON(3);
+    	Complex.setFormatON();
+    	Complex.setFixedON(5);
 
     	fMatrix = new MatrixComplex("2+i,3i,-4;5,-1-i,3-i;2i,-1,4-7i");
     	showResults(fMatrix);

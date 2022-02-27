@@ -10,25 +10,28 @@ public class TestOctaveEig01 {
 		Complex seed = new Complex(1,0);
 		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);
      	MatrixComplex eigenVect;
+     	int boxsize = 65;
  
-    	System.out.println("__________________________________________________________________________________________");
-    	System.out.println("____________________________ Eigenspace vectors & values CHECK ___________________________");
+    	System.out.println(Complex.boxTextRandom(boxsize, "Eigenspace vectors & values CHECK"));    	
     	aMatrix.println("aMatrix");
-    	eigenSpace.vectors().println("Eigenspace eigenVectors");
-    	eigenSpace.values().transpose().println("Eigenspace eigenValues");
-
+    	System.out.println(Complex.boxTextRandom(boxsize, "Eigenspace eigenVectors"));
+    	System.out.println("Eigenspace eigenVectors");
+    	eigenSpace.eigenvectors().println();
+    	System.out.println(Complex.boxTextRandom(boxsize, "EigenValues Calculated  & Multiplicities"));
+    	{
+	    	for (int i = 0; i < eigenSpace.eigenvalues().rows(); ++i) {
+	    		Complex eVal = eigenSpace.eigenvalues().getItem(i,0);
+				System.out.println("EigenValue: " + eVal.toString() + 
+						" - arith mult:" + eigenSpace.arithmeticMultiplicity(eVal) + 
+						" - geom mult:" + eigenSpace.geometricMultiplicity(eVal));    		
+	    	}
+    		
+    	}
+  
     	int colLen = aMatrix.cols(); //complexMatrix[0].length;
     	eigenVect = new MatrixComplex(1,colLen);
     	
-    	for (int eigv = 0; eigv < eigenSpace.values().rows(); ++eigv) {
-    		eigenVect.complexMatrix[0] = eigenSpace.vectors().complexMatrix[eigv].clone();
-	    	//eigenVect.divides(eigenVect.complexMatrix[0][0]).println("Norm eigenVect "+eigv);
-    		eigenVect.println									("**************** eigenVect: ");
-    		eigenSpace.values().complexMatrix[eigv][0].println	("                 eigenVal : ");
-	    	aMatrix.times(eigenVect.transpose()).transpose().println("aMatrix·eigenVect  "+eigv);
-	    	eigenVect.times(eigenSpace.values().complexMatrix[eigv][0]).println("eigval["+eigv+"]·eigenVect"+eigv);
-    	}
-
+    	eigenSpace.checkEigenvectors();
 	}
 	
 	public static void showOctave_eig_Results(MatrixComplex aMatrix) {

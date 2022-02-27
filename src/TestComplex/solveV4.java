@@ -30,7 +30,7 @@ public class solveV4 extends MatrixComplex {
 											+ " 1, 1,-1, 3, 3");
 
 		equationSystem.triangle().println("***** TRIANGULO");
-		equationSystem.solve(Complex.ONE, Reduced).println("***** SOLUTIONS");
+		equationSystem.solve(Complex.ONE).println("***** SOLUTIONS");
 	}
 
 }

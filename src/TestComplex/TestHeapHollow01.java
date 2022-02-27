@@ -4,21 +4,22 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 public class TestHeapHollow01 {
-	private static boolean Reduced = true;
 
 	private static void showResults(MatrixComplex aMatrix) {
 		int boxSize = 65;
 		
 		System.out.println(Complex.boxTitleRandom(boxSize, "RANK TEST"));   	
 		aMatrix.println("aMatrix");
-		System.out.println("CMPLXAR: "+aMatrix.toMatrixComplex());
+		System.out.println("MatComp: "+aMatrix.toMatrixComplex());
 		System.out.println("MAXIMA : rank("+aMatrix.toMaxima()+")");
 		System.out.println("OCTAVE : rank("+aMatrix.toOctave()+")");
 		System.out.println("WOLFRAM: rank("+aMatrix.toWolfram()+")");
 		aMatrix.triangle().println("aMatrix Triang");
+		System.out.println("Is Upper Triang:" + aMatrix.triangle().isTriangleUp());
 		aMatrix.triangleLo().println("aMatrix Triang lo");
-		System.out.println("Rank(aMatrix)  :" + aMatrix.rank(Reduced));
-		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity(Reduced));
+		System.out.println("Is Lower Triang:" + aMatrix.triangleLo().isTriangleLo());
+		System.out.println("Rank(aMatrix)  :" + aMatrix.rank());
+		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity());
 	}
 	/**
 	 * @param args

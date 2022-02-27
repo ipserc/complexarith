@@ -1,3 +1,7 @@
+/*
+ * java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin:/home/ipserc/eclipse-workspace/complexarith/classes TestComplex.TestFindRoots01
+ */
+
 package TestComplex;
 
 import com.ipserc.arith.complex.Complex;
@@ -7,11 +11,11 @@ public class TestFindRoots01 {
 	
 	public static Polynom showResults(Polynom polynom, Polynom divisor) {
 		System.out.println("--------------------------------------------------");
-		polynom.println("Polinomo original");
+		polynom.println("Original Polynomial");
 		divisor.println("divisor");
 		polynom = polynom.divides(divisor);
-		polynom.println("Cociente");
-		polynom.getRemainder().println("Resto");
+		polynom.println("Quotient");
+		polynom.getRemainder().println("Remainder");
 		System.out.println("--------------------------------------------------");
 		return polynom;
 	}
@@ -42,12 +46,6 @@ public class TestFindRoots01 {
 		
 		Polynom divisor = new Polynom("1, -0.254456947-1.45909675i");
 		polynom = showResults(polynom, divisor);
-		/*
-		divisor.println("divisor");
-		polynom = polynom.divides(divisor);
-		polynom.println("Cociente");
-		polynom.getRemainder().println("Resto");
-		*/
 		
 		divisor = new Polynom("1, -0.41067637+1.17206437i"); 
 		polynom = showResults(polynom, divisor);
@@ -89,8 +87,16 @@ public class TestFindRoots01 {
 		divisor = new Polynom("1, -0.79384432+0.0067657836i"); 
 		polynom = showResults(polynom, divisor);
 
+       	Complex.setFormatOFF();
+    	Complex.setFixedOFF();
+		System.out.println("Exact result");
 		divisor = polynom.copy();
-		polynom = showResults(polynom, divisor);
+		showResults(polynom, divisor);
+		
+		System.out.println("IN-Exact result");
+		//This root should give  a bad reminder
+		divisor = new Polynom("1, -7.1035876+8.427250899999999i"); 
+		showResults(polynom, divisor);
 }
 
 }

@@ -20,13 +20,14 @@ public class TestDiagonal04 {
        	System.out.println(Complex.boxTitleRandom(boxSize, "DIAGONALIZATION TEST"));
        	System.out.println(Complex.boxTextRandom(boxSize, "Matrix (" + fMatrix.rows() + "x" + fMatrix.cols() + ")"));
        	System.out.println("MCOMPX :"+fMatrix.toMatrixComplex());
-       	System.out.println("MAXIMA :"+fMatrix.toMaxima());
-       	System.out.println("OCTAVE :"+fMatrix.toOctave());
-       	System.out.println("WOLFRAM:"+fMatrix.toWolfram());
 
        	Chronometer chrono = new Chronometer();
 		Diagfactor dMatrix = new Diagfactor(fMatrix);
 		chrono.stop();
+
+       	System.out.println("MAXIMA :"+dMatrix.toMaxima_diagonalize());
+       	System.out.println("OCTAVE :"+dMatrix.toOctave_diagonalize());
+       	System.out.println("WOLFRAM:"+dMatrix.toWolfram_diagonalize());
 
 		fMatrix.println("--- A Matrix");
 		fMatrix.triangle().heap().println("--- Triangle");
