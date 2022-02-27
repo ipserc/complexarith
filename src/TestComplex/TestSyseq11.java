@@ -9,7 +9,6 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.syseq.*;
 
 public class TestSyseq11 {
-	private static boolean Reduced = true;
 	private static int boxSize = 65;
 
 
@@ -26,8 +25,9 @@ public class TestSyseq11 {
 		fMatrix.printSystemEqSolve(outputFormat.OCTAVE , true);
 		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM , true);
 
+		//fMatrix.solveq(new Complex(2,-1)); // Calculate the solutions in Complex field
 		fMatrix.printSol(Complex.boxTextRandom(boxSize , "System Solutions"));
-		switch (fMatrix.typeEqSys(Reduced)) {
+		switch (fMatrix.typeEqSys()) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
 				fMatrix.checkSol(fMatrix.solution());
@@ -35,10 +35,12 @@ public class TestSyseq11 {
 			} 
 			default: { // MatrixComplex.INDETERMINATE
 		     	System.out.println(Complex.boxTextRandom(boxSize , "Solutions check"));				
-				for (int i = 10; i < 11; ++i) {
+				for (int i = 1; i < 4; ++i) {
 					double n = i/10.0;
 					System.out.println(Complex.repeat("*" , 20) + " Sol nbr:" + i); 
 					solution = fMatrix.solution(n);
+					//solution.Ftransf(0, 1, +2);
+					//solution.Ftransf(1, 0, -3);
 					fMatrix.checkSol(solution);
 				}		
 			}
@@ -46,7 +48,7 @@ public class TestSyseq11 {
 	}
 	
 	/**
-	 * Taken form https://www.geeksforgeeks.org/java-math-random-method-examples/
+	 * Taken from https://www.geeksforgeeks.org/java-math-random-method-examples/
 	 * @param max
 	 * @return
 	 */

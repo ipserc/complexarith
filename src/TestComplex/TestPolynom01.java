@@ -1,3 +1,6 @@
+/*
+ * java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin:/home/ipserc/eclipse-workspace/complexarith/classes TestComplex.TestPolynom01
+ */
 package TestComplex;
 
 import com.ipserc.arith.complex.Complex;
@@ -40,6 +43,9 @@ public class TestPolynom01 {
 		Complex.setFormatON();
 		Complex.setFixedON(3);
 		
+		//(-1.000)x^3+(27.000)x^2+(-243.000)x+(729.000)
+    	myPolynom = new Polynom("-1,27,-243,729");
+    	showResults(myPolynom);
     	//-x²+2ix+1
     	myPolynom = new Polynom("-1,2i,1");
     	showResults(myPolynom);
@@ -178,7 +184,6 @@ public class TestPolynom01 {
     	quotient.getRemainder().println("remainder");
     	resultPolynom = divisor.times(quotient).plus(quotient.getRemainder());
     	resultPolynom.print("El dividendo");
-    	
 
 	}
 }

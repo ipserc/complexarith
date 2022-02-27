@@ -4,7 +4,6 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 public class TestSolve00 {
-	private static boolean Reduced = true;
 
 	private static void showResults(MatrixComplex fMatrix) {
 		MatrixComplex dMatrix;
@@ -17,16 +16,16 @@ public class TestSolve00 {
 		System.out.println(Complex.boxTextRandom(boxSize, "Some Matrix Operations"));   	
 		gMatrix = fMatrix.triangleUp();
 		gMatrix.println("Triangle");
-		System.out.println("rank(gMatrix) = " + gMatrix.rank(Reduced));		
+		System.out.println("rank(gMatrix) = " + gMatrix.rank());		
 		dMatrix = fMatrix.triangleLo();
 		dMatrix.println("Triangle Lo");
 
 		System.out.println(Complex.boxTextRandom(boxSize, "Equations Operations"));   	
 		fMatrix.unkMatrix().println("Unknowns Matrix");
-		int rank1 = fMatrix.unkMatrix().rank(Reduced);
+		int rank1 = fMatrix.unkMatrix().rank();
 		System.out.println("rank(Unknowns Matrix) = " + rank1);
 		fMatrix.unkMatrix().determinant().println("unkMatrix().det=");
-		int rank = fMatrix.rank(Reduced);
+		int rank = fMatrix.rank();
 		System.out.println("rank = " + rank);
 		int dim = fMatrix.complexMatrix[0].length;
 		System.out.println("dim = " + dim);
@@ -35,20 +34,20 @@ public class TestSolve00 {
 		int nbrSolutions = nbrUkn-rank;
 		System.out.println("nbrSolutions = " + nbrSolutions);
 		System.out.println(Complex.boxTextRandom(boxSize, "System Equations Solutions"));   	
-		fMatrix.printTypeEqSys(Reduced);
-		fMatrix.typeEqSys(Reduced);
-		if (fMatrix.typeEqSys(Reduced) == MatrixComplex.DETERMINATE)
+		fMatrix.printTypeEqSys();
+		fMatrix.typeEqSys();
+		if (fMatrix.typeEqSys() == MatrixComplex.DETERMINATE)
 			System.out.println("Se devuelve 1 solución única.");
-		else if (fMatrix.typeEqSys(Reduced) == MatrixComplex.INDETERMINATE) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
+		else if (fMatrix.typeEqSys() == MatrixComplex.INDETERMINATE) System.out.println("Se devuelven "+nbrSolutions+" soluciones LI.") ;
 			else {
 				System.out.println("Sistema sin solución.") ;
 				return;
 			}
-		hMatrix = fMatrix.solve(Reduced);
+		hMatrix = fMatrix.solve();
 		hMatrix.println("Soluciones (hMatrix)");
 		fMatrix.coefMatrix().times(hMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
 
-		hMatrix = fMatrix.solveCramer(Reduced);
+		hMatrix = fMatrix.solveCramer();
 		hMatrix.println("Soluciones Cramer (hMatrix)");
 		fMatrix.coefMatrix().times(hMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
 	}

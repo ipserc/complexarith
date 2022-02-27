@@ -9,7 +9,6 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.syseq.*;
 
 public class TestSyseq13 {
-	private static boolean Reduced = true;
 	private static int boxSize = 65;
 
 
@@ -27,7 +26,7 @@ public class TestSyseq13 {
 		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM , true);
 
 		fMatrix.printSol(Complex.boxTextRandom(boxSize , "System Solutions"));
-		switch (fMatrix.typeEqSys(Reduced)) {
+		switch (fMatrix.typeEqSys()) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
 				fMatrix.checkSol(fMatrix.solution());
@@ -35,7 +34,7 @@ public class TestSyseq13 {
 			} 
 			default: { // MatrixComplex.INDETERMINATE
 		     	System.out.println(Complex.boxTextRandom(boxSize , "Solutions check"));				
-				for (int i = 10; i < 11; ++i) {
+				for (int i = -10; i < 11; ++i) {
 					double n = i/10.0;
 					System.out.println(Complex.repeat("*" , 20) + " Sol nbr:" + i); 
 					solution = fMatrix.solution(n);
@@ -46,7 +45,7 @@ public class TestSyseq13 {
 	}
 	
 	/**
-	 * Taken form https://www.geeksforgeeks.org/java-math-random-method-examples/
+	 * Taken from https://www.geeksforgeeks.org/java-math-random-method-examples/
 	 * @param max
 	 * @return
 	 */
@@ -106,55 +105,17 @@ public class TestSyseq13 {
 
 		System.out.println(Complex.boxTitleRandom(boxSize , "PROOF OF CONCEPT FOR COMPLEX LINEAR EQUATION SYSTEMS INDETERMINATE WITH MORE THAN ONE SOLUTION"));
 
-		aMatrix = generateSyseq(9);
-		/* * /
-		aMatrix = new Syseq(""
-				+ "-3.000,-1.000,-2.000,9.000,7.000,-4.000,0.000;"
-				+ "204.000,68.000,-204.000,-272.000,-140.000,272.000,0.000;"
-				+ "0.000,0.000,-1.000,1.000,1.000,0.000,0.000;"
-				+ "-3.000,-1.000,3.000,4.000,2.000,-4.000,0.000;"
-				+ "-90.000,-30.000,90.000,120.000,62.000,"
-				+ "-120.000,0.000;0.000,0.000,0.000,0.000,0.000,0.000,0.000");
-		/* */
-		/* * /
-		aMatrix = new Syseq(""
-				+ "3.000,4.000,5.000,3.000,1.000,1.000,0.000;"
-				+ "-12.000,-16.000,-20.000,-12.000,-4.000,-4.000,0.000;"
-				+ "18.000,24.000,21.000,12.000,18.000,6.000,0.000;"
-				+ "-15.000,-20.000,-25.000,-11.000,-13.000,-5.000,0.000;"
-				+ "3.000,4.000,5.000,3.000,1.000,1.000,0.000;"
-				+ "-18.000,-24.000,-30.000,-18.000,-6.000,-6.000,0.000");
-		/* */
-		/* * /
-		aMatrix = new Syseq(""
-				+ "-6.000,10.000,6.000,4.000,-4.000,-10.000,0.000;"
-				+ "-99.000,165.000,99.000,72.000,-76.000,-165.000,0.000;"
-				+ "-18.000,30.000,18.000,12.000,-12.000,-30.000,0.000;"
-				+ "0.000,0.000,0.000,3.000,-5.000,0.000,0.000;"
-				+ "-27.000,45.000,27.000,18.000,-18.000,-45.000,0.000;"
-				+ "0.000,0.000,0.000,0.000,0.000,0.000,0.000");
-		/* */
+		aMatrix = generateSyseq(5);
 		
 		/* * /
-    	aMatrix = new Syseq(""
-    			+ "-5.000,-5.000,1.000,-3.000,-5.000,-4.000,0.000;"
-    			+ "30.000,30.000,-6.000,18.000,30.000,24.000,0.000;"
-    			+ "-50.000,-50.000,14.000,-42.000,-68.000,-40.000,0.000;"
-    			+ "-20.000,-20.000,4.000,-12.000,-20.000,-16.000,0.000;"
-    			+ "-50.000,-50.000,10.000,-30.000,-52.000,-40.000,0.000;"
-    			+ "20.000,20.000,-4.000,12.000,20.000,16.000,0.000");
-    	/* */
-
-		/* * /
-    	aMatrix = new Syseq(""
-    			+ "-5.000,4.000,-3.000,-2.000,1.000,2.000,0.000;"
-    			+ "0.000,0.000,0.000,0.000,0.000,0.000,0.000;"
-    			+ "-40.000,32.000,-24.000,-16.000,8.000,16.000,0.000;"
-    			+ "-55.000,44.000,-33.000,-22.000,11.000,22.000,0.000;"
-    			+ "-40.000,32.000,-24.000,-16.000,7.000,16.000,0.000;"
-    			+ "-20.000,16.000,-12.000,-8.000,4.000,8.000,0.000");
+		aMatrix = new Syseq(""
+				+ "54.555-12.638i,-54.142-14.306i,4.848+83.860i,-5.949-27.361i,143.671-124.751i,-52.218+104.458i;"
+				+ "0.000,0.000,11.985+0.592i,22.926-19.349i,-14.331+10.892i,-3.634+4.774i;"
+				+ "0.000,0.000,1.998+0.099i,3.821-3.225i,-2.388+1.815i,-0.606+0.796i;"
+				+ "0.000,0.000,0.000,0.000,0.000,0.000;"
+				+ "17.536-4.062i,-17.403-4.598i,1.558+26.955i,-1.912-8.795i,46.271-39.904i,-16.848+33.608i");
 		/* */
-
+		
 		solve(aMatrix);
 	}
 }

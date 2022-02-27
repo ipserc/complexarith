@@ -38,25 +38,18 @@ public class TestQRfactor03 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-    	MatrixComplex aMatrix;
-    	MatrixComplex bMatrix;
-    	MatrixComplex cMatrix;
-    	MatrixComplex dMatrix;
-    	MatrixComplex eMatrix;
+
     	QRfactor fMatrix;
-    	MatrixComplex gMatrix;
-    	MatrixComplex hMatrix;
-    	MatrixComplex iMatrix;
-		Complex result = new Complex();
 		int boxSize = 65;
  
        	Complex.setFormatON();
     	Complex.setFixedON(3);
 
 		System.out.println(Complex.boxTitleRandom(boxSize, " - - - QR Householder - - -"));   	
-    	fMatrix = new QRfactor("1.000i , 1.000i , 1.000i;"
-    						+ "-1.000i , -1.000i , -1.000;"
-    						+ " 1.000i , 1.000 , -1.000i");
+    	fMatrix = new QRfactor(""
+    			+ "  i ,  i ,  i,  1 ;"
+    			+ " -i , -i , -1,  1;"
+    			+ "  i ,  1 , -i,  1");
     	
     	fMatrix.qrHouseholder();
     	showResults(fMatrix);

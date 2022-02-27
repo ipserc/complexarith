@@ -5,7 +5,6 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.factorization.*;
 
 public class TestSolve09 {
-	private static boolean Reduced = true;
 	private static int boxSize = 65;
 
 	public static void showResults(LUfactor cMatrix) {
@@ -52,21 +51,21 @@ public class TestSolve09 {
 		System.out.println(Complex.boxTextRandom(boxSize, "Some Matrix Operations"));   	
 		gMatrix = fMatrix.triangleUp();
 		gMatrix.println("Triangle");
-		System.out.println("rank(gMatrix) = " + gMatrix.rank(Reduced));		
+		System.out.println("rank(gMatrix) = " + gMatrix.rank());		
 		dMatrix = fMatrix.triangleLo();
 		dMatrix.println("Triangle Lo");
 
 		System.out.println(Complex.boxTextRandom(boxSize, "Equations Operations"));   	
 		fMatrix.unkMatrix().println("Unknowns Matrix");
-		int rank1 = fMatrix.unkMatrix().rank(Reduced);
+		int rank1 = fMatrix.unkMatrix().rank();
 			System.out.println("rank(Unknowns Matrix) = " + rank1);
 			fMatrix.unkMatrix().determinant().println("unkMatrix().det=");
-		int nbrSolutions = fMatrix.nbrOfSolutions(Reduced);
+		int nbrSolutions = fMatrix.nbrOfSolutions();
 		/************************************************************
 		 * seed to calculate the solution for indeterminate systems *
 		 ************************************************************/
 		Complex seed = new Complex(1,0);
-		int typeEqSys = fMatrix.typeEqSys(Reduced);
+		int typeEqSys = fMatrix.typeEqSys();
 		fMatrix.printTypeEqSys(typeEqSys, seed);	
 		if (typeEqSys == MatrixComplex.DETERMINATE)
 			System.out.println("Se devuelve 1 solución única.");
@@ -77,7 +76,7 @@ public class TestSolve09 {
 			}
 		//System.out.println("	SOLVE GAUSS with λ " + seed.toString());
 		System.out.println(Complex.boxTextRandom(boxSize, "System Equations Solutions"));   	
-		hMatrix = fMatrix.solve(seed, Reduced);
+		hMatrix = fMatrix.solve(seed);
 		hMatrix.println("Soluciones (hMatrix)");
 		for (int i = 0 ; i < hMatrix.rows(); ++i) {
 			MatrixComplex solMatrix = new MatrixComplex(1,hMatrix.cols());
@@ -86,9 +85,9 @@ public class TestSolve09 {
 			solMatrix.println("Soluciones (solMatrix)");
 			fMatrix.coefMatrix().times(solMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");
 		}
-		if (fMatrix.typeEqSys(Reduced) == MatrixComplex.DETERMINATE) {
+		if (fMatrix.typeEqSys() == MatrixComplex.DETERMINATE) {
 			System.out.println("	SOLVE CRAMER");		
-			hMatrix = fMatrix.solveCramer(Reduced);
+			hMatrix = fMatrix.solveCramer();
 			hMatrix.println("Soluciones Cramer (hMatrix)");
 			fMatrix.coefMatrix().times(hMatrix.transpose()).println("Proof check fMatrix.coefMatrix().times(hMatrix)");			
 		}

@@ -15,23 +15,30 @@ public class TestGram02 {
 		gMatrix = aMatrix.gramSchmidt();
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt"));
 		gMatrix.println("Gram-Schmidt Matrix");
-		// aMatrix.adjoint().times(gMatrix).println("AxG");
-		// gMatrix.adjoint().times(gMatrix).println("GxG");
+		gMatrix.times(gMatrix.adjoint()).println("Gram Matrix:G x G*");
 		gnMatrix = gMatrix.normalize();
-		gnMatrix.println("Gram-Schmidt Normalized (GN)");
-		gnMatrix.adjoint().times(gnMatrix).println("GN* x GN");
-		gMatrix = aMatrix.gramSchmidtFull();
+		gnMatrix.println("Gram-Schmidt Matrix Normalized (GN)");
+		gnMatrix.times(gnMatrix.adjoint()).println("GN x GN*");
+
+		/*********************
+		 * DEPRECATED
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Full"));
+		gMatrix = aMatrix.gramSchmidtFull();
 		gMatrix.println("Gram-Schmidt Full Matrix");
-		System.out.println(gMatrix.toOctave());
-		System.out.println(gMatrix.toMatrixComplex());
+		gMatrix.times(gMatrix.adjoint()).println("Gram Matrix:GF x GF*");
+		gnMatrix = gMatrix.normalize();
+		gnMatrix.println("Gram-Schmidt Full Matrix Normalized (GFN)");
+		gnMatrix.times(gnMatrix.adjoint()).println("GFN x GFN*");
+		***********************/		
 
 		if (aMatrix.isSquare()) {
 			System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Gauss"));
 			gMatrix = aMatrix.gramSchmidtGauss();
 			gMatrix.println("Gram-Schmidt Gauss Matrix");
+			gMatrix.times(gMatrix.adjoint()).println("Gram Gauss Matrix:GGF x GGF*");
 			gnMatrix = gMatrix.normalize();
-			gnMatrix.println("G Normalized");
+			gnMatrix.println("Gram-Schmidt Gauss Full Matrix Normalized (GFN)");
+			gnMatrix.times(gnMatrix.adjoint()).println("GGFN x GGFN*");
 
 		}
 	}

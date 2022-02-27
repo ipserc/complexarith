@@ -9,7 +9,6 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.syseq.*;
 
 public class TestSyseq12 {
-	private static boolean Reduced = true;
 	private static int boxSize = 65;
 
 
@@ -26,8 +25,9 @@ public class TestSyseq12 {
 		fMatrix.printSystemEqSolve(outputFormat.OCTAVE , true);
 		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM , true);
 
+		//fMatrix.solveq(new Complex(0,1)); // Calculate the solutions in Complex field
 		fMatrix.printSol(Complex.boxTextRandom(boxSize , "System Solutions"));
-		switch (fMatrix.typeEqSys(Reduced)) {
+		switch (fMatrix.typeEqSys()) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
 				fMatrix.checkSol(fMatrix.solution());
@@ -35,7 +35,7 @@ public class TestSyseq12 {
 			} 
 			default: { // MatrixComplex.INDETERMINATE
 		     	System.out.println(Complex.boxTextRandom(boxSize , "Solutions check"));				
-				for (int i = -3; i < 3; ++i) {
+				for (int i = -3; i <= 3; ++i) {
 					double n = i/10.0;
 					System.out.println(Complex.repeat("*" , 20) + " Sol nbr:" + i); 
 					solution = fMatrix.solution(n);

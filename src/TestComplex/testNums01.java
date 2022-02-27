@@ -56,8 +56,8 @@ public class testNums01 {
         System.out.println("a:"+a.toString());
         System.out.println("a:"+a.toStringPol());
 
-        Complex.setFormatON(true);
-        Complex.setFixedON(6, true);
+        Complex.setFormatON(false);
+        Complex.setFixedON(8, true);
         System.out.println("a:"+a.toString());
         System.out.println("a:"+a.toStringPol());
 	}

@@ -14,25 +14,30 @@ public class TestGram03 {
 		aMatrix.println("aMatrix");
 		gMatrix = aMatrix.gramSchmidt();
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt"));
-		gMatrix.println("Gram-Schmidt Matrix (G)");
-		// aMatrix.adjoint().times(gMatrix).println("AxG");
-		// gMatrix.adjoint().times(gMatrix).println("GxG");
+		gMatrix.println("Gram-Schmidt Matrix");
+		gMatrix.times(gMatrix.adjoint()).println("Gram Matrix:G x G*");
 		gnMatrix = gMatrix.normalize();
-		gnMatrix.println("Gram-Schmidt Normalized (GN)");
+		gnMatrix.println("Gram-Schmidt Matrix Normalized (GN)");
+		gnMatrix.times(gnMatrix.adjoint()).println("GN x GN*");
 		{
 			Complex det = gnMatrix.determinant();
 			det.println("Det(GN)=");
 			System.out.println("|Det(GN)|=" + det.mod());
-			System.out.println("Is GN Unitary?:" + (gnMatrix.isUnitary(false) ? "Yes" : "No"));
+			System.out.println("Is GN Unitary?:" + (gnMatrix.isUnitary() ? "Yes" : "No"));
 			//gnMatrix.inverse().println("GN⁻¹");
 			//gnMatrix.adjoint().println("GNAd");
 			//gnMatrix.adjoint().times(gnMatrix).println("GNAd x GN");
 		}
-		gMatrix = aMatrix.gramSchmidtFull();
+		/*********************
+		 * DEPRECATED
 		System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Full"));
+		gMatrix = aMatrix.gramSchmidtFull();
 		gMatrix.println("Gram-Schmidt Full Matrix");
-		System.out.println(gMatrix.toOctave());
-		System.out.println(gMatrix.toMatrixComplex());
+		gMatrix.times(gMatrix.adjoint()).println("Gram Matrix:GF x GF*");
+		gnMatrix = gMatrix.normalize();
+		gnMatrix.println("Gram-Schmidt Full Matrix Normalized (GFN)");
+		gnMatrix.times(gnMatrix.adjoint()).println("GFN x GFN*");
+		***********************/
 
 		if (aMatrix.isSquare()) {
 			System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Gauss"));
@@ -44,7 +49,7 @@ public class TestGram03 {
 				Complex det = gnMatrix.determinant();
 				det.println("Det(GN)=");
 				System.out.println("|Det(GN)|=" + det.mod());
-				System.out.println("Is GN Unitary?:" + (gnMatrix.isUnitary(false) ? "Yes" : "No"));
+				System.out.println("Is GN Unitary?:" + (gnMatrix.isUnitary() ? "Yes" : "No"));
 				//gnMatrix.inverse().println("GN⁻¹");
 				//gnMatrix.adjoint().println("GNAd");
 				//gnMatrix.adjoint().times(gnMatrix).println("GNAd x GN");

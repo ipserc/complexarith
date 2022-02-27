@@ -11,13 +11,13 @@ public class TestInverse01 {
 		System.out.println(Complex.boxTextRandom(boxSize, "Matrix Inverse"));
 
 		aMatrix.println("aMatrix");
-		//invOld = aMatrix.invertOLD();
-		//invOld.println("aMatrix inverse OLD");
-		//aMatrix.times(invOld).println("A · invOld");
 		inv = aMatrix.inverse();
 		inv.println("aMatrix inverse");
-		aMatrix.times(inv).println("Check --- aMatrix · aMatrix.inverse");
-		
+		if (!inv.isInfinite() && !inv.isNaN()) {
+			System.out.println(Complex.boxTextRandom(boxSize, "Check --- aMatrix · aMatrix.inverse"));
+			aMatrix.times(inv).println();
+		}
+		System.out.println(Complex.boxTextRandom(boxSize, "aMatrix Determinat comparision"));
 		System.out.println("aMatrix DetChi:" + aMatrix.determinant());
 		if (aMatrix.complexMatrix.length < 10)
 			System.out.println("aMatrix DetAdj:" + aMatrix.determinantAdj());

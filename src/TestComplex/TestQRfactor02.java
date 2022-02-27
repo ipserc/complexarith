@@ -6,13 +6,13 @@ import com.ipserc.arith.factorization.*;
 
 public class TestQRfactor02 {
 
-	public static void showResults(QRfactor cMatrix) {
+	public static void showResults(QRfactor cMatrix, String method) {
     	MatrixComplex rMatrix;
     	MatrixComplex qMatrix;
     	Complex det = new Complex();
 		int boxSize = 65;
 		
-		System.out.println(Complex.boxTitleRandom(boxSize, "QR FACTORIZATION TEST"));   	
+		System.out.println(Complex.boxTitleRandom(boxSize, "QR FACTORIZATION TEST METHOD:" + method));   	
     	cMatrix.println("fMatrix");
     	System.out.println("MAXIMA :"+cMatrix.toMaxima_qr());
     	System.out.println("OCTAVE :"+cMatrix.toOctave_qr());
@@ -38,32 +38,27 @@ public class TestQRfactor02 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-    	MatrixComplex aMatrix;
-    	MatrixComplex bMatrix;
-    	MatrixComplex cMatrix;
-    	MatrixComplex dMatrix;
-    	MatrixComplex eMatrix;
     	QRfactor fMatrix;
-    	MatrixComplex gMatrix;
-    	MatrixComplex hMatrix;
-    	MatrixComplex iMatrix;
-		Complex result = new Complex();
 		int boxSize = 65;
  
        	Complex.setFormatON();
     	Complex.setFixedON(3);
 
 		System.out.println(Complex.boxTitleRandom(boxSize, " - - - QR Householder - - -"));   	
-    	fMatrix = new QRfactor("-1.000,4.000,-3.000,-2.000;4.000,-1.000,-3.000,2.000;-3.000,3.000,1.000,4.000;-2.000,2.000,4.000,1.000");
-    	
+	  	//fMatrix = new QRfactor("-1,4,-3,-2;4,-1,-3,2;-3,3,1,4;-2,2,4,1");
+	  	fMatrix = new QRfactor(""
+	  			+ "  12, -51,   4;"
+	  			+ "   6, 167, -68;"
+	  			+ "  -4,  24, -41");
+	  	    	
     	fMatrix.qrHouseholder();
-    	showResults(fMatrix);
+    	showResults(fMatrix, "qrHouseholder");
     	
     	fMatrix.qrGramSchmidt();
-    	showResults(fMatrix);
+    	showResults(fMatrix, "qrGramSchmidt");
     	
-    	fMatrix.qrGramSchmidtFull();
-    	showResults(fMatrix);
+    	fMatrix.qrGramSchmidtM();;
+    	showResults(fMatrix, "qrGramSchmidtM");
     	
 	}
 }
