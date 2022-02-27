@@ -4,7 +4,7 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.chronometer.Chronometer;
 
-public class TestRank03 {
+public class TestRank04 {
 
 	private static void showResults(MatrixComplex aMatrix) {
 		Chronometer chrono = new Chronometer();
@@ -34,23 +34,36 @@ public class TestRank03 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		Chronometer chrono = new Chronometer();
 		MatrixComplex aMatrix;
-		int filas = 4;
-		int columnas = 5;
+		int filas = 5;
+		int columnas = 6;
 		aMatrix = new MatrixComplex(filas,columnas);
 		int boxSize = 65;
+		int rank1, rank0, rank2;
 		
 		Complex.setFormatON();
 		Complex.setFixedON(2);
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "RANK TEST"));
 		System.out.println("Testing with arrays of " +filas+"x"+columnas);
-		for(int i = 1; i < 100; ++i) {
-			System.out.println(Complex.boxTextRandom(boxSize, "TEST #"+i));   	
-			aMatrix.initMatrixRandomInteger(1);
-			//aMatrix.abs();
-			//aMatrix.println("Matrix");
-			showResults(aMatrix);
+		chrono.start();
+		for(int i = 1; i < 10000; ++i) {
+			aMatrix.initMatrixRandomInteger(1);			
+			rank1 = aMatrix.rank1();
+			rank2 = aMatrix.rank2();
+			if (rank1 != rank2) {				
+				System.out.println(Complex.boxTextRandom(boxSize, "TEST #"+i));
+				System.out.println("rank1 = " + rank1);
+				System.out.println("rank2 = " + rank2);
+				System.out.println("CMPLXAR: "+aMatrix.toMatrixComplex());
+				System.out.println("MAXIMA : rank("+aMatrix.toMaxima()+")");
+				System.out.println("OCTAVE : rank("+aMatrix.toOctave()+")");
+				System.out.println("WOLFRAM: MatrixRank["+aMatrix.toWolfram()+"]");
+			}
 		}
+		chrono.stop();
+		System.out.println("Tiempo: " + chrono.toString());
+		System.out.println(Complex.boxTextRandom(boxSize, "--- FINISHED TEST ---"));
 	}
 }

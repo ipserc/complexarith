@@ -5,8 +5,6 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.chronometer.Chronometer;
 
 public class TestRank01 {
-
-	private static boolean Reduced = false;
 	
 	private static void showResults(MatrixComplex aMatrix) {
 		int boxSize = 65;
@@ -17,18 +15,23 @@ public class TestRank01 {
 		System.out.println("CMPLXAR: "+aMatrix.toMatrixComplex());
 		System.out.println("MAXIMA : rank("+aMatrix.toMaxima()+")");
 		System.out.println("OCTAVE : rank("+aMatrix.toOctave()+")");
-		System.out.println("WOLFRAM: rank("+aMatrix.toWolfram()+")");
+		System.out.println("WOLFRAM: MatrixRank["+aMatrix.toWolfram()+"]");
 		aMatrix.triangle().println("aMatrix Triang");
 		aMatrix.triangleLo().println("aMatrix Triang lo");
+		System.out.println("TRUE Rank(aMatrix)  :" + aMatrix.rank());		
 		chrono.start();
-		System.out.println("Rank0(aMatrix)  :" + aMatrix.rank0(Reduced));
+		System.out.println("Rank0(aMatrix)  :" + aMatrix.rank0());
 		chrono.stop();
 		System.out.println("Tiempo: " + chrono.toString());
 		chrono.start();
-		System.out.println("Rank1(aMatrix) :" + aMatrix.rank1(Reduced));
+		System.out.println("Rank1(aMatrix) :" + aMatrix.rank1());
 		chrono.stop();
 		System.out.println("Tiempo: " + chrono.toString());
-		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity(Reduced));
+		chrono.start();
+		System.out.println("Rank2(aMatrix) :" + aMatrix.rank2());
+		chrono.stop();
+		System.out.println("Tiempo: " + chrono.toString());
+		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity());
 	}
 	/**
 	 * @param args

@@ -9,7 +9,6 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.syseq.*;
 
 public class TestSyseqnum01 {
-	private static boolean Reduced = true;
 
 	private static void printResults(String method, Syseqnum gMatrix, MatrixComplex solution) {
      	System.out.println(method + " Method " + (gMatrix.isSolved() ? "has found a solution" : "FAILS"));
@@ -37,7 +36,7 @@ public class TestSyseqnum01 {
 		fMatrix.printSystemEqSolve(outputFormat.WOLFRAM, true);
 
 		fMatrix.printSol(Complex.boxTextRandom(boxSize, "Exact System Solution"));
-		switch (fMatrix.typeEqSys(Reduced)) {
+		switch (fMatrix.typeEqSys()) {
 			case MatrixComplex.INCONSISTENT: break ;
 			case MatrixComplex.DETERMINATE: {
 				/**/

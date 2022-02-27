@@ -78,6 +78,10 @@ public class TestLine01 {
 		lineB = new Line("6,-4", "0,0");
 		showResults(lineA, lineB);
 
+		lineA = new Line("3,-2,5", "1,1,1");
+		lineB = new Line("6,-4,10", "0,0,0");
+		showResults(lineA, lineB);
+
 		lineA = new Line("3,-2", "1,1");
 		lineB = new Line("4.00001,6", "0,0");
 		showResults(lineA, lineB);
@@ -92,6 +96,14 @@ public class TestLine01 {
 
 		lineA = new Line("2,1,-2", "2,1,-1");
 		lineB = new Line("-4,-2,4", "-2,0,5");
+		showResults(lineA, lineB);
+
+		lineA = new Line("2,1,-2,2", "2,1,-1,2");
+		lineB = new Line("-4,-2,4,4", "-2,0,5,-2");
+		showResults(lineA, lineB);
+
+		lineA = new Line("2,1,-2,2", "2,1,-1,2");
+		lineB = new Line("-4,-2,4,4,0,0,0", "-2,0,5,-2,0,0,0");
 		showResults(lineA, lineB);
 
 		lineA = new Line("2,1,-2,3,0,0,0", "2,1,-1,3,0,0,0");
@@ -127,6 +139,5 @@ public class TestLine01 {
 		pointA = new Point("-5,7,3,-1");
 		pointB = new Point("-9,-4,0,2");
 		showResults(pointA, pointB);
-	
 	}
 }

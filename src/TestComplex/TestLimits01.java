@@ -48,7 +48,7 @@ public class TestLimits01 {
 
 	private static Complex func07(Complex z) {
 		// ln(z)/(z-1)^(1/2)
-		return (Complex.log(z).divides(Complex.sqrroot(z.minus(1))));
+		return (Complex.log(z).divides(Complex.sqrt(z.minus(1))));
 	}
 
 	private static Complex func08(Complex z) {

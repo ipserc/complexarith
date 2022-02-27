@@ -4,8 +4,9 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
+import com.ipserc.arith.factorization.SVDfactor;
 
-public class TestEigenV11 {
+public class TestEigenV16 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
@@ -53,7 +54,7 @@ public class TestEigenV11 {
     	eigenSpace.printCharactEq(outputFormat.OCTAVE, true);
     	System.out.println(Complex.boxTextRandom(boxSize, "WOLFRAM"));
     	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
- 
+    	
     	/* roots & solutions */
     	System.out.println(Complex.boxTextRandom(boxSize, "Roots & Solutions "));
     	for (int row = 0; row < eigenSpace.solutions().rows(); ++row){
@@ -102,52 +103,234 @@ public class TestEigenV11 {
 	public static void main(String[] args) {
     	MatrixComplex aMatrix = new MatrixComplex();
 
-     	Complex.setFormatON();
-     	Complex.setFixedON(6);
+    	Complex.Exact = true;
+    	Complex.setFormatON();
+     	//Complex.setFixedON(4);
+     	//Complex.setScientificON(4);
+     	Complex.showPrecision();
      	Eigenspace.version();
-     	Complex.facts();
 
-     	/* */
+     	/* * /
      	aMatrix = new MatrixComplex(""+
-     			"  2 ,  4 ,  3 ;" +
-     			" -4 , -6 , -3 ;" +
+     			"  1 ,  3 ,  3 ;" +
+     			" -3 , -5 , -3 ;" +
      			"  3 ,  3 ,  1 ");
-     	doEigenCalculations(aMatrix);
+    	doEigenCalculations(aMatrix);
+     	/* */
+     	
+    	/* * /
+    	aMatrix = new MatrixComplex(""
+				+ "1,2,3,4;"
+				+ "2,3,4,5;"
+				+ "3,4,5,6");
+    	aMatrix = aMatrix.adjoint().times(aMatrix);
+    	//aMatrix = aMatrix.hermitian();
+    	doEigenCalculations(aMatrix);
+    	/* */
 
+    	/* * /
      	aMatrix = new MatrixComplex(""+
-     			" -1 ,  4 , -3, -2 ;" +
-     			"  4 , -1 , -3,  2 ;" +
-     			" -3 ,  3 ,  1,  4 ;" +
-     			" -2 ,  2 ,  4,  1 ");
-     	doEigenCalculations(aMatrix);
-
-     	aMatrix = new MatrixComplex(""+
-     			"  4 , -1 ,  6 ;" +
-     			"  0 ,  1 ,  6 ;" +
-     			"  0 ,  0 ,  8 ");
-     	doEigenCalculations(aMatrix);
-
-     	aMatrix = new MatrixComplex(""+
-     			"  8 , -1 ,  6 ;" +
-     			"  0 ,  4 ,  6 ;" +
-     			"  0 ,  0 ,  1 ");
-     	doEigenCalculations(aMatrix);
+     			" -1.140E-03i , 3.689+4.198i ;" +
+     			" -3.689+4.198i , 6.236i ");
+    	doEigenCalculations(aMatrix);
      	 /* */
-     	
-     	Complex.significative(3);
-     	aMatrix = new MatrixComplex(""+
-     			" 13 ,  8 ,  8 ;" +
-     			" -1 ,  7 , -2 ;" +
-     			" -1 , -2 ,  7 ");
-     	doEigenCalculations(aMatrix);
-     	
-     	Complex.precision(1e-10);
-     	Complex.facts();
-     	doEigenCalculations(aMatrix);
 
-     	Complex.precision(1e-8);
-     	Complex.zero_threshold_r(1e-5);
-     	Complex.facts();
+     	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ " 3, 2,-1;"
+     			+ " 2, 3, 1;"
+     			+ " 0, 0, 5");
+    	doEigenCalculations(aMatrix);
+     	/* */
+
+     	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ "4,-1,1;"
+     			+ "0, 1,3;"
+     			+ "0, 2,2");
+    	doEigenCalculations(aMatrix);
+     	/* */
+     	
+     	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ " 3,-3, 0, 0, 0;"
+     			+ " 0,-4, 4, 0, 0;"
+     			+ " 0, 0, 1,-1, 0;"
+     			+ " 0, 0, 0, 3,-3;"
+     			+ "-1, 0, 0, 0, 1");
+
+    	doEigenCalculations(aMatrix);
+     	/* */
+
+       	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ " 1 , 1 , 1; "
+    			+ " 1 , 2 , 1; "
+    			+ " 1 , 1 , 1 ");
+    	aMatrix = aMatrix.adjoint().times(aMatrix);
+    	doEigenCalculations(aMatrix);
+       	/* */
+
+       	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ "-2,-5,8,0,-17;"
+    			+ "1,3,-5,1,8;"
+    			+ "3,11,-19,7,1;"
+    			+ "1,7,-13,5,-3");
+    	aMatrix = aMatrix.adjoint().times(aMatrix);
+    	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ " 1 , 1 , 1; "
+    			+ " 1 , 2 , 1; "
+    			+ " 1 , 1 ,-1 ");
+
      	doEigenCalculations(aMatrix);
+      	/* */
+     	
+      	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+"0.00,20.00,50.00;"
+     			+"0.05, 0.00, 0.00;"
+     			+"0.00, 0.10, 0.00");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ " 2 , 0 , 0; "
+    			+ " 1 , 1 , 1; "
+    			+ "-1 , 1 , 1 ");
+
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ " -1 , 1 , 0, 0; "
+    			+ " -1 , 1 , 0, 0; "
+    			+ " -1 , 1 , 0, 0; "
+    			+ " -1 , 1 , 0, 0 ");
+
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ " 6, 0,-1,-4,-2;"
+     			+ " 7, 0,-6, 0,-2;"
+     			+ "-4,-1,-1, 1,-7;"
+     			+ "-1, 8, 8, 6,-4;"
+     			+ " 1,-4, 6, 7, 2");
+
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+    	aMatrix = new MatrixComplex(""+
+     			" 3, 2;"+
+     			" 0, 1");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+    	aMatrix = new MatrixComplex(""+
+     			" 1, 2;"+
+     			" 2, 4");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ " 1, -1,  0;"
+     			+ "-1,  2, -1;"
+     			+ " 0, -1,  1");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ "-3,  1, -3;"
+     			+ "20,  3, 10;"
+     			+ " 2, -2,  4");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+      	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ "-149, -50, -154;"
+     			+ " 537, 180,  546;"
+     			+ "-27,   -9,  -25");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+     	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ "-149, -50, -154;"
+     			+ " 537, 181,  546;"
+     			+ "-27,   -9,  -25");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+     	/* * /
+    	aMatrix = new MatrixComplex(""
+    			+ "  80, 100,  40;"
+     			+ " 100, 170, 140;"
+     			+ "  40, 140, 200");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+     	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ "-3,-3,-4, 1;"
+     			+ "-4, 2,-5, 5;"
+     			+ " 3,-3,-3,-1;"
+     			+ "-4,-4,-3,-5");
+    	doEigenCalculations(aMatrix);
+      	/* */
+    	
+     	/* * /
+     	    	aMatrix = new MatrixComplex(""
+    			+ " 0, 1,  1;"
+     			+ " 1, 0,  1;"
+     			+ " 1, 1,  0");
+     	doEigenCalculations(aMatrix);
+      	/* */
+
+     	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ " 2, 1, 0, 0;"
+     			+ " 0, 0,-1, 0;"
+     			+ " 0, 0, 3, 1;"
+     			+ " 0, 0, 0, 1");
+    	doEigenCalculations(aMatrix);
+      	/* */
+
+     	/* * /
+	    aMatrix = new MatrixComplex(""
+	    		+ " 8,-2,  2;"
+	    		+ "-2, 5,  4;"
+	    		+ " 2, 4,  5");
+	    doEigenCalculations(aMatrix);
+	    /* */
+	
+     	/* * /
+	    aMatrix = new MatrixComplex(""
+	    		+ " 0, 0,  1;"
+	    		+ " 0, 1,  0;"
+	    		+ " 1, 0,  0");
+	    doEigenCalculations(aMatrix);
+	    /* */
+	    
+     	/* */
+	    aMatrix = new MatrixComplex(""
+	    		+ " 0, 0,  -4;"
+	    		+ " 0, 2i,  0;"
+	    		+ " 1, 0,  0");
+	    doEigenCalculations(aMatrix);
+	    /* */
+
 	}
 }

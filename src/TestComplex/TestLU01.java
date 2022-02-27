@@ -19,6 +19,7 @@ public class TestLU01 {
     	System.out.println("Is Hermitian    :" + luMatrix.isHermitian());
     	System.out.println("Is SkewHermitian:" + luMatrix.isSkewHermitian());
 		luMatrix.println("luMatrix");
+    	System.out.println("MatComp:"+luMatrix.toMatrixComplex());
     	System.out.println("MAXIMA :"+luMatrix.toMaxima_lu_factor(true));
     	System.out.println("OCTAVE :"+luMatrix.toOctave_lu());
     	System.out.println("WOLFRAM:"+luMatrix.toWolfram_LUDecomposition());
@@ -31,8 +32,10 @@ public class TestLU01 {
     	luMatrix.P().println("P");
     	
 		System.out.println(Complex.boxTextRandom(boxSize, "LU Operations"));
+		MatrixComplex PtLU = luMatrix.P().transpose().times(luMatrix.L().times(luMatrix.U()));
     	((luMatrix.U().transpose().times(luMatrix.L().transpose())).times(luMatrix.P())).transpose().println("(UT · LT · P)T");;
-    	luMatrix.P().transpose().times(luMatrix.L().times(luMatrix.U())).println("PT · L · U");
+    	PtLU.println("PT · L · U");
+		System.out.println("Is equal: " + (PtLU.equals(luMatrix) ? "Yes" : "No")); 
     	System.out.println("Determinant(luMatrix)=" + luMatrix.determinant());
 		det = luMatrix.U().determinant().times(luMatrix.L().determinant());
     	System.out.println("Determinant(U*L)=" + det);
@@ -146,10 +149,10 @@ public class TestLU01 {
     	luMatrix = new LUfactor("1,3,-1;3,7,2;2,1,-1");
     	showResults(luMatrix);
 
-    	luMatrix = new LUfactor(5); luMatrix.initMatrixRandomInteger(9); luMatrix.factorice();
+    	luMatrix = new LUfactor(5); luMatrix.initMatrixRandomInteger(9); luMatrix.factorize();
     	showResults(luMatrix);
 
-    	luMatrix = new LUfactor(7); luMatrix.initMatrixRandomRec(9); luMatrix.factorice();
+    	luMatrix = new LUfactor(7); luMatrix.initMatrixRandomRec(9); luMatrix.factorize();
     	showResults(luMatrix);
     	
     	luMatrix = new LUfactor("1,2,3,;4,2,1;-3,0,1");

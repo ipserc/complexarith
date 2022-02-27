@@ -1,14 +1,21 @@
+/*
+ * java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin:/home/ipserc/eclipse-workspace/complexarith/classes TestComplex.TestEigenV14
+ */
+
 package TestComplex;
 
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
+import com.ipserc.arith.syseq.Syseq;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
 
-public class TestEigenV13 {
+public class TestEigenV14 {
 
-	public static void doEigenCalculations(MatrixComplex aMatrix) {
+	public static void doEigenCalculations(MatrixComplex aMatrix, boolean exact) {
+		Complex.Exact = exact;
 		Complex seed = new Complex(1,0);
+		Complex.facts();
 		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);
      	int boxSize = 65;
 
@@ -54,6 +61,15 @@ public class TestEigenV13 {
     	System.out.println(Complex.boxTextRandom(boxSize, "WOLFRAM"));
     	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
  
+    	/* Solutions of the Characteristics Equations */
+     	MatrixComplex solution = new MatrixComplex(1,aMatrix.cols());
+    	System.out.println(Complex.boxTextRandom(boxSize, "Solutions of the Characteristics Equations"));
+    	for (int eigv = 0; eigv < eigenSpace.eigenvalues().rows(); ++eigv) {
+    		solution.complexMatrix[0] = eigenSpace.solutions().complexMatrix[eigv].clone();
+     		eigenSpace.printCharactEq(eigv, outputFormat.WOLFRAM, false);
+	    	solution.println("Solution:");
+    	}
+
     	/* roots & solutions */
     	System.out.println(Complex.boxTextRandom(boxSize, "Roots & Solutions "));
     	for (int row = 0; row < eigenSpace.solutions().rows(); ++row){
@@ -102,33 +118,35 @@ public class TestEigenV13 {
 	public static void main(String[] args) {
     	MatrixComplex aMatrix = new MatrixComplex();
 
-     	Complex.setFormatON();
-     	Complex.setFixedON(3);
+    	Complex.setFormatON();
+     	//Complex.setFixedON(3);
      	Eigenspace.version();
 
-     	/* */
-     	aMatrix = new MatrixComplex(""
-     			+ " 0, 2, 2;"
-				+ " 2, 0,-1;"
-				+ "-1,-1, 0");
-     	doEigenCalculations(aMatrix);
-     	/* */
-     	/* */
-     	aMatrix = new MatrixComplex(""
-     			+ "-1, 2, 2;"
-				+ " 2, 2,-1;"
-				+ "-1,-1, 1");
-     	doEigenCalculations(aMatrix);
-     	/* */
-     	/* */
-     	aMatrix = new MatrixComplex(""+
-     			" 3, 2,-1, 5, 2;"+
-     			" 2,-1, 1, 0,-3;" +
-     			"-1, 1, 3, 3,-3;" +
-     			" 5, 0, 3, 2, 5;" +
-     			" 2,-3,-3, 5, 1");
-     	doEigenCalculations(aMatrix);
-     	/* */
 
+     	//aMatrix = new MatrixComplex(3);
+     	//aMatrix.initMatrixRandomInteger(6);
+     	//aMatrix = new MatrixComplex("-6.000,-2.000,4.000;-5.000,3.000,4.000;-5.000,6.000,-2.000");
+     	//aMatrix = new MatrixComplex("4.000,-6.000;5.000,-6.000");
+    	// INCorrect EIGEN     	
+     	//aMatrix = new MatrixComplex("1.000,1.000,-4.000;4.000,-4.000,-1.000;-2.000,1.000,-2.000");
+    	// INCorrect EIGEN
+     	//aMatrix = new MatrixComplex("-1.000,5.000,-2.000;-3.000,3.000,4.000;-5.000,6.000,6.000");
+     	// INCorrect EIGEN
+     	//aMatrix = new MatrixComplex("2.000,-2.000,-1.000;-6.000,-6.000,-1.000;-5.000,-5.000,6.000");
+     	// MIX Case INCorrect EIGEN
+     	//aMatrix = new MatrixComplex("1.000,-2.000,-3.000;-2.000,5.000,5.000;-1.000,6.000,6.000");
+     	//aMatrix = new MatrixComplex("2.0000,5.0000,5.0000;1.0000,-6.0000,1.0000;-3.0000,-6.0000,6.0000");
+
+     	// Correct EIGEN
+     	//aMatrix = new MatrixComplex("-2.000,3.000,5.000;-1.000,2.000,5.000;5.000,-5.000,3.000");
+     	
+     	// INCorrect EIGEN - enviar este ejempplo a Wolfram
+     	aMatrix = new MatrixComplex("-2.000,6.000,-6.000;-2.000,-1.000,-3.000;-6.000,3.000,-2.000");
+
+     	// INCorrect EIGEN - enviar este ejempplo a Wolfram
+     	//aMatrix = new MatrixComplex("3.0000,-6.0000,-4.0000;-1.0000,-4.0000,4.0000;6.0000,-3.0000,-6.0000");
+
+     	doEigenCalculations(aMatrix, true); //Exact
+      	doEigenCalculations(aMatrix, false); //Approx
 	}
 }

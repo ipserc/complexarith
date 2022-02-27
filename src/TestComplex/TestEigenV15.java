@@ -5,7 +5,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
 
-public class TestEigenV13 {
+public class TestEigenV15 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
@@ -107,28 +107,43 @@ public class TestEigenV13 {
      	Eigenspace.version();
 
      	/* */
-     	aMatrix = new MatrixComplex(""
-     			+ " 0, 2, 2;"
-				+ " 2, 0,-1;"
-				+ "-1,-1, 0");
-     	doEigenCalculations(aMatrix);
-     	/* */
-     	/* */
-     	aMatrix = new MatrixComplex(""
-     			+ "-1, 2, 2;"
-				+ " 2, 2,-1;"
-				+ "-1,-1, 1");
-     	doEigenCalculations(aMatrix);
-     	/* */
-     	/* */
      	aMatrix = new MatrixComplex(""+
-     			" 3, 2,-1, 5, 2;"+
-     			" 2,-1, 1, 0,-3;" +
-     			"-1, 1, 3, 3,-3;" +
-     			" 5, 0, 3, 2, 5;" +
-     			" 2,-3,-3, 5, 1");
-     	doEigenCalculations(aMatrix);
+     			"  1 ,  3 ,  3 ;" +
+     			" -3 , -5 , -3 ;" +
+     			"  3 ,  3 ,  1 ");
+     	/* */
+     	
+    	/* * /
+     	aMatrix = new MatrixComplex(""+
+     			" -1.140E-03i , 3.689+4.198i ;" +
+     			" -3.689+4.198i , 6.236i ");
+     	 /* */
+
+     	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ " 3, 2,-1;"
+     			+ " 2, 3, 1;"
+     			+ " 0, 0, 5");
      	/* */
 
+     	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ "4,-1,1;"
+     			+ "0, 1,3;"
+     			+ "0, 2,2");
+     	/* */
+     	
+     	/* * /
+     	aMatrix = new MatrixComplex(""
+     			+ " 3,-3, 0, 0, 0;"
+     			+ " 0,-4, 4, 0, 0;"
+     			+ " 0, 0, 1,-1, 0;"
+     			+ " 0, 0, 0, 3,-3;"
+     			+ "-1, 0, 0, 0, 1");
+
+     	/* */
+
+     	
+     	doEigenCalculations(aMatrix);
 	}
 }

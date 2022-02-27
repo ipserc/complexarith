@@ -4,7 +4,7 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.chronometer.*;
 
-public class TestDeterminant04 {
+public class TestDeterminant05 {
 
 	private static void showResults(MatrixComplex fMatrix) {
 		int dim = (int)Math.sqrt(fMatrix.dim());
@@ -41,11 +41,17 @@ public class TestDeterminant04 {
        	Complex.setFormatON();
     	Complex.setFixedON(3);
 
-    	fMatrix = new MatrixComplex(""
-    			+ "1.000E+00 , 0.000E+00;"
-    			+ "-7.071E-01 , 7.071E-01" );
+    	for (int i = 2; i < limSup; ++i) {
+    		fMatrix = new MatrixComplex(i);
+         	fMatrix.initMatrixRandomInteger(10);
+        	showResults(fMatrix);    		
+    	}
 
-        showResults(fMatrix);    		
+    	for (int i = 2; i < limSup; ++i) {
+    		fMatrix = new MatrixComplex(i);
+    		fMatrix.initMatrixRandomRec(10);;
+        	showResults(fMatrix);    		
+    	}
 	}
 
 }

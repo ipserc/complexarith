@@ -5,24 +5,29 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.chronometer.Chronometer;
 
 public class TestRank02 {
-	private static boolean Reduced = true;
 
 	private static void showResults(MatrixComplex aMatrix) {
 		Chronometer chrono = new Chronometer();
-		int rank0, rank1;
+		int rank0, rank1, rank2;
 		
+		System.out.println("TRUE Rank(aMatrix)  :" + aMatrix.rank());		
 		chrono.start();
-		rank0 = aMatrix.rank0(Reduced);
-		System.out.println("Rank0(aMatrix)  :" + rank0);
+		rank0 = aMatrix.rank0();
+		System.out.println("Rank0(aMatrix) :" + rank0);
 		chrono.stop();
 		System.out.println("Tiempo: " + chrono.toString());
 		chrono.start();
-		rank1 = aMatrix.rank1(Reduced);
+		rank1 = aMatrix.rank1();
 		System.out.println("Rank1(aMatrix) :" + rank1);
 		chrono.stop();
 		System.out.println("Tiempo: " + chrono.toString());
-		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity(Reduced));
-		if (rank0 != rank1) aMatrix.println("Matrix");
+		chrono.start();
+		rank2 = aMatrix.rank2();
+		System.out.println("Rank2(aMatrix) :" + rank2);
+		chrono.stop();
+		System.out.println("Tiempo: " + chrono.toString());
+		System.out.println("Nullity(aMatrix) :" + aMatrix.nullity());
+		if (rank2 != rank1) aMatrix.println("Matrix");
 	}
 	
 	/**
@@ -44,7 +49,7 @@ public class TestRank02 {
 			System.out.println(Complex.boxTextRandom(boxSize, "TEST #"+i));   	
 			aMatrix.initMatrixRandomInteger(1);
 			//aMatrix.abs();
-			aMatrix.println("Matrix");
+			//aMatrix.println("Matrix");
 			showResults(aMatrix);
 		}
 	}

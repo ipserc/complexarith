@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class TestMatrixComplex01 {
-	private static boolean Reduced = true;
 	
     public static void main(String[] args) {
     	MatrixComplex aMatrix;
@@ -128,7 +127,7 @@ public class TestMatrixComplex01 {
     			" 4, 1, 0,-2;"+
     			"-2, 2, 1, 7");
     	aMatrix.println("05-aMatrix A");
-    	sMatrix = aMatrix.solve(Reduced);
+    	sMatrix = aMatrix.solve();
     	sMatrix.println("06-sMatrix");
     	
     	aMatrix = new MatrixComplex(""+
@@ -136,7 +135,7 @@ public class TestMatrixComplex01 {
     			" 2i,2, 1, 2;"+
     			" 1, 1i,0, 2");
     	aMatrix.println("07-aMatrix A");
-    	sMatrix = aMatrix.solve(Reduced);
+    	sMatrix = aMatrix.solve();
     	sMatrix.println("08-sMatrix");
     	bMatrix = new MatrixComplex(""+
     			" 1, 1, 1;"+
@@ -147,7 +146,7 @@ public class TestMatrixComplex01 {
     	aMatrix = new MatrixComplex(11, 12);
     	aMatrix.initMatrixRandomPolInt(10);
     	aMatrix.println("09-aMatrix A");
-    	sMatrix = aMatrix.solve(Reduced);
+    	sMatrix = aMatrix.solve();
     	sMatrix.println("10-sMatrix");
     	    	
     	aMatrix = new MatrixComplex(""+
@@ -156,7 +155,7 @@ public class TestMatrixComplex01 {
     			" 1,-1, 0, 1, 0;"+
     			" 0, 0, 1, 0,-1");
     	aMatrix.println("aMatrix A");
-    	sMatrix = aMatrix.solve(Reduced);
+    	sMatrix = aMatrix.solve();
     	sMatrix.println("sMatrix");
 
 		System.out.println(Complex.boxTextRandom(boxSize, "Matrix Cofactors"));
@@ -208,5 +207,24 @@ public class TestMatrixComplex01 {
     	bMatrix.println("bMatrix");    	
     	cMatrix.println("aMatrixT.times(bMatrix)");
 
+    	aMatrix = new MatrixComplex(""
+    			+ "-0.063	-0.127i,	0.025	+0.145i,	0.000,	0.000;"
+    			+ "			-0.190i,	0.638	+0.090i,	0.000,	0.000;"
+    			+ "0.063,				-0.063	+0.527i,	1.000,	0.000;"
+    			+ "0.190	-0.190i,	-0.048	+0.529i,	0.000,	1.000");
+    	aMatrix.println("aMatrix");
+    	System.out.println("Determinant: " + aMatrix.determinant());
+    	aMatrix.inverse().println("Inverse");
+    	aMatrix.adjoint().println("Adjoint");
+
+    	aMatrix = new MatrixComplex(""
+    			+ "-0.577	+0.138i,	-0.107	-0.112i,	0.000,	0.000;"
+    			+ "0.170	-0.320i,	-0.560	-0.072i,	0.000,	0.000;"
+    			+ "0.060	+0.407i,	0.066	+0.667i,	1.000,	0.000;"
+    			+ "-0.353	-0.472i,	0.388	+0.240i,	0.000,	1.000");
+    	aMatrix.println("aMatrix");
+    	System.out.println("Determinant: " + aMatrix.determinant());
+    	aMatrix.inverse().println("Inverse");
+    	aMatrix.adjoint().println("Adjoint");
     }
 }
