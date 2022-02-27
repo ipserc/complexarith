@@ -201,7 +201,7 @@ public class Syseqnum extends MatrixComplex {
 	 * @return True if the variation for the number of decimals is null, false otherwise
 	 */
 	public boolean checkConvergence(MatrixComplex solution1, MatrixComplex solution2 , int numDecs) {
-		return solution1.equalsred(solution2, numDecs);
+		return solution1.equals(solution2, numDecs);
 	}
 
 	/**
@@ -240,7 +240,7 @@ public class Syseqnum extends MatrixComplex {
 		}
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
-		if (solution.times(unkMatrix.transpose()).minus(unitMatrix.times(indTerm.transpose())).transpose().equalsred(nullMatrix, numDecs )) return true;
+		if (solution.times(unkMatrix.transpose()).minus(unitMatrix.times(indTerm.transpose())).transpose().equals(nullMatrix, numDecs)) return true;
 		else return false;
 	}
 

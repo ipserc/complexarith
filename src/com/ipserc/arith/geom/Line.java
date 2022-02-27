@@ -314,7 +314,7 @@ public class Line {
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Calculates the intersection between two lines
 	 * @param line The given line

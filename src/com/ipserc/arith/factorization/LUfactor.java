@@ -92,7 +92,7 @@ public class LUfactor extends MatrixComplex {
 	 */
 	public LUfactor(String strMatrix) {
 		super(strMatrix);
-		factorice();
+		factorize();
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class LUfactor extends MatrixComplex {
 	 */
 	public LUfactor(String strMatrix, final LUmethod method) {
 		super(strMatrix);
-		factorice(method);
+		factorize(method);
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class LUfactor extends MatrixComplex {
 	public LUfactor(MatrixComplex matrix) {
 		super();
 		this.complexMatrix = matrix.complexMatrix.clone();
-		factorice();
+		factorize();
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class LUfactor extends MatrixComplex {
 	public LUfactor(MatrixComplex matrix, final LUmethod method) {
 		super();
 		this.complexMatrix = matrix.complexMatrix.clone();
-		factorice(method);
+		factorize(method);
 	}
 
 	/*
@@ -141,7 +141,7 @@ public class LUfactor extends MatrixComplex {
 	 * or computing the determinant of a matrix. 
 	 * The LU decomposition was introduced by mathematician Tadeusz Banachiewicz in 1938.[Source Wikipedia]
 	 */
-	public void factorice(final LUmethod method) {
+	public void factorize(final LUmethod method) {
 		factorized = false;
 		this.method = LUmethod.NONE;
 		if (this.rows() != this.cols()) {
@@ -151,16 +151,16 @@ public class LUfactor extends MatrixComplex {
 		}
 		this.method = method;
 		switch (method) {
-			case PIVOT: PIVOTfactorice(); break;
+			case PIVOT: PIVOTfactorize(); break;
 			case CROUT: CROUTfactorize(); break;
 			case DOOLITTLE: DOOLITTLEfactorize(); break;
-			case CHOLESKY: CHOLESKIfactorice(); break;
+			case CHOLESKY: CHOLESKIfactorize(); break;
 			case NONE: break;
 			default: break;
 		}
 	}
 
-	public void factorice() {
+	public void factorize() {
 		factorized = false;
 		this.method = LUmethod.NONE;
 		if (this.rows() != this.cols()) {
@@ -171,8 +171,8 @@ public class LUfactor extends MatrixComplex {
 		CROUTfactorize();		if (factorized){ this.method = LUmethod.CROUT; return; }
 		//DOOLITTLE is the same as CROUT but returning L and U both transposed
 		//DOOLITTLEfactorize();	if (factorized){ this.method = LUmethod.DOOLITTLE; return; }
-		//CHOLESKIfactorice();	if (factorized){ this.method = LUmethod.CHOLESKY; return; }
-		PIVOTfactorice();		if (factorized){ this.method = LUmethod.PIVOT; return; }
+		//CHOLESKIfactorize();	if (factorized){ this.method = LUmethod.CHOLESKY; return; }
+		PIVOTfactorize();		if (factorized){ this.method = LUmethod.PIVOT; return; }
 	}
 
 	/**
@@ -184,7 +184,7 @@ public class LUfactor extends MatrixComplex {
 	 * or computing the determinant of a matrix. 
 	 * The LU decomposition was introduced by mathematician Tadeusz Banachiewicz in 1938.[Source Wikipedia]
 	 */
-	private void PIVOTfactorice() {
+	private void PIVOTfactorize() {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
@@ -465,7 +465,7 @@ public class LUfactor extends MatrixComplex {
 	 * solutions, e.g., Monte Carlo simulations. It was discovered by André-Louis Cholesky for real matrices. When it is applicable, the Cholesky decomposition 
 	 * is roughly twice as efficient as the LU decomposition for solving systems of linear equations.
 	 */
-	private void CHOLESKIfactorice() {
+	private void CHOLESKIfactorize() {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		

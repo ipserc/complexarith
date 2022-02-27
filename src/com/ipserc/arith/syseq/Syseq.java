@@ -7,11 +7,15 @@ public class Syseq extends MatrixComplex{
 	private MatrixComplex partsol;	// Solution for the system
 	private MatrixComplex homosol;	// Solution for the homogeneous system
 	private Boolean solved = false;
-	private boolean Reduced = true;
 
 	private final static String HEADINFO = "Syseq --- INFO: ";
-	private final static String VERSION = "1.3 (2021_0224_1312)";
+	private final static String VERSION = "1.4 (2022_0123_0100)";
+
 	/* VERSION Release Note
+	 * 
+	 * 1.4 (2022_0123_0100)
+	 * toWolfram_solve() --> Solve[...]
+	 * toMaxima_linsolve(boolean expand) --> Added sol to store the solution: toMaxima = "sol : linsolve" + toMaxima;
 	 * 
 	 * 1.3 (2021_0224_1312)
 	 * 
@@ -87,7 +91,7 @@ public class Syseq extends MatrixComplex{
 		}
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
-		partsol = this.solve(lambda, Reduced);
+		partsol = this.solve(lambda);
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
@@ -97,7 +101,7 @@ public class Syseq extends MatrixComplex{
 		}
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
-		if (this.typeEqSys(Reduced) == INDETERMINATE) {
+		if (this.typeEqSys() == INDETERMINATE) {
 			/* -------------   DEBUGGING BLOCK   ------------- */
 			if (DEBUG_ON) {
 				System.out.println(HEADINFO + Complex.repeat("# ", 40));
@@ -105,8 +109,8 @@ public class Syseq extends MatrixComplex{
 			}
 			/* ------------- END DEBUGGING BLOCK ------------- */
 
-			if (this.isHomogeneous(Reduced)) homosol = partsol;
-			else homosol = this.homogeneous().solve(lambda, Reduced);
+			if (this.isHomogeneous()) homosol = partsol;
+			else homosol = this.unkMatrix().kernel(lambda);
 			
 			/* -------------   DEBUGGING BLOCK   ------------- */
 			if (DEBUG_ON) {
@@ -135,9 +139,9 @@ public class Syseq extends MatrixComplex{
 		MatrixComplex sol = new MatrixComplex();
 		
 		if (!solved) this.solveq();
-		switch (this.typeEqSys(Reduced)) {
+		switch (this.typeEqSys()) {
 			case DETERMINATE:	sol = partsol; break;
-			case INDETERMINATE:	if (this.isHomogeneous(Reduced)) sol = partsol.times(n); 
+			case INDETERMINATE:	if (this.isHomogeneous()) sol = partsol.times(n); 
 								else sol = partsol.plus(homosol.times(n));
 								break;
 			case INCONSISTENT:	sol = partsol; break;
@@ -240,7 +244,7 @@ public class Syseq extends MatrixComplex{
 			}
 			System.out.println(" = "+getItem(row, col));
 		}
-		printTypeEqSys(Reduced);
+		printTypeEqSys();
 	}
 
 	/**
@@ -251,17 +255,18 @@ public class Syseq extends MatrixComplex{
 	}
 	
 	/**
-	 * Prints the particular and homogeneous solutions if exists
+	 * Prints the particular and homogeneous solutions if they exist
+	 * If the solution hasn't be calculated it calculates the solution before printing
 	 */
 	public void printSol(String title) {
 		System.out.println(title);
 		if (!solved) this.solveq();
-		if (typeEqSys(Reduced) == INCONSISTENT) {
+		if (typeEqSys() == INCONSISTENT) {
 			System.out.println(HEADINFO + ":There are no solutions for an INCONSISTENT Equation System");
 		}
 		else {
 			partsol.println("Particular  Solution");
-			if (homosol != null && !isHomogeneous(Reduced)) homosol.println("Homogeneous Solution");
+			if (homosol != null && !isHomogeneous()) homosol.println("Homogeneous Solution");
 		}
 	}
 
@@ -283,28 +288,28 @@ public class Syseq extends MatrixComplex{
 	public String toMaxima_linsolve(boolean expand) {
 		int row, col;
 		//Set up equations block
-		String toWolfram = "([";
+		String toMaxima = "([";
 		for (row = 0; row < rows(); ++ row) {
 			for (col = 0; col < cols()-1; ++col) {
-				toWolfram = toWolfram + "+("+getItem(row, col)+")*x"+col;
+				toMaxima = toMaxima + "+("+getItem(row, col)+")*x"+col;
 			}
-			toWolfram = toWolfram + "="+getItem(row, col);
-			toWolfram = toWolfram + (row < rows()-1 ? "," : "],[") ;
+			toMaxima = toMaxima + "="+getItem(row, col);
+			toMaxima = toMaxima + (row < rows()-1 ? "," : "],[") ;
 		}
 		// replace "i" with "*%i" (imaginary term for Maxima)
-		toWolfram = toWolfram.replace("i", "*%i");
+		toMaxima = toMaxima.replace("i", "*%i");
 		
 		// Set up unknowns block
 		for (col = 0; col < cols() - 2; ++col) {
-			toWolfram = toWolfram + "x"+col+",";
+			toMaxima = toMaxima + "x"+col+",";
 		}
-		toWolfram = toWolfram + "x"+col+"])";
+		toMaxima = toMaxima + "x"+col+"])";
 		
 		// Header for linsolve with expand
-		toWolfram = "linsolve" + toWolfram;
-		if (expand) toWolfram = "expand("+ toWolfram + ")";
+		toMaxima = "sol : linsolve" + toMaxima;
+		if (expand) toMaxima = "expand("+ toMaxima + ")";
 
-		return toWolfram;
+		return toMaxima;
 	}
 	
 	/**
@@ -338,7 +343,7 @@ public class Syseq extends MatrixComplex{
 	public String toWolfram_solve() {
 		int row, col;
 		//Set up equations block
-		String toWolfram = "solve(";
+		String toWolfram = "Solve[";
 		for (row = 0; row < rows(); ++ row) {
 			for (col = 0; col < cols()-1; ++col) {
 				toWolfram = toWolfram + "+("+getItem(row, col)+")*x"+col;
@@ -348,11 +353,13 @@ public class Syseq extends MatrixComplex{
 		}
 		
 		// Set up unknowns block
+		toWolfram = toWolfram + "{";
 		for (col = 0; col < cols() - 2; ++col) {
 			toWolfram = toWolfram + "x"+col+",";
 		}
-		toWolfram = toWolfram + "x"+col+")";
+		toWolfram = toWolfram + "x"+col+"}]";
 
+		toWolfram = toWolfram.replace("i", "I");
 		return toWolfram;
 	}
 

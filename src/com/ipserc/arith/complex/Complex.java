@@ -58,8 +58,47 @@ public class Complex {
 	 * ***********************************************
 	 */
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.5 (2021_0929_2100)";
+	private final static String VERSION = "1.6 (2022_0202_2100)";
 	/* VERSION Release Note
+	 * 
+	 * 1.6 (2022_0202_2100)
+	 * To use approximated equality. true use EXACT equality. false use APPROX equality.
+	 * 
+	 * public static boolean Exact = true; Eliminate Reduced local class member. Complex.Exact rules all the clasess
+	 * 
+	 * Now SIGNIFICATIVE is 8 decimals maximum. Machine significatives is 15, 7 decimals are for carry the rounding error
+	 * 
+	 * Correction factor for equality comparisons. I hate these kinds of things that seem to work but have no way to justify or prove
+	 * public final static int CORRECTION_FACTOR = 100; 
+	 * 
+	 * All the flavors of equaslred disappear. Now equals decide the use of ZERO_THRESHOLD  or ZERO_THRESHOLD_R in function of the value of Exact
+	 * public boolean isZero()
+	 * public boolean imPartNull() 
+	 * public boolean rePartNull()
+	 * public boolean equals(Complex cNum)
+	 * public boolean equals(double n1, double n2) 
+	 * public boolean equals(Complex cNum, int numDecs) 
+	 * public Boolean isPureReal()
+	 * public Boolean isPureImaginary()
+	 * All the xxxxxxxxRed are DEPRECATED and will be removed in the next release
+	 * public boolean isZeroRed__() 
+	 * public boolean imPartNullRed__()
+	 * public boolean rePartNullRed__()
+	 * public boolean equalsred__(Complex cNum)
+	 * public boolean equalsred__(double n1, double n2) 
+	 * public boolean equalsred__(double n1, double n2, int numDecs)
+	 * public boolean equalsred__(Complex cNum, int numDecs)
+	 * 
+	 * public static Complex sqrt(Complex z)		New Square Root Method
+	 * public static Complex sqrt(Complex z, int k) New Square Root Method
+	 * DERECATED
+	 * public static Complex sqrroot__(Complex z)
+	 * public static Complex sqrroot__(Complex z, int k)
+	 * 
+	 * public static void showPrecision() Renamed to camel style
+	 * public static void restorePrecisionFactorySettings() Included from now on
+	 * 
+	 * 	public String toStringRecWolfram() replace("E", "*10^"); TODO with polar representation
 	 * 
 	 * 1.5 (2021_0929_2100)
 	 * added trunc method to truncate a double value.
@@ -80,6 +119,11 @@ public class Complex {
 	public final static Complex mONE = new Complex(-1,0);
 	public final static double LIM_INF = 2147483647; //2147483647
 	
+	// FIXED - Correction factor for equality comparisons. I hate these kinds of things that seem to work but have no way to justify or prove
+	public final static int CORRECTION_FACTOR = 10; 
+	// FIXED - The same feeling as Einstein before the cosmological constant 
+	// FIXED: PRECISION = 1E-13
+	
 	/*************************************************
 	private final static double PRECISION = 1E-9;	//1E-13;
 	private final static double ZERO_THRESHOLD = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
@@ -95,11 +139,19 @@ public class Complex {
 	 */
 
 	/* Precision Block */
-	private static double PRECISION = 1E-13;
+	private static double PRECISION = 1E-13; //1E-16; //1E-13;
 	private static double ZERO_THRESHOLD = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
 	private static double ZERO_THRESHOLD_R = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
-	private static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
-	private static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE); 
+	private static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD));
+	private static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
+
+	/* BACK UP to allow restoring status */
+	private static double PRECISION_DEF = PRECISION;
+	private static double ZERO_THRESHOLD_DEF = ZERO_THRESHOLD;
+	private static double ZERO_THRESHOLD_R_DEF = ZERO_THRESHOLD_R;
+	private static int SIGNIFICATIVE_DEF = SIGNIFICATIVE;
+	private static long DIGITS_DEF = DIGITS; 
+	
 	/* BACK UP to allow restoring status */
 	private static double PRECISION_BCK = PRECISION;
 	private static double ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
@@ -126,6 +178,11 @@ public class Complex {
 	
 	private static Random randomNbr = new Random(System.currentTimeMillis());
 
+	/**
+	 * To use approximated equality. true use EXACT equality. false use APPROX equality.
+	 */
+	public static boolean Exact = true;
+
 	/*
 	 * ***********************************************
 	 * VERSION
@@ -141,7 +198,7 @@ public class Complex {
 
 	public static void facts() {
 		System.out.println(HEADINFO + "VERSION.........:" + VERSION); 
-		show_precision();
+		showPrecision();
 	}
 
 	/*
@@ -752,7 +809,8 @@ public class Complex {
 	 */
 	private static double formatNbr(double number) {
 		if (!FORMAT_NBR) return number;
-		if (Math.abs(number) < ZERO_THRESHOLD) return 0.0;
+		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
+		if (Math.abs(number) < zero_threshold) return 0.0;
 		double newNumber = Math.rint(number * DIGITS) / DIGITS;
 		return newNumber;
 	}
@@ -809,7 +867,8 @@ public class Complex {
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringRecWolfram() {
-		return this.toStringRec("i");
+		String strWolfram = this.toStringRec("I");
+		return strWolfram.replace("E", "*10^");
 	}
 	
 	/**
@@ -881,8 +940,6 @@ public class Complex {
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringPol() {
-		double fRep = rep;
-		double fImp = imp;
 		double fMod = mod;
 		double fPha = pha;
 		String sfMod = new String();
@@ -970,7 +1027,8 @@ public class Complex {
 	/**
 	 * Shows the Precision parameters used
 	 */
-	public static void show_precision() {
+	public static void showPrecision() {
+		System.out.println(HEADINFO + "MODE............:" + (Exact ? "EXACT" : "APPROXIMATED")); 
 		System.out.println(HEADINFO + "PRECISION.......:" + PRECISION); 
 		System.out.println(HEADINFO + "ZERO_THRESHOLD..:" + ZERO_THRESHOLD); 
 		System.out.println(HEADINFO + "ZERO_THRESHOLD_R:" + ZERO_THRESHOLD_R); 
@@ -1000,7 +1058,7 @@ public class Complex {
 	 * Sets the PRECISION used for calculations UPDATING the rest of Precision parameters
 	 */
 	public static void precision(double value) {
-		store_precision();
+		storePrecision();
 	    PRECISION = value;
 	    ZERO_THRESHOLD = PRECISION*10;
 	    ZERO_THRESHOLD_R = Math.sqrt(PRECISION);
@@ -1027,7 +1085,7 @@ public class Complex {
 	 * Sets the ZERO_THRESHOLD used for calculations UPDATING the rest of Precision parameters
 	 */
 	public static void zero_threshold(double value) {
-		store_precision();
+		storePrecision();
 	    ZERO_THRESHOLD = value;
 	    SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
@@ -1067,7 +1125,7 @@ public class Complex {
 	 * Sets the SIGNIFICATIVE used for calculations UPDATING the rest of Precision parameters
 	 */
 	public static void significative(int value) {
-		store_precision();
+		storePrecision();
 	    SIGNIFICATIVE = value;
 	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
 	}
@@ -1090,7 +1148,7 @@ public class Complex {
 	/**
 	 * Stores the Precision parameters for recover them later
 	 */
-	public static void store_precision() {
+	public static void storePrecision() {
 	    PRECISION_BCK = PRECISION;
 	    ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
 	    ZERO_THRESHOLD_R_BCK = ZERO_THRESHOLD_R;
@@ -1101,14 +1159,25 @@ public class Complex {
 	/**
 	 * Recovers the Precision parameters stored before
 	 */
-	public static void restore_precision() {
+	public static void restorePrecision() {
 	    PRECISION = PRECISION_BCK;
 	    ZERO_THRESHOLD = ZERO_THRESHOLD_BCK;
 	    ZERO_THRESHOLD_R = ZERO_THRESHOLD_R_BCK;
 	    SIGNIFICATIVE = SIGNIFICATIVE_BCK;
 	    DIGITS = DIGITS_BCK;
 	}	
-	
+
+	/**
+	 * Restores all the precision values to the Factory defined ones
+	 */
+	public static void restorePrecisionFactorySettings() {
+	    PRECISION = PRECISION_DEF;
+	    ZERO_THRESHOLD = ZERO_THRESHOLD_DEF;
+	    ZERO_THRESHOLD_R = ZERO_THRESHOLD_R_DEF;
+	    SIGNIFICATIVE = SIGNIFICATIVE_DEF;
+	    DIGITS = DIGITS_DEF;
+	}	
+
 	/*
 	 * ***********************************************
 	 * DECORATION
@@ -1494,16 +1563,17 @@ public class Complex {
 	 * @return true if this Complex value is zero, false otherwise.
 	 */
 	public boolean isZero() {
+		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
 		//if (this.mod() <= ZERO_THRESHOLD) return true;
-		if (Math.abs(this.rep()) <= ZERO_THRESHOLD && Math.abs(this.imp()) <= ZERO_THRESHOLD) return true;
+		if (Math.abs(this.rep()) <= zero_threshold*CORRECTION_FACTOR && Math.abs(this.imp()) <= zero_threshold*CORRECTION_FACTOR) return true;
 		else return false;
 	}
-	
+
 	/**
 	 * Checks if the Complex is reduced zero.
 	 * @return true if this Complex value is reduced zero, false otherwise.
 	 */
-	public boolean isZeroRed() {
+	public boolean isZeroRed__() {
 		//if (this.mod() <= ZERO_THRESHOLD_R) return true;
 		if (Math.abs(this.rep()) <= ZERO_THRESHOLD_R && Math.abs(this.imp()) <= ZERO_THRESHOLD_R) return true;
 		else return false;
@@ -1514,7 +1584,8 @@ public class Complex {
 	 * @return true if imaginary part is zero, false otherwise.
 	 */
 	public boolean imPartNull() {
-		if (Math.abs(imp/rep) <= ZERO_THRESHOLD) return true;
+		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
+		if (Math.abs(imp/rep) <= zero_threshold*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1522,7 +1593,7 @@ public class Complex {
 	 * Checks if the imaginary part is reduced zero.
 	 * @return true if imaginary part is reduced zero, false otherwise.
 	 */
-	public boolean imPartNullRed() {
+	public boolean imPartNullRed__() {
 		if (Math.abs(imp/rep) <= ZERO_THRESHOLD_R) return true;
 		else return false;
 	}
@@ -1532,7 +1603,8 @@ public class Complex {
 	 * @return true if real part is zero, false otherwise.
 	 */
 	public boolean rePartNull() {
-		if (Math.abs(rep/imp) <= ZERO_THRESHOLD) return true;
+		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
+		if (Math.abs(rep/imp) <= zero_threshold*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1540,7 +1612,7 @@ public class Complex {
 	 * Checks if the real part is reduced zero.
 	 * @return true if real part is reduced zero, false otherwise.
 	 */
-	public boolean rePartNullRed() {
+	public boolean rePartNullRed__() {
 		if (Math.abs(rep/imp) <= ZERO_THRESHOLD_R) return true;
 		else return false;
 	}
@@ -1559,8 +1631,9 @@ public class Complex {
 	 * @param cNum Complex to compare.
 	 * @return The result of the comparison.
 	 */
-	public boolean equalsred(Complex cNum) {
-		return this.equalsred(cNum.rep, cNum.imp);
+	public boolean equalsred__(Complex cNum) {
+		return this.equalsred__(cNum.rep, cNum.imp);
+		//return this.equals(cNum.rep, cNum.imp);
 	}
 
 	/**
@@ -1570,7 +1643,8 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2) {
-		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD));
+		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
+		return ((Math.abs(this.rep - n1) <= zero_threshold*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= zero_threshold*CORRECTION_FACTOR));
 	}
 
 	/**
@@ -1579,7 +1653,34 @@ public class Complex {
 	 * @param n2 The imaginary part.
 	 * @return The result of the comparison.
 	 */
-	public boolean equalsred(double n1, double n2) {
+	public boolean equalsred__(double n1, double n2) {
+		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
+		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+	}
+
+	/**
+	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
+	 * @param n1 The real part.
+	 * @param n2 The imaginary part.
+	 * @param numDecs The number of precision decimals.
+	 * @return The result of the comparison.
+	 */
+	public boolean equals(double n1, double n2, int numDecs) {
+		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
+		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
+		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+		return ((Math.abs(this.rep - n1) <= zero_threshold*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= zero_threshold*CORRECTION_FACTOR));
+	}
+
+	/**
+	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
+	 * @param n1 The real part.
+	 * @param n2 The imaginary part.
+	 * @param numDecs The number of precision decimals.
+	 * @return The result of the comparison.
+	 */
+	public boolean equalsred__(double n1, double n2, int numDecs) {
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
 		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
 		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
@@ -1591,27 +1692,31 @@ public class Complex {
 	 * @param numDecs The number of precision decimals.
 	 * @return The result of the comparison.
 	 */
-	public boolean equalsred(Complex cNum, int numDecs) {
+	public boolean equals(Complex cNum, int numDecs) {
 		Complex _this_ = Complex.round(this, numDecs);
 		Complex _cNum_ = Complex.round(cNum, numDecs);
 		//System.out.println("this.rep  :" +  this.rep  + "  this.imp :" +  this .imp);
 		//System.out.println("_this_.rep:" + _this_.rep + " _this_.imp:" + _this_.imp);
 		//System.out.println(" cNum.rep :" +  cNum .rep + "  cNum.imp :" +  cNum .imp);
 		//System.out.println("_cNum_.rep:" + _cNum_.rep + " _cNum_.imp:" + _cNum_.imp);
-		return _this_.equalsred(_cNum_.rep, _cNum_.imp, numDecs);
+		return _this_.equals(_cNum_.rep, _cNum_.imp, numDecs);
 	}
 
 	/**
 	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
-	 * @param n1 The real part.
-	 * @param n2 The imaginary part.
+	 * @param cNum The complex number.
 	 * @param numDecs The number of precision decimals.
 	 * @return The result of the comparison.
 	 */
-	public boolean equalsred(double n1, double n2, int numDecs) {
-		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
-		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+	public boolean equalsred__(Complex cNum, int numDecs) {
+		Complex _this_ = Complex.round(this, numDecs);
+		Complex _cNum_ = Complex.round(cNum, numDecs);
+		//System.out.println("this.rep  :" +  this.rep  + "  this.imp :" +  this .imp);
+		//System.out.println("_this_.rep:" + _this_.rep + " _this_.imp:" + _this_.imp);
+		//System.out.println(" cNum.rep :" +  cNum .rep + "  cNum.imp :" +  cNum .imp);
+		//System.out.println("_cNum_.rep:" + _cNum_.rep + " _cNum_.imp:" + _cNum_.imp);
+		//return _this_.equalsred(_cNum_.rep, _cNum_.imp, numDecs);
+		return _this_.equals(_cNum_.rep, _cNum_.imp, numDecs);
 	}
 
 	/**
@@ -1619,8 +1724,8 @@ public class Complex {
 	 * @return True if the number is pure real
 	 */
 	public Boolean isPureReal() {
-		if (rePartNullRed()) return false;
-		if (!imPartNullRed()) return false;
+		if (rePartNull()) return false;
+		if (!imPartNull()) return false;
 		return true;
 	}
 
@@ -1629,8 +1734,8 @@ public class Complex {
 	 * @return True if the number is pure imaginary
 	 */
 	public Boolean isPureImaginary() {
-		if (imPartNullRed()) return false;
-		if (!rePartNullRed()) return false;
+		if (imPartNull()) return false;
+		if (!rePartNull()) return false;
 		return true;
 	}
 
@@ -1884,7 +1989,16 @@ public class Complex {
 	 * @param z The complex number.
 	 * @return The "1st" pot-root of the Complex Object 'this'.
 	 */
-	public static Complex sqrroot(Complex z) {
+	public static Complex sqrt(Complex z) {
+		return root(z, 2);
+	}
+	
+	/**
+	 * Calculates the "1st" square root of the Complex Object 'this'.
+	 * @param z The complex number.
+	 * @return The "1st" pot-root of the Complex Object 'this'.
+	 */
+	public static Complex sqrroot__(Complex z) {
 		return root(z, 2);
 	}
 
@@ -1894,7 +2008,17 @@ public class Complex {
 	 * @param k The "k-th" root.
 	 * @return The "k-th" pot-root of the Complex Object 'this'.
 	 */
-	public static Complex sqrroot(Complex z, int k) {
+	public static Complex sqrt(Complex z, int k) {
+		return root(z, 2, k);
+	}
+
+	/**
+	 * Calculates the "k-th" square root of the Complex Object 'this'.
+	 * @param z The complex number.
+	 * @param k The "k-th" root.
+	 * @return The "k-th" pot-root of the Complex Object 'this'.
+	 */
+	public static Complex sqrroot__(Complex z, int k) {
 		return root(z, 2, k);
 	}
 		
@@ -2434,10 +2558,15 @@ public class Complex {
 	 * @param d The number of decimals
 	 * @return The rounded number
 	 */
-	private static double round(double value, int decs) {
+	public static double round(double value, int decs) {
 	    if (decs < 0) throw new IllegalArgumentException();
 
-	    BigDecimal bd = new BigDecimal(Double.toString(value));
+	    Double DBval = value;
+	    if (DBval.isNaN()) return value;
+		if (DBval.isInfinite()) return value;
+
+	   //BigDecimal bd = new BigDecimal(Double.toString(value));
+	    BigDecimal bd = new BigDecimal(DBval);
 	    bd = bd.setScale(decs, RoundingMode.HALF_UP);
 	    return bd.doubleValue();
 	}
@@ -2449,6 +2578,8 @@ public class Complex {
 	 * @return The rounded number
 	 */
 	static public Complex round(Complex complex, int decs) {
+		if (complex.isNaN()) return complex;
+		if (complex.isInfinite()) return complex;
 		return roundRec(complex, decs);
 	}
 
@@ -2684,7 +2815,10 @@ public class Complex {
 		if (limit(func, point) != null) return true;
 		return false;
 	}
-	
+
+	/*
+	 * RESTOS
+	 */
 /**	
 	public static Complex integrateCurv(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, int numDec) {
 		Complex vector = uplimit.minus(lolimit);

@@ -14,7 +14,6 @@ import com.ipserc.arith.matrixcomplex.*;
 public class Plane {
 	private Vector normal;
 	private Point point;
-	private boolean Reduced = true;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
 	private final static String VERSION = "1.0 (2021_0206_0100)";
@@ -387,7 +386,7 @@ public class Plane {
 			}
 			aMatrix.complexMatrix[1][i] = plane.normal.dotprod(plane.toVector(plane.point));
 				aMatrix.println("Sistema ecuaciones");
-			MatrixComplex solutions = aMatrix.solve(Reduced);
+			MatrixComplex solutions = aMatrix.solve();
 			
 			Point point = new Point();
 			point.complexMatrix = solutions.transpose().complexMatrix.clone();
@@ -421,7 +420,8 @@ public class Plane {
 	 * @return The intersection point as Point
 	 */
 	public Point intersection(Line line) {
-		if (this.normal.dotprod(line.direction()).equalsred(0,0)) return new Point(0);
+		// **** if (this.normal.dotprod(line.direction()).equalsred(0,0)) return new Point(0);
+		if (this.normal.dotprod(line.direction()).equals(0,0)) return new Point(0);
 		Vector vectorP1 = new Vector();
 		Vector vectorP2 = new Vector();
 		vectorP1.complexMatrix = this.point.complexMatrix;

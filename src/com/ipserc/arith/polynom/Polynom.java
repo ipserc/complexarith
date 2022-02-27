@@ -17,10 +17,15 @@ public class Polynom extends MatrixComplex {
 	private Polynom remainder;
 
 	private static double sampleBase = 300;
+	private static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.2 (2021_0929_2000)";
+	private final static String VERSION = "1.3 (2022_0123_0100)";
 	/* VERSION Release Note
+	 * 
+	 * 1.3 (2022_0123_0100)
+	 * toWolfram_roots() --> roots[...]
+	 * public MatrixComplex solveWeierstrass(double theprecision) Various adjustments to the precision and rounding rules for more precision on roots. 
 	 * 
 	 * 1.2 (2021_0929_2000)
 	 * solveWeierstrass uses Complex.round(root,numOfDecs) to return the value of each root found. This gives a more precise value of the root. The numOfDecs is calculated by the method based on the
@@ -272,7 +277,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Wolfram's roots command for a polynomial.
 	 */
 	public String toWolfram_roots() {
-		return "roots(" + toWolfram_poly() + ")";	
+		return "roots[" + toWolfram_poly() + "]";	
 	}
 
 	/**
@@ -497,12 +502,13 @@ public class Polynom extends MatrixComplex {
 	 * @param precision The precision used to identify a zero.
 	 * @return The column array with the solutions found.
 	 */
-	public MatrixComplex solveWeierstrass(double precision) {
+	public MatrixComplex solveWeierstrass(double theprecision) {
 		final boolean DEBUG_ON = false; 
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		Complex cDenom = new Complex(1,0);
 		int iter = 0;
+		double precision = theprecision;
 
 		this.normalizePol();
 
@@ -544,19 +550,21 @@ public class Polynom extends MatrixComplex {
 					System.err.println("Arithmetic Overflow");
 					System.exit(10);
 				}
-
-				finished &= (cCoef.complexMatrix[1][i].minus(cCoef.complexMatrix[0][i])).mod() < precision;
+				//finished &= (cCoef.complexMatrix[1][i].minus(cCoef.complexMatrix[0][i])).mod() < precision;
+				finished &= (cCoef.complexMatrix[1][i].minus(cCoef.complexMatrix[0][i])).equals(Complex.ZERO);
 				cCoef.complexMatrix[1][i] = cCoef.complexMatrix[0][i];
 			}
 
 			//Sometimes ending condition doesn't work
-			if (iter++ > 5000) finished = true;
+			if (iter++ > maxRootIter) finished = true;
 		} while (!finished);			
 
 		//int numOfDecs = (int) Math.abs(Math.log10(precision)) / 2 + 1;
 		//numOfDecs = numOfDecs-1 > 0 ? --numOfDecs : numOfDecs;
-		double maxPrec = Math.sqrt(precision);
-		int numOfDecs = (int) Math.abs(Math.log10(maxPrec));
+		double maxPrec = Math.sqrt(precision*10);
+		// If the number of iterations to obtain the roots has been overpaswed, the precision is reduced drastically
+		int numOfDecs = iter > maxRootIter ? 4 : (int) Math.abs(Math.log10(maxPrec));
+		numOfDecs = numOfDecs-1 > 0 ? --numOfDecs : numOfDecs;
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
@@ -573,8 +581,12 @@ public class Polynom extends MatrixComplex {
 			*/
 			if (Math.abs(cCoef.complexMatrix[0][i].rep()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(0, cCoef.complexMatrix[0][i].imp());
 			if (Math.abs(cCoef.complexMatrix[0][i].imp()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(cCoef.complexMatrix[0][i].rep(), 0);
-			cSol.complexMatrix[i][0] = Complex.round(cCoef.complexMatrix[0][i],numOfDecs); //DOESN'T WORK. round IS NOT OK
-			//cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i];
+			if (Complex.Exact) {
+				cSol.complexMatrix[i][0] = Complex.round(cCoef.complexMatrix[0][i],numOfDecs); 
+			}
+			else {
+				cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i]; 
+			}
 		}
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
@@ -585,7 +597,7 @@ public class Polynom extends MatrixComplex {
 
 		return cSol;
 	}    
-
+	
 	/**
 	 * Finds the roots to a Nth degree equation with the precision specified in the library using the Weierstrass method.
 	 * Durand-Kerner Method. discovered by Karl Weierstrass in 1891 and rediscovered independently by Durand in 1960 and Kerner in 1966.

@@ -2,7 +2,7 @@ package com.ipserc.arith.factorization;
 
 import com.ipserc.arith.matrixcomplex.Eigenspace;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.complex.Complex;;
+import com.ipserc.arith.complex.Complex;
 
 public class Jordan extends Eigenspace {
 
@@ -84,7 +84,7 @@ public class Jordan extends Eigenspace {
 		for (int i = 0, row = order; i < arithMult; ++i, ++row) {
 			block.setItem(row, row, eigenValue);
 			//if ( i+row > 0 && row+1 < this.cols()) block.setItem(row, row+1, Complex.ONE);
-			if ( row+1 < this.cols()) block.setItem(row, row+1, Complex.ONE);
+			if (row+1 < this.cols()-1) block.setItem(row, row+1, Complex.ONE);
 		}
 		return block;
 	}
@@ -97,23 +97,55 @@ public class Jordan extends Eigenspace {
 	 * @return A MatrixComplex with the eigenvectors
 	 */
 	public MatrixComplex eigenvectors(Complex eigenval, int arithMult) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex I = new MatrixComplex(rowLen, colLen); I.initMatrixDiag(1,0);
-		MatrixComplex eigenVectors = new MatrixComplex(rowLen, colLen);
-		MatrixComplex eigenVect;
-
-		MatrixComplex cMatrix = (this.minus(I.times(eigenval))).power(arithMult);
-		MatrixComplex dMatrix = cMatrix.augment().heap();
-		eigenVect = dMatrix.solve();
+		int order = arithMult;
+		MatrixComplex I = this.eye();
+		MatrixComplex eigenVect = new MatrixComplex(0,0);
+		MatrixComplex cMatrix;
+		MatrixComplex sols;
+		
+		for (order = arithMult; order > 1; --order) {
+			cMatrix = ((this.minus(I.times(eigenval))).power(order)).augment(); //.heap();
+			cMatrix.println("------------------[f-I]^" + order);
+			sols = cMatrix.solve(true);
+			eigenVect.appendRows(sols.getRow(0));
+		}
+		cMatrix = ((this.minus(I.times(eigenval))).power(order)).augment(); //.heap();
+		cMatrix.println("------------------[f-I]^" + order);
+		if (arithMult > 1) {
+			sols = cMatrix.unkMatrix().times(eigenVect.getRow(arithMult-order-1).transpose()).transpose();
+			eigenVect.appendRows(sols);
+			eigenVect.transrow();
+		}
+		else {
+			cMatrix = (this.minus(I.times(eigenval))).augment(); //.heap();
+			cMatrix.println("------------------[f-I]^" + order);
+			sols = cMatrix.solve(true);
+			eigenVect.appendRows(sols);
+		}
 		return eigenVect;
-		/*
-		for (int sol = 0; sol < eigenVect.rows(); ++sol)
-		//for (int sol = 0; sol < arithMult; ++sol)
-			eigenVectors.complexMatrix[sol] = eigenVect.complexMatrix[sol].clone();
-		return eigenVectors;
-		*/
+	}
+
+	/**
+	 * 
+	 * @param eigenValArray
+	 * @return
+	 */
+	public MatrixComplex jordanForm(MatrixComplex eigenValArray) {
+		int rowLen = this.rows(); 
+		int colLen= this.cols();
+		if (colLen != rowLen) {
+			System.out.println(HEADINFO + "The Matrix MUST be square to be factorized as a Jordan Matrix");
+			System.exit(-1);
+		}
+		MatrixComplex jordanForm = new MatrixComplex(rowLen, colLen);
+		for (int i = 0; i < eigenValArray.rows();) {
+			Complex eigenval = eigenValArray.getItem(i, 0);
+			int arithMult = this.arithmeticMultiplicity(eigenval);
+			MatrixComplex jordanBlock = this.block(i, arithMult, eigenval);
+			jordanForm = jordanForm.plus(jordanBlock);
+			i += arithMult;
+		}
+		return jordanForm;
 	}
 
 	/**
@@ -129,30 +161,82 @@ public class Jordan extends Eigenspace {
 		}
 		MatrixComplex eigenValArray = this.values();
 		eigenValArray.quicksort(0);
+		MatrixComplex eigenVectArray = this.vectors();
+		eigenVectArray.println(HEADINFO + "eigenVectArray");
 		
 		cJ = new MatrixComplex(rowLen, colLen);
-		cP = new MatrixComplex(rowLen, colLen);
-
-		for (int i = 0; i < eigenValArray.rows();) {
-			Complex eigenval = eigenValArray.getItem(i, 0);
-			int arithMult = this.arithmeticMultiplicity(eigenval);
-			MatrixComplex jordanBlock = this.block(i, arithMult, eigenval);
-			cJ = cJ.plus(jordanBlock);
-			i += arithMult;
-		}
+		cP = new MatrixComplex(0, 0);
+		
+		cJ = jordanForm(eigenValArray);
 		cJ.println("----------JORDAN");
 		
 		for (int i = 0; i < eigenValArray.rows();) {
 			Complex eigenval = eigenValArray.getItem(i, 0);
 			int arithMult = this.arithmeticMultiplicity(eigenval);
+			//int geomMult = this.geometricMultiplicity(eigenval);
+			
+			System.out.println("\n" + HEADINFO + "Testing eigenval:" + eigenval.toString() + "\n");
 			MatrixComplex eigenVect = this.eigenvectors(eigenval, arithMult);
-			eigenVect.println("----------EIGENVECTORS for:" + eigenval.toString() + " multiplicity:" + arithMult);
-			for (int sol = 0; sol < eigenVect.rows(); ++sol) {
-				cP.complexMatrix[sol+i] = eigenVect.complexMatrix[sol].clone();
+			eigenVect.println("----------EIGENVECTORS for eigenvalue:" + eigenval.toString() + ", multiplicity:" + arithMult);
+			cP.appendRows(eigenVect);
+			cP.println(HEADINFO + "+ + + + + 3. computing cP");
+			i += arithMult;
+		}
+		cP = cP.transpose();
+		cP.println("----------PASS MATRIX");
+	}
+
+	public void factorize2() {
+		int rowLen = this.rows(); 
+		int colLen= this.cols();
+		if (colLen != rowLen) {
+			System.out.println(HEADINFO + "The Matrix MUST be square to be factorized as a Jordan Matrix");
+			System.exit(-1);
+		}
+		MatrixComplex eigenValArray = this.values();
+		eigenValArray.quicksort(0);
+		MatrixComplex eigenVectArray = this.vectors();
+		eigenVectArray.println(HEADINFO + "eigenVectArray");
+		
+		cJ = new MatrixComplex(rowLen, colLen);
+		cP = new MatrixComplex(rowLen, colLen);
+		
+		cJ = jordanForm(eigenValArray);
+		cJ.println("----------JORDAN");
+		
+		for (int i = 0; i < eigenValArray.rows();) {
+			Complex eigenval = eigenValArray.getItem(i, 0);
+			int arithMult = this.arithmeticMultiplicity(eigenval);
+			int geomMult = this.geometricMultiplicity(eigenval);
+			
+			System.out.println("\n" + HEADINFO + "Testing eigenval:" + eigenval.toString() + "\n");
+			
+			if (arithMult == geomMult) {
+				for (int sol = 0; sol < arithMult; ++sol) {
+					cP.complexMatrix[i+sol] = eigenVectArray.complexMatrix[i+sol].clone();
+					cP.println(HEADINFO + "+ + + + + 1. computing cP");
+				}
 				
+			}
+			else {
+				int offset = 0;
+				for (int sol = 0; sol < geomMult; ++sol) {
+					cP.complexMatrix[i+sol] = eigenVectArray.complexMatrix[i+sol].clone();
+					cP.println(HEADINFO + "+ + + + + 2. computing cP");
+					++offset;
+				}
+				
+				MatrixComplex eigenVect = this.eigenvectors(eigenval, arithMult);
+				eigenVect.println("----------EIGENVECTORS for eigenvalue:" + eigenval.toString() + ", multiplicity:" + arithMult);
+				for (int sol = 0; sol < eigenVect.rows() - offset; ++sol) {
+					cP.complexMatrix[sol+offset] = eigenVect.complexMatrix[sol].clone();
+					cP.println(HEADINFO + "+ + + + + 3. computing cP");
+				}
 			}
 			i += arithMult;
 		}
+		cP = cP.transpose();
 		cP.println("----------PASS MATRIX");
 	}
+
 }

@@ -29,8 +29,14 @@ public class QRfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "QRfactor --- INFO: ";
-	private final static String VERSION = "1.0 (2020_0824_1800)";
+	private final static String VERSION = "1.1 (2022_0209_2130)";
 	/* VERSION Release Note
+	 * 
+	 * 1.1 (2022_0209_2130)
+	 * public void qrGramSchmidt()
+	 * public void qrGramSchmidtFull()
+	 * public void qrGramSchmidtM()
+	 * public void qrGramSchmidtMFull() 
 	 * 
 	 * 1.0 (2020_0824_1800)
 	 */
@@ -198,7 +204,6 @@ public class QRfactor extends MatrixComplex {
 		factorized = false;
 		cQ = this.gramSchmidtFull().normalize();
 		cR = cQ.adjoint().times(this);
-		//this.cleanCR();
 		factorized = true;
 	}
 
@@ -211,7 +216,7 @@ public class QRfactor extends MatrixComplex {
 		cR = cQ.adjoint().times(this);
 		factorized = true;
 	}
-
+	
 	/**
 	 * QR decomposition using the Gram - Schmidt Modified Full factorization. Factorices the array using the QR decomposition.
 	 */
@@ -219,10 +224,9 @@ public class QRfactor extends MatrixComplex {
 		factorized = false;
 		cQ = this.gramSchmidtMFull().normalize();
 		cR = cQ.adjoint().times(this);
-		//this.cleanCR();
 		factorized = true;
 	}
-
+	
 	/**
 	 * Private Method to clean the class member variable cR which has the R matrix form the QR decomposition.
 	 */
@@ -309,7 +313,7 @@ public class QRfactor extends MatrixComplex {
 	 */
 	public String toWolfram_QRdecomposition() {
 		String toWolfram;
-		toWolfram = "QR decomposition["+this.toWolfram()+"]";
+		toWolfram = "QRDecomposition["+this.toWolfram()+"]";
 		return toWolfram;
 	}
 
