@@ -1,12 +1,12 @@
 package com.ipserc.arith.matrixcomplex;
 
-import java.lang.Double;
 import java.lang.Math;
 
 import com.ipserc.arith.combinatoric.*;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.polynom.*;
 import com.ipserc.arith.syseq.Syseq;
+import com.ipserc.arith.vector.Vector;
 
 /**
  * 
@@ -17,8 +17,11 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.10 (2022_0123_0100)";
+	private final static String VERSION = "1.11 (2022_0319_2359)";
 	/* VERSION Release Note
+	 * 
+	 * 1.11 (2022_0319_2359)
+	 * public MatrixComplex base()
 	 * 
 	 * 1.10 (2022_0123_0100)
 	 *  kernel of a basis' generator of vectors
@@ -490,6 +493,31 @@ public class MatrixComplex {
 		this.complexMatrix = setOfVectors.complexMatrix.clone(); 
 	}
 
+	/**
+	 * Calculates an orthonormal base associated to the first row component of the matrix
+	 * @return the orthonormal base
+	 */
+	public MatrixComplex base() {
+		MatrixComplex vectorBase = new MatrixComplex(this.rows(), this.cols());
+		vectorBase.initMatrixDiag(1, 0);
+		MatrixComplex normal = this.getRow(0).normalize();
+		//Check for unitary vector and gets its position
+		Complex sum = new Complex();
+		int pos = -1;
+		for (int i = 0; i < this.cols(); ++i) {
+			if (normal.getItem(0, i).equals(Complex.ZERO)) continue;
+			pos = i;
+			sum = sum.plus(normal.getItem(0, i));
+		}
+		// if unitary vector is found, put the base row in its position
+		// else use position 0
+		if (!sum.equals(Complex.ONE)) pos = 0;
+		vectorBase.setRow(pos, normal);
+		vectorBase = vectorBase.gramSchmidt();
+		return vectorBase;		
+	}
+
+	
 	/**
 	 * Creates a new base of a vector space.
 	 * Allows the input of a set vectors written by rows, the base. 
@@ -1075,6 +1103,30 @@ public class MatrixComplex {
 	}
 
 	/**
+	 * 
+	 * @param val
+	 */
+	public MatrixComplex plus(double val) {
+		MatrixComplex newThis = new MatrixComplex(this.rows(), this.cols());
+		for (int row = 0; row < this.rows(); ++row)
+			for(int col = 0; col < this.cols(); ++col)
+				newThis.setItem(row, col, this.getItem(row, col).plus(val));
+		return newThis;
+	}
+
+	/**
+	 * 
+	 * @param cVal
+	 */
+	public MatrixComplex plus(Complex cVal) {
+		MatrixComplex newThis = new MatrixComplex(this.rows(), this.cols());
+		for (int row = 0; row < this.rows(); ++row)
+			for(int col = 0; col < this.cols(); ++col)
+				newThis.setItem(row, col, this.getItem(row, col).plus(cVal));
+		return newThis;
+	}
+
+	/**
 	 * Calculates the difference of two matrices.
 	 * @param cMatrix the subtracting matrix.
 	 * @return the matrix result of the difference.
@@ -1099,7 +1151,7 @@ public class MatrixComplex {
 		}
 		return resultMatrix;
 	}
-
+	
 	/**
 	 * Calculates the matrix product by a real scalar.
 	 * @param num Real number.
@@ -3578,6 +3630,32 @@ public class MatrixComplex {
 		return cMatrix.adjoint().times(this).complexMatrix[0][0];
 	}
 
+	public MatrixComplex tensorprod(MatrixComplex matrix) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		int rowLenC = matrix.rows();
+		int colLenC = matrix.cols();
+
+		if (rowLen != rowLenC) {
+			System.err.println(HEADINFO + "tensorialprod: " + "Tensors of different size");
+		}
+
+		return this.adjoint().times(matrix);
+	}
+
+	public MatrixComplex kroneckerprod(MatrixComplex matrix) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		int rowLenC = matrix.rows();
+		int colLenC = matrix.cols();
+
+		if (colLen != colLenC) {
+			System.err.println(HEADINFO + "tensorialprod: " + "Tensors of different size");
+		}
+
+		return matrix.adjoint().times(this);
+	}
+	
 	/**
 	 * Calulates the Kernel of a base
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.

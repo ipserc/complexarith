@@ -6,8 +6,21 @@ import com.ipserc.arith.matrixcomplex.*;
 public class Vector extends MatrixComplex {
 
 	private final static String HEADINFO = "Vector --- INFO: ";
-	private final static String VERSION = "1.0 (2020_0824_1800)";
+	private final static String VERSION = "1.2 (2022_0319_2359)";
 	/* VERSION Release Note
+	 * 
+	 * 1.2 (2022_0319_2359)
+	 * public Vector orthogonal()
+	 * public Vector orthogonal(int order)
+	 * public void unitary()
+	 * public void initialize(Complex cVal)
+	 * public void setCoord(int coord, Complex cVal)
+	 * public Vector normalize()
+	 * public Vector clone()
+	 * public Vector[] baseV()
+	 * 
+	 * 1.1 (2021_0308_2045)
+	 * public Vector oppsite()
 	 * 
 	 * 1.0 (2020_0824_1800)
 	 */
@@ -128,9 +141,108 @@ public class Vector extends MatrixComplex {
 
 	/*
 	 * ***********************************************
-	 * OPERATIONS WITH VECTORS
+	 * OPERATORS & OPERATIONS WITH VECTORS
 	 * ***********************************************
 	 */
+	
+	/**
+	 * Returns the opposite of the vector
+	 * @return The new opposite vector
+	 */
+	public Vector oppsite() {
+		Vector result = new Vector(this.cols());
+
+		for (int col = 0; col < this.cols(); ++col) {
+			result.complexMatrix[0][col] = this.complexMatrix[0][col].opposite();
+		}
+		return result;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Vector orthogonal() {
+		return orthogonal(0);
+	}
+
+	/**
+	 * 
+	 * @param order
+	 * @return
+	 */
+	public Vector orthogonal(int order) {
+		Vector vectBase[] = new Vector[this.dim()];
+		vectBase = this.baseV();
+		return vectBase[order];
+	}
+	
+	/**
+	 * 
+	 */
+	public void unitary() {
+		this.initialize(Complex.ONE);
+	}
+	
+	/**
+	 * 
+	 * @param cVal
+	 */
+	public void initialize(Complex cVal) {
+		this.setRow(0, cVal);
+	}
+	
+	/**
+	 * 
+	 * @param coord
+	 * @param cVal
+	 */
+	public void setCoord(int coord, Complex cVal) {
+		this.complexMatrix[0][coord] = cVal;
+	}
+		
+	/**
+	 * 
+	 * @param coord
+	 * @return
+	 */
+	public Complex getCoord(int coord) {
+		return this.complexMatrix[0][coord];
+	}
+	
+	/**
+	 * 
+	 */
+	public Vector normalize() {
+		return (this.div(this.norm())).clone();
+	}
+	
+	/**
+	 * 
+	 */
+	public Vector clone() {
+		Vector newVector = new Vector(this.getRow(0));
+		return newVector;
+	}
+	
+	/**
+	 * Calculates an orthonormal base using as first element the normalized vector 
+	 * @return the orthonormal base
+	 */
+	public Vector[] baseV() {
+		Vector base[] = new Vector[this.dim()];
+		
+		MatrixComplex matbase = new MatrixComplex(this.dim());
+		matbase.setRow(0, this.getRow(0));
+		matbase = matbase.base();
+		
+		for(int i = 0; i < this.dim(); ++i) {
+			base[i] = new Vector(this.dim());
+			base[i].setRow(0, matbase.getRow(i));
+		}
+		
+		return base;		
+	}
 
 	/**
 	 * Calculates the addiction of two vectors
@@ -218,7 +330,7 @@ public class Vector extends MatrixComplex {
 	 * @param vector The vector to multiply.
 	 * @return an array with the outer product of the two vectors.
 	 */
-	public MatrixComplex outerprod(Vector vector) {
+	public MatrixComplex tensorprod(Vector vector) {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		int rowLenC = vector.rows();
@@ -236,26 +348,167 @@ public class Vector extends MatrixComplex {
 	}
 
 	/**
-	 * Private method. Calculates the cross product for vectors up to dimension 7. (Levi-Civita)
-	 * The cross product or vector product (occasionally directed area product to emphasize the geometric significance) 
-	 * is a binary operation on two vectors in three-dimensional space (R3) and is denoted by the symbol ×. 
-	 * Given two linearly independent vectors a and b, the cross product, a × b, is a vector that is perpendicular to both a and b and thus normal to the plane containing them. 
-	 * It has many applications in mathematics, physics, engineering, and computer programming. 
-	 * It should not be confused with dot product (projection product).
-	 * @param vector The multiplier vector
-	 * @param dim the dimension of the product
-	 * @return The vector resultant of the cross product
+	 * 
+	 * @param vector
+	 * @return
 	 */
-	private Vector crossprodP(Vector vector, int dim) {
-		final int [][] LC = {
+	public MatrixComplex outerprod(Vector vector) {
+		return tensorprod(vector);
+	}
+
+	/**
+	 * 
+	 * @param coef
+	 * @return
+	 */
+	public int leviCivita(int[] vCoef) {
+		int[] coef = vCoef.clone();
+		int swaps = 0;
+		int temp;
+
+		for(int i = 1; i < coef.length; ++i)
+			for(int j = 0 ; j < coef.length - 1; ++j)
+				if (coef[j] > coef[j+1]) {
+					temp = coef[j];
+					coef[j] = coef[j+1];
+					coef[j+1] = temp;
+					++swaps;
+				}
+
+		temp = coef[0];
+		for(int i = 1; i < coef.length; ++i)
+			if (coef[i] == temp) return 0;
+			else temp = coef[i];
+		return swaps % 2 == 0 ? 1 : -1;
+	}
+	
+	/**
+	 * 
+	 * @param aVector
+	 * @return
+	 */
+	public Vector vectorprod(Vector aVector) {
+		int coef[] = new int[3];
+		Vector result = new Vector(this.dim());
+		int lc; //Levi-Civita Symbol
+		for(int col1 = 0; col1 < aVector.dim(); ++col1) {
+			coef[0] = col1;
+			for(int col2 = 0; col2 < aVector.dim(); ++col2) {
+				coef[1] = col2;
+				for(int col3 = 0; col3 < aVector.dim(); ++col3) {
+					coef[2] = col3;
+					lc = leviCivita(coef);
+					//System.out.println("col1:"+col1);
+					//this.getItem(col2).println("this.getItem("+col2+"):");
+					//aVector.getItem(col3).println("aVector.getItem("+col3+"):");
+					//System.out.println("LC:"+lc);
+					result.setCoord(col1, result.getCoord(col1).plus(this.getCoord(col2).times(aVector.getCoord(col3).times(lc))));
+				}
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * There are more than one Beno Eckmann Coefficients Table in this world
+	 * @param order
+	 * @return the Beno Eckmann Table corresponding with the index
+	 */
+	private int[][] benoEckmann(int order) {
+		// Beno Eckmann Matrix {(sign)Component}
+		// As you can check is complete for 1,3 and 7 dimensions
+		// For 2 dimensions the crossproduct requires the 3rd dimension
+		// For 4, 5, & 6 dimensions the crossproduct requires the 7th dimension
+		// This is the Beno Eckmann for our universe
+		int [][] BE1 = {
 				{ 0, 3,-2, 5,-4,-7, 6},
 				{-3, 0, 1, 6, 7,-4,-5},
 				{ 2,-1, 0, 7,-6, 5,-4},
 				{-5,-6,-7, 0, 1, 2, 3},
 				{ 4,-7, 6,-1, 0,-3, 2},
 				{ 7, 4,-5,-2, 3, 0,-1},
-				{-6, 5, 4,-3,-2, 1, 0}};		
+				{-6, 5, 4,-3,-2, 1, 0}
+				};
 
+		switch (order) {
+		case 1:
+			// This is the Beno Eckmann for our universe
+			return BE1;
+		case 2:
+			int [][] BE2 = {
+					{ 0, 2,-3, 4,-5, 6,-7},
+					{-2, 0, 1, 6, 7,-4,-5},
+					{ 3,-1, 0, 7,-6, 5,-4},
+					{-4,-6,-7, 0, 1, 2, 3},
+					{ 5,-7, 6,-1, 0,-3, 2},
+					{-6, 4,-5,-2, 3, 0,-1},
+					{ 7, 5, 4,-3,-2, 1, 0}
+					};
+			return BE2;
+		case 3:
+			int [][] BE3 = {
+					{ 0, 2,-3, 4,-5,-6, 7},
+					{-2, 0, 1, 6, 7,-4,-5},
+					{ 3,-1, 0, 7,-6, 5,-4},
+					{-4,-6,-7, 0, 1, 2, 3},
+					{ 5,-7, 6,-1, 0,-3, 2},
+					{ 6, 4,-5,-2, 3, 0,-1},
+					{-7, 5, 4,-3,-2, 1, 0}
+					};
+			return BE3;
+		case 480:
+			// Only algebras compatible with the physics in 3 dimensions are allowed
+			// Only the 0,2,3,... - 0,3,2,... are supported by this program, the others produces errors
+			int [][] BE480 = {
+					{ 0, 4, 7,-2, 6,-5,-3},
+					{-4, 0, 5, 1,-3, 7,-6},
+					{-7,-5, 0, 6, 2,-4, 1},
+					{ 2,-1,-6, 0, 7, 3,-5},
+					{-6, 3,-2,-7, 0, 1, 4},
+					{ 5,-7, 4,-3,-1, 0, 2},
+					{ 3, 6,-1, 5,-4,-2, 0}
+					};
+			return BE480;
+		default:
+			return BE1;
+		}
+	}
+	
+	/**
+	 * Private method. Calculates the cross product for vectors up to dimension 7. (Beno Eckmann)
+	 * The cross product or vector product (occasionally directed area product to emphasize the geometric significance) 
+	 * is a binary operation on two vectors in three-dimensional space (R3) and is denoted by the symbol ×. 
+	 * Given two linearly independent vectors a and b, the cross product, a × b, is a vector that is perpendicular to both a and b and thus normal to the plane containing them. 
+	 * It has many applications in mathematics, physics, engineering, and computer programming. 
+	 * It should not be confused with dot product (projection product).
+	 * In 1943 Beno Eckmann, using algebraic topology, gave the first proof of this result
+	 * @param vector The multiplier vector
+	 * @param dim the dimension of the product
+	 * @return The vector resultant of the cross product
+	 * Source https://francis.naukas.com/2012/12/22/el-producto-vectorial-en-un-espacio-euclideo-de-7-dimensiones/
+	 * Source https://en.wikipedia.org/wiki/Seven-dimensional_cross_product
+	 * Source http://www.thespectrumofriemannium.com/wp-content/uploads/2020/10/crossprod.pdf
+	 */
+	private Vector crossprodP(Vector vector, int dim) {
+		// Beno Eckmann Matrix {(sign)Component}
+		// As you can check is complete for 1,3 and 7 dimensions
+		// For 2 dimensions the crossproduct requires the 3rd dimension
+		// For 4, 5, & 6 dimensions the crossproduct requires the 7th dimension
+		/* * /
+		final int [][] BE = {
+				{ 0, 3,-2, 5,-4,-7, 6},
+				{-3, 0, 1, 6, 7,-4,-5},
+				{ 2,-1, 0, 7,-6, 5,-4},
+				{-5,-6,-7, 0, 1, 2, 3},
+				{ 4,-7, 6,-1, 0,-3, 2},
+				{ 7, 4,-5,-2, 3, 0,-1},
+				{-6, 5, 4,-3,-2, 1, 0}};
+		/* */
+
+		/* */
+		int [][] BE = benoEckmann(1);
+		/* */
+		
 		int resCol, signCol;
 		Vector result = new Vector(dim);
 
@@ -263,7 +516,7 @@ public class Vector extends MatrixComplex {
 		for(int colA = 0; colA < this.cols(); ++colA) {
 			for(int colB = 0; colB < vector.cols(); ++colB) {
 				if (colA == colB) continue;
-				resCol = LC[colA][colB];
+				resCol = BE[colA][colB];
 				signCol = resCol < 0 ? -1 : 1;
 				resCol *= signCol;
 				resultC = this.complexMatrix[0][colA].times(vector.complexMatrix[0][colB]).times(signCol);

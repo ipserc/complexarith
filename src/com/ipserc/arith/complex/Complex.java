@@ -58,8 +58,19 @@ public class Complex {
 	 * ***********************************************
 	 */
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.6 (2022_0202_2100)";
+	private final static String VERSION = "1.7 (2022_0911_1130)";
 	/* VERSION Release Note
+	 * 
+	 * 1.7 (2022_0911_1130)
+	 * New management of EXACT/APPROXIMATED settings. Now ZERO_THRESHOLD holds the current value of the threshold for EXACT/APPROXIMATED
+	 * All the methods regarding ZERO_THRESHOLD_XXXX have been modified to include this optimization
+	 * public static boolean exact() {
+	 * public static void exact(boolean value) {
+	 * public static double zero_treshold_exact() {
+	 * public static void zero_threshold_exact(double value) {
+	 * public static double zero_threshold_approx() {
+	 * public static void zero_threshold_approx(double value) {
+	 * and all the methods which are using the above ones
 	 * 
 	 * 1.6 (2022_0202_2100)
 	 * To use approximated equality. true use EXACT equality. false use APPROX equality.
@@ -113,24 +124,16 @@ public class Complex {
 	public final static double DOS_PI = TWO_PI;			// 2 * 3.1415926535897932384626433832795;
 	public final static double HALF_PI =  Math.PI / 2; 	// 3.1415926535897932384626433832795 / 2;
 	public final static Complex i = new Complex(0,1);
-	public final static Complex j = i; // For engineers
+	public final static Complex j = i; // For Electric Engineering
 	public final static Complex ZERO = new Complex(0,0);
 	public final static Complex ONE = new Complex(1,0);
 	public final static Complex mONE = new Complex(-1,0);
 	public final static double LIM_INF = 2147483647; //2147483647
 	
-	// FIXED - Correction factor for equality comparisons. I hate these kinds of things that seem to work but have no way to justify or prove
+	// FIXED - Correction factor for equality comparisons. I hate these kind of things that seem to work but have no way to justify or prove
 	public final static int CORRECTION_FACTOR = 10; 
 	// FIXED - The same feeling as Einstein before the cosmological constant 
 	// FIXED: PRECISION = 1E-13
-	
-	/*************************************************
-	private final static double PRECISION = 1E-9;	//1E-13;
-	private final static double ZERO_THRESHOLD = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
-	private final static double ZERO_THRESHOLD_R = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
-	private final static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
-	private final static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE); 
-	*************************************************/
 	
 	/*
 	 * ***********************************************
@@ -138,24 +141,32 @@ public class Complex {
 	 * ***********************************************
 	 */
 
+	/**
+	 * To use approximated equality. true use EXACT equality. false use APPROX equality.
+	 */
+	private static boolean EXACT = true;
+
 	/* Precision Block */
 	private static double PRECISION = 1E-13; //1E-16; //1E-13;
-	private static double ZERO_THRESHOLD = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
-	private static double ZERO_THRESHOLD_R = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
+	private static double ZERO_THRESHOLD_EXACT = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
+	private static double ZERO_THRESHOLD_APPROX = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
+	private static double ZERO_THRESHOLD = ZERO_THRESHOLD_EXACT;	//Current in use Zero threshold for formatting numbers
 	private static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	private static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
 
 	/* BACK UP to allow restoring status */
 	private static double PRECISION_DEF = PRECISION;
+	private static double ZERO_THRESHOLD_EXACT_DEF = ZERO_THRESHOLD_EXACT;
+	private static double ZERO_THRESHOLD_APPROX_DEF = ZERO_THRESHOLD_APPROX;
 	private static double ZERO_THRESHOLD_DEF = ZERO_THRESHOLD;
-	private static double ZERO_THRESHOLD_R_DEF = ZERO_THRESHOLD_R;
 	private static int SIGNIFICATIVE_DEF = SIGNIFICATIVE;
 	private static long DIGITS_DEF = DIGITS; 
 	
 	/* BACK UP to allow restoring status */
 	private static double PRECISION_BCK = PRECISION;
+	private static double ZERO_THRESHOLD_EXACT_BCK = ZERO_THRESHOLD_EXACT;
+	private static double ZERO_THRESHOLD_APPROX_BCK = ZERO_THRESHOLD_APPROX;
 	private static double ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
-	private static double ZERO_THRESHOLD_R_BCK = ZERO_THRESHOLD_R;
 	private static int SIGNIFICATIVE_BCK = SIGNIFICATIVE;
 	private static long DIGITS_BCK = DIGITS; 
 	
@@ -177,11 +188,6 @@ public class Complex {
 	private double cre; // sgn*modulus sgn=any func. Used to compare Complex
 	
 	private static Random randomNbr = new Random(System.currentTimeMillis());
-
-	/**
-	 * To use approximated equality. true use EXACT equality. false use APPROX equality.
-	 */
-	public static boolean Exact = true;
 
 	/*
 	 * ***********************************************
@@ -354,7 +360,7 @@ public class Complex {
 	private void setCre() {
 		//double sgn = this.rep == 0.0 ? Math.signum(this.imp): Math.signum(Math.cos(pha));
 		//double sgn = (Math.abs(this.rep) <= ZERO_THRESHOLD_R) ? Math.signum(this.imp): Math.signum(Math.cos(pha));
-		if ((Math.abs(this.imp) <= ZERO_THRESHOLD_R)) this.cre = this.rep;
+		if ((Math.abs(this.imp) <= ZERO_THRESHOLD_APPROX)) this.cre = this.rep;
 		else {
 			//double sgn = Math.signum(this.rep);
 			double sgn = Math.signum(this.rep*this.imp);
@@ -809,8 +815,7 @@ public class Complex {
 	 */
 	private static double formatNbr(double number) {
 		if (!FORMAT_NBR) return number;
-		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
-		if (Math.abs(number) < zero_threshold) return 0.0;
+		if (Math.abs(number) < ZERO_THRESHOLD) return 0.0;
 		double newNumber = Math.rint(number * DIGITS) / DIGITS;
 		return newNumber;
 	}
@@ -887,8 +892,11 @@ public class Complex {
 		}
 
 		if (FORMAT_NBR) {
-			if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_R) fRep = 0.0;
-			else if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_R) fImp = 0.0;
+			// Uses the current value of ZERO_THRESHOLD_APPROX (ZERO_THRESHOLD_R was the before setting)
+			if (fImp != 0.0)
+				if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_APPROX) fRep = 0.0;
+			if (fRep != 0.0)
+				if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_APPROX) fImp = 0.0;
 		}
 		sfRep = String.valueOf(fRep);
 		if (SCIENTIFIC_NOTATION) sfRep = String.format("%."+MAX_DECIMALS+"E", fRep).replace(',', '.');
@@ -918,8 +926,11 @@ public class Complex {
 		double fImp = imp;
 
 		if (FORMAT_NBR) {
-			if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_R) fRep = 0.0;
-			else if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_R) fImp = 0.0;
+			// Uses the current value of ZERO_THRESHOLD_APPROX (ZERO_THRESHOLD_R was the before setting)
+			if (fImp != 0.0)
+				if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_APPROX) fRep = 0.0;
+			if (fRep != 0.0)
+				if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_APPROX) fImp = 0.0;
 		}
 		if (fImp == 0.0 ) 
 			return fRep + "";
@@ -980,8 +991,9 @@ public class Complex {
 		double fRep = formatNbr(rep);
 		double fImp = formatNbr(imp);
 
-		if (Math.abs(fRep*ZERO_THRESHOLD_R) > Math.abs(fImp)) fImp = 0.0;
-		if (Math.abs(fImp*ZERO_THRESHOLD_R) > Math.abs(fRep)) fRep = 0.0;
+		// Uses the current value of ZERO_THRESHOLD_APPROX (ZERO_THRESHOLD_R was the before setting)
+		if (Math.abs(fRep*ZERO_THRESHOLD_APPROX) > Math.abs(fImp)) fImp = 0.0;
+		if (Math.abs(fImp*ZERO_THRESHOLD_APPROX) > Math.abs(fRep)) fRep = 0.0;
 		if (fImp == 0) return Double.toString(fRep);
 		return "{" + fRep + "," + fImp + "}";
 	}
@@ -1028,17 +1040,43 @@ public class Complex {
 	 * Shows the Precision parameters used
 	 */
 	public static void showPrecision() {
-		System.out.println(HEADINFO + "MODE............:" + (Exact ? "EXACT" : "APPROXIMATED")); 
-		System.out.println(HEADINFO + "PRECISION.......:" + PRECISION); 
-		System.out.println(HEADINFO + "ZERO_THRESHOLD..:" + ZERO_THRESHOLD); 
-		System.out.println(HEADINFO + "ZERO_THRESHOLD_R:" + ZERO_THRESHOLD_R); 
-		System.out.println(HEADINFO + "SIGNIFICATIVE...:" + SIGNIFICATIVE);
-		System.out.println(HEADINFO + "DIGITS..........:" + DIGITS);		
-		System.out.println(HEADINFO + "LIM_INF.........:" + LIM_INF); 
-		System.out.println(HEADINFO + "LIM_NUMDECS.....:" + LIM_NUMDECS); 
-		System.out.println(HEADINFO + "LIM_PRECISION...:" + LIM_PRECISION); 
+		System.out.println(HEADINFO + "MODE.................:" + exact_str()); 
+		System.out.println(HEADINFO + "PRECISION............:" + PRECISION); 
+		System.out.println(HEADINFO + "ZERO_THRESHOLD.......:" + ZERO_THRESHOLD); 
+		System.out.println(HEADINFO + "ZERO_THRESHOLD_EXACT.:" + ZERO_THRESHOLD_EXACT); 
+		System.out.println(HEADINFO + "ZERO_THRESHOLD_APPROX:" + ZERO_THRESHOLD_APPROX); 
+		System.out.println(HEADINFO + "SIGNIFICATIVE........:" + SIGNIFICATIVE);
+		System.out.println(HEADINFO + "DIGITS...............:" + DIGITS);		
+		System.out.println(HEADINFO + "LIM_INF..............:" + LIM_INF); 
+		System.out.println(HEADINFO + "LIM_NUMDECS..........:" + LIM_NUMDECS); 
+		System.out.println(HEADINFO + "LIM_PRECISION........:" + LIM_PRECISION); 
 	}
 
+	/**
+	 * Gets the EXACT used for calculations.
+	 * @return The value of the pseudo-constant EXACT. 
+	 */
+	public static boolean exact() {
+	    return EXACT; 
+	}
+
+	/**
+	 * Gets the STRING value of EXACT used for calculations.
+	 * @return The value of the pseudo-constant EXACT. 
+	 */
+	public static String exact_str() {
+	    return EXACT ? "EXACT" : "APPROXIMATED"; 
+	}
+
+	/**
+	 * Sets the EXACT used for calculations
+	 */
+	public static void exact(boolean value) {
+	    EXACT = value;
+	    ZERO_THRESHOLD = EXACT ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	}
+
+	
 	/**
 	 * Gets the PRECISION used for calculations.
 	 * @return The value of the constant PRECISION. 
@@ -1060,8 +1098,9 @@ public class Complex {
 	public static void precision(double value) {
 		storePrecision();
 	    PRECISION = value;
-	    ZERO_THRESHOLD = PRECISION*10;
-	    ZERO_THRESHOLD_R = Math.sqrt(PRECISION);
+	    ZERO_THRESHOLD_EXACT = PRECISION*10;
+	    ZERO_THRESHOLD_APPROX = Math.sqrt(PRECISION);
+	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
 	    SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
 	}
@@ -1075,35 +1114,47 @@ public class Complex {
 	}
 
 	/**
-	 * Sets the ZERO_THRESHOLD used for calculations WIHTOUT updating the rest of Precision parameters
+	 * Gets the ZERO_THRESHOLD_EXACT used for calculations.
+	 * @return The value of the constant ZERO_THRESHOLD_EXACT. 
 	 */
-	public static void zero_threshold_(double value) {
-	    ZERO_THRESHOLD = value;
+	public static double zero_treshold_exact() {
+	    return ZERO_THRESHOLD_EXACT; 
 	}
 
 	/**
-	 * Sets the ZERO_THRESHOLD used for calculations UPDATING the rest of Precision parameters
+	 * Sets the ZERO_THRESHOLD_EXACT used for calculations WIHTOUT updating the rest of Precision parameters
 	 */
-	public static void zero_threshold(double value) {
+	public static void zero_threshold_exact(double value) {
+	    ZERO_THRESHOLD_EXACT = value;
+	    // ---- ZERO_THRESHOLD_APPROX = Math.sqrt(ZERO_THRESHOLD_EXACT);
+	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	}
+
+	/**
+	 * Sets the ZERO_THRESHOLD_EXACT used for calculations UPDATING the rest of Precision parameters
+	 */
+	public static void zero_threshold_exact_prec(double value) {
 		storePrecision();
-	    ZERO_THRESHOLD = value;
+		zero_threshold_exact(value);
 	    SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
 	}
 
 	/**
-	 * Gets the ZERO_THRESHOLD_R used for calculations.
-	 * @return The value of the constant ZERO_THRESHOLD_R. 
+	 * Gets the ZERO_THRESHOLD_APPROX used for calculations.
+	 * @return The value of the constant ZERO_THRESHOLD_APPROX. 
 	 */
-	public static double zero_treshold_r() {
-	    return ZERO_THRESHOLD_R; 
+	public static double zero_threshold_approx() {
+	    return ZERO_THRESHOLD_APPROX; 
 	}
 
 	/**
-	 * Sets the ZERO_THRESHOLD_R used for calculations
+	 * Sets the ZERO_THRESHOLD_APPROX used for calculations
 	 */
-	public static void zero_threshold_r(double value) {
-	    ZERO_THRESHOLD_R = value;
+	public static void zero_threshold_approx(double value) {
+	    ZERO_THRESHOLD_APPROX = value;
+	    // ---- ZERO_THRESHOLD_EXACT = Math.power(ZERO_THRESHOLD_APPROX, 2);
+	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
 	}
 
 	/**
@@ -1151,7 +1202,8 @@ public class Complex {
 	public static void storePrecision() {
 	    PRECISION_BCK = PRECISION;
 	    ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
-	    ZERO_THRESHOLD_R_BCK = ZERO_THRESHOLD_R;
+	    ZERO_THRESHOLD_EXACT_BCK = ZERO_THRESHOLD_EXACT;
+	    ZERO_THRESHOLD_APPROX_BCK = ZERO_THRESHOLD_APPROX;
 	    SIGNIFICATIVE_BCK = SIGNIFICATIVE;
 	    DIGITS_BCK = DIGITS;
 	}
@@ -1161,8 +1213,10 @@ public class Complex {
 	 */
 	public static void restorePrecision() {
 	    PRECISION = PRECISION_BCK;
-	    ZERO_THRESHOLD = ZERO_THRESHOLD_BCK;
-	    ZERO_THRESHOLD_R = ZERO_THRESHOLD_R_BCK;
+	    ZERO_THRESHOLD_EXACT = ZERO_THRESHOLD_EXACT_BCK;
+	    ZERO_THRESHOLD_APPROX = ZERO_THRESHOLD_APPROX_BCK;
+	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	    //ZERO_THRESHOLD = ZERO_THRESHOLD_BCK;
 	    SIGNIFICATIVE = SIGNIFICATIVE_BCK;
 	    DIGITS = DIGITS_BCK;
 	}	
@@ -1172,15 +1226,17 @@ public class Complex {
 	 */
 	public static void restorePrecisionFactorySettings() {
 	    PRECISION = PRECISION_DEF;
-	    ZERO_THRESHOLD = ZERO_THRESHOLD_DEF;
-	    ZERO_THRESHOLD_R = ZERO_THRESHOLD_R_DEF;
+	    ZERO_THRESHOLD_EXACT = ZERO_THRESHOLD_EXACT_DEF;
+	    ZERO_THRESHOLD_APPROX = ZERO_THRESHOLD_APPROX_DEF;
+	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	    //ZERO_THRESHOLD = ZERO_THRESHOLD_DEF;
 	    SIGNIFICATIVE = SIGNIFICATIVE_DEF;
 	    DIGITS = DIGITS_DEF;
 	}	
 
 	/*
 	 * ***********************************************
-	 * DECORATION
+	 * BOXES & TITLES
 	 * ***********************************************
 	 */
 	
@@ -1563,9 +1619,8 @@ public class Complex {
 	 * @return true if this Complex value is zero, false otherwise.
 	 */
 	public boolean isZero() {
-		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
 		//if (this.mod() <= ZERO_THRESHOLD) return true;
-		if (Math.abs(this.rep()) <= zero_threshold*CORRECTION_FACTOR && Math.abs(this.imp()) <= zero_threshold*CORRECTION_FACTOR) return true;
+		if (Math.abs(this.rep()) <= ZERO_THRESHOLD*CORRECTION_FACTOR && Math.abs(this.imp()) <= ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1575,7 +1630,7 @@ public class Complex {
 	 */
 	public boolean isZeroRed__() {
 		//if (this.mod() <= ZERO_THRESHOLD_R) return true;
-		if (Math.abs(this.rep()) <= ZERO_THRESHOLD_R && Math.abs(this.imp()) <= ZERO_THRESHOLD_R) return true;
+		if (Math.abs(this.rep()) <= ZERO_THRESHOLD_APPROX && Math.abs(this.imp()) <= ZERO_THRESHOLD_APPROX) return true;
 		else return false;
 	}
 	
@@ -1584,8 +1639,7 @@ public class Complex {
 	 * @return true if imaginary part is zero, false otherwise.
 	 */
 	public boolean imPartNull() {
-		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
-		if (Math.abs(imp/rep) <= zero_threshold*CORRECTION_FACTOR) return true;
+		if (Math.abs(imp/rep) <= ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1594,7 +1648,7 @@ public class Complex {
 	 * @return true if imaginary part is reduced zero, false otherwise.
 	 */
 	public boolean imPartNullRed__() {
-		if (Math.abs(imp/rep) <= ZERO_THRESHOLD_R) return true;
+		if (Math.abs(imp/rep) <= ZERO_THRESHOLD_APPROX) return true;
 		else return false;
 	}
 
@@ -1603,8 +1657,7 @@ public class Complex {
 	 * @return true if real part is zero, false otherwise.
 	 */
 	public boolean rePartNull() {
-		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
-		if (Math.abs(rep/imp) <= zero_threshold*CORRECTION_FACTOR) return true;
+		if (Math.abs(rep/imp) <= ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1613,7 +1666,7 @@ public class Complex {
 	 * @return true if real part is reduced zero, false otherwise.
 	 */
 	public boolean rePartNullRed__() {
-		if (Math.abs(rep/imp) <= ZERO_THRESHOLD_R) return true;
+		if (Math.abs(rep/imp) <= ZERO_THRESHOLD_APPROX) return true;
 		else return false;
 	}
 
@@ -1643,8 +1696,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2) {
-		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
-		return ((Math.abs(this.rep - n1) <= zero_threshold*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= zero_threshold*CORRECTION_FACTOR));
+		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD*CORRECTION_FACTOR));
 	}
 
 	/**
@@ -1656,7 +1708,7 @@ public class Complex {
 	public boolean equalsred__(double n1, double n2) {
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
 		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_APPROX) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_APPROX));
 	}
 
 	/**
@@ -1667,10 +1719,9 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2, int numDecs) {
-		double zero_threshold = Exact ? ZERO_THRESHOLD : ZERO_THRESHOLD_R;
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
 		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= zero_threshold*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= zero_threshold*CORRECTION_FACTOR));
+		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD*CORRECTION_FACTOR));
 	}
 
 	/**
@@ -1683,7 +1734,7 @@ public class Complex {
 	public boolean equalsred__(double n1, double n2, int numDecs) {
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
 		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
+		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_APPROX) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_APPROX));
 	}
 
 	/**
