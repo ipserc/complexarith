@@ -168,7 +168,7 @@ public class TestEigenV12 {
      	doEigenCalculations(aMatrix);
 
      	Complex.precision(1e-8);
-     	Complex.zero_threshold_r(1e-5);
+     	Complex.zero_threshold_approx(1e-5);
      	Complex.facts();
      	doEigenCalculations(aMatrix);
 

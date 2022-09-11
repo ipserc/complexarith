@@ -13,7 +13,7 @@ import com.ipserc.arith.factorization.Diagfactor;
 public class TestEigenV14 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix, boolean exact) {
-		Complex.Exact = exact;
+		Complex.exact(exact);
 		Complex seed = new Complex(1,0);
 		Complex.facts();
 		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);

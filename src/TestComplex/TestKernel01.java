@@ -13,7 +13,8 @@ public class TestKernel01 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "KERNEL TEST"));
 		aMatrix.println("Lineal Transformation");
 		System.out.println("aMatrix:" + aMatrix.toMatrixComplex());
-		System.out.println("Octave [kern] = null(" + aMatrix.toOctave()+")");		
+		System.out.println("Octave: [kern] = null(" + aMatrix.toOctave()+")");
+		System.out.println("Wolfram; NullSpace[" + aMatrix.toWolfram()+"]");
 		System.out.println("Vect.Space Dimension:" +  aMatrix.rows());
 		System.out.println("Vect.Space Rank     :" +  aMatrix.rank());
 		System.out.println("Vect.Space Nullity  :" +  aMatrix.nullity());
@@ -26,7 +27,7 @@ public class TestKernel01 {
 		System.out.println(Complex.boxTextRandom(boxSize, "Check Kernel subspace"));
 		for (int i = 0; i < aMatrix.nullity(); ++i) {
 			aMatrixKer.getRow(i).println("vector "+i);
-			aMatrixKer.getRow(i).times(aMatrix.transpose()).println("In vetor row");
+			aMatrixKer.getRow(i).times(aMatrix.transpose()).println("In vector row");
 			//aMatrix.times(aMatrixKer.getRow(i).transpose()).println("In vetor col");
 		}
 	}
@@ -83,7 +84,7 @@ public class TestKernel01 {
 		
 		Complex.setFormatON();
 		Complex.setFixedON(3);
-		Complex.Exact = true;
+		Complex.exact(true);
 		
 		/* * /
 		aMatrix = new MatrixComplex(""
@@ -99,7 +100,7 @@ public class TestKernel01 {
 		kernSol1.getRow(0).times(aMatrix.transpose()).println();
 		/* */
 		
-		/* * /
+		/* */
 		aMatrix = new MatrixComplex(""
 				+ "1,2,3;"
 				+ "4,5,6;"
@@ -124,6 +125,9 @@ public class TestKernel01 {
 		//aMatrix = new MatrixComplex("0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0;4.0,-5.0,1.0,3.0,5.0,-2.0,3.0,1.0,3.0;-32.0,40.0,-8.0,-24.0,-40.0,16.0,-24.0,-8.0,-24.0;68.0,-85.0,17.0,51.0,113.0,-58.0,11.0,25.0,83.0;12.0,-15.0,3.0,9.0,8.0,0.0,13.0,-4.0,7.0;24.0,-30.0,6.0,18.0,30.0,-12.0,18.0,6.0,18.0;-12.0,15.0,-3.0,-9.0,-8.0,0.0,-19.0,-1.0,-1.0;24.0,-30.0,6.0,18.0,30.0,-12.0,18.0,6.0,18.0;0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0");
 		shoResults(aMatrix);
 		/* */
+		
+		aMatrix = new MatrixComplex("-165.000,66.000,-165.000,165.000,233.000,-27.000;-20.000,8.000,-20.000,20.000,28.000,-4.000;15.000,-6.000,15.000,-15.000,-21.000,3.000;0.000,0.000,0.000,0.000,0.000,0.000;80.000,-32.000,80.000,-80.000,-113.000,-17.000;0.000,0.000,0.000,0.000,0.000,-6.000");
+		shoResults(aMatrix);
 		
 		/* */
 		aMatrix = generateEVbase(6);

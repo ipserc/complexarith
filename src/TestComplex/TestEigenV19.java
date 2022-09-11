@@ -1,11 +1,19 @@
+/*
+ * 
+ * clear;runJava.sh eclipse-workspace/complexarith/bin/TestComplex/TestEigenV19.class
+ * 
+ * */
+ 
+
 package TestComplex;
 
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
+import com.ipserc.arith.factorization.SVDfactor;
 
-public class TestEigenV11 {
+public class TestEigenV19 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
@@ -53,7 +61,7 @@ public class TestEigenV11 {
     	eigenSpace.printCharactEq(outputFormat.OCTAVE, true);
     	System.out.println(Complex.boxTextRandom(boxSize, "WOLFRAM"));
     	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
- 
+    	
     	/* roots & solutions */
     	System.out.println(Complex.boxTextRandom(boxSize, "Roots & Solutions "));
     	for (int row = 0; row < eigenSpace.solutions().rows(); ++row){
@@ -61,7 +69,7 @@ public class TestEigenV11 {
     	}
     	
     	/* EigenVectors Calculated */
-    	System.out.println(Complex.boxTextRandom(boxSize, "EigenVectors Calculated"));
+    	System.out.println(Complex.boxTextRandom(boxSize, "EigenVectors Calculated Normalized"));
     	eigenSpace.eigenvectors().println("EigenVectors:");
     	if(!eigenSpace.eigenvectors().isEmpty() && eigenSpace.eigenvectors().isSquare()) System.out.println("EigenVectors - Determinant:"+eigenSpace.eigenvectors().determinant());
     	else System.out.println("EigenVectors - Determinant: dosen't exist.");
@@ -74,7 +82,7 @@ public class TestEigenV11 {
     	if (diagonal.factorized()) {
         	System.out.println(Complex.boxTextRandom(boxSize, "IS DIAGONALIZABLE"));
          	diagonal.D().println("Matriz Diagonal (D):");
-    	    diagonal.P().println("Matriz Valores Propios (P):");
+    	    diagonal.P().transpose().println("Matriz Valores Propios Traspuesta (Pŧ):");
     	    diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println("P·D·P⁻¹:");
     	}
     	else {
@@ -101,53 +109,36 @@ public class TestEigenV11 {
 	 */
 	public static void main(String[] args) {
     	MatrixComplex aMatrix = new MatrixComplex();
+     	int boxSize = 65;
 
-     	Complex.setFormatON();
-     	Complex.setFixedON(6);
      	Eigenspace.version();
-     	Complex.facts();
-
-     	/* */
-     	aMatrix = new MatrixComplex(""+
-     			"  2 ,  4 ,  3 ;" +
-     			" -4 , -6 , -3 ;" +
-     			"  3 ,  3 ,  1 ");
-     	doEigenCalculations(aMatrix);
-
-     	aMatrix = new MatrixComplex(""+
-     			" -1 ,  4 , -3, -2 ;" +
-     			"  4 , -1 , -3,  2 ;" +
-     			" -3 ,  3 ,  1,  4 ;" +
-     			" -2 ,  2 ,  4,  1 ");
-     	doEigenCalculations(aMatrix);
-
-     	aMatrix = new MatrixComplex(""+
-     			"  4 , -1 ,  6 ;" +
-     			"  0 ,  1 ,  6 ;" +
-     			"  0 ,  0 ,  8 ");
-     	doEigenCalculations(aMatrix);
-
-     	aMatrix = new MatrixComplex(""+
-     			"  8 , -1 ,  6 ;" +
-     			"  0 ,  4 ,  6 ;" +
-     			"  0 ,  0 ,  1 ");
-     	doEigenCalculations(aMatrix);
-     	 /* */
+    	Complex.setFormatON();
+     	//Complex.setFixedON(4);
+     	//Complex.setScientificON(4);
      	
-     	Complex.significative(3);
-     	aMatrix = new MatrixComplex(""+
-     			" 13 ,  8 ,  8 ;" +
-     			" -1 ,  7 , -2 ;" +
-     			" -1 , -2 ,  7 ");
-     	doEigenCalculations(aMatrix);
-     	
-     	Complex.precision(1e-10);
-     	Complex.facts();
-     	doEigenCalculations(aMatrix);
+		/* ***********************************************
+		 *                     EXACT
+		 *********************************************** */
+    	Complex.exact(true);
+       	System.out.println("");
+       	System.out.println(Complex.boxTitleRandom(boxSize, "EXACT"));
+     	Complex.showPrecision();
+       	System.out.println(Complex.boxTextRandom(boxSize, "EXACT uses ZERO_THRESHOLDER_EXACT in ZERO_THRESHOLDER to decicde when a number is ZERO or not"));
 
-     	Complex.precision(1e-8);
-     	Complex.zero_threshold_approx(1e-5);
-     	Complex.facts();
-     	doEigenCalculations(aMatrix);
+     	aMatrix = new MatrixComplex("-4.0,1.0,-4.0;-1.0,5.0,-3.0;4.0,-3.0,-5.0");
+	    doEigenCalculations(aMatrix);
+
+		/* ***********************************************
+		 *                 APROXIMATED
+		 *********************************************** */
+    	Complex.exact(false);
+       	System.out.println("");
+       	System.out.println(Complex.boxTitleRandom(boxSize, "APROXIMATED"));
+    	Complex.showPrecision();
+       	System.out.println(Complex.boxTextRandom(boxSize, "APROXIMATED uses ZERO_THRESHOLDER_APPROX in ZERO_THRESHOLDER to decicde when a number is ZERO or not"));
+
+	    aMatrix = new MatrixComplex("-4.0,1.0,-4.0;-1.0,5.0,-3.0;4.0,-3.0,-5.0");
+	    doEigenCalculations(aMatrix);
+
 	}
 }

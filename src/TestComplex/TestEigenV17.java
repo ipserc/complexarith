@@ -2,10 +2,30 @@ package TestComplex;
 
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
+
+import javax.print.attribute.standard.Chromaticity;
+
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
+import com.ipserc.arith.factorization.SVDfactor;
 
-public class TestEigenV11 {
+public class TestEigenV17 {
+
+	public static void printAdvance1(int counter) {
+		int carIdx = counter % 4;
+		String car = "\\|-/".substring(carIdx, carIdx+1);
+		String text = car +":"+counter;
+		for (int i = 0; i < text.length(); ++i)
+			System.out.print((char) 8);
+		System.out.print(text);
+	}
+	
+	public static void printAdvance(int counter) {
+		String text = "Iteración:"+counter;
+		for (int i = 0; i < text.length(); ++i)
+			System.out.print((char) 8);
+		System.out.print(text);
+	}
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
@@ -53,7 +73,7 @@ public class TestEigenV11 {
     	eigenSpace.printCharactEq(outputFormat.OCTAVE, true);
     	System.out.println(Complex.boxTextRandom(boxSize, "WOLFRAM"));
     	eigenSpace.printCharactEq(outputFormat.WOLFRAM, true);
- 
+    	
     	/* roots & solutions */
     	System.out.println(Complex.boxTextRandom(boxSize, "Roots & Solutions "));
     	for (int row = 0; row < eigenSpace.solutions().rows(); ++row){
@@ -74,7 +94,7 @@ public class TestEigenV11 {
     	if (diagonal.factorized()) {
         	System.out.println(Complex.boxTextRandom(boxSize, "IS DIAGONALIZABLE"));
          	diagonal.D().println("Matriz Diagonal (D):");
-    	    diagonal.P().println("Matriz Valores Propios (P):");
+    	    diagonal.P().transpose().println("Matriz Valores Propios (Pŧ):");
     	    diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println("P·D·P⁻¹:");
     	}
     	else {
@@ -101,53 +121,31 @@ public class TestEigenV11 {
 	 */
 	public static void main(String[] args) {
     	MatrixComplex aMatrix = new MatrixComplex();
+    	int contador = 0;
+    	int size = 4;
+    	int wide = 4;
 
-     	Complex.setFormatON();
-     	Complex.setFixedON(6);
+    	Complex.exact(true);
+    	Complex.setFormatON();
+     	//Complex.setFixedON(4);
+     	//Complex.setScientificON(4);
+     	Complex.showPrecision();
      	Eigenspace.version();
-     	Complex.facts();
+     	System.out.println("SIZE:"+size);
+     	System.out.println("WIDE:0..±"+wide);
 
+	    
      	/* */
-     	aMatrix = new MatrixComplex(""+
-     			"  2 ,  4 ,  3 ;" +
-     			" -4 , -6 , -3 ;" +
-     			"  3 ,  3 ,  1 ");
-     	doEigenCalculations(aMatrix);
+    	Diagfactor diagonal;
+     	do {
+     		aMatrix = new MatrixComplex(size); aMatrix.initMatrixRandomInteger(wide); //aMatrix = aMatrix.plus(7);
+     		diagonal = new Diagfactor(aMatrix);
+         	if (diagonal.factorized()) doEigenCalculations(aMatrix);
+        	//System.out.print("-");
+         	printAdvance(++contador);
+     	}
+        while (!diagonal.factorized());
+	    /* */
 
-     	aMatrix = new MatrixComplex(""+
-     			" -1 ,  4 , -3, -2 ;" +
-     			"  4 , -1 , -3,  2 ;" +
-     			" -3 ,  3 ,  1,  4 ;" +
-     			" -2 ,  2 ,  4,  1 ");
-     	doEigenCalculations(aMatrix);
-
-     	aMatrix = new MatrixComplex(""+
-     			"  4 , -1 ,  6 ;" +
-     			"  0 ,  1 ,  6 ;" +
-     			"  0 ,  0 ,  8 ");
-     	doEigenCalculations(aMatrix);
-
-     	aMatrix = new MatrixComplex(""+
-     			"  8 , -1 ,  6 ;" +
-     			"  0 ,  4 ,  6 ;" +
-     			"  0 ,  0 ,  1 ");
-     	doEigenCalculations(aMatrix);
-     	 /* */
-     	
-     	Complex.significative(3);
-     	aMatrix = new MatrixComplex(""+
-     			" 13 ,  8 ,  8 ;" +
-     			" -1 ,  7 , -2 ;" +
-     			" -1 , -2 ,  7 ");
-     	doEigenCalculations(aMatrix);
-     	
-     	Complex.precision(1e-10);
-     	Complex.facts();
-     	doEigenCalculations(aMatrix);
-
-     	Complex.precision(1e-8);
-     	Complex.zero_threshold_approx(1e-5);
-     	Complex.facts();
-     	doEigenCalculations(aMatrix);
 	}
 }

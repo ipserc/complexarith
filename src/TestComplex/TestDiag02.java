@@ -43,7 +43,7 @@ public class TestDiag02 {
     	
     	Complex.setFormatON();
     	Complex.setFixedON(3);
-    	Complex.Exact = true; // WATCH THIS
+    	Complex.exact(true); // WATCH THIS
 
     	diagMatrix = new Diagfactor("-2.000,3.000,5.000;-1.000,2.000,5.000;5.000,-5.000,3.000");
     	//diagMatrix = new Diagfactor("1,3,-1; 3,9,2; 2,1,-1");

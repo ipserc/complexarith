@@ -43,7 +43,7 @@ public class TestDiag01 {
     	
     	Complex.setFormatON();
     	Complex.setFixedON(3);
-    	Complex.Exact = false; // WHATCH THIS
+    	Complex.exact(false); // WHATCH THIS
 
         Complex.facts();
         Complex.printFormatStatus();

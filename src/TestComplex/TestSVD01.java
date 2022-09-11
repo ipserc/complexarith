@@ -17,7 +17,7 @@ public class TestSVD01 {
 		if (!A.factorized()) return;
 		
 		System.out.println(Complex.boxTitleRandom(boxSize, "SVD FACTORIZATION TEST"));
-		System.out.println(Complex.boxTextRandom(boxSize, "EXACT:" + Complex.Exact));
+		System.out.println(Complex.boxTextRandom(boxSize, "EXACT:" + Complex.exact()));
 		System.out.println(Complex.boxTextRandom(boxSize, "Method:" + A.getMethodName()));
 		if (!A.factorized())
 			System.out.println(Complex.boxTextRandom(boxSize, "F A I L ! ! ! ! ! ! !"));

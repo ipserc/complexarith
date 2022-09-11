@@ -108,7 +108,7 @@ public class TestEigenV02 {
      	Complex.setFixedON(3);
      	Eigenspace.version();
      	
-     	Complex.Exact = true;
+     	Complex.exact(true);
 
      	/* */
      	aMatrix = new MatrixComplex(""+
