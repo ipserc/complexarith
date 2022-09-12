@@ -73,12 +73,19 @@ public class TestVector01 {
        	result = aVector.dotprod(bVector);
        	System.out.println("dotProd/scalar prod (a·b) = " + result);
        	matrix = aVector.outerprod(bVector);
-       	matrix.println("outerprod (a /\\ b) = ");
-       	matrix.determinant().println("Det.outerprod (a /\\ b) = ");
+       	matrix.println("outerprod (a /\\o b) = ");
+       	matrix.determinant().println("Det.outerprod (a /\\o b) = ");
+       	matrix = aVector.kroneckerprod(bVector);
+       	matrix.println("kroneckerprod (a /\\k b) = ");
+       	matrix.determinant().println("Det.kroneckerprod (a /\\k b) = ");
        	//System.out.println(" |a /\\ b|= " + cVector.determinant() + "\n");       	
        	cVector = aVector.crossprod(bVector);
        	cVector.println("Producto vectorial (axb) = ");
-       	System.out.printf("Dimensión Vector prod.vect:%d\n", cVector.dim());
+       	if (cVector.dim() == aVector.dim()) {
+	       	cVector.crossprod(aVector).println("Producto vectorial (cxa) = ");
+	       	cVector.dotprod(aVector).println("Producto escalar (c·a) = ");
+       	}
+     	System.out.printf("Dimensión Vector prod.vect:%d\n", cVector.dim());
        	cVector = aVector.plus(bVector);
        	cVector.println("cVector (a+b)");
        	cVector = aVector.minus(bVector);
@@ -349,6 +356,15 @@ public class TestVector01 {
        	aVector = new Vector("3,2,1");
        	bVector = new Vector("5,7,11");
        	vectorOperate(aVector, bVector);
+       	
+       	aVector = new Vector("1,2,3,1");
+       	bVector = new Vector("0,3,2,1");
+       	vectorOperate(aVector, bVector);
+
+       	aVector = new Vector("1,2,3,1,0,0,0");
+       	bVector = new Vector("0,3,2,1,0,0,0");
+       	vectorOperate(aVector, bVector);
+
 	}
 
 }

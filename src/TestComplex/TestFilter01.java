@@ -1,7 +1,6 @@
 package TestComplex;
 
 import java.awt.image.SampleModel;
-
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.signal.*;
 import com.ipserc.arith.signal.Fourier.*;
