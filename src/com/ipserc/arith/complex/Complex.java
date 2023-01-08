@@ -58,8 +58,33 @@ public class Complex {
 	 * ***********************************************
 	 */
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.7 (2022_0911_1130)";
+	private final static String VERSION = "1.8 (2022_0928_0000)";
 	/* VERSION Release Note
+	 * 
+	 * 1.8 (2022_0928_0000)
+	 * public boolean isInteger()
+	 * public boolean isIntegerPositive()
+	 * public boolean isIntegerNegative()
+	 * public boolean isIntegerPositiveZero()
+	 * public boolean isIntegerNegativeZero()
+	 * public static Complex gamma(Complex z)
+	 * public static Complex gamma_integral(double n)
+	 * public static Complex gamma_integral(Complex z)
+	 * public static Complex gamma_integral2(Complex z)
+	 * public static Complex gamma_weiertrass(Complex z)
+	 * public static Complex gamma_euler(Complex z)
+	 * public static Complex gamma_nemes(Complex z)
+	 * public static Complex beta(Complex p, Complex q)
+	 * REPRESENTATION enumeration to select the default representation fo the complex number between rectangular or polar coordinates
+	 * public static void setRepres(Representation Repres)
+	 * public static String getRepres()
+	 * public static void restoreRepres()
+	 * public String toString()
+	 * public void printRec()
+	 * public void printPol()
+	 * public void printlnRec()
+	 * public void printlnPol()
+	 * 
 	 * 
 	 * 1.7 (2022_0911_1130)
 	 * New management of EXACT/APPROXIMATED settings. Now ZERO_THRESHOLD holds the current value of the threshold for EXACT/APPROXIMATED
@@ -123,6 +148,8 @@ public class Complex {
 	public final static double TWO_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
 	public final static double DOS_PI = TWO_PI;			// 2 * 3.1415926535897932384626433832795;
 	public final static double HALF_PI =  Math.PI / 2; 	// 3.1415926535897932384626433832795 / 2;
+	public final static double EULER_MASC = 0.5772156649015328606065120900824024310421; // Constante de Euler-Mascheroni
+
 	public final static Complex i = new Complex(0,1);
 	public final static Complex j = i; // For Electric Engineering
 	public final static Complex ZERO = new Complex(0,0);
@@ -135,6 +162,7 @@ public class Complex {
 	// FIXED - The same feeling as Einstein before the cosmological constant 
 	// FIXED: PRECISION = 1E-13
 	
+	public static enum Representation {RECTANGULAR, POLAR};
 	/*
 	 * ***********************************************
 	 * MEMBER VARS
@@ -176,11 +204,15 @@ public class Complex {
 	private static boolean SCIENTIFIC_NOTATION = false; //Member Variable. Flag for scientific notation
 	private static int MAX_DECIMALS = 5; //Member Variable
 	/* BACK UP to allow restoring status */
-	private static boolean FORMAT_NBR_BCK = false; //Member Variable. Flag for formatting numbers
-	private static boolean FIXED_NOTATION_BCK = false; //Member Variable. Flag for comma fixed notation
-	private static boolean SCIENTIFIC_NOTATION_BCK = false; //Member Variable. Flag for scientific notation
-	private static int MAX_DECIMALS_BCK = 5; //Member Variable
+	private static boolean FORMAT_NBR_BCK = FORMAT_NBR; //Member Variable. Flag for formatting numbers
+	private static boolean FIXED_NOTATION_BCK = FIXED_NOTATION; //Member Variable. Flag for comma fixed notation
+	private static boolean SCIENTIFIC_NOTATION_BCK = SCIENTIFIC_NOTATION; //Member Variable. Flag for scientific notation
+	private static int MAX_DECIMALS_BCK = MAX_DECIMALS; //Member Variable
 
+	/* REPRESENTATION BLOCK */
+	private static Representation REPRESENTATION = Representation.RECTANGULAR; 
+	private static Representation REPRESENTATION_BCK = REPRESENTATION; 
+	
 	private double rep;	// the real part
 	private double imp;	// the imaginary part
 	private double mod;	// the modulus
@@ -203,8 +235,9 @@ public class Complex {
 	}
 
 	public static void facts() {
-		System.out.println(HEADINFO + "VERSION.........:" + VERSION); 
+		System.out.println(HEADINFO + "VERSION..............:" + VERSION); 
 		showPrecision();
+		System.out.println(HEADINFO + "REPRESENTATION.......:" + getRepres()); 
 	}
 
 	/*
@@ -829,19 +862,81 @@ public class Complex {
 		numberFormat.setMinimumFractionDigits(MAX_DECIMALS);
 		numberFormat.setMaximumFractionDigits(MAX_DECIMALS);
 	}
+	
+	/**
+	 * Sets the output format of the complex representation
+	 * @param Repres
+	 */
+	public static void setRepres(Representation Repres) {
+		REPRESENTATION_BCK = REPRESENTATION;
+		REPRESENTATION = Repres;
+	}
 
 	/**
-	 * Private Method. Normalizes the phase between -pi and pi.
+	 * Gets the output format of the complex representation
+	 */
+	public static String getRepres() {
+		String Repres = "";
+		switch (REPRESENTATION) {
+		case RECTANGULAR: Repres = "RECTANGULAR"; break;
+		case POLAR: Repres =  "POLAR"; break;
+		}
+		return Repres;
+	}
+
+	/**
+	 * Restores the last used output format of the complex representation
+	 */
+	public static void restoreRepres() {
+		Representation oldRepres;
+		oldRepres = REPRESENTATION;
+		REPRESENTATION = REPRESENTATION_BCK;		
+		REPRESENTATION_BCK = oldRepres;
+	}
+
+	/**
+	 * Private Method. Uses the normalizedPhase_X method selected
 	 * @param phase to normalize.
 	 * @return phase normalized.
 	 */
 	private static double normalizePhase(double phase) {
-		//double phaNorm  = z.pha > Math.PI ? Math.PI - z.pha : z.pha;
-		//phaNorm = z.pha < -Math.PI ? Math.PI + z.pha : z.pha;
+		return normalizePhase_1(phase);
+	}
+
+	/**
+	 * Private Method. Normalizes the phase between [-pi, pi]
+	 * @param phase to normalize.
+	 * @return phase normalized.
+	 */
+	private static double normalizePhase_0(double phase) {
 		int sign = phase < 0.0 ? -1 : 1;
 		phase *= sign;
 		while (phase > Math.PI) phase -= DOS_PI;
 		return phase * sign;
+	}
+
+	/**
+	 * Private Method. Normalizes the phase between (-pi, pi]
+	 * @param phase to normalize.
+	 * @return phase normalized.
+	 */
+	private static double normalizePhase_1(double phase) {
+		int sign = phase < 0.0 ? -1 : 1;
+		phase *= sign;
+		while (phase > Math.PI) phase -= DOS_PI;
+		if (phase == Complex.PI) return Complex.PI; 
+		return phase * sign;
+	}
+
+	/**
+	 * Private Method. Normalizes the phase between [0, 2·pi)
+	 * @param phase to normalize.
+	 * @return phase normalized.
+	 */
+	private static double normalizePhase_2(double phase) {
+		while (phase >= DOS_PI) phase -= DOS_PI;
+		while (phase < 0.0) phase += DOS_PI;
+		return phase;
 	}
 
 	/**
@@ -856,7 +951,16 @@ public class Complex {
 	 * @return The string representation in Rectangular coordinates.
 	 */
 	public String toString() {
-		return this.toStringRec();
+		String strComplex = "";
+		switch (REPRESENTATION) {
+		case RECTANGULAR:
+			strComplex = this.toStringRec();
+			break;
+		case POLAR:
+			strComplex =  this.toStringPol();
+			break;
+		}
+		return strComplex;
 	}
 
 	/**
@@ -1005,6 +1109,14 @@ public class Complex {
 		System.out.print(this.toString());
 	}
 
+	public void printRec() {
+		System.out.print(this.toStringRec());
+	}
+
+	public void printPol() {
+		System.out.print(this.toStringPol());
+	}
+
 	/**
 	 * Prints the complex number with a new line to the output console
 	 */
@@ -1012,6 +1124,13 @@ public class Complex {
 		System.out.println(this.toString());
 	}
 
+	public void printlnRec() {
+		System.out.println(this.toStringRec());
+	}
+	public void printlnPol() {
+		System.out.println(this.toStringPol());
+	}
+	
 	/**
 	 * Prints the complex number to the output console with a test before it.
 	 * @param str The text to put before
@@ -1021,6 +1140,15 @@ public class Complex {
 		System.out.print(this.toString());
 	}
 
+	public void printRec(String str) {
+		System.out.print(str);
+		System.out.print(this.toStringRec());
+	}
+
+	public void printPol(String str) {
+		System.out.print(str);
+		System.out.print(this.toStringPol());
+	}
 	/**
 	 * Prints the complex number with a new line to the output console with a test before it.
 	 * @param str The text to put before
@@ -1028,6 +1156,15 @@ public class Complex {
 	public void println(String str) {
 		System.out.print(str);
 		System.out.println(this.toString());
+	}
+
+	public void printlnRec(String str) {
+		System.out.print(str);
+		System.out.println(this.toStringRec());
+	}
+	public void printlnPol(String str) {
+		System.out.print(str);
+		System.out.println(this.toStringPol());
 	}
 
 	/*
@@ -1075,7 +1212,6 @@ public class Complex {
 	    EXACT = value;
 	    ZERO_THRESHOLD = EXACT ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
 	}
-
 	
 	/**
 	 * Gets the PRECISION used for calculations.
@@ -1253,7 +1389,7 @@ public class Complex {
 	}
 	
 	/**
-	 * 
+	 * Generates a random BoxTitle from the ones defined
 	 * @param size
 	 * @param title
 	 * @return
@@ -1272,7 +1408,7 @@ public class Complex {
 	}
 
 	/**
-	 * 
+	 * Generates a BoxTitle from it components
 	 * @param size
 	 * @param title
 	 * @param csi
@@ -1409,7 +1545,7 @@ public class Complex {
 	}
 
 	/**
-	 * 
+	 * Generates a random BoxText from the ones defined
 	 * @param size
 	 * @param title
 	 * @return
@@ -1553,7 +1689,8 @@ public class Complex {
 
 	/*
 	 * ***********************************************
-	 * UNARY OPERATIONS
+	 * UNARY OPERATIONS	import java.util.function.Function;
+
 	 * ***********************************************
 	 */
 
@@ -2117,6 +2254,202 @@ public class Complex {
 	 */
 	public static Complex positive(Complex z) {
 		return new Complex(Math.abs(z.rep), Math.abs(z.imp));
+	}
+	
+	/**
+	 * Checks whether the complex number is an integer/zero or not
+	 * @return True if is integer, otherwise false
+	 */
+	public boolean isInteger() {
+		return (isPureReal() && (Math.ceil(rep) == Math.floor(rep)));
+	}
+	
+	/**
+	 * Checks whether the complex number is an integer greater than zero or not
+	 * @return True if is integer positive, otherwise false
+	 */
+	public boolean isIntegerPositive() {
+		return (rep > 0 && isInteger());
+	}
+	
+	/**
+	 * Checks whether the complex number is an integer less than zero or not
+	 * @return True if is integer negative, otherwise false
+	 */
+	public boolean isIntegerNegative() {
+		return (rep < 0 && isInteger());	
+	}
+
+	/**
+	 * Checks whether the complex number is an integer great or equal to zero or not
+	 * @return True if is integer positive/zero, otherwise false
+	 */
+	public boolean isIntegerPositiveZero() {
+		return (rep >= 0 && isInteger());
+	}
+	
+	/**
+	 * Checks whether the complex number is an integer less or equal to zero or not
+	 * @return True if is integer negative/zero, otherwise false
+	 */
+	public boolean isIntegerNegativeZero() {
+		return (rep <= 0 && isInteger());	
+	}
+
+	/**
+	 * The function gamma optimized for calculations. Selects the best calculator function based on the gamma parameter z
+	 * @param z the gamma parameter as Complex
+	 * @return the gamma value
+	 */
+	public static Complex gamma(Complex z) {
+		if (z.isIntegerNegativeZero()) {
+			double sign = Math.pow(-1.0, Math.ceil(z.rep));
+			return ZERO.inverse().times(sign);
+		}
+
+		if (z.isPureReal() && z.mod() > 3) {
+			if (z.rep() > 0) return gamma_integral(z);
+			else return gamma_integral(ONE.minus(z)).inverse().times(PI/Math.sin(z.rep()*PI)); // Use of the gamma reflection property
+		}
+		else if (z.rep > 5) return gamma_integral(z);
+			else return gamma_euler(z);
+	}
+	
+	/**
+	 * Gamma function calculated by the integral. Only valid for positive real numbers
+	 * @param n the Gamma parameter
+	 * @return the gamma value
+	 */
+	public static Complex gamma_integral(double n) {
+		Complex z = new Complex(n,0);
+		return gamma_integral(z);
+	}
+
+	/**
+	 * Gamma function calculated by the integtral of t.power(z.minus(ONE))).times(Complex.exp(t.opposite()) dt
+	 * @param z the gamma parameter as Complex
+	 * @return the gamma value
+	 */
+	public static Complex gamma_integral(Complex z) {
+		if (z.isIntegerNegativeZero()) {
+			double sign = Math.pow(-1.0, Math.ceil(z.rep));
+			return ZERO.inverse().times(sign);
+		}
+		// Valores válidos van desde 50 hasta 100000
+		double uplimit = 100; 
+		Function<Complex, Complex> gammafunc;
+		gammafunc = t -> (t.power(z.minus(ONE))).times(Complex.exp(t.opposite()));
+		return Complex.integrate(0,uplimit , gammafunc, 5);
+	}
+	
+	/**
+	 * Gamma function calculated by the integtral of Complex.log(s).opposite()).power(z.minus(ONE))ds
+	 * Valid only for interval [1,4)
+	 * @param z the gamma parameter as Complex
+	 * @return the gamma value
+	 */
+	public static Complex gamma_integral2(Complex z) {
+		if (z.isIntegerNegativeZero()) {
+			double sign = Math.pow(-1.0, Math.ceil(z.rep));
+			return ZERO.inverse().times(sign);
+		}
+		Function<Complex, Complex> gammafunc;
+		gammafunc = s -> (Complex.log(s).opposite()).power(z.minus(ONE));
+		return Complex.integrate(ZERO_THRESHOLD_EXACT, 1, gammafunc, 6);
+	}
+	
+	/**
+	 * Gamma function calculated by definition from Weierstrass. Valid for any Complex number
+	 * @param z the gamma parameter as Complex
+	 * @return the gamma value
+	 */
+	public static Complex gamma_weiertrass(Complex z) {
+		int iterations = (int)Math.pow(150/Complex.getMaxDecimals(), getMaxDecimals());
+		
+		switch (Complex.getMaxDecimals()) {
+			case 0:  
+			case 1:  //iterations = 50000; break;
+			case 2:  //iterations = 100000; break;
+			case 3:  //iterations = 500000; break;
+			case 4:  iterations = 1000000; break;
+			case 5:  iterations = 5000000; break;
+			case 6:  iterations = 30000000; break;
+			default: iterations = 50000000;
+		}
+		
+		if (z.isIntegerNegativeZero()) {
+			double sign = Math.pow(-1.0, Math.ceil(z.rep));
+			return ZERO.inverse().times(sign);
+		}
+		Complex prod = new Complex(1,0);
+		Complex zdi = new Complex();
+		for (int i = 1; i <= iterations; ++i) {
+			zdi = z.divides(i);
+			prod = prod.times((zdi.plus(ONE)).inverse().times(Complex.exp(zdi)));
+		}
+		return Complex.exp(z.times(-EULER_MASC)).divides(z).times(prod);
+	}
+
+	/**
+	 * Gamma function calculated by definition from Euler's Product. Valid for any Complex number except negative integers
+	 * @param z the gamma parameter as Complex
+	 * @return the gamma value
+	 */
+	public static Complex gamma_euler(Complex z) {
+		int iterations = (int)Math.pow(150/Complex.getMaxDecimals(), getMaxDecimals());
+
+		switch (Complex.getMaxDecimals()) {
+			case 0:  
+			case 1:  //iterations = 50000; break;
+			case 2:  //iterations = 100000; break;
+			case 3:  //iterations = 500000; break;
+			case 4:  iterations = 1000000; break;
+			case 5:  iterations = 5000000; break;
+			case 6:  iterations = 30000000; break;
+			default: iterations = 50000000;
+		}
+		if (z.isIntegerNegativeZero()) {
+			double sign = Math.pow(-1.0, Math.ceil(z.rep));
+			return ZERO.inverse().times(sign);
+		}
+		Complex prod = new Complex(1, 0);
+		Complex term1;
+		Complex term2;
+
+		for (int n = 1; n <= iterations; ++n) {
+			//term1 = (ONE.divides(n).plus(1)).power(z); // (1+1/n)^z
+			term1 = (ONE.plus(ONE.divides(n))).power(z); // (1+1/n)^z
+			term2 = (ONE.plus(z.divides(n))).inverse(); // (1+z/n)⁻¹
+			prod = prod.times(term1.times(term2));
+		}
+		return prod.divides(z);
+	}
+	
+	/**
+	 * https://math.stackexchange.com/questions/19236/algorithm-to-compute-gamma-function
+	 * http://www.rskey.org/CMS/index.php/the-library/11
+	 * @param z
+	 * @return
+	 */
+	public static Complex gamma_nemes(Complex z) {
+		Complex Val;
+		Complex gammaVal = new Complex(.5*Math.log(DOS_PI));
+		gammaVal = gammaVal.plus((z.minus(0.5)).times(Complex.log(z)));
+		gammaVal = gammaVal.minus(z);
+		Val = (z.times(Complex.sinh(z.inverse())));
+		Val = Val.plus((z.power(6).times(810)).inverse());
+		gammaVal = gammaVal.plus((z.divides(2)).times(Complex.log(Val)));
+		return Complex.exp(gammaVal);
+	}
+	
+	/**
+	 * The Beta function
+	 * @param p Complex
+	 * @param q Complex
+	 * @return the Beta of p,q
+	 */
+	public static Complex beta(Complex p, Complex q) {
+		return gamma(p).times(gamma(q)).divides(gamma(p.plus(q)));
 	}
 	
 	/*
@@ -2866,7 +3199,7 @@ public class Complex {
 		if (limit(func, point) != null) return true;
 		return false;
 	}
-
+	
 	/*
 	 * RESTOS
 	 */
