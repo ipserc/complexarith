@@ -1,6 +1,8 @@
 package com.ipserc.arith.signal;
 
 import java.util.function.Function;
+import java.util.function.IntToDoubleFunction;
+
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.panayotis.gnuplot.JavaPlot;
@@ -10,14 +12,21 @@ import java.io.File;  // Import the File class
 import com.ipserc.chronometer.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileOutputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.nio.file.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 public class Fourier extends MatrixComplex {
 	private Function<Complex, Complex> func;
 	private Complex loLimit; 
 	private Complex upLimit;
 	private Complex period;
-	private int N;
-	private int sampleFreq;
+	private int N; 					// Nbr of samples
+	private int sampleFreq; 		// Sampling Frequency
 	private MatrixComplex samples;
 	private MatrixComplex series;
 	private MatrixComplex transform;
@@ -28,12 +37,16 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.0 (2020_0824_1800)";
+	private final static String VERSION = "1.1 (2022_1103_2002)";
 	/* VERSION Release Note
+	 * 
+	 * 1.1 (2022_1103_2002)
+	 * private Boolean saveRAWFile(String filePath, MatrixComplex dataOrig)
+	 * public Boolean saveRAWSamples(String filePath)
+	 * public MatrixComplex normalize(MatrixComplex values) 
 	 * 
 	 * 1.0 (2020_0824_1800)
 	 */
-
 
 	/*
 	 * ***********************************************
@@ -130,9 +143,36 @@ public class Fourier extends MatrixComplex {
 	 *  filterData: The data facts if the samples describe a filter
 	 * After this, the N samples expressed as 0.0000+0.0000i
 	 * @param pathSamples The path to the file with the sampled values.
+	 * @param sampleFreq The sampling frequency ONLY for raw files
+	 */
+	public Fourier(String pathSamples, int sampleFreq) {
+		boolean readResult; 
+		File file = new File(pathSamples);
+		String fileName = file.getName();
+		int lastDotPos = fileName.lastIndexOf('.'); 
+		String fileExt = lastDotPos > 0 ? fileName.substring(lastDotPos + 1) : "";
+		switch (fileExt.toLowerCase()) {
+			case "txt": readResult = readSamplesTXT(pathSamples); break;
+			case "raw": readResult = readSamplesRAW(pathSamples, sampleFreq);
+				if (readResult) isSampled = true;
+				break;
+		}
+	}
+
+	/**
+	 * Creates an instance of the Fourier object, using the sampled values ​​of the function.
+	 * It requires the following information before to start with the values sampled:
+	 * 	loLimit: The lower limit of the points to use with the function.
+	 * 	upLimit: The upper limit of the points to use with the function.
+	 * 	period: The period of the function, usually the distance between upper and lower limit.
+	 * 	N: The number of values sampled
+	 * 	sampleFreq: The frequency used to sample the function
+	 *  filterData: The data facts if the samples describe a filter
+	 * After this, the N samples expressed as 0.0000+0.0000i
+	 * @param pathSamples The path to the file with the sampled values.
 	 */
 	public Fourier(String pathSamples) {
-		readSamples(pathSamples, "");
+		readSamplesTXT(pathSamples);
 	}
 
 	/**
@@ -344,7 +384,7 @@ public class Fourier extends MatrixComplex {
 	 * @param p The point in which the continuity is analyzed. Only the real part is evaluated.
 	 * @return True if the function in continuous. False in other case.
 	 */
-	private Boolean isContinue(Complex p) {
+	private Boolean isContinuous(Complex p) {
 		Complex fp, fp1;
 		fp = func.apply(p);
 		fp1 = func.apply(p.plus(Complex.precision()*2));
@@ -390,7 +430,7 @@ public class Fourier extends MatrixComplex {
 	 */
 	private void setOffset() {
 		Complex midp = (upLimit.plus(loLimit)).divides(2);
-		if (!isContinue(midp)) midp = (upLimit.plus(loLimit.divides(10))).divides(2);
+		if (!isContinuous(midp)) midp = (upLimit.plus(loLimit.divides(10))).divides(2);
 		//	midp.println("-----> midp = ");
 		Complex off1 = this.calc(midp);
 		//	off1.println("-----> sFourier.calc = ");
@@ -545,6 +585,8 @@ public class Fourier extends MatrixComplex {
 			dataIm[t][1] = samples.complexMatrix[1][t].imp();
 		}
 		
+		System.out.println("dataRe[nbrSamples-1][0]:"+dataRe[nbrSamples-1][0]);
+				
 		//Plot the data
 		JavaPlot p = new JavaPlot();
 		p.setTitle(title);
@@ -654,6 +696,7 @@ public class Fourier extends MatrixComplex {
 			samples.setItem(1, n, func.apply(point));
 			point = point.plus(incr);
 		}
+		
 		isSampled = true;
 	}
 
@@ -708,6 +751,83 @@ public class Fourier extends MatrixComplex {
 	}
 	
 	/**
+	 * Saves the signal samples as a raw file with Codification:64 bit, Byte order:big-endian, Channels:1 (mono)for the sample frecuency given
+	 * This file can be loaded by a sound editor progrma as Audacity
+	 * @param filePathfile
+	 * @param data
+	 * @return
+	 */
+	private Boolean saveRAWFile(String filePath, MatrixComplex dataOrig, boolean normalize) {	
+		Complex.storeFormatStatus();
+		Complex.resetFormatStatus();
+		Boolean fsaved = false;
+		System.out.println("writing RAW data into " + filePath);
+		File file;
+
+	    try {
+	        file = new File(filePath);
+	    } catch (Exception e) {
+	        System.out.println("Error creating file:" + e.getCause());
+	        e.printStackTrace();
+	        return false;
+	    }
+	    
+	    MatrixComplex data = normalize ? this.normalize(dataOrig) : dataOrig.copy();
+	    
+        try (FileOutputStream fos = new FileOutputStream(file); DataOutputStream dos = new DataOutputStream(fos);)
+        {
+    		for (int i = 0; i < this.N; ++i) {
+    			dos.writeDouble(data.getItem(0,i).rep());
+    			dos.flush();
+    		}
+	        dos.close();
+	        System.out.println("Successfully wrote to the file.");
+	        fsaved = true;
+        }
+        catch (IOException e) {
+        	System.out.println("Error writing file:" + e.getCause());
+	        e.printStackTrace();
+        }
+		Complex.restoreFormatStatus();
+	    return fsaved;
+	}
+	
+	private MatrixComplex readRAWFile(String filePath, int sampleFreq, boolean normalize) {	
+		Complex.storeFormatStatus();
+		Complex.resetFormatStatus();
+		System.out.println("reading RAW data from " + filePath);
+		byte[] allBytes;
+		MatrixComplex  dataMatrixComplex = new MatrixComplex();
+
+		try {
+			allBytes = Files.readAllBytes(Paths.get(filePath));
+		} 
+		catch (IOException ex) {
+			ex.printStackTrace();
+			return dataMatrixComplex;
+		}
+
+		ByteBuffer allBytesBuffer = ByteBuffer.wrap(allBytes);
+		N = allBytes.length / Double.BYTES;
+		loLimit = new Complex(0, 0);
+		upLimit = new Complex((N+1.0)/sampleFreq);
+		Complex incr = upLimit.minus(loLimit).divides(N);
+		Complex point = new Complex(0,0);
+		this.sampleFreq = sampleFreq;
+		dataMatrixComplex = new MatrixComplex(2, N);
+		for(int n = 0; n < N; ++n) {
+			dataMatrixComplex.setItem(0, n, point);
+			dataMatrixComplex.setItem(1, n, allBytesBuffer.order(ByteOrder.LITTLE_ENDIAN ).getDouble(n * Double.BYTES));
+			point = point.plus(incr);
+		}
+		
+		if (normalize) dataMatrixComplex = this.normalize(dataMatrixComplex);
+	    
+	    return dataMatrixComplex;
+	}
+
+	
+	/**
 	 * Saves the samples of the function analyzed as Re<separator>Im in a given file in text format.
 	 * @param filePath The path to the file in which the data are saved.
 	 * @param separator The character to separate the real part from the imaginary one.
@@ -730,6 +850,21 @@ public class Fourier extends MatrixComplex {
 	 */
 	public Boolean saveSamples(String filePath) {
 		return saveSamples(filePath, "");
+	}
+
+	/**
+	 * 
+	 * @param filePath
+	 * @return
+	 */
+	public Boolean saveRAWSamples(String filePath, boolean normalize) {
+		if(!isSampled) {
+			System.out.println("WARNING:Function not sampled yet. Sample it first.");
+			return false;
+		}
+		MatrixComplex newSamples = new MatrixComplex(1,N);
+		newSamples.copyRow(0, samples, 1);
+		return saveRAWFile(filePath, newSamples, normalize);
 	}
 
 	/**
@@ -802,7 +937,7 @@ public class Fourier extends MatrixComplex {
 	        }
 	        br.close();
 	        fread = true;
-		    if (n != N) System.out.println("WARNING: The number of samples doesn't math the number of data in the file.");
+		    if (n != N) System.out.println("WARNING: The number of samples doesn't match the number of data in the file.");
 	      } catch (IOException e) {
 		        System.out.println("Error reading file:" + e.getCause());
 		        e.printStackTrace();
@@ -823,10 +958,21 @@ public class Fourier extends MatrixComplex {
 	 * @param filePath The path to the file in which the data are stored.
 	 * @return The status of the read operation.
 	 */
-	public Boolean readSamples(String filePath) {
+	public Boolean readSamplesTXT(String filePath) {
 		return 	readSamples(filePath, "");
 	}
 
+	/**
+	 * 
+	 * @param filePath
+	 * @return
+	 */
+	public Boolean readSamplesRAW(String filePath, int sampleFreq) {
+		samples = readRAWFile(filePath, sampleFreq, false);
+		if (samples.rows() == 0) return false;
+		return true;
+	}
+	
 	/**
 	 * Reads the DFT coefficients of the transformed function as Re<separator>Im from a given file in text format.
 	 * The file requires the following information before to start with the values sampled:
@@ -945,8 +1091,8 @@ public class Fourier extends MatrixComplex {
 	 * @param sampleFreq The frequency used to sample the function.
 	 */
 	public void DFT(int sampleFreq) {
-		this.sampleFreq = sampleFreq;
-		this.N = sampleFreq;
+		//this.sampleFreq = sampleFreq;
+		//this.N = sampleFreq;
 		Complex idospiN = Complex.i.times(-Complex.DOS_PI/N); // -2*pi*i/N
 		Complex expkn = new Complex();
 		
@@ -1016,6 +1162,7 @@ public class Fourier extends MatrixComplex {
 			samples.setItem(1, k, Tk.divides(N));
 			point = point.plus(incr);
 		}
+		
 		/*CHRONO*/ IDFTChrono.stop();
 		/*CHRONO*/ System.out.println("Computing Time IDFT:" + IDFTChrono.toString());
 		isSampled = true;
@@ -1053,7 +1200,7 @@ public class Fourier extends MatrixComplex {
 	 * SAMP. x axis represents the index of the coefficients
 	 * FREC. x axix represents the frequency associated to the coefficient
 	 */
-	public static  enum e_domain {
+	public static enum e_domain {
 		SAMP, FREC;
 	}
 	
@@ -1071,6 +1218,28 @@ public class Fourier extends MatrixComplex {
 		case SQUARE: return logscale ? Complex.positive(cNum.times(cNum)) : cNum.times(cNum);
 		}
 		return cNum;
+	}
+	
+	
+	/**
+	 * 
+	 */
+	//@Override 
+	public MatrixComplex normalize(MatrixComplex values) {
+		double maxVal = 0.0;
+		double absVal;
+		
+				
+		for (int k = 0; k < N; ++k) { // time index
+			absVal = Math.abs(values.getItem(0, k).rep());
+			if (absVal > maxVal)  maxVal = absVal; 
+		}
+		
+		for (int k = 0; k < N; ++k) { // time index
+			values.setItem(0, k, values.getItem(0, k).divides(maxVal));
+		}
+		
+		return values;
 	}
 	
 	/*
