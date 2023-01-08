@@ -18,7 +18,7 @@ public class TestDeterminant05 {
 		if (setFormat) {
 			Complex.storeFormatStatus();
 	    	Complex.setFixedOFF();
-	       	Complex.setScientificON(8);;
+	       	Complex.setScientificON(8);
 		}
        	Chronometer gaussChrono = new Chronometer();
 		System.out.println("detGauss(fMatrix) = " + fMatrix.determinantGauss().toString());
@@ -45,13 +45,13 @@ public class TestDeterminant05 {
     	for (int i = 2; i <= limSup; ++i) {
     		fMatrix = new MatrixComplex(i);
          	fMatrix.initMatrixRandomInteger(10);
-        	showResults(fMatrix);    		
+        	showResults(fMatrix);
     	}
 
     	for (int i = 2; i <= limSup; ++i) {
     		fMatrix = new MatrixComplex(i);
-    		fMatrix.initMatrixRandomRec(10);;
-        	showResults(fMatrix);    		
+    		fMatrix.initMatrixRandomRec(10);
+        	showResults(fMatrix);
     	}
 	}
 

@@ -46,9 +46,11 @@ public class TestComplex01 {
         Complex f = new Complex();
         
         System.out.println(Complex.boxTitleRandom(boxSize, "COMPLEX WITH FORMAT OFF TEST"));
-        Complex.facts();
         Complex.setFormatOFF(true);
-        
+        Complex.setRepres(Complex.Representation.POLAR);
+
+        Complex.facts();
+
         System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
         System.out.println("b		= " + b.toStringRec() + " : " + b.toStringPol());
         System.out.println("rep(a)		= " + a.rep());
@@ -499,12 +501,34 @@ public class TestComplex01 {
 	   System.out.println("b*sin(b)	= " + f.toStringRec() + " : " + f.toStringPol());
 	   System.out.println("------------------------------------------------------------");
 	   
-	   a.setComplex("1-i");
-	   b = a.power(4);
-	   c = a.times(a.times(a.times(a)));
-	   System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
-	   System.out.println("a^4		= " + b.toStringRec() + " : " + b.toStringPol());
-	   System.out.println("a*a*a*a		= " + c.toStringRec() + " : " + c.toStringPol());
+       System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX POSITIVE TEST"));
+	   a.setComplex("1+3i").println("a = ");
+	   b.setComplex("1+5i").println("b = ");
+	   c = a.plus(b);
+	   System.out.println("a+b = " + c.toStringRec() + " : " + c.toStringPol());	   
+	   d = a.times(b);
+	   System.out.println("a*b = " + d.toStringRec() + " : " + d.toStringPol());
+	   System.out.println("------------------------------------------------------------");
+	   a.setComplex("3+i").println("a = ");
+	   b.setComplex("5+i").println("b = ");
+	   c = a.plus(b);
+	   System.out.println("a+b = " + c.toStringRec() + " : " + c.toStringPol());	   
+	   d = a.times(b);
+	   System.out.println("a*b = " + d.toStringRec() + " : " + d.toStringPol());
+	   System.out.println("------------------------------------------------------------");
+	   a.setComplex("1+3i").println("a = ");
+	   b.setComplex("5+i").println("b = ");
+	   c = a.plus(b);
+	   System.out.println("a+b = " + c.toStringRec() + " : " + c.toStringPol());	   
+	   d = a.times(b);
+	   System.out.println("a*b = " + d.toStringRec() + " : " + d.toStringPol());
+	   System.out.println("------------------------------------------------------------");
+	   a.setComplex("3+i").println("a = ");
+	   b.setComplex("1+5i").println("b = ");
+	   c = a.plus(b);
+	   System.out.println("a+b = " + c.toStringRec() + " : " + c.toStringPol());	   
+	   d = a.times(b);
+	   System.out.println("a*b = " + d.toStringRec() + " : " + d.toStringPol());
 	   System.out.println("------------------------------------------------------------");
     }
 }

@@ -197,8 +197,8 @@ public class TestIntegral01 {
 	
 		/**************************
 		 * ESTE FALLA el CHECK!!!!!
-		 *             Integral 1/z (2.000+2.000i, -6.000-3.000i = 0.864+2.820i
-		 *       CHECK Integral 1/z (2.000+2.000i, -6.000-3.000i = 0.864-3.463i
+		 *             Integral 1/z (2.000+2.000i, -6.000-3.000i) = 0.864+2.820i
+		 *       CHECK Integral 1/z (2.000+2.000i, -6.000-3.000i) = 0.864-3.463i
 		 */
 		Complex.setFixedON(decPrec);
 		Complex.setFixedOFF();	

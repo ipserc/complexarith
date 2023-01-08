@@ -305,7 +305,7 @@ public class TestFourier01 {
 		Complex.setFormatON();
 		Complex.setScientificON(5);
 		
-		//
+		/*
 		TestFourierSeries(z -> func08(z, 2), -4.9, 4.9, 100, 3);
 		TestFourierSeries(z -> func13(z, 2), -4.9, 4.9, 100, 3);
 		//TestFourierSeries(z -> func17(z, .15, 7), -27, 27, 100, 3);
@@ -317,10 +317,11 @@ public class TestFourier01 {
 		//TestFourierSeries(z -> Sigfunc.ramp0(z, 2, -1, 1), -5, 5, 100, 3);
 		//TestFourierSeries(z -> Sigfunc.saw(z, 2, 1), -5, 5, 100, 3);
 		TestFourierSeries(z -> Sigfunc.saw0(z, 2, 1), -15, 15, 300, 3);
+		*/
 
 		//TestDFT(z -> sinc(z), 66, -30, 30);		
 		//TestDFT(z -> func00(z), 8000, -.4084, .4084);
-		//TestDFT(z -> sin3k(z), 6000, -Complex.DOS_PI*500/6000, Complex.DOS_PI*500/6000);
+		TestDFT(z -> sin3k(z), 6000, -Complex.DOS_PI*500/6000, Complex.DOS_PI*500/6000);
 		//TestDFT(z -> func14(z), 6000, -Complex.DOS_PI, Complex.DOS_PI);
 		//TestDFT(z -> func14(z), 8000, -5, 5);
 		//TestDFT(z -> func15(z), 8000, -5, 5);
