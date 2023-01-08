@@ -127,6 +127,15 @@ public class TestMatrixOperations01 {
 		aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomInteger(5);
 		bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomInteger(5);
 		showMULresults(aMatrix, bMatrix);
+
+		aMatrix = new MatrixComplex(3,1); aMatrix.initMatrixRandomInteger(5);
+		bMatrix = new MatrixComplex(1,3); bMatrix.initMatrixRandomInteger(5);
+		aMatrix.println("aMatix");
+		bMatrix.println("bMatix");
+		aMatrix.times(bMatrix).println("aMatrix.times(bMatrix)");
+		bMatrix.times(aMatrix).println("bMatrix.times(aMatrix)");
+
+
 		
 		aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomInteger(5);
 		bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomInteger(5);
@@ -155,5 +164,6 @@ public class TestMatrixOperations01 {
 				+ " 0, 0, 0, 0, 0");
 		aMatrix.println("aMatrix");
 		aMatrix.kernel().println("Kernel(aMatrix)");
-}
+		
+    }
 }

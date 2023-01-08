@@ -61,6 +61,11 @@ public class TestLimits01 {
 		return ((z.power(2).minus(3)).divides(z.power(2).plus(z))).power(z.times(2).plus(1));
 	}
 	
+	private static Complex func10(Complex z, Complex t) {
+		// (1-t/z)^z
+		return ((Complex.ONE.minus(t.divides(z))).power(z));
+	}
+	
 	private static Complex func10a(Complex z) {
 		// ((z+1)/(z-3))^(-z²+2)
 		/** /
@@ -112,7 +117,7 @@ public class TestLimits01 {
 
 	public static void limit_inf(String strFunc, Function <Complex, Complex> func) {
 		Complex limit = Complex.limit_inf(func);
-		System.out.print("limit(" + strFunc +",z, inf) = ");
+		System.out.print("limit(" + strFunc +", z, inf) = ");
 		if (limit != null) limit.println();
 		else System.out.println("The limit doesn't exist");
 		System.out.println(Complex.repeat("-",80));
@@ -120,7 +125,7 @@ public class TestLimits01 {
 
 	public static void limit_Minf(String strFunc, Function <Complex, Complex> func) {
 		Complex limit = Complex.limit_Minf(func);
-		System.out.print("limit(" + strFunc +",z,-inf) = ");
+		System.out.print("limit(" + strFunc +", z,-inf) = ");
 		if (limit != null) limit.println();
 		else System.out.println("The limit doesn't exist");
 		System.out.println(Complex.repeat("-",80));
@@ -174,6 +179,8 @@ public class TestLimits01 {
 		limit("sin(z)/(1-cos(z))", z -> (Complex.sin(z).divides(Complex.ONE.minus(Complex.cos(z)))), 0.0);
 
 		limit("z*sin(z)/(1-cos(z))", z-> func11(z), 0);
+		
+		limit_inf("(1-1/z)^z", z-> func10(z,new Complex(1,0)));
 
 		/**/
 	}
