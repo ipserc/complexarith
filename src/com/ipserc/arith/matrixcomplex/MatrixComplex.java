@@ -20,6 +20,12 @@ public class MatrixComplex {
 	private final static String VERSION = "1.11 (2022_0319_2359)";
 	/* VERSION Release Note
 	 * 
+	 * 1.12 (2023_0507_1800)
+	 * 	public MatrixComplex times(MatrixComplex cMatrix)
+	 *  	Removed beacuse makes to enter in an infinite loop call
+	 *  		if (this.rows() == 1 && this.cols() == 1) return cMatrix.times(this.getItem(0, 0));
+	 *  		if (cMatrix.rows() == 1 && cMatrix.cols() == 1) return this.times(cMatrix.getItem(0, 0));
+	 * 
 	 * 1.11 (2022_0319_2359)
 	 * public MatrixComplex base()
 	 * 
@@ -1190,9 +1196,6 @@ public class MatrixComplex {
 		int rowLenA2 = cMatrix.rows();
 		int colLenA2 = cMatrix.cols();
 
-		if (this.rows() == 1 && this.cols() == 1) return cMatrix.times(this.getItem(0, 0));
-		if (cMatrix.rows() == 1 && cMatrix.cols() == 1) return this.times(cMatrix.getItem(0, 0));
-		
 		if (colLenA1 != rowLenA2) {
 			System.err.println("Not valid product: The cols of matrix1 has to be equal to the rows of matrix2.");
 			//System.exit(1);
