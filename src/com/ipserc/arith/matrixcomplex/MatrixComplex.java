@@ -2,11 +2,14 @@ package com.ipserc.arith.matrixcomplex;
 
 import java.lang.Math;
 
+import javax.management.NotCompliantMBeanException;
+
 import com.ipserc.arith.combinatoric.*;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.polynom.*;
 import com.ipserc.arith.syseq.Syseq;
 import com.ipserc.arith.vector.Vector;
+import com.panayotis.gnuplot.JavaPlot;
 
 /**
  * 
@@ -15,14 +18,58 @@ import com.ipserc.arith.vector.Vector;
  */
 public class MatrixComplex {
 	public Complex[][] complexMatrix;
-
+	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.12 (2023_0507_1800)";
+	private final static String VERSION = "1.13 (2024_0120_2330)";
 	/* VERSION Release Note
+	 * 1.13 (2024_0120_2330)
+	 *  public MatrixComplex exp() {
+	 *  public MatrixComplex sinTaylor() {
+	 *  public MatrixComplex sinEuler() {
+	 *  public MatrixComplex sin() {
+	 *  public MatrixComplex cosTaylor() {
+	 *  public MatrixComplex cosEuler() {
+	 *  public MatrixComplex cos() {
+	 *  public MatrixComplex tanTaylor() {
+	 *  public MatrixComplex tanEuler() {
+	 *  public MatrixComplex tan() {
+	 *  public MatrixComplex sinhTaylor() {
+	 *  public MatrixComplex sinhEuler()
+	 *  public MatrixComplex sinh() {
+	 *  public MatrixComplex coshTaylor() {
+	 *  public MatrixComplex coshEuler() {
+	 *  public MatrixComplex cosh() {
+	 *  public MatrixComplex tanhTaylor() {
+	 *  public MatrixComplex tanhEuler() {
+	 *  public MatrixComplex tanh() {
+	 *  private MatrixComplex log1mx() {
+	 *  private MatrixComplex log1px() {
+	 *  public MatrixComplex logTaylor() {
+	 *  public MatrixComplex logMercator() {
+	 *  public MatrixComplex logHat() {
+	 *  public MatrixComplex log() {
+	 *  public boolean sameDimension(MatrixComplex matrix) {
+	 *  public Complex totalize() {
+	 *  public boolean isGT(MatrixComplex matrix) {
+	 *  public boolean isGTE(MatrixComplex matrix) {
+	 *  public boolean isLT(MatrixComplex matrix) {
+	 *  public boolean isLTE(MatrixComplex matrix) {
+	 *  public boolean isPostiveSemiDefinite() {
+	 *  public boolean isNegtiveDefinite() {
+	 *  public boolean isNegtiveSemiDefinite() {
+	 *  public boolean hasZeroMainDiag() {
+	 *  public boolean repPositiveMainDiag() {
+	 *  public MatrixComplex plusMat(Complex cNum) {
+	 *  public MatrixComplex plusMat(String strcNum) {
+	 *  public MatrixComplex plusMat(double rep, double imp) {
+	 *  public MatrixComplex minusMat(Complex cNum) {
+	 *  public MatrixComplex minusMat(String strcNum) {
+	 *  public MatrixComplex minusMat(double rep, double imp) {
+	 *  private void doPlot(String Title, double[][] dataTable) {
 	 * 
 	 * 1.12 (2023_0507_1800)
 	 * 	public MatrixComplex times(MatrixComplex cMatrix)
-	 *  	Removed beacuse makes to enter in an infinite loop call
+	 *  	Removed because makes to enter in an infinite loop call
 	 *  		if (this.rows() == 1 && this.cols() == 1) return cMatrix.times(this.getItem(0, 0));
 	 *  		if (cMatrix.rows() == 1 && cMatrix.cols() == 1) return this.times(cMatrix.getItem(0, 0));
 	 * 
@@ -95,6 +142,24 @@ public class MatrixComplex {
 	public enum outputFormat {MATRIXCOMPLEX, MAXIMA, OCTAVE, MATLAB, WOLFRAM};
 
 	/*
+	 * __DEBUG__
+	 */
+	
+	private static boolean __DEBUG__ = false;
+
+	public static void debugON() {
+		__DEBUG__ = true;
+	}
+
+	public static void debugOFF() {
+		__DEBUG__ = false;
+	}
+
+	public static boolean debug() {
+		return __DEBUG__;
+	}
+	
+	/*
 	 * ***********************************************
 	 * 	CONSTRUCTORS 
 	 * ***********************************************
@@ -103,7 +168,7 @@ public class MatrixComplex {
 	/**
 	 * Returns the empty complex square matrix object of length 0.
 	 */
-	public MatrixComplex() {
+ 	public MatrixComplex() {
 		this.complexMatrix = new Complex[0][0];
 	}
 
@@ -287,6 +352,15 @@ public class MatrixComplex {
 	 */
 	public void initMatrixDiag(double n1, double n2) {
 		this.initMatrixDiagRec(n1, n2);
+	}
+
+	/**
+	 * Shortcut to initMatrixDiagRec
+	 * Initializes the main diagonal of a matrix with the complex number cNum.
+	 * @param cNum the complex number
+	 */
+	public void initMatrixDiag(Complex cNum) {
+		this.initMatrixDiagRec(cNum.rep(), cNum.imp());
 	}
 
 	/**
@@ -523,7 +597,6 @@ public class MatrixComplex {
 		return vectorBase;		
 	}
 
-	
 	/**
 	 * Creates a new base of a vector space.
 	 * Allows the input of a set vectors written by rows, the base. 
@@ -599,7 +672,8 @@ public class MatrixComplex {
 	 * @param numC
 	 */
 	public void setItem(int row, int col, Complex numC) {
-		this.complexMatrix[row][col].setComplexRec(numC.rep(), numC.imp());
+		this.complexMatrix[row][col] = numC.copy();
+		// this.complexMatrix[row][col].setComplexRec(numC.rep(), numC.imp());
 	}
 	
 	/**
@@ -764,7 +838,7 @@ public class MatrixComplex {
 	 */
 	//matrix([-1.0 + 6.0*%i,2.0 - 8.0*%i,-1.0,1.0 - 4.0*%i],
 	//		 [4.0 - 9.0*%i,8.0 - 4.0*%i,7.0 + 5.0*%i,-9.0 - 3.0*%i],
-	//		 [5.0 + 7.0*%i,2.0 + 4.0*%i,-3.0 + 4.0*%i,6.0 + 6.0*%i],
+	//		 [5.0 + 7.0*%i,2.0 + 4.0*%i,-3.0 + 4.0*%i,6.0 + 6.0*%i],if (__DEBUG__) 
 	//		 [-4.0 - 4.0*%i,6.0 - 5.0*%i,3.0 + 8.0*%i,-3.0 - 3.0*%i]);
 	public String toMaxima() {
 		int rowLen = this.rows();
@@ -1010,7 +1084,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Compares two matrices and return the result of the comparing
+	 * Compares two matrices and return the result of the comparingif (__DEBUG__) 
 	 * @param cMatrix The matrix to compare with
 	 * @return The result of the comparing
 	 */
@@ -1028,7 +1102,7 @@ public class MatrixComplex {
 	
 	/**
 	 * 
-	 * @param cMatrix
+	 * @param cMatrix					matrix.println("row "+row+" col "+col);
 	 * @param numdecs
 	 * @return
 	 */
@@ -1109,7 +1183,8 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * 
+	 * THIS SUM MAKES NO SENSE AT ALL. I INCLUDE IT FOR COMPATIBILITY WITH OTHER CALCULATION PROGRAMS.
+	 * PLEASE SEE plusMat FOR A DIFFERENT APPROXIMATION OF THE ADITION BETWEEN A MATRIX AND A SCALAR.
 	 * @param val
 	 */
 	public MatrixComplex plus(double val) {
@@ -1121,7 +1196,8 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * 
+	 * THIS SUM MAKES NO SENSE AT ALL. I INCLUDE IT FOR COMPATIBILITY WITH OTHER CALCULATION PROGRAMS.
+	 * PLEASE SEE plusMat FOR A DIFFERENT APPROXIMATION OF THE ADITION BETWEEN A MATRIX AND A SCALAR.
 	 * @param cVal
 	 */
 	public MatrixComplex plus(Complex cVal) {
@@ -1132,6 +1208,43 @@ public class MatrixComplex {
 		return newThis;
 	}
 
+	/**
+	 * This method returns the sum for this plus cNum*I, where I is the identity matrix.
+	 * @param cNum the complex number to construct the diagonal matrix cNum*I.
+	 * @return The matrix resulting from the matrices sum.
+	 */
+	public MatrixComplex plusMat(Complex cNum) {
+		if (!this.isSquare()) {
+			System.err.println("Not valid sum: This sum is only for square matrices.");
+		}
+		
+		MatrixComplex cNumMat = new MatrixComplex(this.rows(), this.cols());
+		cNumMat.initMatrixDiag(cNum);
+		
+		return this.plus(cNumMat);
+	}
+	
+	/**
+	 * This method returns the sum for this plus cNum*I, where I is the identity matrix.
+	 * @param cNum the complex number in String format to construct the diagonal matrix cNum*I.
+	 * @return The matrix resulting from the matrices sum.
+	 */
+	public MatrixComplex plusMat(String strcNum) {
+		Complex cNum = new Complex(strcNum);
+		return plusMat(cNum);
+	}
+
+	/**
+	 * This method returns the sum for this plus cNum*I, where I is the identity matrix.
+	 * @param rep the real part of the complex number cNum to construct the diagonal matrix cNum*I.
+	 * @param imp the imaginary part of the complex number cNum to construct the diagonal matrix cNum*I.
+	 * @return The matrix resulting from the matrices sum.
+	 */
+	public MatrixComplex plusMat(double rep, double imp) {
+		Complex cNum = new Complex(rep, imp);
+		return plusMat(cNum);
+	}
+	
 	/**
 	 * Calculates the difference of two matrices.
 	 * @param cMatrix the subtracting matrix.
@@ -1157,7 +1270,70 @@ public class MatrixComplex {
 		}
 		return resultMatrix;
 	}
+
+	/**
+	 * THIS SUBTRACTION MAKES NO SENSE AT ALL. I INCLUDE IT FOR COMPATIBILITY WITH OTHER CALCULATION PROGRAMS.
+	 * PLEASE SEE MINUSMat FOR A DIFFERENT APPROXIMATION OF THE SUBTRACTION BETWEEN A MATRIX AND A SCALAR.
+	 * @param val
+	 */
+	public MatrixComplex minus(double val) {
+		MatrixComplex newThis = new MatrixComplex(this.rows(), this.cols());
+		for (int row = 0; row < this.rows(); ++row)
+			for(int col = 0; col < this.cols(); ++col)
+				newThis.setItem(row, col, this.getItem(row, col).plus(val));
+		return newThis;
+	}
+
+	/**
+	 * THIS SUBTRACTION MAKES NO SENSE AT ALL. I INCLUDE IT FOR COMPATIBILITY WITH OTHER CALCULATION PROGRAMS.
+	 * PLEASE SEE MINUSMat FOR A DIFFERENT APPROXIMATION OF THE SUBTRACTION BETWEEN A MATRIX AND A SCALAR.
+	 * @param cVal
+	 */
+	public MatrixComplex minus(Complex cVal) {
+		MatrixComplex newThis = new MatrixComplex(this.rows(), this.cols());
+		for (int row = 0; row < this.rows(); ++row)
+			for(int col = 0; col < this.cols(); ++col)
+				newThis.setItem(row, col, this.getItem(row, col).plus(cVal));
+		return newThis;
+	}
+
+	/**
+	 * This method returns the difference for this minus cNum*I, where I is the identity matrix.
+	 * @param cNum the complex number to construct the diagonal matrix cNum*I.
+	 * @return The matrix resulting from the matrices difference.
+	 */
+	public MatrixComplex minusMat(Complex cNum) {
+		if (!this.isSquare()) {
+			System.err.println("Not valid sum: This sum is only for square matrices.");
+		}
+		
+		MatrixComplex cNumMat = new MatrixComplex(this.rows(), this.cols());
+		cNumMat.initMatrixDiag(cNum);
+		
+		return this.minus(cNumMat);
+	}
 	
+	/**
+	 * This method returns the difference for this minus cNum*I, where I is the identity matrix.
+	 * @param cNum the complex number in String format to construct the diagonal matrix cNum*I.
+	 * @return The matrix resulting from the matrices difference.
+	 */
+	public MatrixComplex minusMat(String strcNum) {
+		Complex cNum = new Complex(strcNum);
+		return minusMat(cNum);
+	}
+
+	/**
+	 * This method returns the difference for this minus cNum*I, where I is the identity matrix.
+	 * @param rep the real part of the complex number cNum to construct the diagonal matrix cNum*I.
+	 * @param imp the imaginary part of the complex number cNum to construct the diagonal matrix cNum*I.
+	 * @return The matrix resulting from the matrices difference.
+	 */
+	public MatrixComplex minusMat(double rep, double imp) {
+		Complex cNum = new Complex(rep, imp);
+		return minusMat(cNum);
+	}
+
 	/**
 	 * Calculates the matrix product by a real scalar.
 	 * @param num Real number.
@@ -1188,7 +1364,7 @@ public class MatrixComplex {
 	/**
 	 * Calculates the product of two matrices.
 	 * @param cMatrix The multiplier matrix.
-	 * @return The matrix resulting from the matrix product.
+	 * @return The matrix resulting from the matrices product.
 	 */
 	public MatrixComplex times(MatrixComplex cMatrix) {
 		int rowLenA1 = this.rows();
@@ -1285,16 +1461,775 @@ public class MatrixComplex {
 	
 	/*
 	 * ***********************************************
+	 * EXPANSIONS TAYLOR 
+	 * ***********************************************
+	 */
+	
+	/**
+	 * Calculates the exponential of the matrix (e^this)
+	 * This calculation is achieved using the Taylor's series of the exponential extended for complex matrices
+	 * @return The value of e^this
+	 */
+	public MatrixComplex exp() {
+		if (this.rows() != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		MatrixComplex expMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex expMatant;
+		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex errMatrix;
+		
+		expMatrix.initMatrixDiag(1, 0);
+		powMatrix.initMatrixDiag(1, 0);
+		int k = 1;
+		double fact = 1;
+		do {
+			expMatant = expMatrix.copy();
+			powMatrix = powMatrix.times(this);
+			fact *= k++;
+			expMatrix = expMatrix.plus(powMatrix.divides(fact));
+			errMatrix = expMatant.minus(expMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+		} while(k < 1000);
+		return expMatrix;
+	}
+
+	/**
+	 * Calculates the exp of the matrix exp(matrix)
+	 * @param matrix
+	 * @return The exp of matrix
+	 */
+	public static MatrixComplex exp(MatrixComplex matrix) {
+		return matrix.exp();
+	}
+	
+	/**
+	 * Calculates the sin of the matrix sinTaylor()
+	 * This calculation is achieved using the Taylor's series of the sin extended for complex matrices
+	 * @return The value of sinTaylor()
+	 */
+	public MatrixComplex sinTaylor() {
+		if (this.rows() != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		MatrixComplex sinMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex sinMatant;
+		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex errMatrix;
+		
+		sinMatrix.initMatrixDiag(0, 0);
+		powMatrix.initMatrixDiag(1, 0);
+		int k = 1;
+		int j = 1;
+		double fact = 1;
+		do {
+			fact *= k;
+			if (k%2 == 0) {
+				++k;
+				powMatrix = powMatrix.times(this);
+				continue;
+			}
+			sinMatant = sinMatrix.copy();
+			powMatrix = powMatrix.times(this);
+			sinMatrix = sinMatrix.plus(powMatrix.divides(fact).times(Math.pow(-1,++j)));
+			errMatrix = sinMatant.minus(sinMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+			++k;
+		} while(k < 1000);
+		return sinMatrix;
+	}
+
+	/**
+	 * Calculates the sin of the matrix sinEuler()
+	 * This calculation is achieved using the Euler's formula extended complex matrices
+	 * @return The value of sinEuler()
+	 */
+	public MatrixComplex sinEuler() {
+		Complex plusj = new Complex(0,1);
+		Complex minusj = new Complex(0,-1);
+		Complex twoj = new Complex(0,2);
+		
+		return this.times(plusj).exp().minus(this.times(minusj).exp()).divides(twoj);
+	}
+
+	/**
+	 * Calculates the sin of the matrix sin()
+	 * This is a shortcut to the preferred method for doing the calculation
+	 * @return The value of sin()
+	 */	
+	public MatrixComplex sin() {
+		return this.sinTaylor();
+	}
+
+	/**
+	 * Calculates the sin of the matrix sin(matrix)
+	 * @param matrix
+	 * @return The sin of matrix
+	 */
+	public static MatrixComplex sin(MatrixComplex matrix) {
+		return matrix.sin();
+	}
+	
+	/**
+	 * Calculates the cos of the matrix cosTaylor()
+	 * This calculation is achieved using the Taylor's series of the cos extended for complex matrices
+	 * @return The value of cosTaylor()
+	 */
+	public MatrixComplex cosTaylor() {
+		if (this.rows() != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		MatrixComplex cosMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex cosMatant;
+		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex errMatrix;
+		
+		cosMatrix.initMatrixDiag(1, 0);
+		powMatrix.initMatrixDiag(1, 0);
+		int k = 1;
+		int j = 1;
+		double fact = 1;
+		do {
+			fact *= k;
+			if (k%2 != 0) {
+				++k;
+				powMatrix = powMatrix.times(this);
+				continue;
+			}
+			cosMatant = cosMatrix.copy();
+			powMatrix = powMatrix.times(this);
+			cosMatrix = cosMatrix.plus(powMatrix.divides(fact).times(Math.pow(-1,j++)));
+			errMatrix = cosMatant.minus(cosMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+			++k;
+		} while(k < 1000);
+		return cosMatrix;
+	}
+
+	/**
+	 * Calculates the sin of the matrix cosEuler()
+	 * This calculation is achieved using the Euler's formula extended complex matrices
+	 * @return The value of cosEuler()
+	 */
+	public MatrixComplex cosEuler() {
+		Complex plusj = new Complex(0,1);
+		Complex minusj = new Complex(0,-1);
+		
+		return this.times(plusj).exp().plus(this.times(minusj).exp()).divides(2);
+	}
+
+	/**
+	 * Calculates the sin of the matrix cos()
+	 * This is a shortcut to the preferred method for doing the calculation
+	 * @return The value of cos()
+	 */	
+	public MatrixComplex cos() {
+		return this.cosTaylor();
+	}
+
+	/**
+	 * Calculates the cos of the matrix cos(matrix)
+	 * @param matrix
+	 * @return The cos of matrix
+	 */
+	public static MatrixComplex cos(MatrixComplex matrix) {
+		return matrix.cos();
+	}
+	
+	/**
+	 * Calculates the tan of the matrix tanTaylor()
+	 * The tangent is calculated as sinTaylor()/cosTaylor()
+	 * @return The value of tanTaylor()
+	 */
+	public MatrixComplex tanTaylor() {	
+		return this.sinTaylor().divides(this.cosTaylor());
+	}
+	
+	/**
+	 * Calculates the tan of the matrix tanEuler()
+	 * The tangent is calculated as sinEuler()/cosEuler()
+	 * @return The value of tanEuler()
+	 */
+	public MatrixComplex tanEuler() {	
+		return this.sinEuler().divides(this.cosEuler());
+	}
+
+	/**
+	 * Calculates the sin of the matrix tan()
+	 * This is a shortcut to the preferred method for doing the calculation
+	 * @return The value of tan()
+	 */	
+	public MatrixComplex tan() {	
+		return this.tanEuler();
+	}
+
+	/**
+	 * Calculates the tan of the matrix tan(matrix)
+	 * @param matrix
+	 * @return The tan of matrix
+	 */
+	public static MatrixComplex tan(MatrixComplex matrix) {
+		return matrix.tan();
+	}
+	
+	/**
+	 * Calculates the hyperbolic sin of the matrix sinhTaylor(this)
+	 * This calculation is achieved using the Taylor's series of the hyperbolic sin extended for complex matrices
+	 * @return The value of sinh()
+	 */
+	public MatrixComplex sinhTaylor() {
+		if (this.rows() != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		MatrixComplex sinMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex sinMatant;
+		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex errMatrix;
+		
+		sinMatrix.initMatrixDiag(0, 0);
+		powMatrix.initMatrixDiag(1, 0);
+		int k = 1;
+		double fact = 1;
+		do {
+			fact *= k;
+			if (k%2 == 0) {
+				++k;
+				powMatrix = powMatrix.times(this);
+				continue;
+			}
+			sinMatant = sinMatrix.copy();
+			powMatrix = powMatrix.times(this);
+			sinMatrix = sinMatrix.plus(powMatrix.divides(fact));
+			errMatrix = sinMatant.minus(sinMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+			++k;
+		} while(k < 1000);
+		return sinMatrix;
+	}
+
+	/**
+	 * Calculates the hyperbolic sin of the matrix sinhEuler()
+	 * This calculation is achieved using the Euler's formula extended complex matrices
+	 * @return The value of sinhEuler()
+	 */
+	public MatrixComplex sinhEuler() {
+		return this.exp().minus(this.opposite().exp()).divides(2);
+	}
+
+	/**
+	 * Calculates the sin of the matrix sinh()
+	 * This is a shortcut to the preferred method for doing the calculation
+	 * @return The value of sinh()
+	 */	
+	public MatrixComplex sinh() {
+		return this.sinhTaylor();
+	}
+
+	/**
+	 * Calculates the sinh of the matrix sinh(matrix)
+	 * @param matrix
+	 * @return The sinh of matrix
+	 */
+	public static MatrixComplex sinh(MatrixComplex matrix) {
+		return matrix.sinh();
+	}
+	
+	/**
+	 * Calculates the hyperbolic cos of the matrix coshTaylor()
+	 * This calculation is achieved using the Taylor's series of the cos extended for complex matrices
+	 * @return The value of coshTaylor()
+	 */
+	public MatrixComplex coshTaylor() {
+		if (this.rows() != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		MatrixComplex cosMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex cosMatant;
+		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex errMatrix;
+		
+		cosMatrix.initMatrixDiag(1, 0);
+		powMatrix.initMatrixDiag(1, 0);
+		int k = 1;
+		double fact = 1;
+		do {
+			fact *= k;
+			if (k%2 != 0) {
+				++k;
+				powMatrix = powMatrix.times(this);
+				continue;
+			}
+			cosMatant = cosMatrix.copy();
+			powMatrix = powMatrix.times(this);
+			cosMatrix = cosMatrix.plus(powMatrix.divides(fact));
+			errMatrix = cosMatant.minus(cosMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+			++k;
+		} while(k < 1000);
+		return cosMatrix;
+	}
+
+	/**
+	 * Calculates the hyperbolic sin of the matrix coshEuler()
+	 * This calculation is achieved using the Euler's formula extended complex matrices
+	 * @return The value of coshEuler()
+	 */
+	public MatrixComplex coshEuler() {
+		return this.exp().plus(this.opposite().exp()).divides(2);
+	}
+
+	/**
+	 * Calculates the sin of the matrix cosh()
+	 * This is a shortcut to the preferred method for doing the calculation
+	 * @return The value of cosh()
+	 */	
+	public MatrixComplex cosh() {
+		return this.coshTaylor();
+	}
+
+	/**
+	 * Calculates the cosh of the matrix cosh(matrix)
+	 * @param matrix
+	 * @return The cosh of matrix
+	 */
+	public static MatrixComplex cosh(MatrixComplex matrix) {
+		return matrix.cosh();
+	}
+
+	/**
+	 * Calculates the hyperbolic tan of the matrix tanhTaylor()
+	 * This calculation uses the Taylor's series of the sin and cos extended for complex matrices
+	 * The hyperbolic tangent is calculated as sinhTaylor()/coshTaylor()
+	 * @return The value of tanhTaylor()
+	 */
+	public MatrixComplex tanhTaylor() {
+		return this.sinhTaylor().divides(this.coshTaylor());
+	}
+
+	/**
+	 * Calculates the hyperbolic tan of the matrix tanhEuler()
+	 * This calculation uses the Euler's formulas of the sin and cos extended for complex matrices
+	 * The hyperbolic tangent is calculated as sinhEuler()/coshEuler()
+	 * @return The value of tanhEuler()
+	 */
+	public MatrixComplex tanhEuler() {
+		return this.sinhEuler().divides(this.coshEuler());
+	}
+	
+	/**
+	 * Calculates the tan of the matrix tanh()
+	 * The tangent is calculated as tanh preferred method
+	 * @return The value of tanh()
+	 */
+	public MatrixComplex tanh() {
+		return this.tanhTaylor();
+	}
+
+	/**
+	 * Calculates the tanh of the matrix tanh(matrix)
+	 * @param matrix
+	 * @return The tanh of matrix
+	 */
+	public static MatrixComplex tanh(MatrixComplex matrix) {
+		return matrix.tanh();
+	}
+
+	/**
+	 * Taylor's Extension log(1 - x)
+	 * @return Taylor's Extension log(1 - x)
+	 */
+	private MatrixComplex log1mx() {
+		/* *************************************************
+		 * Taylor's Extension log(1 - x)
+		 * Transformation log(1 - x)
+		 * (1 - x) = y -> x = 1 - y
+		 * -1 <= x < 1 -> -2<= y < 0
+		 * 
+		 * (I - thisMatrix) = this -> thisMatrix = I - this
+		 * -I <= this < I -> -2I <= thisMatrix < 0 
+		 * *************************************************/
+		MatrixComplex thisMatrix = this.minusMat(1,0).opposite();
+
+		// These are the values for the 1st item of the summation
+		// In this case we use the summation opposite. At the end we need to return the opposite
+		MatrixComplex logMatrix = thisMatrix.copy();
+		MatrixComplex powMatrix = thisMatrix.copy();
+		MatrixComplex errMatrix;
+		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex logMatant;
+		
+		// precision can be changed with Complex.digits(long_value)
+		long maxIter = Complex.digits();
+		long k = 2;
+		
+		// Variables to use at check convergence section
+		double[][] dataTable = new double[(int)maxIter-100][2];
+		int c = 0;
+		double accumulator = 0.0;
+		double deviation;
+		
+		do {
+			logMatant = logMatrix.copy();
+			powMatrix = powMatrix.times(thisMatrix);
+			logMatrix = logMatrix.plus(powMatrix.divides(k));
+			errMatrix = logMatant.minus(logMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+
+			/*
+			 * Check convergence section
+			 */
+			if ( k > 100 ) {
+				deviation = errMatrix.norm()/errAntMat.norm();
+				accumulator += deviation > 1 ? deviation: 0.0;
+				dataTable[c][0] = k;
+				dataTable[c++][1] = deviation;
+				if (accumulator > 500) {
+					if (__DEBUG__) {
+						System.out.println("Iteration:"+ k +" - The logarithm is divergent");
+						System.out.println("accumulator:" + accumulator);
+						doPlot("-- DEVIATION --", dataTable);
+					}
+					return this.divides(Complex.ZERO);
+				}
+			}
+			errAntMat = errMatrix.copy();
+			/*
+			 * End of  Check convergence section
+			 */
+		} while(k++ < maxIter);
+		if (__DEBUG__) {
+			System.out.println("Iterations to converge:" + k);
+			System.out.println("accumulator:" + accumulator);
+			doPlot("-- DEVIATION --", dataTable);
+		}
+		return logMatrix.opposite();
+	}
+
+	/**
+	 * Mercator's Extension log(1 + x)
+	 * @return Mercator's Extension log(1 + x)
+	 */
+	private MatrixComplex log1px() {
+		/* *************************************************
+		 * Mercator's Extension log(1 + x)
+		 * Transformation log(1 + x)
+		 * (1 + x) = y -> x = y - 1
+		 * -1 < x <= 1 -> 0 < y <= 2
+		 * 
+		 * (I + thisMatrix) = this -> thisMatrix = this - I
+		 * -I < this <= I -> 0 < thisMatrix <= 2I
+		 * *************************************************/
+		MatrixComplex thisMatrix = this.minusMat(1,0);
+
+		// These are the values for the 1st item of the summation
+		MatrixComplex logMatrix = thisMatrix.copy();
+		MatrixComplex powMatrix = thisMatrix.copy();
+		MatrixComplex errMatrix;
+		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex logMatant;
+
+		// precision can be changed with Complex.digits(long_value)
+		long maxIter = Complex.digits();
+		long k = 2;
+
+		// Variables to use at check convergence section
+		double[][] dataTable = new double[(int)maxIter-100][2];
+		int c = 0;
+		double accumulator = 0.0;
+		double deviation;
+		
+		do {
+			logMatant = logMatrix.copy();
+			powMatrix = powMatrix.times(thisMatrix);
+			logMatrix = logMatrix.plus(powMatrix.divides(k*(k%2 == 0 ? -1 : 1)));
+			errMatrix = logMatant.minus(logMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+
+			/*
+			 * Check convergence section
+			 */
+			if ( k > 100 ) {
+				deviation = errMatrix.norm()/errAntMat.norm();
+				accumulator += deviation > 1 ? deviation: 0.0;
+				dataTable[c][0] = k;
+				dataTable[c++][1] = deviation;
+				if (accumulator > 500) {
+					if (__DEBUG__) {
+						System.out.println("Iteration:"+ k +" - The logarithm is divergent");
+						System.out.println("accumulator:" + accumulator);
+						doPlot("-- DEVIATION --", dataTable);
+					}
+					return this.divides(Complex.ZERO);
+				}
+			}
+			errAntMat = errMatrix.copy();
+			/*
+			 * End of Check convergence section
+			 */			
+		} while(k++ < maxIter);		
+		if (__DEBUG__) {
+			System.out.println("Iterations to converge:" + k);
+			System.out.println("accumulator:" + accumulator);
+			doPlot("-- DEVIATION --", dataTable);
+		}
+		return logMatrix;
+	}
+	
+	/**
+	 * Calculates the logarithm of a Matrix using Taylor's Extension summation log(1 - x)
+	 * @return The logarithm of a Matrix using Taylor's Extension 
+	 */
+	public MatrixComplex logTaylor() {
+		if (this.rows() != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		MatrixComplex logMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex yMatrix = new MatrixComplex(this.rows(), this.cols());
+		int m = 0;
+		
+		yMatrix = this.copy();
+		
+		if (__DEBUG__) yMatrix.determinant().println("[log()] - Determinant:");
+
+		/* ***************************************
+		 * Transformation
+		 * Applying a reduction to bring the matrix 
+		 * to the region of convergence 
+		 * ***************************************/		
+		while (yMatrix.determinant().mod() > .01) {
+			++m;
+			yMatrix = yMatrix.divides(Math.E);
+		}
+		
+		/*
+		 * Use log(1 - x) Taylor's extension
+		 */
+		if (__DEBUG__) yMatrix.println("Taylor's Extension log(1 - x) - yMatrix reduced "+ m +" times :");
+		logMatrix = yMatrix.log1mx();
+		// Undoing the transformation
+		return logMatrix.plusMat(m,0);
+	}
+
+	/** 
+	 * Calculates the logarithm of a Matrix using Mercator's Extension summation log(1 + x)
+	 * @return The logarithm of a Matrix using Mercator's Extension 
+	 */
+	public MatrixComplex logMercator() {
+		if (this.rows() != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		MatrixComplex logMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex yMatrix = new MatrixComplex(this.rows(), this.cols());
+		int m = 0;
+		
+		yMatrix = this.copy();
+		
+		if (__DEBUG__) yMatrix.determinant().println("[log()] - Determinant:");
+
+		/* ***************************************
+		 * Transformation
+		 * Applying a reduction to bring the matrix 
+		 * to the region of convergence 
+		 * ***************************************/		
+		while (yMatrix.determinant().mod() > .01) {
+			++m;
+			yMatrix = yMatrix.divides(Math.E);
+		}
+		
+		/*
+		 * Use log(1 + x) Mercator's extension
+		 */
+		if (__DEBUG__) yMatrix.println("Mercator's Extension log(1 + x) - yMatrix reduced "+ m +" times :");
+		logMatrix = yMatrix.log1px();
+		// Undoing the transformation
+		return logMatrix.plusMat(m,0);
+	}
+	
+	/**
+	 * Calculates the logarithm of a Matrix using Hyperbolic Arc Tangent's Extension summation.
+	 * Not recommended to use
+	 * @return The logarithm of a Matrix using Hyperbolic Arc Tangent's Extension 
+	 */
+	public MatrixComplex logHat() {
+		if (this.rows() != this.cols()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+		
+		MatrixComplex terMat = (this.power(2).minusMat(1,0)).divides(this.power(2).plusMat(1,0));
+		MatrixComplex powMat = terMat.copy();
+		MatrixComplex sumMat = powMat.copy();
+		MatrixComplex sumAnt;
+		MatrixComplex errMat;
+		MatrixComplex errAnt = new MatrixComplex(this.rows(), this.cols());
+		
+		// The term for k = 0 is already calculated at the variables definition 
+		long maxIter = Complex.digits();
+		long k = 1;
+
+		// Variables to check convergence section
+		double[][] dataTable = new double[(int)maxIter-100][2];
+		int c = 0;
+		double accumulator = 0.0;
+		double deviation;
+		
+		do {
+			sumAnt = sumMat.copy();
+			powMat = powMat.times(terMat).times(terMat);
+			sumMat = sumMat.plus(powMat.divides(2*k+1));
+			errMat = sumAnt.minus(sumMat);
+			errMat.abs();
+			if (errMat.isNullC()) break;
+
+			// Check convergence section
+			if ( k > 100 ) {
+				deviation = errMat.norm()/errAnt.norm();
+				accumulator += deviation > 1 ? deviation: 0.0;
+				dataTable[c][0] = k;
+				dataTable[c++][1] = deviation;
+				if (accumulator > 500) {
+					if (__DEBUG__) {
+						System.out.println("Iteration:"+ k +" - The logarithm is divergent");
+						System.out.println("accumulator:" + accumulator);
+						doPlot("-- DEVIATION --", dataTable);
+					}
+					return this.divides(Complex.ZERO);
+				}
+			}
+			
+			errAnt = errMat.copy();
+		} while(k++ < maxIter);
+		if (__DEBUG__) {
+			System.out.println("Iterations to converge:" + k);
+			System.out.println("accumulator:" + accumulator);
+			doPlot("-- DEVIATION --", dataTable);
+		}
+		return sumMat;
+	}
+	
+	/**
+	 * Shortcut to the preferred natural logarithm expansion
+	 * @return the natural logarithm of the matrix
+	 */
+	public MatrixComplex log() {
+		return logTaylor();
+	}
+
+	/**
+	 * Calculates the natural log of the matrix log(matrix)
+	 * @param matrix
+	 * @return The log of matrix
+	 */
+	public static MatrixComplex log(MatrixComplex matrix) {
+		return matrix.log();
+	}
+	
+	/*
+	 * ***********************************************
+	 * ORDER RELATIONSHIPS IN MATRICES
+	 * ***********************************************
+	 */
+	
+	/**
+	 * 
+	 * @param matrix
+	 * @return
+	 */
+	public boolean sameDimension(MatrixComplex matrix) {
+		if (this.rows() != matrix.rows() || this.cols() != matrix.cols()) return false;
+		return true;
+	}
+
+	/**
+	 * 
+	 * @param matrix
+	 * @return
+	 */
+	public boolean isGT(MatrixComplex matrix) {
+		if (!this.sameDimension(matrix)) {
+			System.out.println("Both matrices must have the same dimension.");
+			return false;
+		}
+		//return this.totalize().cre() > matrix.totalize().cre();
+		return this.norm() > matrix.norm();
+	}
+
+	/**
+	 * 
+	 * @param matrix
+	 * @return
+	 */
+	public boolean isGTE(MatrixComplex matrix) {
+		if (!this.sameDimension(matrix)) {
+			System.out.println("Both matrices must have the same dimension.");
+			return false;
+		}	
+		//return this.totalize().cre() >= matrix.totalize().cre();
+		return this.norm() >= matrix.norm();
+
+	}
+
+	/**
+	 * 
+	 * @param matrix
+	 * @return
+	 */
+	public boolean isLT(MatrixComplex matrix) {
+		if (!this.sameDimension(matrix)) {
+			System.out.println("Both matrices must have the same dimension.");
+			return false;
+		}
+		// return this.totalize().cre() < matrix.totalize().cre();
+		return this.norm() < matrix.norm();
+	}
+
+	/**
+	 * 
+	 * @param matrix
+	 * @return
+	 */
+	public boolean isLTE(MatrixComplex matrix) {
+		if (!this.sameDimension(matrix)) {
+			System.out.println("Both matrices must have the same dimension.");
+			return false;
+		}
+		// return this.totalize().cre() <= matrix.totalize().cre();
+		return this.norm() <= matrix.norm();
+	}
+
+	/*
+	 * ***********************************************
 	 * NORMS
 	 * ***********************************************
 	 */
-
+	
 	/**
 	 * Private method that returns the maximum value of a set of real values.
 	 * @param valMatrix The set of real values.
 	 * @return The maximum real value.
 	 */
-	private double max(double[] valMatrix) {
+ 	private double max(double[] valMatrix) {
 		double temp;
 		temp = valMatrix[0];
 
@@ -1302,8 +2237,8 @@ public class MatrixComplex {
 			temp = Math.max(temp, valMatrix[i]);
 		return temp;
 	}
-
-	/**
+	
+ 	/**
 	 * P Norm or Hölder Norm. Calculates Hölder's norm of order "p".
 	 * @param p The order of the norm.
 	 * @return The value of the norm.
@@ -1353,6 +2288,7 @@ public class MatrixComplex {
 		return max(norm);
 	}
 
+
 	/**
 	 * Euclidean Norm. Calculates the Euclidean norm or norm of order 2.
 	 * @return The value of the norm.
@@ -1368,6 +2304,7 @@ public class MatrixComplex {
 		}	
 		return Math.pow(norm, 0.5);
 	}
+
 
 	/**
 	 * Frobenius norm. Calculates the Euclidean norm or norm of order 2.
@@ -1573,12 +2510,35 @@ public class MatrixComplex {
 	 * @return The value of the trace.
 	 */
 	public Complex trace() {
+		if (!this.isSquare()) {
+			System.err.println("Not valid trace: The matrix has to be square.");
+			System.exit(1);
+		}
 		int rowLen = this.rows();
 		Complex trace = new Complex();
 
 		for (int i = 0; i < rowLen; ++i)
 			trace = trace.plus(this.complexMatrix[i][i]);
 		return trace;
+	}
+
+
+	/**
+	 * Cotrace of an n-by-n square matrix A - the sum of the elements on the secondary diagonal. 
+	 * @return The value of the trace.
+	 */
+	public Complex cotrace() {
+		if (!this.isSquare()) {
+			System.err.println("Not valid cotrace: The matrix has to be square.");
+			System.exit(1);
+		}
+		int rowLen = this.rows();
+		Complex cotrace = new Complex();
+		
+		int col = rowLen - 1;
+		for (int i = 0; i < rowLen; ++i)
+			cotrace = cotrace.plus(this.complexMatrix[i][col--]);
+		return cotrace;
 	}
 
 	/**
@@ -2061,6 +3021,98 @@ public class MatrixComplex {
 	}
 
 	/**
+	 * 
+	 * @return
+	 */
+	public boolean isPostiveDefinite() {
+		if (this.isHermitian()) {
+			Eigenspace eigenSpace = new Eigenspace(this);
+			MatrixComplex eigenvals = eigenSpace.eigenvalues();
+			for (int row = 0; row < eigenvals.rows(); ++row) {
+				if (Math.abs(eigenvals.getItem(row, 0).imp()) < Complex.zero() &&
+						eigenvals.getItem(row, 0).rep() <= Complex.zero() )
+					return false;
+			}
+			return true;
+		}
+		else return false;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isPostiveSemiDefinite() {
+		if (this.isHermitian()) {
+			Eigenspace eigenSpace = new Eigenspace(this);
+			MatrixComplex eigenvals = eigenSpace.eigenvalues();
+			for (int row = 0; row < eigenvals.rows(); ++row) {
+				if (Math.abs(eigenvals.getItem(row, 0).imp()) < Complex.zero() &&
+						eigenvals.getItem(row, 0).rep() < Complex.zero() )
+					return false;
+			}
+			return true;
+		}
+		else return false;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isNegtiveDefinite() {
+		if (this.isHermitian()) {
+			Eigenspace eigenSpace = new Eigenspace(this);
+			MatrixComplex eigenvals = eigenSpace.eigenvalues();
+			for (int row = 0; row < eigenvals.rows(); ++row) {
+				if (Math.abs(eigenvals.getItem(row, 0).imp()) > Complex.zero() && 
+						eigenvals.getItem(row, 0).rep() >= -Complex.zero() )
+					return false;
+			}
+			return true;
+		}
+		else return false;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isNegtiveSemiDefinite() {
+		if (this.isHermitian()) {
+			Eigenspace eigenSpace = new Eigenspace(this);
+			MatrixComplex eigenvals = eigenSpace.eigenvalues();
+			for (int row = 0; row < eigenvals.rows(); ++row) {
+				if (Math.abs(eigenvals.getItem(row, 0).imp()) > Complex.zero() && 
+						eigenvals.getItem(row, 0).rep() > -Complex.zero() )
+					return false;
+			}
+			return true;
+		}
+		else return false;
+	}
+
+	/**
+	 * Checks if there is a zero on the main diagonal.
+	 * @return True if a zero was found, false otherwise.
+	 */
+	public boolean hasZeroMainDiag() {
+		for (int i=0; i < this.rows(); ++i)
+			if (this.getItem(i, i).isZero()) return true;
+		return false;
+	}
+	
+	/**
+	 * Checks if there is one item on the main diagonal for which its REAL PART is zero or negative .
+	 * @return False if a non positive was found, false otherwise.
+	 */
+	public boolean repPositiveMainDiag() {
+		for (int i=0; i < this.rows(); ++i)
+			if (this.getItem(i, i).rep() < 0) return false;
+		return true;
+	}
+	
+	/**
 	 * Method for creating an Square Identity array of "this" matrix size
 	 * @param dim The size of Identity array
 	 * @return The Identity array
@@ -2072,7 +3124,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Cpoies the 1xN values of a one row array and put one by one in a diagonal NxN matrix
+	 * Copies the 1xN values of a one row array and put one by one in a diagonal NxN matrix
 	 * @param values The values of a one row array
 	 * @return The diagonal NxN matrix
 	 */
@@ -2108,7 +3160,7 @@ public class MatrixComplex {
 		return coefMatrix;
 	}
 
-	/**
+ 	/**
 	 * Returns a new matrix with the independent terms of the object matrix.
 	 * The new matrix is the independent terms column matrix.
 	 * @return The new matrix with the independent terms.
@@ -2131,7 +3183,6 @@ public class MatrixComplex {
 		return this.indMatrix();
 	}
 	
-
 	/**
 	 * Defines the constants that identify the type of equation system being solved.
 	 */
@@ -2895,7 +3946,7 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Calculates the rank of an array. t is not reliable for ill-conditioned matrix due to lack of precision
+	 * Calculates the rank of an array. It is not reliable for ill-conditioned matrix due to lack of precision
 	 * Kept for testing proposes
 	 * @return The rank of the matrix.
 	 */
@@ -3018,7 +4069,7 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * The rank of A is equal the number of non-zero singular values of the charcteristic polynomial of A.adjoint()*A
+	 * The rank of A is equal the number of non-zero singular values of the characteristic polynomial of A.adjoint()*A
 	 * This is method used for other numerical programs
 	 * Fail prone due to lack precision
 	 * Kept for testing proposes
@@ -4358,5 +5409,31 @@ public class MatrixComplex {
 	public void Ftransf(int rowi, int rowj, double dNum) {
 		this.Ftransf(rowi, rowj, new Complex(dNum, 0));
 	}
+
+
+	/*
+	 * ***********************************************
+	 * GENERAL PORPOUSE METHODS
+	 * ***********************************************
+	 */
+
+	/**
+	 * Private method to plot a table
+	 * Used to bring more info at debug
+	 * @param dataTable the table to plot
+	 */
+	private void doPlot(String Title, double[][] dataTable) {
+		//Plot the data
+		JavaPlot p = new JavaPlot();
+		p.setTitle(Title);
+		p.addPlot(dataTable);
+		p.set("zeroaxis", "");
+		p.set("style","data lines");
+		//p.set("style", setLineStyle(lineStyle));
+		p.set("grid","");
+		p.plot();
+	}
+
+
 
 }
