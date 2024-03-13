@@ -1,3 +1,15 @@
+/*
+ * Buscador de matrices diagonalizables
+ * Parámetros
+ *     	int size El tamaño de la matriz cuadrada
+ *   	int wide La dispersión de número [-wide..0..wide]
+ *
+ * 
+ * clear;runJava.sh eclipse-workspace/complexarith/bin/TestComplex/TestEigenV17.class
+ * 
+ * 
+ */
+
 package TestComplex;
 
 import com.ipserc.arith.matrixcomplex.*;
@@ -22,9 +34,11 @@ public class TestEigenV17 {
 	
 	public static void printAdvance(int counter) {
 		String text = "Iteración:"+counter;
+		/*
 		for (int i = 0; i < text.length(); ++i)
 			System.out.print((char) 8);
-		System.out.print(text);
+		*/
+		System.out.println(text);
 	}
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
@@ -122,8 +136,8 @@ public class TestEigenV17 {
 	public static void main(String[] args) {
     	MatrixComplex aMatrix = new MatrixComplex();
     	int contador = 0;
-    	int size = 4;
-    	int wide = 4;
+    	int size = 7;
+    	int wide =11;
 
     	Complex.exact(true);
     	Complex.setFormatON();

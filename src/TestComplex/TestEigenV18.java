@@ -2,7 +2,8 @@
  * 
  * clear;runJava.sh eclipse-workspace/complexarith/bin/TestComplex/TestEigenV18.class
  * 
- * */
+ * 
+ */
  
 
 package TestComplex;
@@ -118,7 +119,6 @@ public class TestEigenV18 {
      	Complex.showPrecision();
      	Eigenspace.version();
 
-
 	    aMatrix = new MatrixComplex("-1.0,-1.0,1.0;1.0,-3.0,-1.0;-1.0,3.0,-1.0");
 	    doEigenCalculations(aMatrix);
 
@@ -218,10 +218,14 @@ public class TestEigenV18 {
 		aMatrix = new MatrixComplex("-4.0,1.0,-4.0;-1.0,5.0,-3.0;4.0,-3.0,-5.0");
 		doEigenCalculations(aMatrix);
 		
+		aMatrix = new MatrixComplex("1.0,-8.0,5.0,4.0;5.0,2.0,8.0,6.0;10.0,10.0,-8.0,10.0;-5.0,7.0,9.0,-9.0");
+		doEigenCalculations(aMatrix);
+		
 		new MatrixComplex("-4.0,-7.0,3.0;2.0,6.0,-7.0;-1.0,7.0,-7.0");
 		new MatrixComplex("2.0,14.0,5.0;12.0,-3.0,7.0;-8.0,-11.0,-12.0");
 		new MatrixComplex("-12.0,4.0,4.0;13.0,5.0,-12.0;-2.0,-9.0,-13.0");
 		new MatrixComplex("1.0,1.0,1.0,-2.0;3.0,4.0,-3.0,-2.0;-2.0,-3.0,4.0,2.0;1.0,2.0,2.0,-1.0");
+		new MatrixComplex("3.0,-1.0,-3.0,-1.0;-2.0,-4.0,2.0,-3.0;2.0,-1.0,-2.0,-1.0;3.0,2.0,-1.0,1.0");
 		
 		
 		

@@ -9,38 +9,38 @@ import com.ipserc.arith.signal.Fourier.*;
 public class TestFilter06 {
 
 	private static Complex sin(Complex z, int frec) {
-		return Complex.sin(z.times(Complex.PI*frec));
+		return Complex.sin(z.times(Math.PI*frec));
 	}
 
 	private static Complex cos(Complex z, int frec) {
-		return Complex.cos(z.times(Complex.PI*frec));
+		return Complex.cos(z.times(Math.PI*frec));
 	}
 	
 
 	private static Complex func14(Complex z) {
 		//cos(z(7KHz+50sin(z mod 13)))
-		return Complex.cos(z.times(Complex.PI*(7000+50*(Math.sin(Math.ceil(z.rep()%13))))));
+		return Complex.cos(z.times(Math.PI*(7000+50*(Math.sin(Math.ceil(z.rep()%13))))));
 	}
 
 	private static Complex func15(Complex z) {
 		//cos(z(7KHz+50sin(z mod 13)))
-		return Complex.cos(z.times(Complex.PI*(2300+50*(Math.sin(z.rep()%13)))));
+		return Complex.cos(z.times(Math.PI*(2300+50*(Math.sin(z.rep()%13)))));
 	}
 
 	private static Complex func16(Complex z) {
 		//cos(z(70Hz+5sin(z mod 7)))
-		return Complex.cos(z.times(Complex.PI*(70+5*(Math.sin(z.rep()%7)))));
+		return Complex.cos(z.times(Math.PI*(70+5*(Math.sin(z.rep()%7)))));
 	}
 
 	private static Complex func17(Complex z) {
 		//cos(z(70Hz+5sin(z mod 7)))
-		return Complex.cos(z.times(Complex.PI*70)).times(Complex.sin(z.times(Complex.PI*120)));
+		return Complex.cos(z.times(Math.PI*70)).times(Complex.sin(z.times(Math.PI*120)));
 	}
 
 	private static Complex func18(Complex z) {
 		//cos(z(70Hz+5sin(z mod 7)))
 		//(50f-20)/159 f=64 --> 20
-		return Complex.cos(z.times(Complex.PI*20)).plus(Complex.sin(z.times(Complex.PI*120)));
+		return Complex.cos(z.times(Math.PI*20)).plus(Complex.sin(z.times(Math.PI*120)));
 	}
 
 	public static void main(String[] args) {

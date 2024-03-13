@@ -81,12 +81,12 @@ public class TestFourier01 {
 
 	private static Complex func00(Complex z) {
 		// sin(1kz)cos(3kz)
-		return (Complex.sin(z.times(Complex.PI*1000)).times(Complex.cos(z.times(Complex.PI*3000)).plus(Complex.sin(z.times(Complex.PI*75)))));
+		return (Complex.sin(z.times(Math.PI*1000)).times(Complex.cos(z.times(Math.PI*3000)).plus(Complex.sin(z.times(Math.PI*75)))));
 	}
 
 	private static Complex func01(Complex z) {
 		// (2+sin²(2z))/(2+cos³(3z))
-		return ((Complex.sin(z.times(Complex.PI*2)).power(2)).plus(2)).divides((Complex.cos(z.times(Complex.PI*3)).power(3)).plus(2));
+		return ((Complex.sin(z.times(Math.PI*2)).power(2)).plus(2)).divides((Complex.cos(z.times(Math.PI*3)).power(3)).plus(2));
 	}
 
 	private static Complex func02(Complex z) {
@@ -107,7 +107,7 @@ public class TestFourier01 {
 	private static Complex func05(Complex z) {
 		// sin(1kz)+cos(3kz)
 		//return (Complex.sin(z.times(500000000)).times(10).plus(Complex.cos(z.times(7000+(Math.random()-0.5)*10))));
-		return Complex.cos(z.times(Complex.PI*(7000+(Math.random()-0.5)*3)));
+		return Complex.cos(z.times(Math.PI*(7000+(Math.random()-0.5)*3)));
 	}
 
 	private static Complex func06(Complex z) {
@@ -138,11 +138,11 @@ public class TestFourier01 {
 
 	private static Complex func11(Complex z) {
 		// sin(z)(1-exp(-z²/5k))
-		return (Complex.sin(z.times(Complex.PI)).times(Complex.ONE.minus(Complex.exp(z.power(2).opposite().times(Complex.PI).divides(8000)))));
+		return (Complex.sin(z.times(Math.PI)).times(Complex.ONE.minus(Complex.exp(z.power(2).opposite().times(Math.PI).divides(8000)))));
 	}
 
 	private static Complex func12(Complex z) {
-		return (Complex.sin(z.times(Complex.PI))).times(Math.log(z.abs()+1));
+		return (Complex.sin(z.times(Math.PI))).times(Math.log(z.abs()+1));
 	}
 
 	private static Complex func13(Complex z, double T) {
@@ -152,15 +152,15 @@ public class TestFourier01 {
 	}
 	
 	private static Complex sin300(Complex z) {
-		return Complex.sin(z.times(Complex.PI*300));
+		return Complex.sin(z.times(Math.PI*300));
 	}
 	
 	private static Complex sin3k(Complex z) {
-		return Complex.sin(z.times(Complex.PI*3000));
+		return Complex.sin(z.times(Math.PI*3000));
 	}
 	
 	private static Complex cos3k(Complex z) {
-		return Complex.cos(z.times(Complex.PI*3000));
+		return Complex.cos(z.times(Math.PI*3000));
 	}
 	
 	private static Complex sin30k(Complex z) {
@@ -169,17 +169,17 @@ public class TestFourier01 {
 
 	private static Complex func14(Complex z) {
 		//cos(z(7KHz+50sin(z mod 13)))
-		return Complex.cos(z.times(Complex.PI*(7000+50*(Math.sin(Math.ceil(z.rep()%13))))));
+		return Complex.cos(z.times(Math.PI*(7000+50*(Math.sin(Math.ceil(z.rep()%13))))));
 	}
 
 	private static Complex func15(Complex z) {
 		//cos(z(7KHz+50sin(z mod 13)))
-		return Complex.cos(z.times(Complex.PI*(7000+50*(Math.sin(z.rep()%13)))));
+		return Complex.cos(z.times(Math.PI*(7000+50*(Math.sin(z.rep()%13)))));
 	}
 
 	private static Complex func16(Complex z) {
 		//cos(z(70Hz+5sin(z mod 7)))
-		return Complex.cos(z.times(Complex.PI*(70+5*(Math.sin(z.rep()%7)))));
+		return Complex.cos(z.times(Math.PI*(70+5*(Math.sin(z.rep()%7)))));
 	}
 
 	private static Complex func17(Complex z, double slope, int step) {

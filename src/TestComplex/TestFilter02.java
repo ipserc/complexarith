@@ -8,27 +8,27 @@ import com.ipserc.arith.signal.Fourier.*;
 public class TestFilter02 {
 
 	private static Complex sin(Complex z, int frec) {
-		return Complex.sin(z.times(Complex.PI*frec));
+		return Complex.sin(z.times(Math.PI*frec));
 	}
 
 	private static Complex cos(Complex z, int frec) {
-		return Complex.cos(z.times(Complex.PI*frec));
+		return Complex.cos(z.times(Math.PI*frec));
 	}
 	
 
 	private static Complex func14(Complex z) {
 		//cos(z(7KHz+50sin(z mod 13)))
-		return Complex.cos(z.times(Complex.PI*(600+50*(Math.sin(Math.ceil(z.rep()%13))))));
+		return Complex.cos(z.times(Math.PI*(600+50*(Math.sin(Math.ceil(z.rep()%13))))));
 	}
 
 	private static Complex func15(Complex z) {
 		//cos(z(7KHz+50sin(z mod 13)))
-		return Complex.cos(z.times(Complex.PI*(800+50*(Math.sin(z.rep()%13)))));
+		return Complex.cos(z.times(Math.PI*(800+50*(Math.sin(z.rep()%13)))));
 	}
 
 	private static Complex func16(Complex z) {
 		//cos(z(70Hz+5sin(z mod 7)))
-		return Complex.cos(z.times(Complex.PI*(70+5*(Math.sin(z.rep()%7)))));
+		return Complex.cos(z.times(Math.PI*(70+5*(Math.sin(z.rep()%7)))));
 	}
 
 	public TestFilter02() {		

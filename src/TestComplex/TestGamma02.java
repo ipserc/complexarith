@@ -38,12 +38,16 @@ public class TestGamma02 {
 		System.out.println("a			= " + a.toStringRec() + " : " + a.toStringPol());
 		b = Complex.gamma(a);
 		System.out.println("Gamma			= " + b.toStringRec() + " : " + b.toStringPol());
+		b = Complex.gamma_fast(a);
+		System.out.println("Gamma_fast(a)		= " + b.toStringRec() + " : " + b.toStringPol());	   
+		b = Complex.gamma_zones(a);
+		System.out.println("Gamma_zones(a)		= " + b.toStringRec() + " : " + b.toStringPol());	   
 		b = Complex.gamma_integral(a);
 		System.out.println("gamma_integral(a)	= " + b.toStringRec() + " : " + b.toStringPol());
 		b = Complex.gamma_integral2(a);
 		System.out.println("gamma_integral2(a)	= " + b.toStringRec() + " : " + b.toStringPol());
 		b = Complex.gamma_weiertrass(a);
-		System.out.println("Gamma_weiertrass(a)	= " + b.toStringRec() + " : " + b.toStringPol());	   
+		System.out.println("Gamma_weiertrass(a)	= " + b.toStringRec() + " : " + b.toStringPol());
 		System.out.println("------------------------------------------------------------");
 
 	}

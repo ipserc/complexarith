@@ -36,10 +36,12 @@ public class TestGamma01 {
 		Complex b = new Complex();
 		b = Complex.gamma(a);
 		System.out.println("a		= " + a.toStringRec() + " : " + a.toStringPol());
-		System.out.println("Gamma(a)	= " + b.toStringRec() + " : " + b.toStringPol());
+		System.out.println("gamma(a)	= " + b.toStringRec() + " : " + b.toStringPol());
 		b = Complex.gamma_nemes(a);
-		System.out.println("GammaNemes(a)	= " + b.toStringRec() + " : " + b.toStringPol());	   
-		System.out.println("------------------------------------------------------------");		
+		System.out.println("gamma_nemes(a)	= " + b.toStringRec() + " : " + b.toStringPol());	   
+		b = Complex.gamma_zones(a);
+		System.out.println("gamma_zones(a)	= " + b.toStringRec() + " : " + b.toStringPol());	   
+		System.out.println("------------------------------------------------------------");
 	}
 	
     public static void main(String[] args) {
@@ -84,6 +86,13 @@ public class TestGamma01 {
 
 		a.setComplex("-0.1-0.1i");
 		showresults(a);
+
+		a.setComplex("1");
+		showresults(a);
 		
+		a.setComplex("0.5");
+		showresults(a);
+
+
     }
 }

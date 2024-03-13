@@ -6,9 +6,7 @@ package TestComplex;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.factorization.Diagfactor;
-import com.ipserc.arith.matrixcomplex.Eigenspace;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.chronometer.Chronometer;
 
 public class TestDiagonal04 {
