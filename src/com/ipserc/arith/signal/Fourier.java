@@ -1,7 +1,6 @@
 package com.ipserc.arith.signal;
 
 import java.util.function.Function;
-import java.util.function.IntToDoubleFunction;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
@@ -13,12 +12,10 @@ import com.ipserc.chronometer.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.nio.file.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 
 public class Fourier extends MatrixComplex {
 	private Function<Complex, Complex> func;
@@ -145,34 +142,17 @@ public class Fourier extends MatrixComplex {
 	 * @param pathSamples The path to the file with the sampled values.
 	 * @param sampleFreq The sampling frequency ONLY for raw files
 	 */
-	public Fourier(String pathSamples, int sampleFreq) {
-		boolean readResult; 
+	public Fourier(String pathSamples) {
+		boolean readResult = false; 
 		File file = new File(pathSamples);
 		String fileName = file.getName();
 		int lastDotPos = fileName.lastIndexOf('.'); 
 		String fileExt = lastDotPos > 0 ? fileName.substring(lastDotPos + 1) : "";
 		switch (fileExt.toLowerCase()) {
 			case "txt": readResult = readSamplesTXT(pathSamples); break;
-			case "raw": readResult = readSamplesRAW(pathSamples, sampleFreq);
-				if (readResult) isSampled = true;
-				break;
+			case "raw": readResult = readSamplesRAW(pathSamples); break;
 		}
-	}
-
-	/**
-	 * Creates an instance of the Fourier object, using the sampled values ​​of the function.
-	 * It requires the following information before to start with the values sampled:
-	 * 	loLimit: The lower limit of the points to use with the function.
-	 * 	upLimit: The upper limit of the points to use with the function.
-	 * 	period: The period of the function, usually the distance between upper and lower limit.
-	 * 	N: The number of values sampled
-	 * 	sampleFreq: The frequency used to sample the function
-	 *  filterData: The data facts if the samples describe a filter
-	 * After this, the N samples expressed as 0.0000+0.0000i
-	 * @param pathSamples The path to the file with the sampled values.
-	 */
-	public Fourier(String pathSamples) {
-		readSamplesTXT(pathSamples);
+		if (readResult) isSampled = true;
 	}
 
 	/**
@@ -792,7 +772,7 @@ public class Fourier extends MatrixComplex {
 	    return fsaved;
 	}
 	
-	private MatrixComplex readRAWFile(String filePath, int sampleFreq, boolean normalize) {	
+	private MatrixComplex readRAWFile(String filePath, boolean normalize) {	
 		Complex.storeFormatStatus();
 		Complex.resetFormatStatus();
 		System.out.println("reading RAW data from " + filePath);
@@ -809,15 +789,17 @@ public class Fourier extends MatrixComplex {
 
 		ByteBuffer allBytesBuffer = ByteBuffer.wrap(allBytes);
 		N = allBytes.length / Double.BYTES;
+		sampleFreq = N;
 		loLimit = new Complex(0, 0);
-		upLimit = new Complex((N+1.0)/sampleFreq);
+		upLimit = new Complex((N+1.0)/sampleFreq, 0);
 		Complex incr = upLimit.minus(loLimit).divides(N);
 		Complex point = new Complex(0,0);
-		this.sampleFreq = sampleFreq;
+		this.sampleFreq = N;
 		dataMatrixComplex = new MatrixComplex(2, N);
 		for(int n = 0; n < N; ++n) {
 			dataMatrixComplex.setItem(0, n, point);
-			dataMatrixComplex.setItem(1, n, allBytesBuffer.order(ByteOrder.LITTLE_ENDIAN ).getDouble(n * Double.BYTES));
+			dataMatrixComplex.setItem(1, n, allBytesBuffer.getDouble());
+			//dataMatrixComplex.setItem(1, n, allBytesBuffer.order(ByteOrder.LITTLE_ENDIAN ).getDouble(n * Double.BYTES));
 			point = point.plus(incr);
 		}
 		
@@ -967,8 +949,8 @@ public class Fourier extends MatrixComplex {
 	 * @param filePath
 	 * @return
 	 */
-	public Boolean readSamplesRAW(String filePath, int sampleFreq) {
-		samples = readRAWFile(filePath, sampleFreq, false);
+	public Boolean readSamplesRAW(String filePath) {
+		samples = readRAWFile(filePath, false);
 		if (samples.rows() == 0) return false;
 		return true;
 	}
@@ -1057,6 +1039,9 @@ public class Fourier extends MatrixComplex {
 	 * @param sampleFreq The frequency used to sample the function.
 	 */
 	public void DFTL(int sampleFreq) {
+		this.N = sampleFreq;
+		this.sampleFreq = sampleFreq;
+
 		this.sampleFreq = sampleFreq;
 		this.N = sampleFreq;
 		Complex idospiN = Complex.i.times(-Complex.DOS_PI/N); // -2*pi*i/N
@@ -1091,8 +1076,9 @@ public class Fourier extends MatrixComplex {
 	 * @param sampleFreq The frequency used to sample the function.
 	 */
 	public void DFT(int sampleFreq) {
-		//this.sampleFreq = sampleFreq;
-		//this.N = sampleFreq;
+		this.N = sampleFreq;
+		this.sampleFreq = sampleFreq;
+		
 		Complex idospiN = Complex.i.times(-Complex.DOS_PI/N); // -2*pi*i/N
 		Complex expkn = new Complex();
 		
