@@ -11,6 +11,8 @@ package TestComplex;
 import java.util.List;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.geom.Line;
+import com.ipserc.geom.Point;
 
 import java.util.ArrayList;
 
@@ -103,5 +105,22 @@ public class TestLine02 {
 		aLine.println("aLine:");
 		strPoint = "3,1,-2";
 		System.out.println("Distance to ("+ strPoint +"):" + aLine.distance(strPoint));
+		
+		System.out.println(Complex.boxTextRandom(boxSize, "Line in Complex plane"));
+		Point loPoint = new Point("2+i");
+		Point upPoint = new Point("4-3i");
+		Line line = new Line(loPoint, upPoint);
+		line.println("line: ");
+		int nbrSamples = 10;
+		Complex startPoint = line.point().getItem(0,0);
+		Complex inc = line.direction().getItem(0,0).divides(nbrSamples);
+		Complex newPoint = new Complex(0);
+		startPoint.println("Start Point: ");
+		upPoint.getItem(0,0).println("End Point  : ");
+		for(double sample = 0; sample <= nbrSamples; ++sample) {
+			newPoint = startPoint.plus(inc.times(sample));
+			newPoint.println("point("+sample+"): ");
+		}
+
 	}
 }

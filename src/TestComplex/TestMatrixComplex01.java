@@ -32,6 +32,8 @@ package TestComplex;
 import com.ipserc.arith.complex.Complex;
 //import arith.Complex;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.chronometer.Chronometer;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -49,10 +51,11 @@ public class TestMatrixComplex01 {
     	MatrixComplex iMatrix;
     	MatrixComplex sMatrix;
 		int boxSize = 65;
+		Chronometer chrono = new Chronometer();
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "MATRIX COMPLEX TEST"));
 
-    	Complex.setFixedON(3);
+    	Complex.setFixedON(8);
     	/*
     	fMatrix = new MatrixComplex("12,-51,4,-13;6,167,-68,23;-4,24,-41,-2;-1,1,0,45;2,0,3,7");
     	fMatrix = new MatrixComplex("0,1,-1;1,1,0;-1,0,1");
@@ -226,5 +229,107 @@ public class TestMatrixComplex01 {
     	System.out.println("Determinant: " + aMatrix.determinant());
     	aMatrix.inverse().println("Inverse");
     	aMatrix.adjoint().println("Adjoint");
+ 
+    	aMatrix = new MatrixComplex(""
+    			+ " 1.2,  3.7,  5.6;"
+    			+ " 0.0, -2.2,  4.0;"
+    			+ "-5.3,  0.0,  1.4");
+    	aMatrix.println("aMatrix");
+    	aMatrix.exp().println("Exp");
+    	
+    	aMatrix = new MatrixComplex(""
+    			+ "1, 2;"
+    			+ "0, 1");
+    	aMatrix.println("aMatrix");
+    	aMatrix.exp().println("Exp");
+    	
+		System.out.println(Complex.boxTextRandom(boxSize, "Exponential & Trigonometrics Matrix functions"));
+    	aMatrix = new MatrixComplex(""+
+    			" 1, 1,-i, 1;"+
+    			" 2i,2, 1, 2;"+
+    			" 1, i, 0, 2;"+
+				" 1, 0, 1,-2i");
+    	aMatrix.println("aMatrix");
+    	aMatrix.exp().println("Exp");
+    	bMatrix = aMatrix.sin(); bMatrix.println("b=Sin");
+    	cMatrix = aMatrix.cos(); cMatrix.println("c=Cos");
+    	eMatrix = aMatrix.times(new Complex(0,1)).exp();
+    	eMatrix.println("e**(iaMatrix)");
+    	dMatrix = bMatrix.power(2).plus(cMatrix.power(2));
+    	dMatrix.println("b²+c²");
+    	dMatrix.determinant().println("Det=");
+    	aMatrix.tan().println("Tan");
+
+    	aMatrix = new MatrixComplex(""
+    			+ "1, 2;"
+    			+ "0, 1");
+    	aMatrix.println("aMatrix");
+    	bMatrix = aMatrix.sinTaylor(); bMatrix.println("b=Sin Taylor");
+    	aMatrix.sinEuler().println("Sin Euler");
+    	cMatrix = aMatrix.cosTaylor(); cMatrix.println("c=Cos Taylor");
+    	aMatrix.cosEuler().println("Cos Euler");
+    	eMatrix = aMatrix.times(new Complex(0,1)).exp();
+    	eMatrix.println("e**(iaMatrix)");
+    	dMatrix = bMatrix.power(2).plus(cMatrix.power(2));
+    	dMatrix.println("b²+c²");
+    	dMatrix.determinant().println("Det=");
+    	aMatrix.tan().println("Tan");
+
+    	
+    	aMatrix = new MatrixComplex(""
+    			+ " 1.2,  3.7,  5.6;"
+    			+ " 0.0, -2.2,  4.0;"
+    			+ "-5.3,  0.0,  1.4");
+    	aMatrix.println("aMatrix");
+    	bMatrix = aMatrix.sin(); bMatrix.println("b=Sin");
+    	cMatrix = aMatrix.cos(); cMatrix.println("c=Cos");
+    	eMatrix = aMatrix.times(new Complex(0,1)).exp();
+    	eMatrix.println("e**(iaMatrix)");
+    	dMatrix = bMatrix.power(2).plus(cMatrix.power(2));
+    	dMatrix.println("b²+c²");
+    	dMatrix.determinant().println("Det=");
+    	aMatrix.tan().println("Tan");
+
+		System.out.println(Complex.boxTextRandom(boxSize, "Hyperbolicf Trigonometrics Matrix functions"));
+    	aMatrix = new MatrixComplex(""
+    			+ "1, 2;"
+    			+ "0, 1");
+    	aMatrix.println("aMatrix");
+    	bMatrix = aMatrix.sinhTaylor(); bMatrix.println("b=Hyperbolic Sin Taylor");
+    	aMatrix.sinhEuler().println("Hyperbolic Sin Euler");
+    	cMatrix = aMatrix.coshTaylor(); cMatrix.println("c=Hyperbolic Cos Taylor");
+    	aMatrix.coshEuler().println("Hyperbolic Cos Euler");
+    	eMatrix = aMatrix.times(new Complex(0,1)).exp();
+    	eMatrix.println("e**(iaMatrix)");
+    	dMatrix = cMatrix.power(2).minus(bMatrix.power(2));
+    	dMatrix.println("c²-b²");
+    	dMatrix.determinant().println("Det=");
+    	aMatrix.tanh().println("Hyperbolic Tan");
+		
+		System.out.println(Complex.boxTextRandom(boxSize, "Trigonometrics Matrix chronos"));
+    	aMatrix = new MatrixComplex(2);
+       	aMatrix.initMatrixRandomInteger(3);
+       	
+    	aMatrix.println("aMatrix");
+    	chrono.start();
+    	bMatrix = aMatrix.sinhTaylor(); bMatrix.println("b=Hyperbolic Sin Taylor");
+    	chrono.stop();
+    	System.out.println("Hyperbolic Sin Taylor: "+ chrono.toString());
+    	
+    	chrono.start();
+    	aMatrix.sinhEuler().println("Hyperbolic Sin Euler");
+    	chrono.stop();
+    	System.out.println("Hyperbolic Sin Euler: "+ chrono.toString());
+    	
+    	chrono.start();
+    	bMatrix = aMatrix.coshTaylor(); bMatrix.println("b=Hyperbolic Cos Taylor");
+    	chrono.stop();
+    	System.out.println("Hyperbolic Cos Taylor: "+ chrono.toString());
+    	
+    	chrono.start();
+    	aMatrix.coshEuler().println("Hyperbolic Cos Euler");
+    	chrono.stop();
+    	System.out.println("Hyperbolic Cos Euler: "+ chrono.toString());
+    	
     }
 }

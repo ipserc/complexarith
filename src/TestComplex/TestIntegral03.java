@@ -32,15 +32,15 @@ public class TestIntegral03 {
 		Complex.setScientificON(decPrec);
 		
 		func = z -> func01(z);
-		lolimit.setComplexRec(-Complex.PI/8, 0);
-		uplimit.setComplexRec(+Complex.PI/8, 0);
+		lolimit.setComplexRec(-Math.PI/8, 0);
+		uplimit.setComplexRec(+Math.PI/8, 0);
 		System.out.println(Complex.boxTextRandom(boxSize, "Integral sin²(2z)/cos³(3z) (" + lolimit.toString() + ", " + uplimit.toString() + ")"));
 		integral = Complex.integrate(lolimit, uplimit, func, decPrec);
 		System.out.println("      Integral sin²(2z)/cos³(3z) (" + lolimit.toString() + ", " + uplimit.toString() + ") = " + integral.toString());
 
 		func = z -> func02(z);
-		lolimit.setComplexRec(-Complex.PI/8, 0);
-		uplimit.setComplexRec(+Complex.PI/8, 0);
+		lolimit.setComplexRec(-Math.PI/8, 0);
+		uplimit.setComplexRec(+Math.PI/8, 0);
 		System.out.println(Complex.boxTextRandom(boxSize, "Integral sin²(2z)/cos³(3z) (" + lolimit.toString() + ", " + uplimit.toString() + ")"));
 		integral = Complex.integrate(lolimit, uplimit, func, decPrec);
 		System.out.println("      Integral sin³(3z)/cos²(2z) (" + lolimit.toString() + ", " + uplimit.toString() + ") = " + integral.toString());
