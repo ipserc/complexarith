@@ -45,6 +45,7 @@ import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.util.Random;
 import java.io.*;
+import java.util.Scanner;
 
 /**
  * Complex class to work with complex numbers
@@ -58,8 +59,25 @@ public class Complex {
 	 * ***********************************************
 	 */
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.8 (2022_0928_0000)";
+	private final static String VERSION = "1.9 (2023_0514_2000)";
 	/* VERSION Release Note
+	 * 1.9 (2023_0514_2000)
+	 * public static void printBoxTitle(int boxId, int size, String title) {
+	 * public static void printBoxText(int boxId, int size, String title) {
+	 * public static Complex ChebyshevZero(int n, int k)
+	 * private void setRecCoord() { . . . if (this.imPartNull()) this.imp = 0.0;
+	 * public static Complex zeta(Complex s) {
+	 * public static Complex zeta_re(Complex s) {
+	 * public static Complex zeta_ext(Complex s) {
+	 * public static Complex zeta_reflex(Complex s) {
+	 * public static Complex zeta_primes(Complex s) {
+	 * public static Complex zeta_riemann_siegel(Complex s) {
+	 * public static Complex zeta_analytic_continuation(Complex s) {
+	 * public static Complex zeta_havil(Complex s) {
+	 * public static Complex binomialCoef(int n, int k) {
+	 * public static Complex binomialCoef(Complex n, Complex k) {
+	 * public static double factorial(int n) {
+	 * public static Complex factorial(Complex n) {
 	 * 
 	 * 1.8 (2022_0928_0000)
 	 * public boolean isInteger()
@@ -75,7 +93,7 @@ public class Complex {
 	 * public static Complex gamma_euler(Complex z)
 	 * public static Complex gamma_nemes(Complex z)
 	 * public static Complex beta(Complex p, Complex q)
-	 * REPRESENTATION enumeration to select the default representation fo the complex number between rectangular or polar coordinates
+	 * REPRESENTATION enumeration to select the default representation of the complex number between rectangular or polar coordinates
 	 * public static void setRepres(Representation Repres)
 	 * public static String getRepres()
 	 * public static void restoreRepres()
@@ -84,7 +102,6 @@ public class Complex {
 	 * public void printPol()
 	 * public void printlnRec()
 	 * public void printlnPol()
-	 * 
 	 * 
 	 * 1.7 (2022_0911_1130)
 	 * New management of EXACT/APPROXIMATED settings. Now ZERO_THRESHOLD holds the current value of the threshold for EXACT/APPROXIMATED
@@ -134,7 +151,7 @@ public class Complex {
 	 * public static void showPrecision() Renamed to camel style
 	 * public static void restorePrecisionFactorySettings() Included from now on
 	 * 
-	 * 	public String toStringRecWolfram() replace("E", "*10^"); TODO with polar representation
+	 * public String toStringRecWolfram() replace("E", "*10^"); TODO with polar representation
 	 * 
 	 * 1.5 (2021_0929_2100)
 	 * added trunc method to truncate a double value.
@@ -144,18 +161,22 @@ public class Complex {
 	 * 
 	 */
 
-	public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
+	//public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
 	public final static double TWO_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
 	public final static double DOS_PI = TWO_PI;			// 2 * 3.1415926535897932384626433832795;
 	public final static double HALF_PI =  Math.PI / 2; 	// 3.1415926535897932384626433832795 / 2;
-	public final static double EULER_MASC = 0.5772156649015328606065120900824024310421; // Constante de Euler-Mascheroni
+	public final static double EULER_MASC = 0.5772156649015328606065120900824024310421; // Constant of Euler-Mascheroni
+	public final static double LIM_INF = 2147483647; //2147483647
 
 	public final static Complex i = new Complex(0,1);
 	public final static Complex j = i; // For Electric Engineering
 	public final static Complex ZERO = new Complex(0,0);
 	public final static Complex ONE = new Complex(1,0);
 	public final static Complex mONE = new Complex(-1,0);
-	public final static double LIM_INF = 2147483647; //2147483647
+	public final static Complex PI = new Complex(Math.PI,0);
+	public final static Complex DOSPI = new Complex(DOS_PI,0);
+	public final static Complex TWOPI = DOSPI;	
+	public final static Complex HALFPI = new Complex(HALF_PI,0);
 	
 	// FIXED - Correction factor for equality comparisons. I hate these kind of things that seem to work but have no way to justify or prove
 	public final static int CORRECTION_FACTOR = 10; 
@@ -202,7 +223,8 @@ public class Complex {
 	private static boolean FORMAT_NBR = false; //Member Variable. Flag for formatting numbers
 	private static boolean FIXED_NOTATION = false; //Member Variable. Flag for comma fixed notation
 	private static boolean SCIENTIFIC_NOTATION = false; //Member Variable. Flag for scientific notation
-	private static int MAX_DECIMALS = 5; //Member Variable
+	private static int MAX_DECIMALS_DEFAULT = 8; //Member Variable
+	private static int MAX_DECIMALS = MAX_DECIMALS_DEFAULT; //Member Variable
 	/* BACK UP to allow restoring status */
 	private static boolean FORMAT_NBR_BCK = FORMAT_NBR; //Member Variable. Flag for formatting numbers
 	private static boolean FIXED_NOTATION_BCK = FIXED_NOTATION; //Member Variable. Flag for comma fixed notation
@@ -418,7 +440,9 @@ public class Complex {
 	 */
 	private void setRecCoord() {
 		this.rep = this.mod * Math.cos(this.pha);
+		if (this.rePartNull()) this.rep = 0.0;
 		this.imp = this.mod * Math.sin(this.pha);
+		if (this.imPartNull()) this.imp = 0.0;
 		this.setCre();
 	}
 
@@ -634,8 +658,8 @@ public class Complex {
 		return pha; }
 
 	/**
-	 * Gets the abs or modulus of the Complex Object.
-	 * @return The abs or modulus.
+	 * Gets the absolute value or modulus of the Complex Object.
+	 * @return The absolute value or modulus.
 	 */
 	public double abs() { 
 		return mod; }
@@ -828,7 +852,7 @@ public class Complex {
 		FORMAT_NBR = false;
 		FIXED_NOTATION = false;
 		SCIENTIFIC_NOTATION = false;
-		MAX_DECIMALS = 3;
+		MAX_DECIMALS = MAX_DECIMALS_DEFAULT;
 	}
 
 	/**
@@ -859,8 +883,8 @@ public class Complex {
 	public static void setDigits() {
 		Locale locale = new Locale("en", "UK");
 		NumberFormat numberFormat = NumberFormat.getInstance(locale);
-		numberFormat.setMinimumFractionDigits(MAX_DECIMALS);
-		numberFormat.setMaximumFractionDigits(MAX_DECIMALS);
+		numberFormat.setMinimumFractionDigits(20); //MAX_DECIMALS);
+		numberFormat.setMaximumFractionDigits(20); //MAX_DECIMALS);
 	}
 	
 	/**
@@ -924,7 +948,7 @@ public class Complex {
 		int sign = phase < 0.0 ? -1 : 1;
 		phase *= sign;
 		while (phase > Math.PI) phase -= DOS_PI;
-		if (phase == Complex.PI) return Complex.PI; 
+		if (phase == Math.PI) return Math.PI; 
 		return phase * sign;
 	}
 
@@ -1073,8 +1097,11 @@ public class Complex {
 		}
 		*/
 		
-		if (fMod == 0) fPha = 0;
-		if (Math.abs(fPha) < ZERO_THRESHOLD) fPha = 0;
+		if (FORMAT_NBR) {
+			if (fMod < ZERO_THRESHOLD) fMod = 0.0;
+			if (Math.abs(fPha) < ZERO_THRESHOLD) fPha = 0.0;
+			if (fMod == 0.0) fPha = 0.0;
+		}
 		
 		sfMod = String.valueOf(fMod);
 		if (SCIENTIFIC_NOTATION) sfMod = String.format("%."+MAX_DECIMALS+"E", fMod).replace(',', '.');
@@ -1294,6 +1321,14 @@ public class Complex {
 	}
 
 	/**
+	 * Gets the value for zero used in the calculations.
+	 * @return Hhe value for zero used in the calculations.
+	 */
+	public static double zero() {
+		return exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	}
+	
+	/**
 	 * Gets the SIGNIFICATIVE used for calculations.
 	 * @return The value of the constant SIGNIFICATIVE. 
 	 */
@@ -1386,6 +1421,15 @@ public class Complex {
 		String result ="" ;
 		for(int i = 0; i < n; ++i) result += str;
 		return result;
+	}
+	
+	/**
+	 * Prints a random BoxTitle from the ones defined
+	 * @param size
+	 * @param title
+	 */
+	public static void printBoxTitleRandom(int size, String title) {
+		System.out.println(boxTitleRandom(size, title));
 	}
 	
 	/**
@@ -1545,6 +1589,33 @@ public class Complex {
 	}
 
 	/**
+	 * Prints a Title Box in the standar output 
+	 * @param boxId The box Id
+	 * @param size The box size
+	 * @param title The box title
+	 */
+	public static void printBoxTitle(int boxId, int size, String title) {
+		switch (boxId) {
+		case 1: System.out.println(boxTitle1(size, title)); break;
+		case 2: System.out.println(boxTitle2(size, title)); break;
+		case 3: System.out.println(boxTitle3(size, title)); break;
+		case 4: System.out.println(boxTitle4(size, title)); break;
+		case 5: System.out.println(boxTitle5(size, title)); break;
+		case 6: System.out.println(boxTitle6(size, title)); break;
+		case 7: System.out.println(boxTitle7(size, title)); break;
+		}
+	}
+	
+	/**
+	 * Prints a random BoxText from the ones defined
+	 * @param size
+	 * @param title
+	 */
+	public static void printBoxTextRandom(int size, String title) {
+		System.out.println(boxTextRandom(size, title));
+	}
+
+	/**
 	 * Generates a random BoxText from the ones defined
 	 * @param size
 	 * @param title
@@ -1665,6 +1736,24 @@ public class Complex {
 		return makeBoxText(size, text, 
 				"·", "-", "·", 
 				"[",      "]");
+	}
+
+	/**
+	 * Pints a box text in the standard output
+	 * @param boxId The id ob the text box
+	 * @param size The size of the text box
+	 * @param text The text
+	 */
+	public static void printBoxText(int boxId, int size, String text) {
+		switch (boxId) {
+		case 1: System.out.println(boxText1(size, text)); break;
+		case 2: System.out.println(boxText2(size, text)); break;
+		case 3: System.out.println(boxText3(size, text)); break;
+		case 4: System.out.println(boxText4(size, text)); break;
+		case 5: System.out.println(boxText5(size, text)); break;
+		case 6: System.out.println(boxText6(size, text)); break;
+		case 7: System.out.println(boxText7(size, text)); break;
+		}
 	}
 
 	/*
@@ -2140,7 +2229,7 @@ public class Complex {
 		//double nIm = comExp * Math.sin(comTri);
 		//return new Complex('C', nRe, nIm);
 	}
-
+	
 	/**
 	 * Calculates the value of 'this' raised to the REAL number 'nExp'.
 	 * @param nExp The Complex Object to raise 'this'.
@@ -2295,13 +2384,32 @@ public class Complex {
 	public boolean isIntegerNegativeZero() {
 		return (rep <= 0 && isInteger());	
 	}
+	
+	/**
+	 * 
+	 * @param d
+	 * @return
+	 */
+	public static Complex gamma(double d) {
+		Complex z = new Complex(d,0);
+		return gamma(z);
+	}
+
+	/**
+	 * 
+	 * @param z
+	 * @return
+	 */
+	public static Complex gamma(Complex z) {
+		return gamma_fast(z);
+	}
 
 	/**
 	 * The function gamma optimized for calculations. Selects the best calculator function based on the gamma parameter z
 	 * @param z the gamma parameter as Complex
 	 * @return the gamma value
 	 */
-	public static Complex gamma(Complex z) {
+	public static Complex gamma_zones(Complex z) {
 		if (z.isIntegerNegativeZero()) {
 			double sign = Math.pow(-1.0, Math.ceil(z.rep));
 			return ZERO.inverse().times(sign);
@@ -2309,7 +2417,7 @@ public class Complex {
 
 		if (z.isPureReal() && z.mod() > 3) {
 			if (z.rep() > 0) return gamma_integral(z);
-			else return gamma_integral(ONE.minus(z)).inverse().times(PI/Math.sin(z.rep()*PI)); // Use of the gamma reflection property
+			else return gamma_integral(ONE.minus(z)).inverse().times(Math.PI/Math.sin(z.rep()*Math.PI)); // Use of the gamma reflection property
 		}
 		else if (z.rep > 5) return gamma_integral(z);
 			else return gamma_euler(z);
@@ -2443,6 +2551,52 @@ public class Complex {
 	}
 	
 	/**
+	 * https://es.wikipedia.org/wiki/Aproximaci%C3%B3n_de_Lanczos
+	 * @param z
+	 * @return
+	 */
+	public static Complex gamma_fast(Complex z) {
+		Complex result = new Complex();
+	    double p[] = {676.5203681218851, -1259.1392167224028, 771.32342877765313,
+	    			  -176.61502916214059, 12.507343278686905, -0.13857109526572012,
+	    			  9.9843695780195716e-6, 1.5056327351493116e-7};
+	    if (z.rep < 0.5)
+	        result = Complex.PI.divides((sin(Complex.PI.times(z)).times(gamma_fast(Complex.ONE.minus(z)))));
+	    else {
+	        z = z.minus(1);
+	        Complex x = new Complex(0.99999999999980993);
+	        for (int i = 0; i < p.length; ++i) { // pval) in enumerate(p):
+	        	Complex pval = new Complex(p[i]);
+	        	x = x.plus(pval.divides(z.plus(i+1)));
+	        }
+            Complex t = z.plus(p.length - 0.5);
+            result = Complex.sqrt(Complex.DOSPI).times(t.power(z.plus(0.5))).times(Complex.exp(t.opposite()).times(x));
+	    }
+	    return result;
+	}
+	
+	/**
+	 * The factorial for integers
+	 * @param n
+	 * @return
+	 */
+	public static double factorial(int n) {
+		double fact = 1.0;
+		for (int i = 2; i <= n; ++i)
+			fact *= i;
+		return fact;
+	}
+	
+	/**
+	 * Tecomplex factorial as gamma
+	 * @param n
+	 * @return
+	 */
+	public static Complex factorial(Complex n) {
+		return gamma(n);
+	}
+
+	/**
 	 * The Beta function
 	 * @param p Complex
 	 * @param q Complex
@@ -2450,6 +2604,229 @@ public class Complex {
 	 */
 	public static Complex beta(Complex p, Complex q) {
 		return gamma(p).times(gamma(q)).divides(gamma(p.plus(q)));
+	}
+	
+	/*
+	 * http://mrob.com/pub/ries/src/zeta.cpp.txt
+	 */
+	/**
+	 * The Riemann's zeta function. Only for Re(s) > 1
+	 * @param s The s parameter of the zeta function
+	 * @return The Riemann's zeta function value
+	 */
+	public static Complex zeta(Complex s) {
+		/* * /
+		Complex.storeFormatStatus();
+		Complex.storePrecision();
+		boolean _exact_ = Complex.exact();
+
+		Complex.setFixedON(8);
+		Complex.exact(true);
+		/* */
+
+		if (s.isZero()) return new Complex(-0.5);
+		// if (s.equals(ZERO)) return new Complex(-0.5);
+		if (s.rep == 1.0 && s.isPureReal()) return Complex.ONE.divides(0);
+		if (s.rep > 2.0) return zeta_re(s);
+		if (s.rep < -1.0) return zeta_ext(s);
+		return zeta_havil(s);
+	}
+		
+	/**
+	 * The Riemann's zeta function. Only for Re(s) > 1
+	 * @param s The s parameter of the zeta function
+	 * @return The Riemann's zeta function value
+	 */
+	public static Complex zeta_re(Complex s) {
+		Complex z1 = new Complex(0);
+		Complex z2 = new Complex(0);
+		Complex k = Complex.ONE;
+		boolean notFinished = true;
+		
+		while (notFinished) {
+			z1 = z1.plus(k.power(s.opposite()));
+			if (z1.equals(z2)) notFinished = false;
+			z2 = z1.copy();
+			k = k.plus(1);
+		}
+		return z1;
+	}
+
+	/**
+	 * The Riemann's zeta function. Only for Re(s) > 1
+	 * @param s The s parameter of the zeta function
+	 * @return The Riemann's zeta function value
+	 */
+	public static Complex zeta_ext(Complex s) {
+		Complex s_one = s.minus(1);
+		Complex one_s = Complex.ONE.minus(s);
+		Complex z = Complex.sin(Complex.PI.divides(2).times(s));
+		if (z.equals(Complex.ZERO)) return Complex.ZERO;
+		z = z.times(new Complex(2).power(s));
+		z = z.times(Complex.PI.power(s_one));
+		z = z.times(Complex.gamma(one_s));
+		z = z.times(zeta(one_s));
+		return z;
+	}
+
+	/**
+	 * TODO
+	 * @param s
+	 * @return
+	 */
+	public static Complex zeta_reflex(Complex s) {
+		Complex s_one = s.minus(1);
+		Complex one_s = Complex.ONE.minus(s);
+		Complex z = Complex.cos(Complex.PI.divides(2).times(one_s));
+		if (z.equals(Complex.ZERO)) return Complex.ZERO;
+		z = z.times(one_s.divides(2*Math.PI*Math.E));
+		z = z.times(Complex.sqrt(new Complex(8*Math.PI).divides(one_s)));
+		return z;
+	}
+	
+	/**
+	 * Solo vale para s.rep() > 1 - Only for Re(s) > 1
+	 * @param s
+	 * @return
+	 */
+	public static Complex zeta_primes(Complex s) {
+		long prime;
+		Scanner sc;
+		Complex zPrime = new Complex();
+		Complex z = new Complex(1);
+		Complex z0 = new Complex(0);
+		Complex sOpp = s.opposite();
+		Complex epsilon = new Complex();
+		String str;
+		
+		if (s.rep() <= 1.0) return zeta(s);
+		
+		try {
+			sc = new Scanner(new File("./data/primes_n.txt"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return Complex.mONE;
+		}  
+		sc.useDelimiter(" ");   //sets the delimiter pattern 
+		while (sc.hasNext())  //returns a boolean value  
+		{  
+			str = sc.next().trim();
+			// System.out.println("str:" + str);
+			if (str.isBlank() || str.isEmpty()) break;
+			prime = Long.parseLong(str);
+			// System.out.println("prime:" + prime);  //find and returns the next complete token from this scanner
+			zPrime.setComplexRec(prime, 0);
+			z = z.divides(Complex.ONE.minus(zPrime.power(sOpp)));
+			epsilon = z.minus(z0);
+			//System.out.println("epsilon:" + epsilon.mod()); 
+			if (Double.isNaN(epsilon.mod())) break;
+			if (epsilon.mod() <= Complex.ZERO_THRESHOLD) break;
+			z0 = z.copy();		
+		}   
+		sc.close();  //closes the scanner  	
+		return (z);
+	}
+	
+	/**
+	 * The Riemann-Siegel formula for 0 < Re(s) < 1
+	 * @param s
+	 * @return
+	 */
+	public static Complex zeta_riemann_siegel(Complex s) {
+		double m = Math.sqrt(Math.abs(s.imp()/2/Math.PI));
+		Complex dos = new Complex(2);
+		Complex one_s = Complex.ONE.minus(s);
+		Complex X = dos.power(s).times(Complex.PI.power(s.minus(1))).times(Complex.sin(Complex.PI.times(s).divides(2))).times(Complex.gamma(one_s));
+		Complex S1 = new Complex(0);
+		Complex S2 = new Complex(0);
+		Complex N = new Complex(0);
+		for(int n = 1; n <= m; ++n) {
+			N.setComplexRec(n, 0);
+			S1 = S1.plus((N.power(s)).inverse());
+			S2 = S2.plus((N.power(one_s)).inverse());
+		}
+		return S1.plus(X.times(S2));
+	}
+	
+	//https://www.robertelder.ca/calculatevalue
+	//https://mathworld.wolfram.com/RiemannZetaFunction.html
+	/**
+	 * The Riemann's zeta function. Only for Re(s) > 0
+	 * @param s
+	 * @return
+	 */
+	public static Complex zeta_analytic_continuation(Complex s) {
+		Complex cDOS = new Complex(2);
+		Complex term = Complex.ONE.minus(cDOS.power(Complex.ONE.minus(s)));
+		Complex z1 = new Complex(0);
+		Complex z2 = new Complex(0);
+		Complex k = Complex.ONE;
+		boolean notFinished = true;
+		
+		while (notFinished) {
+			z1 = z1.plus((Complex.mONE.power(k.minus(1))).divides(k.power(s)));
+			//z1.println("z1 = ");
+			if (z1.equals(z2)) notFinished = false;
+			z2 = z1.copy();
+			k = k.plus(1);
+			k.println("k=");
+		}
+		return z1.divides(term);
+	}
+
+	/**
+	 * Sondow, Jonathan and Weisstein, Eric W. "Riemann Zeta Function." From MathWorld--A Wolfram Web Resource. 
+	 * https://mathworld.wolfram.com/RiemannZetaFunction.html
+	 * @param s
+	 * @return
+	 */
+	public static Complex zeta_havil(Complex s) {
+		int maxN = 170;
+		Complex sum2 = new Complex();
+		Complex sum = new Complex();
+		Complex sum1 = new Complex();
+		for (int n = 0; n < maxN; ++n) {
+			sum2 = Complex.ONE.power(s);
+			for (int k = 1; k <= n; ++k) {
+				sum = (Complex.mONE.power(k).times(Complex.binomialCoef(n, k))).divides((Complex.ONE.plus(k)).power(s));
+				sum2 = sum2.plus(sum);
+			}
+			sum1 = sum1.plus(Complex.ONE.divides(Math.pow(2,n+1)).times(sum2));
+		}
+		return sum1.divides(Complex.ONE.minus(new Complex(2,0).power(Complex.ONE.minus(s))));
+	}
+	
+	/**
+	 * Returns the k zero of the Chebyshev Unary Polynomial of n+1 degree
+	 * @param n the number of samples (0..n)
+	 * @param k The k term looked after
+	 * @return the value of the k zero 
+	 */
+	public static Complex ChebyshevZero(int n, int k) {
+		return Complex.cos(new Complex((2.0*k+1.0)/(2.0*n+2.0)*Math.PI));
+	}
+	
+	/**
+	 * The complex binomial coefficient with integer arguments
+	 * @param n
+	 * @param k
+	 * @return
+	 */
+	public static Complex binomialCoef(int n, int k) {
+		if (k >= 0 && k <= n)
+			return new Complex(factorial(n)/factorial(k)/factorial(n-k), 0.0);
+		else return new Complex(0.0,0.0);
+	}
+	
+	/**
+	 * The complex binomial coefficient with integer arguments
+	 * @param n
+	 * @param k
+	 * @return
+	 */
+	public static Complex binomialCoef(Complex n, Complex k) {
+		return gamma(n).divides(gamma(k)).divides(gamma(n.minus(k)));
 	}
 	
 	/*
@@ -2496,6 +2873,16 @@ public class Complex {
 	}
 
 	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex sin(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return sin(z);
+	}
+
+	/**
 	 * Returns a new Complex Object which value is the cosecant of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object cosecant of 'z'.
@@ -2503,6 +2890,16 @@ public class Complex {
 	public static Complex csc(Complex z) {
 		return sin(z).power(-1);
 
+	}
+
+	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex csc(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return csc(z);
 	}
 
 	// returns a new Complex object which value is the z cosine of this
@@ -2514,6 +2911,16 @@ public class Complex {
 	public static Complex cos(Complex z) {
 		return new Complex('C', Math.cos(z.rep) * Math.cosh(z.imp), -Math.sin(z.rep) * Math.sinh(z.imp));
 	}
+	
+	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex cos(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return cos(z);
+	}
 
 	/**
 	 * Returns a new Complex Object which value is the secant of 'z'.
@@ -2522,6 +2929,16 @@ public class Complex {
 	 */
 	public static Complex sec(Complex z) {
 		return cos(z).power(-1);
+	}
+
+	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex sec(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return sec(z);
 	}
 
 	// returns a new Complex object which value is the z tangent of this
@@ -2535,6 +2952,16 @@ public class Complex {
 	}
 
 	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex tan(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return tan(z);
+	}
+
+	/**
 	 * Returns a new Complex Object which value is the cotangent of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object cotangent of 'z'.
@@ -2544,6 +2971,16 @@ public class Complex {
 	}
 	
 	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex cot(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return cot(z);
+	}
+
+	/**
 	 * Returns a new Complex Object which value is the hyperbolic sine of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object hyperbolic sine of 'z'.
@@ -2551,9 +2988,20 @@ public class Complex {
 	public static Complex sinh(Complex z) {
 		//sinh(Z) = (cos(b) * ((exp(a) - exp(-a)) / 2) + Sin(b) * ((exp(a) + exp(-a)) / 2)i)
 		//sinh(Z) = senh a * cos b + (cosh a * sen b)i
+		//return (Complex.exp(z).minus(Complex.exp(z.opposite()))).divides(2);
 		double Rep = Math.sinh(z.rep) * Math.cos(z.imp);
 		double Imp = Math.cosh(z.rep) * Math.sin(z.imp);
 		return new Complex('C', Rep, Imp);
+	}
+
+	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex sinh(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return sinh(z);
 	}
 
 	/**
@@ -2566,6 +3014,16 @@ public class Complex {
 	}
 
 	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex csch(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return csch(z);
+	}
+
+	/**
 	 * Returns a new Complex Object which value is the hyperbolic cosine of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object hyperbolic cosine of 'z'.
@@ -2573,9 +3031,20 @@ public class Complex {
 	public static Complex cosh(Complex z) {
 		//cosh(Z) = (cos(b) * ((exp(a) + exp(-a)) / 2) + Sin(b) * ((exp(a) - exp(-a)) / 2)i)
 		//cosh(Z) = cosh x * cos b + (sinh a * sen b)i
+		//return (Complex.exp(z).plus(Complex.exp(z.opposite()))).divides(2);
 		double Rep = Math.cosh(z.rep) * Math.cos(z.imp);
 		double Imp = Math.sinh(z.rep) * Math.sin(z.imp);
 		return new Complex('C', Rep, Imp);
+	}
+
+	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex cosh(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return cosh(z);
 	}
 
 	/**
@@ -2588,6 +3057,16 @@ public class Complex {
 	}
 
 	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex sech(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return sech(z);
+	}
+
+	/**
 	 * Returns a new Complex Object which value is the hyperbolic tangent of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object hyperbolic tangent of 'z'.
@@ -2597,12 +3076,32 @@ public class Complex {
 	}
 
 	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex tanh(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return tanh(z);
+	}
+
+	/**
 	 * Returns a new Complex Object which value is the hyperbolic cotangent of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object hyperbolic cotangent of 'z'.
 	 */
 	public static Complex coth(Complex z) {
 		return cosh(z).divides(sinh(z));
+	}
+
+	/**
+	 * TODO
+	 * @param zd
+	 * @return
+	 */
+	public static Complex coth(double zd) {
+		Complex z = new Complex(); z.setComplexRec(zd, 0);
+		return coth(z);
 	}
 
 	/**
@@ -2686,6 +3185,29 @@ public class Complex {
 		return log((z.plus(1)).divides(z.minus(1))).divides(2);
 	}
 	
+	public static Complex sinc(Complex z) {
+		if (z.isZero()) return Complex.ONE;
+		return sin(z).divides(z);
+	}
+	
+	public static Complex cosc(Complex z) {
+		return cos(z).divides(z);
+	}
+
+	public static Complex tanc(Complex z) {
+		return sinc(z).divides(cosc(z));
+	}
+
+	/**
+	 * Returns the value of the Chebyshev polynomial of degree at a poinnt
+	 * @param degree The degree of the polynomial
+	 * @param cx The point 
+	 * @return The value of the Chebyshev polynomial
+	 */
+	public static Complex chebyshev(int degree, Complex cx) {
+		return Complex.cos(Complex.arccos(cx).times(degree));
+	}
+
 	/*
 	 * ***********************************************
 	 * INTEGRATION & DERIVATION
@@ -3013,7 +3535,7 @@ public class Complex {
 		Complex nextPoint = new Complex();
 		double precision = Complex.LIM_PRECISION; //Complex.PRECISION * 1e5; //1e5; 
 		newMod = point.mod + precision * mult * sign;
-		newPha = newMod < LIM_PRECISION ? point.pha + Complex.PI : point.pha;
+		newPha = newMod < LIM_PRECISION ? point.pha + Math.PI : point.pha;
 		newMod = Math.abs(newMod);
 		nextPoint.setComplexPol(newMod, newPha);
 		return nextPoint;
