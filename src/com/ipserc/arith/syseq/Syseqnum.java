@@ -10,10 +10,15 @@ public class Syseqnum extends MatrixComplex {
 	private int numIters = -1;
 	
 	private final static String HEADINFO = "Syseqnum --- INFO: ";
-	private final static String VERSION = "1.1 (2021_1112_2300)";
+	private final static String VERSION = "1.2 (2023_0527_1900)";
 	/* VERSION Release Note
+	 * 	Syseqnum: System Equation Solver by Numerical Methods
 	 * 
-	 * Syseqnum: System Equation Solver by Numerical Methods
+	 * 1.2 (2023_0527_1900)
+	 * 
+	 * 	public MatrixComplex congrad(Complex initGuess, int iterations)
+	 * 		if (checkConvergence(xi.transpose(), xi1.transpose(), Complex.zero_treshold_r())) {
+	 * 		--> Replaced with Complex.zero_threshold_approx())) {
 	 * 
 	 * 1.1 (2021_1112_2300)
 	 * 
@@ -641,7 +646,7 @@ public class Syseqnum extends MatrixComplex {
 			/**** BOOK CORRECTION ****/
 
 			// Here we need to use the reduced threshold comparison for identifying the zero
-			if (checkConvergence(xi.transpose(), xi1.transpose(), Complex.zero_treshold_r())) {
+			if (checkConvergence(xi.transpose(), xi1.transpose(), Complex.zero_threshold_approx())) {
 				//* -------------   DEBUGGING BLOCK   ------------- *
 				if (DEBUG_ON) {
 					System.out.println(HEADINFO + "congrad Iteration:" + (k+1));
