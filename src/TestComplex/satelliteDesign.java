@@ -34,7 +34,7 @@ public class satelliteDesign {
 		MatrixComplex intensities = new MatrixComplex();
 		
 		circuit.complexMatrix[0][5].setComplexRec(batteryVoltage, 0); // Sets the battery voltage in the systems equation
-		intensities = circuit.solve(Reduced);
+		intensities = circuit.solve();
 		intensities.println("Intensidades");
 		
 		double intensity = intensities.complexMatrix[0][0].mod();

@@ -18,20 +18,25 @@ public class plotPolynom01 {
 		roots.println("roots");
 		loLimit = myPolynom.getMinRoot(roots);		
 		upLimit = myPolynom.getMaxRoot(roots);
-		myPolynom.setSampleBase(600);
-		myPolynom.plot(loLimit, upLimit);
-		myPolynom.plotReIm(loLimit, upLimit);     	
-     	myPolynom.plotAbs(loLimit, upLimit);     	
-     	myPolynom.plotPhase(loLimit, upLimit);		
+		myPolynom.setSampleBase(1600);
+		//myPolynom.plot(loLimit, upLimit);
+		//myPolynom.plotReIm(loLimit, upLimit);     	
+     	//myPolynom.plotAbs(loLimit, upLimit);     	
+     	//myPolynom.plotPhase(loLimit, upLimit);		
 	}
 	
 	public static void main(String[] args) {
 		Polynom myPolynom, aPolynom;
 		int degree;
      	int kind;
+     	int alpha;
 
      	Complex.setFormatON();
-     	Complex.setFixedON(5);
+     	Complex.setScientificON(5);
+     	
+     	aPolynom = new Polynom();
+     	myPolynom = new Polynom();
+     	
 		/*
     	myPolynom = new Polynom("1.0,-1.5i,2.0,-1.5i,1.0");
 		showResults(myPolynom);
@@ -81,10 +86,11 @@ public class plotPolynom01 {
      	/ * */
 
      	/* * /
-		int degree = 5;
+		degree = 5;
      	myPolynom = new Polynom().hermite(degree);
      	myPolynom.println("Hermite " + degree);
 		showResults(myPolynom);
+     	/* * /
      	
      	myPolynom = new Polynom().legendre(degree);
      	myPolynom.println("Legendre " + degree);
@@ -94,7 +100,7 @@ public class plotPolynom01 {
      	myPolynom.println("Laguerre " + degree);
 		showResults(myPolynom);
 
-     	int alpha = 2;
+     	alpha = 2;
      	myPolynom = new Polynom().laguerre(degree, alpha);
      	myPolynom.println("Laguerre " + degree + "," + alpha);
 		showResults(myPolynom);
@@ -108,7 +114,7 @@ public class plotPolynom01 {
 		showResults(myPolynom);
     	/* */
 
-     	/* 
+     	/* * /
 		degree = 5;
      	kind = 3;
      	myPolynom = new Polynom().chebyshev(degree, kind);
@@ -123,18 +129,34 @@ public class plotPolynom01 {
 		
 		myPolynom = new Polynom("1,-7+8i,4+4i,-8+9i,-7+7i,-3-6i,1-8i,5-7i,-9-8i,8+7i,3+8i,6+8i,6+8i,-3-3i,2-i,-6-6i");
 		showResults(myPolynom);
-
      	myPolynom = new Polynom(13);
 		myPolynom.initMatrixRandomRec(7);
 		showResults(myPolynom);
 
-		*/
+		/* */
 
-		degree = 28;
-     	kind = 10;
+     	/*
+		degree = 4;
+       	myPolynom = new Polynom().legendre(degree);
+     	myPolynom.println("Legendre " + degree);
+		showResults(myPolynom);
+		*/
+     	
+     	/*
+		degree = 3;
+     	alpha = 1;
+       	myPolynom = new Polynom().laguerre(degree, alpha);
+     	myPolynom.println("Laguerre " + degree + "," + alpha);
+		showResults(myPolynom);
+		*/
+     	
+		/*
+		degree = 0;
+     	kind = 1;
      	myPolynom = new Polynom().chebyshev(degree, kind);
      	myPolynom.println("Chebyshev " + degree + "," + kind);
 		showResults(myPolynom);
+		*/
 
 		/*
 		myPolynom = new Polynom("1,2,-1,-2");
@@ -159,6 +181,25 @@ public class plotPolynom01 {
 		showResults(myPolynom);
 		*/
 		//MatrixComplex polGen = new MatrixComplex(); polGen.
+		
+     	/*
+     	String strRoots = "1,2,3,5,7,11,13,17,19,23,29,31,37,41";
+    	myPolynom = myPolynom.fromRoots(strRoots);
+    	myPolynom.println("fromRoots(\""+strRoots+"\")");
+		showResults(myPolynom);
+
+		myPolynom = new Polynom("-1.66666666666666666667E-01,1.50000E+00,-3.00000E+00,1.00000E+00");
+		showResults(myPolynom);
+		*/
+     	/*
+		myPolynom = new Polynom("1.66667E-01-2.50000E+00i,-1.00000E+00+1.80000E+01i,-1.66667E-01-3.95000E+01i,3.00000E+00+2.60000E+01i");
+		showResults(myPolynom);
+		
+		myPolynom = new Polynom("-2.23214E-03,6.98413E-02,-8.92361E-01,5.99306E+00,-2.26580E+01,4.77347E+01,-5.09474E+01,2.17024E+01,1.00000E+00");
+		showResults(myPolynom);
+		*/
+		myPolynom = new Polynom("-3.55000E-06,2.56760E-04,-8.19242E-03,1.51722E-01,-1.80582E+00,1.44435E+01,-7.88203E+01,2.91676E+02,-7.11779E+02,1.08015E+03,-9.05087E+02,3.12074E+02,1.00000E+00");
+		showResults(myPolynom);
 		
 	}
 

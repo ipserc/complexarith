@@ -32,6 +32,7 @@ package TestComplex;
 import com.ipserc.arith.complex.*;
 
 public class TestComplex01 {
+	
     public static void main(String[] args) {
     	int boxSize = 65;
     	Complex a = new Complex("4-3i");
@@ -530,5 +531,6 @@ public class TestComplex01 {
 	   d = a.times(b);
 	   System.out.println("a*b = " + d.toStringRec() + " : " + d.toStringPol());
 	   System.out.println("------------------------------------------------------------");
+	   
     }
 }

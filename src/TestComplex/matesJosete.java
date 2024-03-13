@@ -29,7 +29,7 @@ public class matesJosete {
 		System.out.println("------------------------ EJERCICIO 1 ------------------------");
 		MatrixComplex matrixA = new MatrixComplex("2,0,1;0,1,-2;3,-3,0;0,0,8");
 		matrixA.println("Matrix A");
-		int rank = matrixA.rank(Reduced);
+		int rank = matrixA.rank();
 		System.out.printf("Rank(Matrix A)=%d\n", rank);	
 	}
 
@@ -48,16 +48,16 @@ public class matesJosete {
 		vector = new Vector("2,-3,1,-1");
 		vector.println("vector");
 		vector.baseChg(base).println("Vector en base");
-		int rank = base.rank(Reduced);
+		int rank = base.rank();
 		System.out.printf("Rank(base)=%d\n", rank);			
 		System.out.println("------------------------ EJERCICIO 3 ------------------------");
 		MatrixComplex matrixA = new MatrixComplex("4,-1,0;2,1,-3;14,1,-9");
 		matrixA.println("Matrix A");		
-		rank = matrixA.rank(Reduced);
+		rank = matrixA.rank();
 		System.out.printf("Rank(Matrix A)=%d\n", rank);	
 		matrixA = matrixA.transpose().subMatrix("0,1", "0,1,2,");
 		matrixA.println("Sub Matrix A transpose");		
-		matrixA.solve(Reduced).println("Coeficientes C.L.");
+		matrixA.solve().println("Coeficientes C.L.");
 	}
 
 	public static void ej_2018_1002() {
@@ -65,7 +65,7 @@ public class matesJosete {
 		System.out.println("------------------------ EJERCICIO 1 ------------------------");
 		MatrixComplex subEspacio = new MatrixComplex("1,-1,1,2;1,3,-2,1");
 		subEspacio.println("Subespacio");
-		int rank = subEspacio.rank(Reduced);
+		int rank = subEspacio.rank();
 		System.out.printf("Rank(subEspacio)=%d\n", rank);
 		Vector subVectorA = new Vector(); 
 		subVectorA.complexMatrix = subEspacio.subMatrix("0", "0,1,2").complexMatrix.clone();
