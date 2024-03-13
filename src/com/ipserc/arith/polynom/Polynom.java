@@ -8,6 +8,8 @@ package com.ipserc.arith.polynom;
  */
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.arith.syseq.Syseq;
+import com.ipserc.geom.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.panayotis.gnuplot.JavaPlot;
@@ -16,12 +18,58 @@ public class Polynom extends MatrixComplex {
 	private Complex[][] polyNorm;
 	private Polynom remainder;
 
-	private static double sampleBase = 300;
-	private static int maxRootIter = 5000;
+	public static int sampleBase = 300;		// The number of samples used to plot te grapic
+	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.3 (2022_0123_0100)";
+	private final static String VERSION = "1.5 (2024_0114_0200)";
 	/* VERSION Release Note
+	 * 1.5 (2024_0114_0200)
+	 * public Complex eval(Complex value) 
+	 * public Complex eval(double value)
+	 * public Complex evalHorner(Complex value)
+	 * public Complex evalHorner(double value)
+	 * public Complex evalFact(Complex value) 
+	 * public Complex evalFact(double value) 
+	 * 
+	 * 1.4 (2023_0528_1900)
+	 * public Polynom power(int pot): Calculates the polynomial to the nth power
+	 * public Polynom hermiteI(int degree) : Added just for fun hermite(n) = 2n*hermite(n-1)i - 2(n-1)*hermite(n-2)
+	 * public Polynom legendreI(int degree) : Added just for fun (n+1)*legendre(n+1) = (2n+1)·x*legendre(n)i - n*legendre(n-1)
+	 * public void plot(List<double[][]> pointsList, String title)
+	 * public void plotRe(List<MatrixComplex> pointsList, String title)
+	 * public void plotIm(List<MatrixComplex> pointsList, String title)
+	 * public MatrixComplex coefMatrix()
+	 * private MatrixComplex walkIntervalRE(Complex lolimit, Complex uplimit, int samples) 
+	 * private MatrixComplex walkIntervalIM(Complex lolimit, Complex uplimit, int samples) 
+	 * public MatrixComplex walkInterval(Complex lolimit, Complex uplimit, int samples) 
+	 * public MatrixComplex walkInterval(double lolimit, double uplimit, int samples) 
+	 * private Complex slope(int i, int j, MatrixComplex points) 
+	 * private Complex f(int order, int i, MatrixComplex points) 
+	 * public Polynom interpolationNewton(MatrixComplex points) 
+	 * public String toWolfram_poly() : replace("E", "*10^")
+	 * public static double sampleBase = 300;
+	 * public static int maxRootIter = 5000;
+	 * public Polynom L(int k, MatrixComplex points)
+	 * public Polynom interpolationLagrange(MatrixComplex points)
+	 * public void plotExpression(String GNUplotExpression,double loLimit, double upLimit) {
+	 * public void plotExpression(double loLimit, double upLimit) {
+	 * public void plotExpressionRe(double loLimit, double upLimit) {
+	 * public void plotExpressionIm(double loLimit, double upLimit) {
+	 * public void plotExpressionReIm(double loLimit, double upLimit) {
+	 * public void plotExpressionRepIm(double loLimit, double upLimit) {
+	 * public void plotExpressionAbs(double loLimit, double upLimit) {
+	 * public void plotExpressionPhase(double loLimit, double upLimit) {
+	 * public void plot(List<double[][]> pointsList, String title) {
+	 * public void plotRe(List<MatrixComplex> pointsList, String title) {
+	 * public void plotIm(List<MatrixComplex> pointsList, String title) {
+	 * public MatrixComplex walkInterval(Complex lolimit, Complex uplimit) {
+	 * public Polynom normalize() {
+	 * public Polynom fromRoots(MatrixComplex rootMatrix) {
+	 * public void plotRe(MatrixComplex points, String title) {
+	 * public void plotIm(MatrixComplex points, String title) {
+	 * public void plotMod(MatrixComplex points, String title) {
+	 * public void plotPha(MatrixComplex points, String title) {
 	 * 
 	 * 1.3 (2022_0123_0100)
 	 * toWolfram_roots() --> roots[...]
@@ -98,7 +146,7 @@ public class Polynom extends MatrixComplex {
 	 */
 	public MatrixComplex newPolynom(String cadena) {
 		Polynom polynom = new Polynom(cadena); 
-		polynom.reverse(); // The array is inverted to adecuate it with the columns indexes
+		polynom.reverse(); // The array is reversed to adecuate it with the columns indexes
 		return polynom;   	
 	}
 
@@ -154,7 +202,7 @@ public class Polynom extends MatrixComplex {
 	 * sampleBase is the number of samples per unity taking when plotting
 	 * @param value the number of samples per unity
 	 */
-	public void setSampleBase(double value) {
+	public void setSampleBase(int value) {
 		sampleBase = value;
 	}
 
@@ -258,9 +306,7 @@ public class Polynom extends MatrixComplex {
 		String polynom = new String(); 
 
 		polynom = this.toString();
-		//polynom = polynom.replace("i", "I");
-
-		return polynom;
+		return polynom.replace("E", "*10^");
 	}
 
 	/**
@@ -429,28 +475,16 @@ public class Polynom extends MatrixComplex {
 	 * METHODS
 	 * ***********************************************
 	 */
-
+	
 	/**
-	 * Calculates the result of evaluating a polynomial for a specific complex value.
+	 * Calculates the result of evaluating a polynomial for a specific complex value. Shortcut to the preferred method.
 	 * @param value The value to use in the polynomial.
 	 * @return The complex number resultant of evaluating the polynomial for "value".
-	 */
+	 */	
 	public Complex eval(Complex value) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		if (rowLen != 1) {
-			System.err.println("Not valid matrix: The matrix doesn't represent polynomial.");
-			System.exit(1);
-		}
-
-		Complex cRes = new Complex();
-		int i;
-		for (i = 1; i < colLen; ++i)
-			cRes = cRes.plus(this.complexMatrix[0][i].times(value.power(i)));
-		cRes = cRes.plus(this.complexMatrix[0][0]);
-		return cRes;
+		return evalHorner(value);
 	}
-
+	
 	/**
 	 * Calculates the result of evaluating a polynomial for a specific real value.
 	 * @param value The value to use in the polynomial.
@@ -459,6 +493,59 @@ public class Polynom extends MatrixComplex {
 	public Complex eval(double value) {
 		Complex cNum = new Complex(value,0);
 		return eval(cNum);
+	}
+
+	/**
+	 * Calculates the result of evaluating a polynomial for a specific complex value using the Horner method. 
+	 * @param value The value to use in the polynomial.
+	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 */
+	public Complex evalHorner(Complex value) {
+		int colLen = this.cols();
+		int rowLen = this.rows();
+		if (rowLen != 1) {
+			System.err.println("Not valid matrix: The matrix doesn't represent polynomial.");
+			System.exit(1);
+		}
+
+		Complex interValue = this.getItem(0,colLen-1).copy();
+		for (int i = colLen-2; i > -1; --i) {
+			interValue = this.getItem(0,i).plus((interValue).times(value));
+		}
+		return interValue;
+	}
+
+	public Complex evalHorner(double value) {
+		Complex cNum = new Complex(value,0);
+		return evalHorner(cNum);
+	}
+
+	/**
+	 * Calculates the result of evaluating a polynomial for a specific complex value through the power on the value. 
+	 * @param value The value to use in the polynomial.
+	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 */
+	public Complex evalFact(Complex value) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+		if (rowLen != 1) {
+			System.err.println("Not valid matrix: The matrix doesn't represent polynomial.");
+			System.exit(1);
+		}
+
+		Complex cRes = this.complexMatrix[0][0].copy();
+		Complex xpower = new Complex(1);
+		int i;
+		for (i = 1; i < colLen; ++i) {
+			xpower = xpower.times(value);
+			cRes = cRes.plus(this.complexMatrix[0][i].times(xpower));
+		}
+		return cRes;
+	}
+
+	public Complex evalFact(double value) {
+		Complex cNum = new Complex(value,0);
+		return evalFact(cNum);
 	}
 
 	/**
@@ -474,11 +561,17 @@ public class Polynom extends MatrixComplex {
 			System.exit(1);
 		}
 
-		Complex cRes = new Complex();
-		for (int i = 1; i < colLen; ++i)
-			cRes = cRes.plus(this.polyNorm[0][i].times(value.power(i)));
-		cRes = cRes.plus(this.polyNorm[0][0]);
-		return cRes;
+		Complex interValue = this.polyNorm[0][colLen-1].copy();
+		for (int i = colLen-2; i > -1; --i) {
+			interValue = this.polyNorm[0][i].plus((interValue).times(value));
+		}
+
+		return interValue;
+	}
+
+	public Complex evalNorm(double value) {
+		Complex cNum = new Complex(value,0);
+		return evalFact(cNum);
 	}
 
 	/**
@@ -494,6 +587,16 @@ public class Polynom extends MatrixComplex {
 		for (int i = 0; i < rowLen; ++i)
 			for (int j = 0; j < colLen; ++j)
 				this.polyNorm[i][j] = this.complexMatrix[i][j].divides(this.complexMatrix[i][degree]);
+	}
+	
+	/**
+	 * 
+	 */
+	public Polynom normalize() {
+		normalizePol();
+		Polynom normPol = new Polynom(this.degree());
+		normPol.complexMatrix = polyNorm.clone();
+		return normPol;
 	}
 
 	/**
@@ -707,6 +810,19 @@ public class Polynom extends MatrixComplex {
 		return result;
 	}
 
+	/**
+	 * Returns a new matrix with the coefficients of the polynomial ordered from x^0 to x^n.
+	 * The new matrix is the original one with the coeficients of the polynomial.
+	 * @return The new matrix with the coeficients of the polynomial.
+	 */
+ 	public MatrixComplex coefMatrix() {
+		int colLen = this.cols();
+		MatrixComplex coefMatrix = new MatrixComplex(1, colLen);
+		for (int col = colLen-1; col > -1; --col)
+				coefMatrix.complexMatrix[0][colLen-1-col] = this.complexMatrix[0][col].copy();
+		return coefMatrix;
+	}
+
 	/*
 	 * ***********************************************
 	 * OPERATORS
@@ -845,6 +961,18 @@ public class Polynom extends MatrixComplex {
 		return this.times(1/num);
 	}
 
+	/**
+	 * Calculates the polynomial to the nth power
+	 * @param pot The exponent
+	 * @return The polynomial raised to the nth power
+	 */
+	public Polynom power(int pot) {
+		if (pot <= 0) return new Polynom();
+		Polynom pol = this.copy();
+		for(int i = 1; i < pot; ++i)
+			pol = this.times(pol);
+		return pol;
+	}
 	/*
 	 * ***********************************************
 	 * PLOTTING
@@ -857,7 +985,7 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plot(String GNUplotExpression,double loLimit, double upLimit) {
+	public void plotExpression(String GNUplotExpression,double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
 		p.addPlot(GNUplotExpression);
@@ -869,11 +997,11 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Plots the polynomial between loLimit and upLimit.
+	 * Plots the polynomial as a expression between loLimit and upLimit.
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plot(double loLimit, double upLimit) {
+	public void plotExpression(double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
 		p.setTitle(this.toString());
@@ -885,11 +1013,11 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Plots the Real part of the polynomial between loLimit and upLimit.
+	 * Plots the Real part of the polynomial as a expression between loLimit and upLimit.
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotRe(double loLimit, double upLimit) {
+	public void plotExpressionRe(double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
 		p.setTitle("Re(" + this.toString() + ")");
@@ -902,11 +1030,11 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Plots the Imaginary part of the polynomial between loLimit and upLimit.
+	 * Plots the Imaginary part of the polynomial as a expression between loLimit and upLimit.
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotIm(double loLimit, double upLimit) {
+	public void plotExpressionIm(double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
 		p.setTitle("Im(" + this.toString() + ")");
@@ -919,11 +1047,11 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Plots the Real Imaginary parts of the polynomial between loLimit and upLimit in the same graphic.
+	 * Plots the Real Imaginary parts of the polynomial as a expression between loLimit and upLimit in the same graphic.
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotReIm(double loLimit, double upLimit) {
+	public void plotExpressionReIm(double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
 		p.setTitle("Re() Im() " + this.toString());
@@ -936,11 +1064,11 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Plots the nosenses Real Imaginary parts of the polynomial between loLimit and upLimit in the same graphic.
+	 * Plots the nosenses Real Imaginary parts of the polynomial as a expression between loLimit and upLimit in the same graphic.
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotRepIm(double loLimit, double upLimit) {
+	public void plotExpressionRepIm(double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
 		p.setTitle("Re() Im() " + this.toString());
@@ -953,11 +1081,11 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Plots the modulus (Abs) of the polynomial between loLimit and upLimit in the same graphic.
+	 * Plots the modulus (Abs) of the polynomial as a expression between loLimit and upLimit in the same graphic.
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotAbs(double loLimit, double upLimit) {
+	public void plotExpressionAbs(double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
 		p.setTitle("Abs("+this.toString()+")");
@@ -970,11 +1098,11 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Plots the phase (atan(Re/Im)) of the polynomial between loLimit and upLimit in the same graphic.
+	 * Plots the phase (atan(Re/Im)) of the polynomial as a expression between loLimit and upLimit in the same graphic.
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotPhase(double loLimit, double upLimit) {
+	public void plotExpressionPhase(double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * sampleBase;
 		JavaPlot p = new JavaPlot();
 		p.setTitle("Phase("+this.toString()+")");
@@ -986,6 +1114,210 @@ public class Polynom extends MatrixComplex {
 		p.addPlot("atan(real(" + this.toGNUPlot_poly() + ")/imag("+ this.toGNUPlot_poly() + "))");
 		p.plot();
 	}
+
+	/**
+	 * Plots different graphics in the same canvas from their list of ponts
+	 * @param pointsList The list with the points defined as List<double[][]> 
+	 * @param title the title of the graphic
+	 */
+	public void plot(List<double[][]> pointsList, String title) {
+		JavaPlot p = new JavaPlot();
+		p.setTitle(title);
+		for(int i = 0; i < pointsList.size(); ++i) {
+			p.addPlot(pointsList.get(i));
+		}
+		p.set("zeroaxis", "");
+		p.set("style","data lines");
+		p.set("mxtics","10");
+		p.set("mytics","10");
+		p.set("grid","xtics mxtics ytics mytics");
+		p.plot();
+	}
+
+	public void plot(double[][] points, String title) {
+		JavaPlot p = new JavaPlot();
+		p.setTitle(title);
+		p.addPlot(points);
+		p.set("zeroaxis", "");
+		p.set("style","data lines");
+		p.set("mxtics","10");
+		p.set("mytics","10");
+		p.set("grid","xtics mxtics ytics mytics");
+		p.plot();
+	}
+
+	public void plotRe(MatrixComplex points, String title) {
+		int samples = points.rows();
+		double[][] pointsRe = new double[samples][2];		
+		for (int i = 0; i < samples; ++i) {
+			pointsRe[i][0] = points.getItem(i, 0).rep(); 
+			pointsRe[i][1] = points.getItem(i, 1).rep(); 
+		}
+		plot(pointsRe, title);
+	}
+	
+	/**
+	 * Plots the real component of different graphics in the same canvas from its definition of its points as complexes
+	 * @param pointsList The list with the points defined as <MatrixComplex>
+	 * @param title the title of the graphic
+	 */
+	public void plotRe(List<MatrixComplex> pointsList, String title) {
+		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
+		int samples = pointsList.get(0).rows();
+		for(int l = 0; l < pointsList.size(); ++l) {
+			double[][] pointsRe = new double[samples][2];
+			for (int i = 0; i < samples; ++i) {
+				pointsRe[i][0] = pointsList.get(l).getItem(i, 0).rep(); 
+				pointsRe[i][1] = pointsList.get(l).getItem(i, 1).rep(); 
+			}
+			pointsListGraph.add(pointsRe);
+		}
+		plot(pointsListGraph, title);
+	}	
+
+	
+	public void plotIm(MatrixComplex points, String title) {
+		int samples = points.rows();
+		double[][] pointsIm = new double[samples][2];		
+		for (int i = 0; i < samples; ++i) {
+			pointsIm[i][0] = points.getItem(i, 0).imp(); 
+			pointsIm[i][1] = points.getItem(i, 1).imp(); 
+		}
+		plot(pointsIm, title);
+	}
+
+	/**
+	 * Plots the imaginary component of different graphics in the same canvas from its definition of its points as complexes
+	 * @param pointsList The list with the points defined as <MatrixComplex>
+	 * @param title the title of the graphic
+	 */
+	public void plotIm(List<MatrixComplex> pointsList, String title) {
+		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
+		int samples = pointsList.get(0).rows();
+		for(int l = 0; l < pointsList.size(); ++l) {
+			double[][] pointsIm = new double[samples][2];
+			for (int i = 0; i < samples; ++i) {
+				pointsIm[i][0] = pointsList.get(l).getItem(i, 0).imp(); 
+				pointsIm[i][1] = pointsList.get(l).getItem(i, 1).imp();
+			}
+			pointsListGraph.add(pointsIm);
+		}
+		plot(pointsListGraph, title);
+	}	
+
+	public void plotMod(MatrixComplex points, String title) {
+		int samples = points.rows();
+		double[][] pointsMod = new double[samples][2];		
+		for (int i = 0; i < samples; ++i) {
+			pointsMod[i][0] = points.getItem(i, 0).mod(); 
+			pointsMod[i][1] = points.getItem(i, 1).mod(); 
+		}
+		plot(pointsMod, title);
+	}
+
+	/**
+	 * 
+	 * @param pointsList
+	 * @param title
+	 */
+	public void plotMod(List<MatrixComplex> pointsList, String title) {
+		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
+		int samples = pointsList.get(0).rows();
+		for(int l = 0; l < pointsList.size(); ++l) {
+			double[][] pointsIm = new double[samples][2];
+			for (int i = 0; i < samples; ++i) {
+				pointsIm[i][0] = pointsList.get(l).getItem(i, 0).mod(); 
+				pointsIm[i][1] = pointsList.get(l).getItem(i, 1).mod();
+			}
+			pointsListGraph.add(pointsIm);
+		}
+		plot(pointsListGraph, title);
+	}	
+
+	public void plotPha(MatrixComplex points, String title) {
+		int samples = points.rows();
+		double[][] pointsPha = new double[samples][2];		
+		for (int i = 0; i < samples; ++i) {
+			pointsPha[i][0] = points.getItem(i, 0).pha(); 
+			pointsPha[i][1] = points.getItem(i, 1).pha(); 
+		}
+		plot(pointsPha, title);
+	}
+	
+	/**
+	 * 
+	 * @param pointsList
+	 * @param title
+	 */
+	public void plotPha(List<MatrixComplex> pointsList, String title) {
+		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
+		int samples = pointsList.get(0).rows();
+		for(int l = 0; l < pointsList.size(); ++l) {
+			double[][] pointsIm = new double[samples][2];
+			for (int i = 0; i < samples; ++i) {
+				pointsIm[i][0] = pointsList.get(l).getItem(i, 0).mod(); 
+				pointsIm[i][1] = pointsList.get(l).getItem(i, 1).pha();
+			}
+			pointsListGraph.add(pointsIm);
+		}
+		plot(pointsListGraph, title);
+	}
+
+	/**
+	 * Traverses an interval taken sampleBase samples and evaluating the polynomial in these points
+	 * You should set sampleBase before calling this method
+	 * @param lolimit
+	 * @param uplimit
+	 * @return
+	 */
+	public MatrixComplex walkInterval(Complex lolimit, Complex uplimit) {
+		Complex.storeFormatStatus();
+		Complex.setScientificON(20);		
+		MatrixComplex tupla = new MatrixComplex(sampleBase, 2);
+		Complex dir = uplimit.minus(lolimit);
+		Complex inc = dir.divides(sampleBase);
+		Complex point;
+		for(int i=0; i < sampleBase; ++i) {
+			point = lolimit.plus(inc.times(i));
+			tupla.setItem(i, 0, point);
+			tupla.setItem(i, 1, this.eval(point));			
+		}
+		Complex.restoreFormatStatus();
+		return tupla;
+	}
+	
+	/**
+	 * Traverses an interval taken sampleBase samples and evaluating the polynomial in these points
+	 * @param dlolimit
+	 * @param duplimit
+	 * @return
+	 */
+	public MatrixComplex walkInterval(double dlolimit, double duplimit) {
+		Complex lolimit = new Complex(dlolimit);
+		Complex uplimit = new Complex(duplimit);
+		return walkInterval(lolimit, uplimit);
+	}
+	
+	public void plotRe(double[][] points) {
+		double lolimit = points[0][0];
+		double uplimit = points[points.length][0];
+		JavaPlot p = new JavaPlot();
+		p.setTitle("Phase("+this.toString()+")");
+		p.set("grid", "");
+		p.set("zeroaxis", "");
+		p.set("xrange", "[" + lolimit + ":" + uplimit + "]");
+		p.set("key", "noautotitle");
+		p.set("samples", Double.toString(sampleBase));
+		p.addPlot(points);
+		p.plot();
+	}
+	
+
+	/*
+	 * ***********************************************
+	 * POLYNIMIAL CALCULATIONS
+	 * ***********************************************
+	 */
 
 	/**
 	 * Returns a polynomial as result of the product of polynomials given in a List.
@@ -1018,6 +1350,22 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
+	 * Returns a polynomial from MatrixComplex of its roots.
+	 * @param rootMatrix MatrixComplex with the roots.
+	 * @return the polynomial.
+	 */
+	public Polynom fromRoots(MatrixComplex rootMatrix) {
+		Polynom polynom = new Polynom("1");
+		for (int i = 0; i < rootMatrix.rows(); ++i) {
+			Polynom polyRoot = new Polynom(1);
+			polyRoot.setItem(0, 0, rootMatrix.getItem(i, 0).opposite());
+			polyRoot.setItem(0, 1, 1);
+			polynom = polynom.times(polyRoot);
+		}
+		return polynom;
+	}
+
+	/**
 	 * Returns a polynomial from a list of its roots.
 	 * @param listRoots Complex list of the roots.
 	 * @return the polynomial.
@@ -1031,7 +1379,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Calculates the Hermite polynomial of degree "degree" using the formula hermite(n) = 2n*hermite(n-1) - 2(n-1)*hermte(n-2)
+	 * Calculates the Hermite polynomial of degree "degree" using the formula hermite(n) = 2n*hermite(n-1) - 2(n-1)*hermite(n-2)
 	 * Hermite(0) = 1
 	 * Hermite(1) = 2x
 	 * @param degree The degree of the Hermite polynomial.
@@ -1049,6 +1397,24 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
+	 * Calculates the Hermite I polynomial of degree "degree" using the formula hermite(n) = 2n*hermite(n-1)i - 2(n-1)*hermite(n-2)
+	 * Hermite(0) = 1
+	 * Hermite(1) = 2xi
+	 * @param degree The degree of the Hermite polynomial.
+	 * @return The Hermite polynomial of degree "degree".
+	 */
+	public Polynom hermiteI(int degree) {
+		final Polynom hermite0 = new Polynom("1");
+		final Polynom hermite1 = new Polynom("2i,0");
+
+		if (degree == 0) return hermite0;
+		if (degree == 1) return hermite1;
+		Polynom hermite = new Polynom(degree);
+		hermite = hermite1.times(hermite(degree-1).times(Complex.i)).minus(hermite(degree-2).times(2.0*(degree-1)));
+		return hermite;
+	}
+
+	/**
 	 * Calculates the probabilists' Hermite polynomial of degree "degree" using the formula hermiteP(n) = 2·x*hermiteP(n-1) - 2(n-1)*hermteP(n-2)
 	 * Hermite(0) = 1
 	 * Hermite(1) = x
@@ -1057,7 +1423,7 @@ public class Polynom extends MatrixComplex {
 	 */
 	public Polynom hermiteP(int degree) {
 		final Polynom hermite0 = new Polynom("1");
-		final Polynom hermite1 = new Polynom("1,0");
+		final Polynom hermite1 = new Polynom("1, 0");
 
 		if (degree == 0) return hermite0;
 		if (degree == 1) return hermite1;
@@ -1075,7 +1441,7 @@ public class Polynom extends MatrixComplex {
 	 */
 	public Polynom legendre(int degree) {
 		final Polynom legendre0 = new Polynom("1");
-		final Polynom legendre1 = new Polynom("1,0");
+		final Polynom legendre1 = new Polynom("1, 0");
 
 		if (degree == 0) return legendre0;
 		if (degree == 1) return legendre1;
@@ -1086,9 +1452,28 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
+	 * Calculates the Legendre I polynomial of degree "degree" using the formula (n+1)*legendre(n+1) = (2n+1)·x*legendre(n)i - n*legendre(n-1)
+	 * Legendre(0) = 1
+	 * Legendre(1) = xi
+	 * @param degree The degree of the Legendre polynomial.
+	 * @return The Legendre polynomial of degree "degree".
+	 */
+	public Polynom legendreI(int degree) {
+		final Polynom legendre0 = new Polynom("1");
+		final Polynom legendre1 = new Polynom("i, 0");
+
+		if (degree == 0) return legendre0;
+		if (degree == 1) return legendre1;
+		Polynom legendre = new Polynom(degree);
+		int n = degree - 1;
+		legendre = legendre(n).times(legendre1.times(2*n+1).times(Complex.i)).minus(legendre(n-1).times(n));
+		return legendre.divides(degree);
+	}
+
+	/**
 	 * Calculates the generalized Laguerre polynomial of degree "degree" and alpha "alpha" using the formula (n+1)*laguerre(n+1, alpha) = (2n+1+alpha)·x*laguerre(n,alpha) - (n+alpha)*laguerre(n-1,alpha)
 	 * Laguerre(0) = 1
-	 * Laguerre(1) = -x+1+alpha
+	 * Laguerre(1, alpha) = -x+1+alpha
 	 * @param degree The degree of the Laguerre polynomial.
 	 * @param alpha The value of alpha.
 	 * @return The Laguerre polynomial of degree "degree" and alpha "alpha".
@@ -1098,7 +1483,7 @@ public class Polynom extends MatrixComplex {
 		/*
 		 * laguerre1 = -x + 1 + alpha
 		 */
-		final Polynom laguerre1 = new Polynom("-1,0");
+		final Polynom laguerre1 = new Polynom("-1, 0");
 		laguerre1.complexMatrix[0][0].setComplexPol(1+alpha, 0);
 
 		if (degree == 0) return laguerre0;
@@ -1108,9 +1493,9 @@ public class Polynom extends MatrixComplex {
 		/*
 		 * term = (-x+2k+1+alpha)
 		 */
-		Polynom term = new Polynom("-1, 0");
+		Polynom term = new Polynom("-1,0");
 		term.complexMatrix[0][0].setComplexPol(2*k+1+alpha,0);
-		laguerre = term.times(laguerre(k)).minus(laguerre(k-1).times(k+alpha));
+		laguerre = term.times(laguerre(k,alpha)).minus(laguerre(k-1,alpha).times(k+alpha));
 		return laguerre.divides((double)degree);
 	}
 
@@ -1136,7 +1521,7 @@ public class Polynom extends MatrixComplex {
 	 */
 	public Polynom chebyshev(int degree, int kind) {
 		final Polynom chebyshev0 = new Polynom("1");
-		final Polynom chebyshev1 = new Polynom("1,0").times(kind);
+		final Polynom chebyshev1 = new Polynom("1, 0").times(kind);
 		final Polynom term = new Polynom("2,0");
 
 		if (degree == 0) return chebyshev0;
@@ -1151,6 +1536,7 @@ public class Polynom extends MatrixComplex {
 	 * Calculates the Chebyshev polynomial of degree "degree" and kind 1.
 	 * Chebyshev(0) = 1
 	 * Chebyshev(1) = x
+	 * Chebyshev(n) = cos(n*arccos(x))
 	 * @param degree The degree of the Chebyshev polynomial.
 	 * @return The Chebyshev polynomial of degree "degree" and kind 1.
 	 */
@@ -1169,4 +1555,261 @@ public class Polynom extends MatrixComplex {
 		return this.chebyshev(degree, 2);
 	}
 
+	/*
+	 * ***********************************************
+	 * INTERPOLATION
+	 * ***********************************************
+	 */
+
+	/**
+	 * 
+	 * @param lolimit
+	 * @param uplimit
+	 * @param samples
+	 * @return
+	 */
+	private MatrixComplex walkIntervalRE(Complex lolimit, Complex uplimit, int samples) {
+		Complex.storeFormatStatus();
+		Complex.setScientificON(20);
+		Complex vector = uplimit.minus(lolimit);
+		Complex nextPoint = new Complex();
+		MatrixComplex points = new MatrixComplex(samples,2);
+
+		//Recorrer la recta con distancia Euclidea
+		double vectSlope = vector.imp()/vector.rep();
+		double vectAngle = Math.atan(vectSlope);
+		double projRe = vector.mod() * Math.cos(vectAngle);
+		double stepRe = projRe / (samples-1) * Math.signum(vector.rep());
+		double nextRep, nextImp;
+		
+		int iter = 0;
+		nextPoint = lolimit.copy();
+		
+		/** /
+		System.out.println("vectSlope:" + vectSlope);
+		System.out.println("vectAngle: PI*" + vectAngle*Math.PI);
+		System.out.println("projRe   :" + projRe);
+		System.out.println("stepRe   :" + stepRe);
+		System.out.println("iter:" + iter + "   nextPoint:" + lolimit.toString());
+		/**/
+
+		points.setItem(0, 0, lolimit);
+		points.setItem(0, 1, this.eval(lolimit));
+
+		while (++iter < samples) {
+			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
+			nextRep = nextPoint.rep() + stepRe;
+			nextImp = lolimit.imp() + vectSlope * (nextRep - lolimit.rep());
+			nextPoint.setComplexRec(nextRep, nextImp);
+			points.setItem(iter, 0, nextPoint);
+			points.setItem(iter, 1, this.eval(nextPoint));
+		}		
+		// System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
+		Complex.restoreFormatStatus();
+		return points;
+	}
+	
+	/**
+	 * 
+	 * @param lolimit
+	 * @param uplimit
+	 * @param samples
+	 * @return
+	 */
+	private MatrixComplex walkIntervalIM(Complex lolimit, Complex uplimit, int samples) {
+		Complex.storeFormatStatus();
+		Complex.setScientificON(20);
+		Complex vector = uplimit.minus(lolimit);
+		Complex nextPoint = new Complex();
+		MatrixComplex points = new MatrixComplex(samples,2);
+
+		//Recorrer la recta con distancia Euclidea
+		Double vectSlope = vector.rep()/vector.imp();
+		double vectAngle = Math.atan(vectSlope);
+		double projIm = vector.mod() * Math.cos(vectAngle);
+		double stepIm = projIm / (samples-1) * Math.signum(vector.imp());
+		double nextRep, nextImp;
+		
+		int iter = 0;
+		nextPoint = lolimit.copy();
+		
+		/** /
+		System.out.println("vectSlope:" + vectSlope);
+		System.out.println("vectAngle: PI*" + vectAngle*Math.PI);
+		System.out.println("projIm   :" + projIm);
+		System.out.println("stepIm   :" + stepIm);
+		System.out.println("iter:" + iter + "   nextPoint:" + lolimit.toString());
+		/**/
+		
+		points.setItem(0, 0, lolimit);
+		points.setItem(0, 1, this.eval(lolimit));
+
+		while (++iter < samples) {
+			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
+			nextImp = nextPoint.imp() + stepIm;
+			nextRep = lolimit.rep() + vectSlope * (nextImp - lolimit.imp());
+			nextPoint.setComplexRec(nextRep, nextImp);
+			points.setItem(iter, 0, nextPoint);
+			points.setItem(iter, 1, this.eval(nextPoint));
+		}
+		// System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
+		return points;
+	}
+
+	/**
+	 * 
+	 * @param lolimit
+	 * @param uplimit
+	 * @param samples
+	 * @return
+	 */
+	public MatrixComplex walkInterval(Complex lolimit, Complex uplimit, int samples) {
+		Complex vector = uplimit.minus(lolimit);
+		double vectSlope = vector.imp()/vector.rep();
+		double vectAngle = Math.atan(vectSlope);
+		
+		vectAngle = vectAngle > Math.PI ? Math.PI - vectAngle : vectAngle;
+		vectAngle = vectAngle < -Math.PI ? Math.PI + vectAngle : vectAngle;
+		
+		if (((vectAngle >= Math.PI/4) && (vectAngle < 3*Math.PI/4 )) ||
+				((vectAngle >= -3*Math.PI/4) && (vectAngle < -Math.PI/4 ))) {
+			return walkIntervalIM(lolimit, uplimit, samples);
+		}
+		else return walkIntervalRE(lolimit, uplimit, samples);
+	}
+	
+	/**
+	 * 
+	 * @param lolimit
+	 * @param uplimit
+	 * @param samples
+	 * @return
+	 */
+	public MatrixComplex walkInterval(double lolimit, double uplimit, int samples) {
+		return walkInterval(new Complex(lolimit), new Complex(uplimit), samples);
+	}
+
+	/*
+	 * NEWTON
+	 */
+	/**
+	 * Calculates f1(xi,xj) as (f0(xi)-f0(xj))/(xi-xj) (see https://en.wikipedia.org/wiki/Newton_polynomial)
+	 * @param i The i idx of the abscissa x
+	 * @param j The j idx of the abscissa x
+	 * @param points The table of ordered pairs x,y with x ascendent
+	 * @return The slope between the to points
+	 */
+	private Complex slope(int i, int j, MatrixComplex points) {
+		return (points.getItem(j, 1).minus(points.getItem(i, 1))).divides(points.getItem(j, 0).minus(points.getItem(i,0)));
+	}
+	
+	/**
+	 * Calculates the slope for orders greater than 1 (see https://en.wikipedia.org/wiki/Newton_polynomial)
+	 * @param order The order of the slope
+	 * @param i	The maximum index of the abscissas, i.e. f2(3) -> f2(x1,x2,x3). f2(2) -> f2(x0,x1,x2). Be aware that the number of abscissas is always order+1
+	 * @param points The table of ordered pairs x,y with x ascendent
+	 * @return The slope between the to points
+	 */
+	private Complex f(int order, int i, MatrixComplex points) {
+		if (order == 1) return slope(i, i-1, points);	
+		return (f(order-1,i,points).minus(f(order-1,i-1,points))).divides(points.getItem(i, 0).minus(points.getItem(i-order, 0)));
+	}
+
+	/**
+	 * Returns the Newton Interpolation Polynomial for the points given
+	 * @param points The table of ordered pairs x,y.
+	 * @return The Newton Interpolation Polynomial
+	 */
+	public Polynom interpolationNewtonORIGINAL(MatrixComplex points) {
+		Polynom newtonPolynom = new Polynom(0);
+		newtonPolynom.setItem(0, 0, points.getItem(0, 1));
+		for (int order = 1; order < points.rows(); ++order ) {
+			Polynom term = new Polynom("1");
+			for (int i = 0; i < order; ++i) {
+				term = term.times(new Polynom(1).fromRoots(points.getItem(i, 0).toString()));
+			}
+			newtonPolynom = newtonPolynom.plus(term.times(f(order, order, points)));
+		}
+		return newtonPolynom;
+	}
+
+	/**
+	 * Returns the Newton Interpolation Polynomial for the points given
+	 * @param points The table of ordered pairs x,y.
+	 * @return The Newton Interpolation Polynomial
+	 */
+	public Polynom interpolationNewton(MatrixComplex points) {
+		Polynom newtonPolynom = new Polynom(0);
+		newtonPolynom.setItem(0, 0, points.getItem(0, 1));
+		for (int order = 1; order < points.rows(); ++order ) {
+			Polynom term = new Polynom("1");
+			for (int i = 0; i < order; ++i) {
+				Polynom polyRoot = new Polynom(1);
+				polyRoot.setItem(0, 0, points.getItem(i, 0).opposite());
+				polyRoot.setItem(0, 1, 1);
+				term = term.times(polyRoot);
+			}
+			newtonPolynom = newtonPolynom.plus(term.times(f(order, order, points)));
+		}
+		return newtonPolynom;
+	}
+
+	/**
+	 * Lagrange's polynomial of coefficient k
+	 * @param k The k coefficient
+	 * @param points The x,y tuplas
+	 * @return The k Lagrange's polynomial  
+ 	 */
+	public Polynom L(int k, MatrixComplex points) {
+		Polynom Lpolynom = new Polynom("1");
+		for (int j = 0; j < points.rows(); ++j) {
+			if (j == k) continue;
+			Polynom termPolynom = new Polynom(1);
+			termPolynom.setItem(0, 0, points.getItem(j, 0).opposite());
+			termPolynom.setItem(0, 1, 1);
+			Lpolynom = Lpolynom.times(termPolynom.divides(points.getItem(k, 0).minus(points.getItem(j, 0))));
+		}
+		return Lpolynom ;
+	}
+	
+	/**
+	 * https://ocw.unican.es/pluginfile.php/1789/course/section/1349/Capitulo2.pdf
+	 * @param points
+	 * @return
+	 */
+	public Polynom interpolationLagrange(MatrixComplex points) {
+		Polynom lagrangePolynom = new Polynom(0);
+		for (int i = 0; i < points.rows(); ++i ) {
+			lagrangePolynom = lagrangePolynom.plus(L(i, points).times(points.getItem(i, 1)));
+		}
+		return lagrangePolynom;
+	}
+
+	/**
+	 * 
+	 * @param points
+	 * @param showme
+	 * @return
+	 */
+	public Polynom interpolationVandermonde(MatrixComplex points, boolean showme) {
+		Polynom vandermondePolynom = new Polynom(points.rows());
+		Syseq vandermondeSyseq = new Syseq(points.rows());
+		MatrixComplex solution = new MatrixComplex(1, points.rows());
+		int row, col;
+		
+		for (row = 0; row < points.rows(); ++row) {
+			for (col = 0; col < points.rows(); ++col) {
+				vandermondeSyseq.setItem(row, col, points.getItem(row, 0).power(col));
+			}
+			vandermondeSyseq.setItem(row, col, points.getItem(row, 1));
+		}
+		solution = vandermondeSyseq.solve();
+		if (showme) {
+			vandermondeSyseq.print("Vandermonde Equations System");
+			solution.println("Vandermonde Eq. Sys. Solution");
+		}
+		vandermondePolynom.setRow(0, solution.getRow(0));
+		return vandermondePolynom;
+	}
+	
 }
