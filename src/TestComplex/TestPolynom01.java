@@ -3,6 +3,9 @@
  */
 package TestComplex;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.polynom.*;
@@ -39,6 +42,8 @@ public class TestPolynom01 {
 	public static void main(String[] args) {
 		Polynom myPolynom;		
 		int boxSize = 65;
+		MatrixComplex points;
+    	List<MatrixComplex> pointsList = new ArrayList<MatrixComplex>();
 
 		Complex.setFormatON();
 		Complex.setFixedON(3);
@@ -46,6 +51,7 @@ public class TestPolynom01 {
 		//(-1.000)x^3+(27.000)x^2+(-243.000)x+(729.000)
     	myPolynom = new Polynom("-1,27,-243,729");
     	showResults(myPolynom);
+    	
     	//-x²+2ix+1
     	myPolynom = new Polynom("-1,2i,1");
     	showResults(myPolynom);
@@ -99,14 +105,17 @@ public class TestPolynom01 {
     	showResults(myPolynom);       	
     	
     	myPolynom = new Polynom("1,10,-30.49,-445.14,199.54,5727.08,-1890.73,-21585.78,6065.64,20638.8");
-    	myPolynom.plot(-7, 5);
+    	points = myPolynom.walkInterval(-7, 5);
+    	pointsList.add(points);
+    	myPolynom.plotRe(pointsList, "");
     	showResults(myPolynom);
     	
     	myPolynom = new Polynom("1,10,30.49,445.14,199.54,5727.08,1890.73,21585.78,6065.64,20638.8");
     	showResults(myPolynom);
     	
     	myPolynom = new Polynom("-3+2i,-8+5i,5+4i,2-5i,9+6i,-8-3i,-2-2i,-3+7i,-5+1i,7+5i,6+8i,-1+2i,-8-5i,3-5i,-7-2i,1");
-    	myPolynom.plotReIm(-12, 12);
+    	points = myPolynom.walkInterval(-1, 1);
+    	myPolynom.plotRe(pointsList, "");
     	System.out.println(myPolynom.toMatrixComplex());
     	showResults(myPolynom);       	
 
@@ -117,6 +126,9 @@ public class TestPolynom01 {
     	showResults(myPolynom);
 
     	myPolynom = myPolynom.fromRoots("-7,-6,-5,-4,-3,-2,-1,+1,+2,+3,+4,+5,+6,+7");
+    	showResults(myPolynom);
+
+    	myPolynom = myPolynom.fromRoots("3-2i,2,5,4+i");
     	showResults(myPolynom);
 
     	myPolynom = new Polynom(16); myPolynom.initMatrixRandomRecInt(1);	
@@ -131,9 +143,15 @@ public class TestPolynom01 {
     	myPolynom = new Polynom("-1,-3,4");
     	showResults(myPolynom);
 
+    	System.out.println(Complex.boxTitle1(boxSize, "REMARKABLE POLYNOMIALS"));
     	myPolynom = new Polynom();
+
     	myPolynom = myPolynom.chebyshev1(5);
     	myPolynom.println("chebyshev 1 grado 5");
+    	points = myPolynom.walkInterval(-1, 1);
+    	pointsList.add(points);
+    	myPolynom.plotRe(pointsList, "");
+    	showResults(myPolynom);
 
     	myPolynom = myPolynom.chebyshev2(5);
     	myPolynom.println("chebyshev 2 grado 5");
@@ -149,6 +167,27 @@ public class TestPolynom01 {
     	
     	myPolynom = myPolynom.chebyshev(5, 6);
     	myPolynom.println("chebyshev 6 grado 5");
+    	
+    	myPolynom = myPolynom.legendre(5);
+    	myPolynom.println("legendre grado 5");
+
+    	myPolynom = myPolynom.laguerre(5, 0);
+    	myPolynom.println("laguerre 0 grado 5");
+
+    	myPolynom = myPolynom.laguerre(5, 1);
+    	myPolynom.println("laguerre 1 grado 5");
+
+    	myPolynom = myPolynom.laguerre(5, 2);
+    	myPolynom.println("laguerre 2 grado 5");
+
+    	myPolynom = myPolynom.laguerre(5, 3);
+    	myPolynom.println("laguerre 3 grado 5");
+
+    	myPolynom = myPolynom.laguerre(5, 4);
+    	myPolynom.println("laguerre 4 grado 5");
+
+    	myPolynom = myPolynom.laguerre(5, 5);
+    	myPolynom.println("laguerre 5 grado 5");
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "POLYNOMIAL OPERATIONS TEST"));
     	Polynom polynomA = new Polynom("2,0,-3,0,4,-5");

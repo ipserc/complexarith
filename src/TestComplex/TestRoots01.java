@@ -35,14 +35,22 @@ public class TestRoots01 {
 
 	public static void main(String[] args) {
     	Polynom aPolynom;
-
-    	//Complex.setFixedON(3);
-    	Complex.setFormatON();
+    	
+		Complex.setFormatON();
+		Complex.setScientificON(8);
+		Complex.exact(false);
+		Complex.precision(1E-18);
+		Complex.facts();
+		Complex.printFormatStatus();
 
     	//(-1.000)x^3+(5.000)x^2+(-3.000)x+(-9.000)
     	aPolynom = new Polynom("-1,5,-3,-9");
     	showResults(aPolynom);
-/*    	
+
+    	aPolynom = new Polynom("1,0,-1,0,1");
+    	showResults(aPolynom);
+
+    	/*    	
     	//-x²+2ix+1
     	aPolynom = new Polynom("-1,2i,1");
     	showResults(aPolynom);
