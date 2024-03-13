@@ -3,15 +3,19 @@ package com.ipserc.arith.syseq;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.complex.*;
 
-public class Syseq extends MatrixComplex{
+public class Syseq extends MatrixComplex {
 	private MatrixComplex partsol;	// Solution for the system
 	private MatrixComplex homosol;	// Solution for the homogeneous system
 	private Boolean solved = false;
 
 	private final static String HEADINFO = "Syseq --- INFO: ";
-	private final static String VERSION = "1.4 (2022_0123_0100)";
+	private final static String VERSION = "1.5 (2023_0528_1700)";
 
 	/* VERSION Release Note
+	 * 
+	 * 1.5 (2023_0528_1700)
+	 * public Complex partSol(int n)
+	 * public MatrixComplex partSol() 
 	 * 
 	 * 1.4 (2022_0123_0100)
 	 * toWolfram_solve() --> Solve[...]
@@ -147,6 +151,24 @@ public class Syseq extends MatrixComplex{
 			case INCONSISTENT:	sol = partsol; break;
 		}
 		return sol;
+	}
+	
+	/**
+	 * Returns the nth component of the particular solution if there is any
+	 * @param n the nth component
+	 * @return Returns the nth component of the particular solution
+	 */
+	public Complex partSol(int n) {
+		if (partsol.isEmpty()) return new Complex();
+		return this.partsol.getItem(0, n);
+	}
+	
+	/**
+	 * Returns the particular solution 
+	 * @return the particular solution
+	 */
+	public MatrixComplex partSol() {
+		return partsol;
 	}
 	
 	/**
