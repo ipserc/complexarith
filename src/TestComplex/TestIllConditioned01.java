@@ -73,7 +73,7 @@ public class TestIllConditioned01 {
 			solMatrix.setItem(row,tMatrix.rows()-1, Complex.ZERO);
 		}
 		else {
-			solMatrix.setItem(row, tMatrix.rows()-1, tMatrix().get);
+			solMatrix.setItem(row, tMatrix.rows()-1, tMatrix.getItem(0,0));
 		}
 		
 		for (row = 0; row < newcalcMatrix.rows(); ++row) {

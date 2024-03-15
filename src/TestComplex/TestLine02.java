@@ -11,8 +11,8 @@ package TestComplex;
 import java.util.List;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
-import com.ipserc.geom.Line;
-import com.ipserc.geom.Point;
+import com.ipserc.arith.geom.Line;
+import com.ipserc.arith.geom.Point;
 
 import java.util.ArrayList;
 
