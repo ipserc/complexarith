@@ -358,14 +358,17 @@ public class TestTaylorLogExp03b {
     	/**/
    		
    		/**/
-    	boolean complex = false;
+    	boolean complex = true; 
+    	boolean hermitian = false;
+    	boolean positive = false;
+    	
     	aMatrix = new MatrixComplex(3);
     	if (complex) 
-    		aMatrix.initMatrixRandomRecInt(99); // Complex Numbers
+    		aMatrix.initMatrixRandomRecInt(9); // Complex Numbers
     	else
-    		aMatrix.initMatrixRandomInteger(33); // Integer Numbers
-    	aMatrix = aMatrix.hermitian();
-    	//aMatrix.abs();
+    		aMatrix.initMatrixRandomInteger(9); // Integer Numbers
+    	if (hermitian) aMatrix = aMatrix.hermitian();
+    	if (positive) aMatrix.abs();
 		
     	doCalcs(aMatrix);
     	if (complex) doCalcs(aMatrix.conjugate());

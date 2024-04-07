@@ -327,10 +327,10 @@ public class TestTaylorLogExp03a {
     	boolean complex = false;
     	aMatrix = new MatrixComplex(2);
     	if (complex) 
-    		aMatrix.initMatrixRandomRecInt(99); // Complex Numbers
+    		aMatrix.initMatrixRandomRecInt(9); // Complex Numbers
     	else
-    		aMatrix.initMatrixRandomInteger(33); // Integer Numbers
-    	aMatrix = aMatrix.hermitian();
+    		aMatrix.initMatrixRandomInteger(9); // Integer Numbers
+    	// aMatrix = aMatrix.hermitian();
     	//aMatrix.abs();
 		
     	doCalcs(aMatrix);

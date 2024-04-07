@@ -53,7 +53,8 @@ public class TestTaylorSeries01 {
     	aMatrix.sinEuler().println("Sin Euler");
     	cMatrix = aMatrix.cosTaylor(); cMatrix.println("c=Cos Taylor");
     	aMatrix.cosEuler().println("Cos Euler");
-    	eMatrix = aMatrix.times(new Complex(0,1)).exp();
+    	//eMatrix = aMatrix.times(new Complex(0,1)).exp();
+    	eMatrix = aMatrix.times(Complex.i).exp();
     	eMatrix.println("Moivre e**(iaMatrix) = cos(a)+i(sin(a))");
     	dMatrix = bMatrix.power(2).plus(cMatrix.power(2));
     	dMatrix.println("b²+c²");
@@ -245,5 +246,10 @@ public class TestTaylorSeries01 {
     	//aMatrix = aMatrix.hermitian();
     	//aMatrix.abs();		
     	trigonometrix(aMatrix); 
+    	
+    	aMatrix = new MatrixComplex("32.0,25.0,30.0;13.0,20.0,-21.0;-2.0,-1.0,31.0");
+       	trigonometrix(aMatrix); 
+       	trigonometrix(aMatrix.divides(10)); 
+
     }
 }
