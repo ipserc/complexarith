@@ -45,6 +45,7 @@ import java.util.ArrayList;
  */
 public class TestTaylorLogExp03b {
 	static int boxSize = 65;
+	static int contador;
 	
 	static public void calcLogs_00(MatrixComplex aMatrix) {
     	MatrixComplex bMatrix;
@@ -190,6 +191,7 @@ public class TestTaylorLogExp03b {
 	 		try {
 		    	bMatrix = aMatrix.logTaylor(); 
 		       	if (!bMatrix.isInfinite() && !bMatrix.isNaN()) {
+		       		++contador;
 		       		printHeader(aMatrix);
 			    	Complex.printBoxText(3, boxSize, "Taylor's Natural logarithm ");
 		       		bMatrix.println("b=logTaylor");
@@ -206,6 +208,7 @@ public class TestTaylorLogExp03b {
 	    		try {
 	    	    	bMatrix = aMatrix.logMercator(); 
 	            	if (!bMatrix.isInfinite() && !bMatrix.isNaN()) {
+			       		++contador;
 			       		printHeader(aMatrix);
 	        	    	Complex.printBoxText(4, boxSize, "Mercator's Natural logarithm ");
 		    	    	bMatrix.println("b=logMercator");
@@ -222,6 +225,7 @@ public class TestTaylorLogExp03b {
 			try {
 		    	bMatrix = aMatrix.logHat(); 
 		    	if (!bMatrix.isInfinite() && !bMatrix.isNaN()) {
+		       		++contador;
 		       		printHeader(aMatrix);
 					Complex.printBoxText(5, boxSize, "Hyp Arctan's Natural logarithm ");
 			    	bMatrix.println("b=logHat");
@@ -298,16 +302,7 @@ public class TestTaylorLogExp03b {
     
     public static void main(String[] args) {
     	MatrixComplex aMatrix;
-    	MatrixComplex bMatrix;
-    	MatrixComplex cMatrix;
-    	MatrixComplex dMatrix;
-    	MatrixComplex eMatrix;
-    	MatrixComplex fMatrix;
-    	MatrixComplex gMatrix;
-    	MatrixComplex hMatrix;
-    	MatrixComplex iMatrix;
-    	MatrixComplex sMatrix;
-		Chronometer chrono = new Chronometer();
+		// Chronometer chrono = new Chronometer();
 
 		Complex.resetFormatStatus();
 		Complex.restorePrecisionFactorySettings();
@@ -322,45 +317,12 @@ public class TestTaylorLogExp03b {
 
     	Complex.printBoxTitle(1, boxSize, "MATRIX COMPLEX NATURAL LOG EXP");
     	System.out.println();
-   		
-    	
-   		//aMatrix = new MatrixComplex("10.0,-4.0,52.0;44.0,-2.0,88.0;-53.0,31.0,69.0");
-   		//aMatrix = new MatrixComplex("6.0,5.0,3.0;-7.0,2.0,1.0;-8.0,-4.0,1.0");
-		//aMatrix = new MatrixComplex("6.0,5.0,-3.0;-7.0,2.0,-1.0;8.0,4.0,-1.0");
-		//aMatrix = new MatrixComplex("16.0+17.0i,-18.0+15.0i,15.0-18.0i;7.0+2.0i,6.0+7.0i,4.0-5.0i;-1.0-16.0i,-4.0+5.0i,17.0+17.0i");    	
-   		//calcLogs(aMatrix);
-    	
-    	/** /
-    	aMatrix = new MatrixComplex(""
-    			+ "12.0,  5.0,  7.0;"
-    			+ "17.0,  7.0,  1.0;"
-    			+ " 8.0, 14.0,  4.0");
-    	Complex.digits(100000);
-    	doCalcs(aMatrix);
-    	/** /
-    	
-    	/** /
-    	aMatrix = new MatrixComplex("6.0,5.0,3.0;-7.0,2.0,1.0;-8.0,-4.0,1.0");
-    	calcLogs(aMatrix);
-    	aMatrix = new MatrixComplex("6.0,5.0,3.0;-7.0,2.0,1.0;-8.0,-4.0,-1.0");
-    	calcLogs(aMatrix);
-    	aMatrix = new MatrixComplex("6.0,-5.0,-3.0;7.0,2.0,1.0;8.0,-4.0,-1.0");
-    	calcLogs(aMatrix);
-		aMatrix = new MatrixComplex("6.0,-5.0,3.0;7.0,2.0,-1.0;-8.0,4.0,-1.0");
-		calcLogs(aMatrix);
-		aMatrix = new MatrixComplex("6.0,5.0,-3.0;-7.0,2.0,-1.0;8.0,4.0,-1.0");
-		calcLogs(aMatrix);
-		[ 92.0 , 2.0+48.0i , -55.0-40.0i ]
-		[ 2.0-48.0i , 102.0 , -21.0+91.0i ]
-		[ -55.0+40.0i , -21.0-91.0i , 150.0 ]
-		aMatrix = new MatrixComplex("92.0,2.0+48.0i,-55.0-40.0i;2.0-48.0i,102.0,-21.0+91.0i;-55.0+40.0i,-21.0-91.0i,150.0");
 
     	/**/
-   		
-   		/**/
-    	boolean complex = true; 
+    	boolean complex = false; 
     	boolean hermitian = false;
     	boolean positive = false;
+    	contador = 0;
     	
     	aMatrix = new MatrixComplex(3);
     	if (complex) 
@@ -369,9 +331,16 @@ public class TestTaylorLogExp03b {
     		aMatrix.initMatrixRandomInteger(9); // Integer Numbers
     	if (hermitian) aMatrix = aMatrix.hermitian();
     	if (positive) aMatrix.abs();
-		
+
+    	Complex.printBoxText(1, boxSize, "Doing test with");
+    	aMatrix.println("Matrix:");
+    	System.out.println("aMatrix = " + aMatrix.toMatrixComplex());
+
     	doCalcs(aMatrix);
     	if (complex) doCalcs(aMatrix.conjugate());
+
+    	Complex.printBoxText(1, boxSize, "Nbr. of matrices found:" + contador);
+    	
     	/**/
     }
 }

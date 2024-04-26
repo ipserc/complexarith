@@ -39,7 +39,7 @@ import java.util.ArrayList;
 
 /**
  * Parece demostrar que la convergencia del logaritmo está condicionada a que 
- * la parte real de los elementos de la riagonal principal sea positiva
+ * la parte real de los elementos de la diagonal principal sea positiva
  * En caso de que algún elemeto tenga cómo parte real el 0.0., el logaritmo
  * será convergente si el determinante es positivo
  */

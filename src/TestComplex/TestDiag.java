@@ -1,3 +1,7 @@
+/*
+* clear;runJava.sh eclipse-workspace/complexarith/bin/TestComplex/TestDiag.class
+*/
+
 package TestComplex;
 
 import com.ipserc.arith.matrixcomplex.*;
@@ -26,7 +30,7 @@ public class TestDiag {
     	diagMatrix.P().transpose().println("P(roper Values) transposed eigenvectors Matrix");
     	
 		System.out.println(Complex.boxTextRandom(boxSize, "Diagfactor Operations"));
-    	diagMatrix.P().times(diagMatrix.D().times(diagMatrix.P().inverse())).println("P · D · P⁻¹");
+    	diagMatrix.P().times(diagMatrix.D().times(diagMatrix.P().inverse())).println("P Â· D Â· Pâ�»Â¹");
     	System.out.println("Determinant(A)=" + diagMatrix.determinant());
 		det = diagMatrix.D().determinant();
     	System.out.println("Determinant(D)=" + det);
@@ -43,7 +47,11 @@ public class TestDiag {
     	
     	Complex.setFormatON();
     	Complex.setFixedON(3);
+    	Complex.exact(false); // WHATCH THIS
 
+    	diagMatrix = new Diagfactor("1,3,-1; 3,9,2; 3,6,-3");
+    	showResults(diagMatrix);
+ 
     	diagMatrix = new Diagfactor("1,3,-1; 3,9,2; 2,1,-1");
     	showResults(diagMatrix);
 

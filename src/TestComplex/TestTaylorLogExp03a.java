@@ -45,126 +45,8 @@ import java.util.ArrayList;
  */
 public class TestTaylorLogExp03a {
 	static int boxSize = 65;
+	static int contador;
 	
-	static public void calcLogs_00(MatrixComplex aMatrix) {
-    	MatrixComplex bMatrix;
-
-    	Complex.printBoxTitle(3, boxSize, "Natural logarithm Matrix Test");
-     	aMatrix.println("aMatrix");
-    	System.out.println("aMatrix = " + aMatrix.toMatrixComplex());
-    	aMatrix.determinant().println("Det=");
-    	if (aMatrix.isPostiveSemiDefinite()) {
-        	System.out.println("aMatrix is Postive SemiDefinite");
-        	if (aMatrix.isPostiveDefinite()) {
-            	System.out.println("aMatrix is Postive Definite");
-        	}
-    	}
-    	else System.out.println("aMatrix NOT is Postive");
-    	
-		Eigenspace eigenSpace = new Eigenspace(aMatrix);
-		eigenSpace.eigenvalues().println("Eigenvalues");
-
-
-    	Complex.printBoxText(3, boxSize, "Taylor's Natural logarithm ");
- 		try {
-	    	bMatrix = aMatrix.logTaylor(); 
-	    	bMatrix.println("b=logTaylor");
-	       	if ( !bMatrix.isInfinite())
-	       		bMatrix.exp().println("exp(b)");
-		}
-		catch (Exception excep) {
-			System.out.println("Error in the calculation of the exponential");
-		}
-    	
-    	Complex.printBoxText(4, boxSize, "Mercator's Natural logarithm ");
-    		try {
-    	    	bMatrix = aMatrix.logMercator(); 
-    	    	bMatrix.println("b=logMercator");
-            	if ( !bMatrix.isInfinite())
-            		bMatrix.exp().println("exp(b)");
-    		}
-    		catch (Exception excep) {
-    			System.out.println("Error in the calculation of the exponential");
-    		}
-
-    	/** /
-    	Complex.printBoxText(5, boxSize, "Hyp Arctan's Natural logarithm ");
-		try {
-	    	bMatrix = aMatrix.logHat(); 
-	    	bMatrix.println("b=logHat");
-	    	if ( !bMatrix.isInfinite())
-	    		bMatrix.exp().println("exp(b)");
-		}
-		catch (Exception excep) {
-			System.out.println("Error in the calculation of the exponential");
-		}
-    	/**/
-
-	}
-
-	static public void calcLogs_01(MatrixComplex aMatrix) {
-    	MatrixComplex bMatrix;
-    	boolean taylor = true, mercator = false, hat = false;
-
-    	Complex.printBoxTitle(3, boxSize, "Natural logarithm Matrix Test");
-     	aMatrix.println("aMatrix");
-    	System.out.println("aMatrix = " + aMatrix.toMatrixComplex());
-    	aMatrix.determinant().println("Det=");
-    	if (aMatrix.isPostiveSemiDefinite()) {
-        	System.out.println("aMatrix is Postive SemiDefinite");
-        	if (aMatrix.isPostiveDefinite()) {
-            	System.out.println("aMatrix is Postive Definite");
-        	}
-    	}
-    	else System.out.println("aMatrix NOT is Postive");
-    	
-		Eigenspace eigenSpace = new Eigenspace(aMatrix);
-		eigenSpace.eigenvalues().println("Eigenvalues");
-
-
-		if (taylor) {
-	 		try {
-		    	bMatrix = aMatrix.logTaylor(); 
-		       	if ( !bMatrix.isInfinite()) {
-			    	Complex.printBoxText(3, boxSize, "Taylor's Natural logarithm ");
-		       		bMatrix.println("b=logTaylor");
-		       		bMatrix.exp().println("exp(b)");
-		       	}
-			}
-			catch (Exception excep) {
-				System.out.println("Error in the calculation of the exponential");
-			}
-		}
- 		
-		if (mercator) {
-	    		try {
-	    	    	bMatrix = aMatrix.logMercator(); 
-	            	if ( !bMatrix.isInfinite()) {
-	        	    	Complex.printBoxText(4, boxSize, "Mercator's Natural logarithm ");
-		    	    	bMatrix.println("b=logMercator");
-	            		bMatrix.exp().println("exp(b)");
-	            	}
-	    		}
-	    		catch (Exception excep) {
-	    			System.out.println("Error in the calculation of the exponential");
-	    		}
-		}
-
-		if (hat) {
-			try {
-		    	bMatrix = aMatrix.logHat(); 
-		    	if ( !bMatrix.isInfinite()) {
-					Complex.printBoxText(5, boxSize, "Hyp Arctan's Natural logarithm ");
-			    	bMatrix.println("b=logHat");
-		    		bMatrix.exp().println("exp(b)");
-		    	}
-			}
-			catch (Exception excep) {
-				System.out.println("Error in the calculation of the exponential");
-			}
-		}
-	}
-
 	public static void printHeader(MatrixComplex aMatrix) {
     	Complex.printBoxTitle(3, boxSize, "Natural logarithm Matrix Test");
      	aMatrix.println("aMatrix");
@@ -191,6 +73,7 @@ public class TestTaylorLogExp03a {
 	 		try {
 		    	bMatrix = aMatrix.logTaylor(); 
 		       	if (!bMatrix.isInfinite() && !bMatrix.isNaN()) {
+		       		++contador;
 		       		printHeader(aMatrix);
 			    	Complex.printBoxText(3, boxSize, "Taylor's Natural logarithm ");
 		       		bMatrix.println("b=logTaylor");
@@ -207,6 +90,7 @@ public class TestTaylorLogExp03a {
 	    		try {
 	    	    	bMatrix = aMatrix.logMercator(); 
 	            	if (!bMatrix.isInfinite() && !bMatrix.isNaN()) {
+			       		++contador;
 			       		printHeader(aMatrix);
 	        	    	Complex.printBoxText(4, boxSize, "Mercator's Natural logarithm ");
 		    	    	bMatrix.println("b=logMercator");
@@ -223,6 +107,7 @@ public class TestTaylorLogExp03a {
 			try {
 		    	bMatrix = aMatrix.logHat(); 
 		    	if (!bMatrix.isInfinite() && !bMatrix.isNaN()) {
+		       		++contador;
 		       		printHeader(aMatrix);
 					Complex.printBoxText(5, boxSize, "Hyp Arctan's Natural logarithm ");
 			    	bMatrix.println("b=logHat");
@@ -291,24 +176,13 @@ public class TestTaylorLogExp03a {
         
         // Imprimimos las combinaciones obtenidas
         for (MatrixComplex combinacion : combinaciones) {
-        	//combinacion.println("Matriz");
         	calcLogs(combinacion);
           }
     }
 
-    
     public static void main(String[] args) {
     	MatrixComplex aMatrix;
-    	MatrixComplex bMatrix;
-    	MatrixComplex cMatrix;
-    	MatrixComplex dMatrix;
-    	MatrixComplex eMatrix;
-    	MatrixComplex fMatrix;
-    	MatrixComplex gMatrix;
-    	MatrixComplex hMatrix;
-    	MatrixComplex iMatrix;
-    	MatrixComplex sMatrix;
-		Chronometer chrono = new Chronometer();
+		// Chronometer chrono = new Chronometer();
 
 		Complex.resetFormatStatus();
 		Complex.restorePrecisionFactorySettings();
@@ -325,183 +199,25 @@ public class TestTaylorLogExp03a {
     	System.out.println();
     	
     	boolean complex = false;
+    	boolean hermitian = false;
+    	boolean absolute = false;
+    	contador = 0;
+    	
     	aMatrix = new MatrixComplex(2);
     	if (complex) 
     		aMatrix.initMatrixRandomRecInt(9); // Complex Numbers
     	else
-    		aMatrix.initMatrixRandomInteger(9); // Integer Numbers
-    	// aMatrix = aMatrix.hermitian();
-    	//aMatrix.abs();
+    		aMatrix.initMatrixRandomInteger(99); // Integer Numbers
+    	if (hermitian) aMatrix = aMatrix.divides(10).hermitian();
+    	if (absolute) aMatrix.abs();
 		
+    	Complex.printBoxText(1, boxSize, "Doing test with");
+    	aMatrix.println("Matrix:");
+    	System.out.println("aMatrix = " + aMatrix.toMatrixComplex());
+
     	doCalcs(aMatrix);
     	if (complex) doCalcs(aMatrix.conjugate());
-	
-    	/** /
-    	aMatrix = new MatrixComplex(2);
-   		// aMatrix.initMatrixRandomRecInt(9);
-   		aMatrix.initMatrixRandomInteger(99);
-    	//aMatrix = aMatrix.hermitian();
-    	//aMatrix.abs();
-    	doCalcs(aMatrix);
-    	/**/
     	
-    	/** /
-    	//Complex.significative(7);
-   		aMatrix = new MatrixComplex(""
-   				+ "  .1,  .1;"
-   				+ "  .1,  .1");
-    	doCalcs(aMatrix);
-    	/**/
-
-    	/** /
-    	aMatrix = new MatrixComplex(""
-    			+ "1.6,  1.3;"
-    			+ "1.2,  1.7");
-    	doCalcs(aMatrix);
-    	/**/
-
-   	 	/*
-   	 	 * [ 1.0 , 8.0 ]
-   	 	 * [ 4.0 , 7.0 ]
-   	 	 */
-    	/** /
-   		aMatrix = new MatrixComplex(""
-   				+ " 1.0, 8.0;"
-   				+ " 4.0, 7.0");
-   		doCalcs(aMatrix);
-   		/**/
-   		
-    	/*
-   	 	 * [ 7.0 , -7.0 ]
-   	 	 * [ -2.0 , 1.0 ]
-   	 	 */
-   		/** /
-   		aMatrix = new MatrixComplex(""
-   				+ "7.0, 7.0;"
-   				+ "2.0, 1.0");
-    	doCalcs(aMatrix);
-    	/**/
-    	
-   	 	/*
-   	 	 * [ 1.0 , -8.0 ]
-   	 	 * [ 4.0 , -7.0 ]
-   	 	 */
-    	/** /
-   		aMatrix = new MatrixComplex(""
-   				+ " 1.0, 8.0;"
-   				+ " 4.0, 7.0");
-    	doCalcs(aMatrix);
-    	/**/
-    	
-   	 	/*
-   	 	 * [ 8.0 , -8.0 ]
-   	 	 * [ 7.0 , -5.0 ]
-   	 	 */
-    	/** /
-    	aMatrix = new MatrixComplex(""
-    			+ "8.0, 8.0;"
-    			+ "7.0, 5.0");
-    	doCalcs(aMatrix);
-    	/**/
-    	
-    	/*
-   	 	 * [ 18.0 , 1.0 ]
-   	 	 * [ 1.0 , 8.0 ]
-   	 	 */
-    	/** /
-   		aMatrix = new MatrixComplex(""
-   				+ "18.0, 1.0;"
-   				+ "1.0, 8.0");
-    	doCalcs(aMatrix);
-    	/** /
-    	
-    	//[ 10.0 , -2.0 ]
-    	//[ -2.0 , 14.0 ]
-    	/** /
-    	aMatrix = new MatrixComplex(""
-    			+ "10.0, 2.0;"
-    			+ " 2.0,14.0");
-    	doCalcs(aMatrix);
-    	/**/
-    	
-    	/*
-    	 * [ 9.0 , -5.0 ]
-    	 * [ -7.0 , 6.0 ]
-    	 */
-    	/** /
-    	//Complex.digits(10000);
-    	aMatrix = new MatrixComplex(""
-    			+ "9.0,5.0;"
-    			+ "7.0,6.0");
-    	doCalcs(aMatrix);
-    	/**/
-    	
-    	/** /
-     	aMatrix = new MatrixComplex(""
-    			+ "1, 1;"
-    			+ " 1,1");
-    	doCalc(aMatrix);
-    	/***/
-    	
-		/*
-		 * [ 5.34375039E+00-4.47944030E-01i , 1.89518912E+00-1.06609312E+00i ]
-		 * [ 1.72210060E-01+9.58859700E-02i , 5.79278846E+00-1.16982627E+00i ]
-		 */ 
-    	/** /
-		aMatrix = new MatrixComplex(""
-				+ "5.34375039E+00-4.47944030E-01i,1.89518912E+00-1.06609312E+00i;"
-				+ "1.72210060E-01+9.58859700E-02i,5.79278846E+00-1.16982627E+00i");
-		doCalcs(aMatrix);
-		doCalcs(aMatrix.adjoint());
-		/**/
-
-    	/*
-		aMatrix = new MatrixComplex(""
-				+ "5-4i,1+1i;"
-				+ "1+2i,5-1i");
-		doCalcs(aMatrix);
-		doCalcs(aMatrix.adjoint());
-		*/
-    	
-    	/*
-		aMatrix = new MatrixComplex(""
-				+ "3+1i,2-2i;"
-				+ "3+4i,5-6i");
-		doCalcs(aMatrix);
-		doCalcs(aMatrix.adjoint());
-		*/
-
-    	/** /
-    	Complex.digits(10000);
-    	aMatrix = new MatrixComplex(""
-    			+ "0.0,5.0;"
-    			+ "7.0,6.0");
-    	doCalcs(aMatrix);
-    	/**/
-
-    	/** /
-    	//Complex.digits(10000);
-    	aMatrix = new MatrixComplex(""
-    			+ "0.0,5.0;"
-    			+ "7.0,0.0");
-    	doCalcs(aMatrix);
-    	/**/
-
-		/** /
-    	//Complex.digits(10000);
-    	aMatrix = new MatrixComplex(""
-    			+ "0.0,5.0i;"
-    			+ "7.0i,0.0");
-    	doCalcs(aMatrix);
-    	/**/
-
-    	/** /
-    	//Complex.digits(10000);
-    	aMatrix = new MatrixComplex(""
-    			+ "6.0,5.0i;"
-    			+ "7.0i,2.0");
-    	doCalcs(aMatrix);
-    	/**/
-
+    	Complex.printBoxText(1, boxSize, "Nbr. of matrices found:" + contador);	
     }
 }

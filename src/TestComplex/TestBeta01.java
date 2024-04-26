@@ -35,9 +35,11 @@ import com.ipserc.arith.complex.*;
 public class TestBeta01 {
 	private static void showResults(Complex p, Complex q) {
 		Complex b = new Complex();
+		Complex.setFormatOFF();
 		System.out.println("p			= " + p.toStringRec() + " : " + p.toStringPol());
 		System.out.println("q			= " + q.toStringRec() + " : " + q.toStringPol());
 		b = Complex.beta(p,q);
+		Complex.setFormatON();
 		System.out.println("ß(p,q)			= " + b.toStringRec() + " : " + b.toStringPol());
 		System.out.println("------------------------------------------------------------");
 		
@@ -48,8 +50,8 @@ public class TestBeta01 {
 		Complex p = new Complex();
 		Complex q = new Complex();
 	
-		Complex.setFormatON();;
-		Complex.setScientificON(5);
+		Complex.setFormatON();
+		//Complex.setFixedON(3);
 
 		Complex.facts();
 		Complex.printFormatStatus();
@@ -90,8 +92,13 @@ public class TestBeta01 {
 		q.setComplex("1.561+4.802i");
 		showResults(p, q);		
 
+		
+		p.setComplex("-4");
+		q.setComplex("-3");
+		showResults(p, q);		
+
 		p.setComplex("-4.00000000000001");
 		q.setComplex("-3.00000000000001");
 		showResults(p, q);		
-}
+    }
 }

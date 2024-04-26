@@ -40,8 +40,11 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.1 (2021_0123_0100)";
+	private final static String VERSION = "1.2 (2024_0418_2000)";
 	/* VERSION Release Note
+	 * 1.2 (2024_0418_2000)
+	 * public boolean isSimilar() {
+	 * public boolean isSimilar()
 	 * 
 	 * 1.1 (2021_0123_0100)
 	 * toWolfram_diagonalize() --> Diagonalize[....] 
@@ -117,7 +120,6 @@ public class Diagfactor extends MatrixComplex {
 		return cP;
 	}
 	
-
 	/**
 	 * Gets the class member variable with the status of the factorization.
 	 * @return The factorization status.
@@ -132,6 +134,22 @@ public class Diagfactor extends MatrixComplex {
 	 */
 	public boolean isDiagonalizable() {
 		return factorized;
+	}
+	
+	/**
+	 * Returns true if the matrix has been diagonalized successfully
+	 * @return True if the has been diagonalized successfully
+	 */
+	public boolean isSimilar() {
+		return factorized;
+	}
+	
+	/**
+	 * Returns true if the matrix has been diagonalized successfully
+	 * @return True if the has been diagonalized successfully
+	 */
+	public boolean isEquivalent( ) {
+		return factorized;		
 	}
 	
 	/*
@@ -195,8 +213,6 @@ public class Diagfactor extends MatrixComplex {
 		else return false;
 	}
 
-
-	
 	/*
 	 * ***********************************************
 	 * 	OPERATION 

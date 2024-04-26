@@ -15,7 +15,7 @@ Diagfactor.java
 LUfactor.java
 QRfactor.java
 SVDfactor.java
-Diagfactor.java Factorizes a matrix of the form A = P · D · P⁻¹ where D is a diagonal matrix.
+Diagfactor.java Factorizes a matrix of the form A = P�D�P-� where D is a diagonal matrix.
 LUfactor.java Factorizes a matrix of the form A = L U, where L is a lower triangular matrix and U is a superior triangular matrix.
 QRfactor.java Factorizes a matrix of the form A = Q R where Q is an orthogonal matrix m times m, and R is a triangular matrix superior m times n.
 SVDfactor.java Factorizes a matrix of the form A = U Σ V*, where Σ is a diagonal matrix mxn, and U and V are orthogonal matrices mxm and nxn respectively.
@@ -29,3 +29,8 @@ The com.ipserc.arith.vector package contains the Vector class.
 Vector.java introduces the necessary methods to operate with complex field vectors.
 
 Finally TestComplex has a lot of examples of how to use the classes and its methods
+
+# Configuration
+Import the files in a new Java Project 
+
+For Eclipse, in Properties -> Java Buld Path tab Libraries Add Class Folder classes under Classpath

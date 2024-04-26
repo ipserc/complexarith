@@ -21,8 +21,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.14 (2024_0320_1945)";
+	private final static String VERSION = "1.15 (2024_0408_1400)";
 	/* VERSION Release Note
+	 * 
+	 * 1.15 (2024_0408_1400)
+	 *  private MatrixComplex trigonTaylor(int sign)
+	 * 	private enum hyptrigon {SINH, COSH};
+	 *  private MatrixComplex trigonHyperbolycTaylor(hyptrigon hypFunc) {
+	 *  public MatrixComplex sinhTaylor() {
+	 *  public MatrixComplex coshTaylor() {
+	 *  public MatrixComplex completeRows() {
 	 * 
 	 * 1.14 (2024_0320_1945)
 	 * 	public MatrixComplex log10() {
@@ -199,7 +207,6 @@ public class MatrixComplex {
 	public static boolean doPlot() {
 		return __DOPLOT__;
 	}
-
 
 	/*
 	 * ***********************************************
@@ -750,6 +757,19 @@ public class MatrixComplex {
 	public int bestNumDecs() {
 		int numDecs = (int)(this.cond()/2);
 		return numDecs > Complex.getSignificative() ? Complex.getSignificative() : numDecs;
+	}
+	
+	/**
+	 * Completes the matrix filling it up with zero's rows to make it a square matrix
+	 * @return The new square matrix filled up with new zero's rows
+	 */
+	public MatrixComplex completeRows() {
+		MatrixComplex matrixCompleted = new MatrixComplex(this.cols());
+		
+		for (int row = 0; row < this.rows(); ++row) {
+			matrixCompleted.setRow(row, this.getRow(row));
+		}
+		return matrixCompleted;
 	}
 	
 	/*
@@ -1458,7 +1478,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the left division of two arrays as this⁻¹*cMatrix
+	 * Calculates the left division of two arrays as thisâ�»Â¹*cMatrix
 	 * @param cMatrix The matrix to divide
 	 * @return The left division
 	 */
@@ -1469,7 +1489,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the right division of two arrays as this*cMatrix⁻¹
+	 * Calculates the right division of two arrays as this*cMatrixâ�»Â¹
 	 * @param cMatrix The matrix used as divisor
 	 * @return The right division
 	 */
@@ -1481,7 +1501,7 @@ public class MatrixComplex {
 
 	/**
 	 * Calculates the power of a Matrix, power can be positive or negative
-	 * @param power The power at which the matrix is ​​raised. Only integers are allowed
+	 * @param power The power at which the matrix is â€‹â€‹raised. Only integers are allowed
 	 * @return The matrix raised to power
 	 */
 	public MatrixComplex power(int power) {
@@ -1578,7 +1598,7 @@ public class MatrixComplex {
 	
 	/*
 	 * ***********************************************
-	 * EXPANSIONS TAYLOR 
+	 * TAYLOR'S SERIES - TAYLOR'S EXPANSIONS 
 	 * ***********************************************
 	 */
 
@@ -1673,6 +1693,8 @@ public class MatrixComplex {
 		trigonMatrix.initMatrixDiag(SIN ? 0 : 1, 0);
 		powMatrix.initMatrixDiag(1, 0);
 		
+		// precision can be changed with Complex.digits(long_value)
+		long maxIter = Complex.digits();
 		int k = 1;
 		double fact = 1;
 		do {
@@ -1692,7 +1714,12 @@ public class MatrixComplex {
 			errMatrix = trigonMatant.minus(trigonMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) break;
-		} while(++k < 1000);
+		} while(++k < maxIter);
+		
+		if (__DEBUG__) {
+			System.out.println("Iterations to converge:" + k);
+		}
+		
 		return trigonMatrix;
 	}
 
@@ -1813,8 +1840,8 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Euler's formula eⁱˣ=cos(x)+i⋅sin(x)
-	 * @return Euler's formula eⁱˣ
+	 * Euler's formula eâ�±Ë£=cos(x)+iâ‹…sin(x)
+	 * @return Euler's formula eâ�±Ë£
 	 */
 	public MatrixComplex euler() {	
 		MatrixComplex normalThis = this.normalize2PI();
@@ -1822,13 +1849,58 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Euler's formula eⁱˣ 
+	 * Euler's formula eâ�±Ë£ 
 	 * @param matrix
-	 * @return Euler's formula eⁱˣ
+	 * @return Euler's formula eâ�±Ë£
 	 */
 	public static MatrixComplex euler(MatrixComplex matrix) {
 		MatrixComplex normalThis = matrix.normalize2PI();
 		return exp(normalThis.times(Complex.i));
+	}
+
+	/**
+	 * The "SINH" or "COSH" depending hypFunc. One method to rule them all
+	 * @param hypFunc hyptrigon.SINH for SINH, hyptrigon.COSH for COSH
+	 * @return
+	 */
+	private enum hyptrigon {SINH, COSH};
+	private MatrixComplex trigonHyperbolycTaylor(hyptrigon hypFunc) {
+		if (!this.isSquare()) {
+			System.err.println("Not valid matrix: The matrix has to be square.");
+			System.exit(1);
+		}
+
+		MatrixComplex trigHypMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex trigHypMatant;
+		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex errMatrix;
+		
+		trigHypMatrix.initMatrixDiag(hypFunc == hyptrigon.SINH ? 0 : 1, 0); 
+		powMatrix.initMatrixDiag(1, 0);
+		
+		// precision can be changed with Complex.digits(long_value)
+		long maxIter = Complex.digits();
+		int k = 1;
+		double fact = 1;
+		do {
+			fact *= k;
+			if ((hypFunc == hyptrigon.SINH && k%2 == 0) || (hypFunc == hyptrigon.COSH && k%2 != 0)) {
+				powMatrix = powMatrix.times(this);
+				continue;
+			}
+			trigHypMatant = trigHypMatrix.copy();
+			powMatrix = powMatrix.times(this);
+			trigHypMatrix = trigHypMatrix.plus(powMatrix.divides(fact));
+			errMatrix = trigHypMatant.minus(trigHypMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+		} while(++k < maxIter);
+		
+		if (__DEBUG__) {
+			System.out.println("Iterations to converge:" + k);
+		}
+	
+		return trigHypMatrix;
 	}
 
 	/**
@@ -1837,36 +1909,7 @@ public class MatrixComplex {
 	 * @return The value of sinh()
 	 */
 	public MatrixComplex sinhTaylor() {
-		if (this.rows() != this.cols()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
-		}
-
-		MatrixComplex sinMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex sinMatant;
-		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex errMatrix;
-		
-		sinMatrix.initMatrixDiag(0, 0);
-		powMatrix.initMatrixDiag(1, 0);
-		int k = 1;
-		double fact = 1;
-		do {
-			fact *= k;
-			if (k%2 == 0) {
-				++k;
-				powMatrix = powMatrix.times(this);
-				continue;
-			}
-			sinMatant = sinMatrix.copy();
-			powMatrix = powMatrix.times(this);
-			sinMatrix = sinMatrix.plus(powMatrix.divides(fact));
-			errMatrix = sinMatant.minus(sinMatrix);
-			errMatrix.abs();
-			if (errMatrix.isNullC()) break;
-			++k;
-		} while(k < 1000);
-		return sinMatrix;
+		return trigonHyperbolycTaylor(hyptrigon.SINH);
 	}
 
 	/**
@@ -1898,40 +1941,11 @@ public class MatrixComplex {
 	
 	/**
 	 * Calculates the hyperbolic cos of the matrix coshTaylor()
-	 * This calculation is achieved using the Taylor's series of the cos extended for complex matrices
+	 * This calculation is achieved using the Taylor's series of the hyp cos extended for complex matrices
 	 * @return The value of coshTaylor()
 	 */
 	public MatrixComplex coshTaylor() {
-		if (this.rows() != this.cols()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
-		}
-
-		MatrixComplex cosMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex cosMatant;
-		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex errMatrix;
-		
-		cosMatrix.initMatrixDiag(1, 0);
-		powMatrix.initMatrixDiag(1, 0);
-		int k = 1;
-		double fact = 1;
-		do {
-			fact *= k;
-			if (k%2 != 0) {
-				++k;
-				powMatrix = powMatrix.times(this);
-				continue;
-			}
-			cosMatant = cosMatrix.copy();
-			powMatrix = powMatrix.times(this);
-			cosMatrix = cosMatrix.plus(powMatrix.divides(fact));
-			errMatrix = cosMatant.minus(cosMatrix);
-			errMatrix.abs();
-			if (errMatrix.isNullC()) break;
-			++k;
-		} while(k < 1000);
-		return cosMatrix;
+		return trigonHyperbolycTaylor(hyptrigon.COSH);
 	}
 
 	/**
@@ -2028,7 +2042,7 @@ public class MatrixComplex {
 
 		if (__DEBUG__) {
 			yMatrix.println("1st Transformation : Taylor's Extension log(1 - x) - yMatrix reduced "+ m +" times:");
-			System.out.println("yMatrix.euc_norm(): " +yMatrix.euc_norm());
+			System.out.println("yMatrix.euc_norm(): " + yMatrix.euc_norm());
 		}
 		/**/
 
@@ -2494,7 +2508,7 @@ public class MatrixComplex {
 	}
 	
  	/**
-	 * P Norm or Hölder Norm. Calculates Hölder's norm of order "p".
+	 * P Norm or HÃ¶lder Norm. Calculates HÃ¶lder's norm of order "p".
 	 * @param p The order of the norm.
 	 * @return The value of the norm.
 	 */
@@ -2519,7 +2533,7 @@ public class MatrixComplex {
 	/**
 	 * Shortcut to euc_norm method.
 	 * Euclidean Norm. Calculates the Euclidean norm.
-	 * In linear algebra, functional analysis, and related areas of mathematics, a norm is a function that assigns a strictly positive length or size to each vector in a vector space—save for the zero vector, which is assigned a length of zero.
+	 * In linear algebra, functional analysis, and related areas of mathematics, a norm is a function that assigns a strictly positive length or size to each vector in a vector spaceâ€”save for the zero vector, which is assigned a length of zero.
 	 * @return The value of the norm.
 	 */
 	public double norm() {
@@ -2600,7 +2614,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Normal matrices: A·A.adjount() = A*A.adjoint()
+	 * Normal matrices: AÂ·A.adjount() = A*A.adjoint()
 	 * @return True if the matrix is normal, false otherwise
 	 */
 	public boolean isNormal() {
@@ -2608,7 +2622,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Normal matrices: A·A.adjount() = A*A.adjoint() = I
+	 * Normal matrices: AÂ·A.adjount() = A*A.adjoint() = I
 	 * @return True if the matrix is normal, false otherwise
 	 */
 	public boolean isUnitary() {
@@ -2977,13 +2991,13 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * The inverse of the matrix calculated by Gauss–Jordan elimination method
-	 * Gauss–Jordan elimination method can be used for finding the inverse of a matrix, if it exists. 
+	 * The inverse of the matrix calculated by Gaussâ€“Jordan elimination method
+	 * Gaussâ€“Jordan elimination method can be used for finding the inverse of a matrix, if it exists. 
 	 * If A is a n by n square matrix, then row reduction can be used to compute its inverse matrix, if it exists. 
 	 * First, the n by n identity matrix is augmented to the right of A, forming a n by 2n block matrix [A | I]. 
 	 * Now through application of elementary row operations, finds the reduced echelon form of this n by 2n matrix. 
 	 * The matrix A is invertible if and only if the left block can be reduced to the identity matrix I; in this case 
-	 * the right block of the final matrix is A^−1. If the algorithm is unable to reduce the left block to I, 
+	 * the right block of the final matrix is A^âˆ’1. If the algorithm is unable to reduce the left block to I, 
 	 * then A is not invertible.
 	 * @return The inverse matrix.
 	 */
@@ -3509,7 +3523,7 @@ public class MatrixComplex {
 		switch (type) {
 			case INCONSISTENT: text = "The system is INCONSISTENT"; 
 				break;
-			case INDETERMINATE: text = "The system is INDETERMINATE. Solutions calculated for λ = " + lambda.toString(); 
+			case INDETERMINATE: text = "The system is INDETERMINATE. Solutions calculated for Î» = " + lambda.toString(); 
 				break;
 			case DETERMINATE: text = "The system is DETERMINATE"; 
 				break;
@@ -3880,13 +3894,13 @@ public class MatrixComplex {
 		indMatrix = auxMatrix.indMatrix();
 		int nbrOfSols = auxMatrix.nbrOfSolutions();
 		solMatrix = new MatrixComplex(nbrOfSols, rowLen);
-		// solBase: base para el cálculo de las soluciones
+		// solBase: base para el cÃ¡lculo de las soluciones
 		// solBase: base for calculating the solutions 
 		MatrixComplex solBase = new MatrixComplex(nbrOfSols, rowLen);
 		Complex coefSol;
 		
 		// Se construye la base para las soluciones recorriendo la matriz triangular perfecta
-		// y rellenando cada fila de la base con lambda en la posición en que la diagonal principal
+		// y rellenando cada fila de la base con lambda en la posiciÃ³n en que la diagonal principal
 		// de la matriz triangular perfecta es cero
 		//
 		// Build the basis for the solutions by traversing the perfect triangular matrix
@@ -3898,8 +3912,8 @@ public class MatrixComplex {
 			}
 		}
 		
-		// Ahora con la solución base se calculan las soluciones del sistema de ecuaciones
-		// mediante sustitución inversa sobre la matriz tiangular perfecta en aquellas 
+		// Ahora con la soluciÃ³n base se calculan las soluciones del sistema de ecuaciones
+		// mediante sustituciÃ³n inversa sobre la matriz tiangular perfecta en aquellas 
 		// filas cuyos elemntos de la diagonal principal no son nulos
 		//
 		// Now with the base solution the solutions of the system of equations are calculated
@@ -3908,31 +3922,31 @@ public class MatrixComplex {
 		for (int solNbr = 0; solNbr < nbrOfSols; ++solNbr) {
 			for (int row = rowLen-1; row >= 0; --row) {
 				if (!auxMatrix.getItem(row ,row).equals(Complex.ZERO)) {
-					// Se calcula el coeficiente del nuevo término independiente con los valores de las incógnitas ya calculadas
-					// Se obtiene el término independiente de la ecuación original
+					// Se calcula el coeficiente del nuevo tÃ©rmino independiente con los valores de las incÃ³gnitas ya calculadas
+					// Se obtiene el tÃ©rmino independiente de la ecuaciÃ³n original
 					//
 					// The coefficient of the new independent term is calculated with the values of the unknowns already calculated
 					// The independent term of the original equation is obtained 
 					coefSol = auxMatrix.getItem(row, colLen-1);
-					// Para cada incógnita calculada...
+					// Para cada incÃ³gnita calculada...
 					//
 					// For each calculated unknown ... 
 					for (int col = colLen-2; col > row; --col) {
-						// Se despeja y actualiza el nuevo término independiente
+						// Se despeja y actualiza el nuevo tÃ©rmino independiente
 						//
 						// The new independent term is cleared and updated 
 						coefSol = coefSol.minus(auxMatrix.getItem(row, col).times(solMatrix.getItem(solNbr, col)));
 					}
-					// Si el coeficiente de la incógnita a calcular es cero entonces...
+					// Si el coeficiente de la incÃ³gnita a calcular es cero entonces...
 					//
 					// If the coefficient of the unknown to be calculated is zero then ... 
 					if (auxMatrix.getItem(row, row).equals(Complex.ZERO))
-						// ...el nuevo término independiente se fija a cero
+						// ...el nuevo tÃ©rmino independiente se fija a cero
 						//
 						// ... the new independent term is set to zero 
 						coefSol = Complex.ZERO;
 					else 
-						// Sino, el nuevo término independiente se divide por el coeficiente de la incógnita
+						// Sino, el nuevo tÃ©rmino independiente se divide por el coeficiente de la incÃ³gnita
 						//
 						// Otherwise, the new independent term is divided by the coefficient of the unknown 
 						coefSol = coefSol.divides(auxMatrix.getItem(row, row));
@@ -3948,7 +3962,7 @@ public class MatrixComplex {
 					/* */
 				}
 
-				// Se actualiza la matriz de soluciones con el valor calculado para la solución número solNbr y la columan correspondiente que coincide con el número de fila o ecuación tratada
+				// Se actualiza la matriz de soluciones con el valor calculado para la soluciÃ³n nÃºmero solNbr y la columan correspondiente que coincide con el nÃºmero de fila o ecuaciÃ³n tratada
 				//
 				// The solution matrix is updated with the value calculated for the solNbr number solution and the corresponding column that matches the row number or treated equation 
 				solMatrix.setItem(solNbr, row, coefSol);
@@ -4564,7 +4578,7 @@ public class MatrixComplex {
 			}
 		}
 				
-		//Comprobar que todas las filas están ubicadas
+		//Comprobar que todas las filas estÃ¡n ubicadas
 		for (int row = 0; row < this.rows(); ++row) {
 			if (matIndex[row][0] == -1) {
 				System.err.println("Location failure error.");
@@ -4712,7 +4726,7 @@ public class MatrixComplex {
 
 	/*
 	 * https://es.wikipedia.org/wiki/Proceso_de_ortogonalizaci%C3%B3n_de_Gram-Schmidt
-	 * Proceso de ortogonalización de Gram-Schmidt con el método de Gauss
+	 * Proceso de ortogonalizaciÃ³n de Gram-Schmidt con el mÃ©todo de Gauss
 	 */
 	/**
 	 * Gram-Schmidt orthogonalization process via Gaussian elimination. 
@@ -5340,14 +5354,14 @@ public class MatrixComplex {
 	 */
 	private void quicksort(int col, int izq, int der, int order) {
 		int colLen = this.cols();
-		int i = izq; 									// i realiza la búsqueda de izquierda a derecha
-		int j = der; 									// j realiza la búsqueda de derecha a izquierda
+		int i = izq; 									// i realiza la bÃºsqueda de izquierda a derecha
+		int j = der; 									// j realiza la bÃºsqueda de derecha a izquierda
 
 		MatrixComplex aux = new MatrixComplex(1, colLen);
 		MatrixComplex pivote = new MatrixComplex(1, colLen);
 		pivote.complexMatrix[0] = this.complexMatrix[izq].clone();	// tomamos primer elemento como pivote
 
-		while (i < j) {            																		// mientras no se crucen las búsquedas
+		while (i < j) {            																		// mientras no se crucen las bÃºsquedas
 			while (i < j &&  compare(this.complexMatrix[i][col], pivote.complexMatrix[0][col], order)) ++i;	// busca elemento mayor que pivote
 			while (!compare(this.complexMatrix[j][col], pivote.complexMatrix[0][col], order)) --j;			// busca elemento menor que pivote
 			if (i < j) {                      									// si no se han cruzado                      
@@ -5382,7 +5396,7 @@ public class MatrixComplex {
 
 	/**
 	 * Calculates the Hermitian matrix (or self-adjoint matrix).
-	 * The Hermitian matrix (or self-adjoint matrix) is a complex square matrix that is equal to its own conjugate transpose—that is, the element in the i-th row and j-th column is equal to the complex conjugate of the element in the j-th row and i-th column, for all indices i and j.
+	 * The Hermitian matrix (or self-adjoint matrix) is a complex square matrix that is equal to its own conjugate transposeâ€”that is, the element in the i-th row and j-th column is equal to the complex conjugate of the element in the j-th row and i-th column, for all indices i and j.
 	 * Hermitian matrices can be understood as the complex extension of real symmetric matrices.
 	 * @return The Hermitian matrix.
 	 */
@@ -5487,7 +5501,7 @@ public class MatrixComplex {
 	 */
 
 	/**
-	 * Transformation FSwapff(i,j) it swaps rows i and j of this matrix A ∈ C m × n and returns the result into a new Matrix.
+	 * Transformation FSwapff(i,j) it swaps rows i and j of this matrix A âˆˆ C m Ã— n and returns the result into a new Matrix.
 	 * @param rowi Index of row i.
 	 * @param rowj Index of row j.
 	 * @return The transformed matrix.
@@ -5506,7 +5520,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation FSwapf(i,j) it swaps rows i and j of this matrix A ∈ C m × n.
+	 * Transformation FSwapf(i,j) it swaps rows i and j of this matrix A âˆˆ C m Ã— n.
 	 * @param rowi Index of row i.
 	 * @param rowj Index of row j.
 	 */
@@ -5521,9 +5535,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransff(i,α) multiplies row i of this matrix A ∈ C m × n by a number α and returns the result into a new Matrix.
+	 * Transformation Ftransff(i,Î±) multiplies row i of this matrix A âˆˆ C m Ã— n by a number Î± and returns the result into a new Matrix.
 	 * @param row Index of row i.
-	 * @param cNum The complex number α.
+	 * @param cNum The complex number Î±.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int row, Complex cNum) {
@@ -5537,9 +5551,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransff(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α in text format and returns the result into a new Matrix.
+	 * Transformation Ftransff(i,"Î±") Multiplies the row i of a matrix A âˆˆ C m Ã— n by a number Î± in text format and returns the result into a new Matrix.
 	 * @param row The index of row i.
-	 * @param sNum The complex number α in text format.
+	 * @param sNum The complex number Î± in text format.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int row, String sNum) {
@@ -5548,9 +5562,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransff(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α and returns the result into a new Matrix.
+	 * Transformation Ftransff(i,"Î±") Multiplies the row i of a matrix A âˆˆ C m Ã— n by a number Î± and returns the result into a new Matrix.
 	 * @param row The index of row i.
-	 * @param dNum The number α.
+	 * @param dNum The number Î±.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int row, double dNum) {
@@ -5558,9 +5572,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,α) multiplies row i of this matrix A ∈ C m × n by a number α.
+	 * Transformation Ftransf(i,Î±) multiplies row i of this matrix A âˆˆ C m Ã— n by a number Î±.
 	 * @param row Index of row i.
-	 * @param cNum The complex number α.
+	 * @param cNum The complex number Î±.
 	 */
 	public void Ftransf(int row, Complex cNum) {
 		int colLen = this.cols();
@@ -5570,9 +5584,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α in text format.
+	 * Transformation Ftransf(i,"Î±") Multiplies the row i of a matrix A âˆˆ C m Ã— n by a number Î± in text format.
 	 * @param row The index of row i.
-	 * @param sNum The complex number α in text format.
+	 * @param sNum The complex number Î± in text format.
 	 */
 	public void Ftransf(int row, String sNum) {
 		Complex cNum = new Complex(sNum);
@@ -5580,19 +5594,19 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α in text format.
+	 * Transformation Ftransf(i,"Î±") Multiplies the row i of a matrix A âˆˆ C m Ã— n by a number Î± in text format.
 	 * @param row The index of row i.
-	 * @param dNum The number α.
+	 * @param dNum The number Î±.
 	 */
 	public void Ftransf(int row, double dNum) {
 		Ftransf(row, new Complex(dNum,0));
 	}
 
 	/**
-	 * Transformation Ftransff(i,j,α) Adds to row i of a matrix A ∈ C m × n its row j multiplied by the complex α.
+	 * Transformation Ftransff(i,j,Î±) Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by the complex Î±.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param cNum The complex number α.
+	 * @param cNum The complex number Î±.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int rowi, int rowj, Complex cNum) {
@@ -5606,10 +5620,10 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransff(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α != 0 in string format.
+	 * Transformation Ftransff(i,j,"Î±") Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by Î± != 0 in string format.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param sNum The complex number α in text format.
+	 * @param sNum The complex number Î± in text format.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int rowi, int rowj, String sNum) {
@@ -5618,10 +5632,10 @@ public class MatrixComplex {
 	}    
 
 	/**
-	 * Transformation Ftransff(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α.
+	 * Transformation Ftransff(i,j,"Î±") Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by Î±.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param dNum The number α. 
+	 * @param dNum The number Î±. 
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int rowi, int rowj, double dNum) {
@@ -5629,10 +5643,10 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,j,α) Adds to row i of a matrix A ∈ C m × n its row j multiplied by the complex α.
+	 * Transformation Ftransf(i,j,Î±) Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by the complex Î±.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param cNum The complex number α.
+	 * @param cNum The complex number Î±.
 	 */
 	public void Ftransf(int rowi, int rowj, Complex cNum) {
 		int colLen = this.cols();
@@ -5642,10 +5656,10 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α in string format.
+	 * Transformation Ftransf(i,j,"Î±") Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by Î± in string format.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param sNum The complex number α in text format.
+	 * @param sNum The complex number Î± in text format.
 	 */
 	public void Ftransf(int rowi, int rowj, String sNum) {
 		Complex cNum = new Complex(sNum);    	
@@ -5653,15 +5667,14 @@ public class MatrixComplex {
 	}    
 
 	/**
-	 * Transformation F(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α.
+	 * Transformation F(i,j,"Î±") Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by Î±.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param dNum The number α
+	 * @param dNum The number Î±
 	 */
 	public void Ftransf(int rowi, int rowj, double dNum) {
 		this.Ftransf(rowi, rowj, new Complex(dNum, 0));
 	}
-
 
 	/*
 	 * ***********************************************
