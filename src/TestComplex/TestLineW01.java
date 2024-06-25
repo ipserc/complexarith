@@ -27,7 +27,7 @@ public class TestLineW01 {
 			lineSystem.complexMatrix[i++] = line.complexMatrix[0].clone();
 		}
 		
-		lineSystem = lineSystem.completepEqSys();
+		lineSystem = lineSystem.completeEqSys();
 		if (lineSystem.typeEqSys() == 0) {
 			for (i = 0; i < lineSystem.complexMatrix[0].length; ++i) {
 				cNum.setComplexRec(i, 0);

@@ -771,7 +771,7 @@ public class MatrixComplex {
 		}
 		return matrixCompleted;
 	}
-	
+		
 	/*
 	 * ***********************************************
 	 * COPY & REPLICATION
@@ -1181,15 +1181,16 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Appends new rows to the array (Only if the number of columns are the same in both arrays)
+	 * Appends new NULL rows to the array (Only if the number of columns are the same in both arrays)
 	 * @param newRows The new rows to append
+	 * @return 
 	 */
-	public void appendRows(MatrixComplex newRows) {
+	public MatrixComplex appendRows(MatrixComplex newRows) {
 		int rows = this.rows() + newRows.rows();
 		int row;
 		
 		if ( this.cols() != 0 && this.cols() != newRows.cols()) {
-			return;
+			return this;
 		}
 		MatrixComplex newArray = new MatrixComplex(rows, this.cols());
 		
@@ -1197,7 +1198,8 @@ public class MatrixComplex {
 			newArray.setRow(row, this.getRow(row));
 		for (int idx = 0; row < rows; ++row, ++idx)
 			newArray.setRow(row, newRows.getRow(idx));
-		this.complexMatrix = newArray.complexMatrix.clone();
+		
+		return newArray;
 	}
 	
 	/**
@@ -3523,7 +3525,7 @@ public class MatrixComplex {
 		switch (type) {
 			case INCONSISTENT: text = "The system is INCONSISTENT"; 
 				break;
-			case INDETERMINATE: text = "The system is INDETERMINATE. Solutions calculated for Î» = " + lambda.toString(); 
+			case INDETERMINATE: text = "The system is INDETERMINATE. Solutions calculated for param = " + lambda.toString(); 
 				break;
 			case DETERMINATE: text = "The system is DETERMINATE"; 
 				break;
@@ -3553,7 +3555,7 @@ public class MatrixComplex {
 	 * If the number of equations is less than of unknowns, the missing equations are introduced with the coefficients and the independent term set to zero.
 	 * @return the system of equations completed with equations that are missing to zero.
 	 */
-	public MatrixComplex completepEqSys() {
+	public MatrixComplex completeEqSys() {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		MatrixComplex eqsMatrix = new MatrixComplex(colLen-1, colLen);

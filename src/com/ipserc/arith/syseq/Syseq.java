@@ -95,7 +95,7 @@ public class Syseq extends MatrixComplex {
 		}
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
-		partsol = this.solve(lambda);
+		partsol = this.completeEqSys().solve(lambda);
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
@@ -114,7 +114,7 @@ public class Syseq extends MatrixComplex {
 			/* ------------- END DEBUGGING BLOCK ------------- */
 
 			if (this.isHomogeneous()) homosol = partsol;
-			else homosol = this.unkMatrix().kernel(lambda);
+			else homosol = this.completeEqSys().unkMatrix().kernel(lambda);
 			
 			/* -------------   DEBUGGING BLOCK   ------------- */
 			if (DEBUG_ON) {

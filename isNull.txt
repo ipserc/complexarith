@@ -1,0 +1,29 @@
+ipserc@galileo arith $grep -rn isNull *
+matrixcomplex/MatrixComplex.java:1263:	public boolean isNullC() {
+matrixcomplex/MatrixComplex.java:1274:	public boolean isNull() {
+matrixcomplex/MatrixComplex.java:2060:	private boolean isNullSolution(int rowIdx, int colIdx) {
+matrixcomplex/MatrixComplex.java:2078:			if (!this.isNullRow(row)) newMatrix.complexMatrix[ndRow++] = this.complexMatrix[row].clone();
+matrixcomplex/MatrixComplex.java:2193:		if (solution.times(uknMatix).minus(unitMatrix.times(indTerm)).isNull()) return true;
+matrixcomplex/MatrixComplex.java:2249:			if (solMatrix.isNullRow(rowIdx)) {
+matrixcomplex/MatrixComplex.java:2257:		if (!solMatrix.times(coefMatrix.transpose()).minus(unitMatrix.times(indMatrix.transpose())).isNull())
+matrixcomplex/MatrixComplex.java:2330:		if (!auxMatrix.coefMatrix().isNull()) {
+matrixcomplex/MatrixComplex.java:2353:					if (auxMatrix.isNullRow(row)) {
+matrixcomplex/MatrixComplex.java:2356:							System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ auxMatrix.isNullRow("+row+")");
+matrixcomplex/MatrixComplex.java:2360:						//if (auxMatrix.isNullCol(0)) cVal = Complex.ZERO;
+matrixcomplex/MatrixComplex.java:2385:					if (newMatrix.isNull()) {
+matrixcomplex/MatrixComplex.java:2388:							System.out.println(HEADINFO + "¡¡¡¡¡¡¡¡¡¡¡ newMatrix.isNull()  -  B R E A K");
+matrixcomplex/MatrixComplex.java:2456:			if (auxMatrix.isNullRow(rowIdx) || auxMatrix.isNullCol(colIdx)) {
+matrixcomplex/MatrixComplex.java:2840:	public boolean isNullRow(int rowIdx) {
+matrixcomplex/MatrixComplex.java:2851:	public boolean isNullCol(int colIdx) {
+matrixcomplex/MatrixComplex.java:2867:			if (!isNullCol(col)) {
+matrixcomplex/MatrixComplex.java:2872:			if (!isNullRow(row)) {
+matrixcomplex/MatrixComplex.java:2903:		if (this.isNull()) return 0;
+matrixcomplex/MatrixComplex.java:2954:		if (this.isNull()) return 0;
+matrixcomplex/MatrixComplex.java:2963:			if (!rankMatrix.isNullRow(i)) ++rank;
+matrixcomplex/MatrixComplex.java:2970:		if (this.isNull()) return 0;
+matrixcomplex/MatrixComplex.java:2979:			if (!rankMatrix.isNullRow(i)) ++rank;
+syseq/Syseqnum.java:559:			if (ro1.isNullC()) {
+syseq/Syseqnum.java:588:			if (ri.isNullC()) {
+ipserc@galileo arith $
+
+

@@ -6,8 +6,14 @@ import com.ipserc.arith.matrixcomplex.*;
 public class Vector extends MatrixComplex {
 
 	private final static String HEADINFO = "Vector --- INFO: ";
-	private final static String VERSION = "1.2 (2022_0319_2359)";
+	private final static String VERSION = "1.3 (2024_0528_2000)";
 	/* VERSION Release Note
+	 * 1.3 (2024_0528_2000)
+	 * public static Boolean checkBase(MatrixComplex base)
+	 * public static MatrixComplex matBaseChg(MatrixComplex baseB1, MatrixComplex baseB2)
+	 * public Vector baseChg(MatrixComplex baseB1, MatrixComplex baseB2)
+	 * public Vector baseExchg(MatrixComplex baseB1, MatrixComplex baseB2)
+	 * 
 	 * 
 	 * 1.2 (2022_0319_2359)
 	 * public Vector orthogonal()
@@ -649,6 +655,15 @@ public class Vector extends MatrixComplex {
 	 */
 	
 	/**
+	 * 
+	 * @param base
+	 * @return
+	 */
+	public static Boolean checkBase(MatrixComplex base) {
+		return base.determinant().equals(Complex.ZERO);
+	}
+	
+	/**
 	 * Changes the base of the vector and calculate its coordinates in the new base "base".
 	 * The vector must be expressed in the standard basis (orthonormal unitary canonical basis).
 	 * @param base The base in which we would like to express the new coordinates.
@@ -668,6 +683,37 @@ public class Vector extends MatrixComplex {
 	public Vector baseExchg(MatrixComplex base) {
 		this.complexMatrix = base.times(this.transpose()).transpose().complexMatrix.clone();
 		return this;
+	}
+
+	/**
+	 * 
+	 * @param baseB1
+	 * @param baseB2
+	 * @return
+	 */
+	public static MatrixComplex matBaseChg(MatrixComplex baseB1, MatrixComplex baseB2) {
+		return baseB2.transpose().inverse().times(baseB1.transpose());
+	}
+	
+	/**
+	 * 
+	 * @param vectB1
+	 * @param baseB1
+	 * @param baseB2
+	 * @return
+	 */
+	public Vector baseChg(MatrixComplex baseB1, MatrixComplex baseB2) {
+		return new Vector(matBaseChg(baseB1, baseB2).times(this.transpose()).transpose());
+	}
+
+	/**
+	 * 
+	 * @param baseB1
+	 * @param baseB2
+	 * @return
+	 */
+	public Vector baseExchg(MatrixComplex baseB1, MatrixComplex baseB2) {
+		return new Vector(matBaseChg(baseB2, baseB1).times(this.transpose()).transpose());
 	}
 
 	/*
