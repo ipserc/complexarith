@@ -3440,7 +3440,14 @@ public class Complex {
 	 * @return The new Complex Object hyperbolic arc sine of 'z'.
 	 */
 	public static Complex arcsinh(Complex z) {
-		return log(z.plus(root((z.power(2).plus(1)),2)));
+		// arcsinh(z) = -i*arcsin(iz), derived directly from the arcsin(w)=-i*ln(iw+sqrt(1-w^2))
+		// formula (matches this file's branch convention exactly, not an independent textbook
+		// identity that might disagree on branch). Delegating to arcsin also inherits its
+		// SAFE_SQUARE_LIMIT guard against the z.power(2) overflow for |z| beyond ~1.34e154, which
+		// the direct log(z+sqrt(z^2+1)) formula below does not have.
+		Complex negi = new Complex(0,-1);
+		Complex i = new Complex(0,1);
+		return arcsin(z.times(i)).times(negi);
 	}
 
 	/**
@@ -3449,7 +3456,11 @@ public class Complex {
 	 * @return The new Complex Object hyperbolic arc cosine of 'z'.
 	 */
 	public static Complex arccosh(Complex z) {
-		return log(z.plus(root((z.power(2).minus(1)),2)));
+		// arccosh(z) = -i*arccos(z), derived directly from this file's arccos(z)=i*ln(z+sqrt(z^2-1))
+		// (so it matches the branch convention exactly). Delegating to arccos inherits its
+		// SAFE_SQUARE_LIMIT guard against the z.power(2) overflow for |z| beyond ~1.34e154.
+		Complex negi = new Complex(0,-1);
+		return arccos(z).times(negi);
 	}
 
 	/**
