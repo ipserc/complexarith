@@ -3010,6 +3010,16 @@ public class Complex {
 	//https://mathworld.wolfram.com/RiemannZetaFunction.html
 	/**
 	 * The Riemann's zeta function. Only for Re(s) > 0
+	 * <p>
+	 * <b>KNOWN LIMITATION (unresolved):</b> the stopping condition (stop when consecutive partial
+	 * sums stagnate within the ~1e-12 tolerance of {@link #equals(Complex)}) is only reachable in
+	 * practice when Re(s) is not too small, because the underlying alternating series has terms
+	 * decaying like 1/k^Re(s): reaching 1e-12 stagnation needs roughly k ~ 1e6 terms at Re(s)=2, but
+	 * ~1e24 terms at Re(s)=0.5 (the critical line, e.g. near a nontrivial zeta zero) - astronomically
+	 * unreachable regardless of speed. For Re(s) &lt;= ~0.7 this method will not terminate in any
+	 * practical amount of time; use {@link #zeta_havil(Complex)} instead (used by
+	 * {@link #zeta(Complex)} itself), which converges for all s with far fewer terms. This method is
+	 * not called by zeta() or any other method in this file.
 	 * @param s
 	 * @return
 	 */
@@ -3020,14 +3030,24 @@ public class Complex {
 		Complex z2 = new Complex(0);
 		// A private, mutable accumulator - NOT Complex.ONE itself, which plusEq would corrupt.
 		Complex k = new Complex(1, 0);
+		// (-1)^(k-1) tracked directly as a plain double instead of via Complex.mONE.power(k-1):
+		// mONE has phase pi, so that call's internal angle grows as pi*(k-1) without bound, making
+		// each call both increasingly expensive (normalizing an ever-larger phase back into
+		// (-pi,pi] is an O(k) loop) and increasingly inaccurate (by k=5e6 the "sign" had already
+		// drifted to -0.99999993-3.7e-4i instead of exactly -1+0i) - a bug found while investigating
+		// why this method never terminates near the critical line: that noise alone could prevent
+		// z1 from ever stagnating within tolerance for moderate Re(s), independent of the deeper
+		// term-count limitation documented above.
+		double sign = 1.0;
 		boolean notFinished = true;
 
 		while (notFinished) {
-			z1.plusEq((Complex.mONE.power(k.minus(1))).divides(k.power(s)));
+			z1.plusEq(k.power(s).inverse().times(sign));
 			//z1.println("z1 = ");
 			if (z1.equals(z2)) notFinished = false;
 			z2 = z1.copy();
 			k.plusEq(1);
+			sign = -sign;
 		}
 		z1.dividesEq(term);
 		return z1;
