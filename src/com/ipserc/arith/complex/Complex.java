@@ -3071,7 +3071,8 @@ public class Complex {
 			}
 			sum1.plusEq(Complex.ONE.divides(Math.pow(2,n+1)).times(sum2));
 		}
-		return sum1.divides(Complex.ONE.minus(new Complex(2,0).power(Complex.ONE.minus(s))));
+		sum1.dividesEq(Complex.ONE.minus(new Complex(2,0).power(Complex.ONE.minus(s))));
+		return sum1;
 	}
 	
 	/**
