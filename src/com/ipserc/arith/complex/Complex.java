@@ -2763,13 +2763,14 @@ public class Complex {
 	 * @return
 	 */
 	public static Complex gamma_nemes(Complex z) {
-		Complex Val;
+		// gammaVal/Val are private accumulators (fresh objects, not shared constants), so each
+		// step mutates in place instead of reassigning to a newly allocated Complex.
 		Complex gammaVal = new Complex(.5*Math.log(DOS_PI));
-		gammaVal = gammaVal.plus((z.minus(0.5)).times(Complex.log(z)));
-		gammaVal = gammaVal.minus(z);
-		Val = (z.times(Complex.sinh(z.inverse())));
-		Val = Val.plus((z.power(6).times(810)).inverse());
-		gammaVal = gammaVal.plus((z.divides(2)).times(Complex.log(Val)));
+		gammaVal.plusEq((z.minus(0.5)).times(Complex.log(z)));
+		gammaVal.minusEq(z);
+		Complex Val = z.times(Complex.sinh(z.inverse()));
+		Val.plusEq((z.power(6).times(810)).inverse());
+		gammaVal.plusEq((z.divides(2)).times(Complex.log(Val)));
 		return Complex.exp(gammaVal);
 	}
 	
@@ -3051,7 +3052,12 @@ public class Complex {
 	 * @return
 	 */
 	public static Complex binomialCoef(Complex n, Complex k) {
-		return gamma(n).divides(gamma(k)).divides(gamma(n.minus(k)));
+		// gamma(n) is a freshly allocated private accumulator; the two divisions mutate it in
+		// place instead of allocating an intermediate Complex for each division.
+		Complex result = gamma(n);
+		result.dividesEq(gamma(k));
+		result.dividesEq(gamma(n.minus(k)));
+		return result;
 	}
 	
 	/*
