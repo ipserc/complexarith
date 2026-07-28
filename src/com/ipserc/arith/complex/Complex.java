@@ -3066,11 +3066,13 @@ public class Complex {
 	 * @return
 	 */
 	public static Complex binomialCoef(Complex n, Complex k) {
-		// gamma(n) is a freshly allocated private accumulator; the two divisions mutate it in
-		// place instead of allocating an intermediate Complex for each division.
-		Complex result = gamma(n);
-		result.dividesEq(gamma(k));
-		result.dividesEq(gamma(n.minus(k)));
+		// C(n,k) = n!/(k!(n-k)!) = gamma(n+1)/(gamma(k+1)*gamma(n-k+1)); gamma(m) = (m-1)!, so the
+		// previous gamma(n)/gamma(k)/gamma(n-k) was off by one factorial in each term - e.g. it gave
+		// binomialCoef(6,2)=20 instead of 15. gamma(n+1) is a freshly allocated private accumulator;
+		// the two divisions mutate it in place instead of allocating an intermediate Complex each.
+		Complex result = gamma(n.plus(1));
+		result.dividesEq(gamma(k.plus(1)));
+		result.dividesEq(gamma(n.minus(k).plus(1)));
 		return result;
 	}
 	
