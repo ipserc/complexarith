@@ -38,10 +38,8 @@ import java.lang.Math;
 import java.math.*;
 import java.util.Locale;
 import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.util.Random;
 import java.io.*;
@@ -58,6 +56,20 @@ public class Complex {
 	 * CONSTANTS
 	 * ***********************************************
 	 */
+	private static String __NUMPAD__ = " "; // To align numbers. It works with scientific notation
+	
+	public static void numpPadNONE() {
+		__NUMPAD__ = "";
+	}
+
+	public static void numpPadBLANK() {
+		__NUMPAD__ = " ";
+	}
+
+	public static void numpPadPLUS() {
+		__NUMPAD__ = "+";
+	}
+	
 	private final static String HEADINFO = "Complex --- INFO: ";
 	private final static String VERSION = "1.9 (2023_0514_2000)";
 	/* VERSION Release Note
@@ -78,6 +90,15 @@ public class Complex {
 	 * public static Complex binomialCoef(Complex n, Complex k) {
 	 * public static double factorial(int n) {
 	 * public static Complex factorial(Complex n) {
+	 * private static String __NUMPAD__ = " "; // To align numbers. It works with scientific notation
+	 * public static void numpPadNONE()
+	 * public static void numpPadBLANK()
+	 * public static void numpPadPLUS()
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
 	 * 
 	 * 1.8 (2022_0928_0000)
 	 * public boolean isInteger()
@@ -151,7 +172,7 @@ public class Complex {
 	 * public static void showPrecision() Renamed to camel style
 	 * public static void restorePrecisionFactorySettings() Included from now on
 	 * 
-	 * public String toStringRecWolfram() replace("E", "*10^"); TODO with polar representation
+	 * public String toStringRecWolfram() replace("E", "*10^"); TO-DO with polar representation
 	 * 
 	 * 1.5 (2021_0929_2100)
 	 * added trunc method to truncate a double value.
@@ -161,7 +182,7 @@ public class Complex {
 	 * 
 	 */
 
-	//public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
+	// public final static double PI = Math.PI; 			// 3.1415926535897932384626433832795;
 	public final static double TWO_PI = 2 * Math.PI;	// 2 * 3.1415926535897932384626433832795;
 	public final static double DOS_PI = TWO_PI;			// 2 * 3.1415926535897932384626433832795;
 	public final static double HALF_PI =  Math.PI / 2; 	// 3.1415926535897932384626433832795 / 2;
@@ -184,6 +205,10 @@ public class Complex {
 	// FIXED: PRECISION = 1E-13
 	
 	public static enum Representation {RECTANGULAR, POLAR};
+
+	// Precompiled once instead of on every setComplex(String) call.
+	private final static Pattern REC_PATTERN = Pattern.compile("[ \\t]*(([\\+|\\-])?[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?))?[ \\t]*(([\\+|\\-])?[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?)?)(i)?");
+	private final static Pattern POL_PATTERN = Pattern.compile("[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?){1}[ \\t]*(\\|){1}[ \\t]*((\\+|\\-)?[\\d]*\\.?[\\d]+?){1}");
 	/*
 	 * ***********************************************
 	 * MEMBER VARS
@@ -199,7 +224,7 @@ public class Complex {
 	private static double PRECISION = 1E-13; //1E-16; //1E-13;
 	private static double ZERO_THRESHOLD_EXACT = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
 	private static double ZERO_THRESHOLD_APPROX = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
-	private static double ZERO_THRESHOLD = ZERO_THRESHOLD_EXACT;	//Current in use Zero threshold for formatting numbers
+	private static double ZERO_THRESHOLD = EXACT ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;	//Current in use Zero threshold for formatting numbers
 	private static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 	private static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
 
@@ -326,9 +351,6 @@ public class Complex {
 	 * @return The Complex Object.
 	 */
 	public Complex setComplex(String numC) {
-		final String recRegExp = "[ \\t]*(([\\+|\\-])?[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?))?[ \\t]*(([\\+|\\-])?[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?)?)(i)?";
-		final String polRegExp = "[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?){1}[ \\t]*(\\|){1}[ \\t]*((\\+|\\-)?[\\d]*\\.?[\\d]+?){1}";
-
 		rep = 0.0;
 		imp = 0.0;
 		mod = 0.0;
@@ -337,8 +359,7 @@ public class Complex {
 
 		numC = numC.replace('e', 'E');
 		if (numC.contains("|")) {
-			Pattern polPattern = Pattern.compile(polRegExp);
-			Matcher polMatcher = polPattern.matcher(numC);
+			Matcher polMatcher = POL_PATTERN.matcher(numC);
 			if (polMatcher.matches()) {
 				mod = Double.parseDouble(polMatcher.group(1).toString());
 				pha = Double.parseDouble(polMatcher.group(4).toString());
@@ -350,8 +371,7 @@ public class Complex {
 			}
 		}
 		else {
-			Pattern recPattern = Pattern.compile(recRegExp);
-			Matcher recMatcher = recPattern.matcher(numC);
+			Matcher recMatcher = REC_PATTERN.matcher(numC);
 			if (recMatcher.matches()) {
 				/*
               System.out.println("numC " + numC);
@@ -444,6 +464,27 @@ public class Complex {
 		this.imp = this.mod * Math.sin(this.pha);
 		if (this.imPartNull()) this.imp = 0.0;
 		this.setCre();
+	}
+
+	/**
+	 * Private factory. Builds a Complex directly from already-known rectangular AND polar
+	 * components, skipping the trigonometric recomputation that the 'C'/'P' constructors perform.
+	 * Callers (times/divides) must guarantee rep,imp,mod,pha are mutually consistent and that
+	 * phase is normalized before calling this.
+	 * @param rep The real part.
+	 * @param imp The imaginary part.
+	 * @param mod The modulus (must equal hypot(rep,imp)).
+	 * @param normalizedPha The phase, already normalized to (-pi, pi].
+	 * @return The new Complex Object.
+	 */
+	private static Complex raw(double rep, double imp, double mod, double normalizedPha) {
+		Complex z = new Complex();
+		z.rep = rep;
+		z.imp = imp;
+		z.mod = mod;
+		z.pha = normalizedPha;
+		z.setCre();
+		return z;
 	}
 
 	/**
@@ -1035,14 +1076,20 @@ public class Complex {
 		if (SCIENTIFIC_NOTATION) sfImp = String.format("%."+MAX_DECIMALS+"E", fImp).replace(',', '.');
 		else if (FIXED_NOTATION) sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
 			//else sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
+		
+		String strComplex;
 
 		if (fImp == 0.0 || Double.parseDouble(sfImp) == 0.0)
-			return sfRep + "";
-		if (fRep == 0.0 || Double.parseDouble(sfRep) == 0.0)  
-			return sfImp + imu;
-		if (fImp <  0.0) 
-			return sfRep + sfImp + imu;
-		return sfRep + "+" + sfImp + imu;
+			strComplex =  sfRep + "";
+		else if (fRep == 0.0 || Double.parseDouble(sfRep) == 0.0)  
+			strComplex = sfImp + imu;
+		else if (fImp <  0.0) 
+			strComplex = sfRep + sfImp + imu;
+		else strComplex = sfRep + "+" + sfImp + imu;
+		
+		// Padding the complex
+		strComplex = strComplex.charAt(0)== '-' ? strComplex : __NUMPAD__ + strComplex ;
+		return strComplex;
 	}
 
 	/**
@@ -1779,7 +1826,6 @@ public class Complex {
 	/*
 	 * ***********************************************
 	 * UNARY OPERATIONS	import java.util.function.Function;
-
 	 * ***********************************************
 	 */
 
@@ -1827,17 +1873,15 @@ public class Complex {
 	 * @return true if this Complex value is infinitely large in magnitude, false otherwise
 	 */
 	public boolean isInfinite() {
-		Double mod = this.mod();
-		return mod.isInfinite();
+		return Double.isInfinite(this.mod);
 	}
-	
+
 	/**
 	 * Checks if the Complex is a Not-a-Number (NaN).
 	 * @return true if this Complex value is a Not-a-Number (NaN), false otherwise.
 	 */
 	public boolean isNaN() {
-		Double mod = this.mod();
-		return mod.isNaN();
+		return Double.isNaN(this.mod);
 	}
 	
 	/**
@@ -1865,6 +1909,7 @@ public class Complex {
 	 * @return true if imaginary part is zero, false otherwise.
 	 */
 	public boolean imPartNull() {
+		if (this.rep == 0.0) return this.imp == 0.0;
 		if (Math.abs(imp/rep) <= ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
 		else return false;
 	}
@@ -1883,6 +1928,7 @@ public class Complex {
 	 * @return true if real part is zero, false otherwise.
 	 */
 	public boolean rePartNull() {
+		if (this.imp == 0.0) return this.rep == 0.0;
 		if (Math.abs(rep/imp) <= ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
 		else return false;
 	}
@@ -1903,6 +1949,35 @@ public class Complex {
 	 */
 	public boolean equals(Complex cNum) {
 		return this.equals(cNum.rep, cNum.imp);
+	}
+
+	/**
+	 * Overrides Object.equals so that Complex behaves correctly in collections (HashSet, HashMap,
+	 * List.contains/indexOf, etc). Without this override only equals(Complex) exists, which is a
+	 * plain overload: any equality check performed through a generic/Object-typed reference
+	 * silently falls back to identity comparison instead of the tolerance-based comparison below.
+	 * @param obj The object to compare.
+	 * @return The result of the comparison using the same ZERO_THRESHOLD tolerance as equals(Complex).
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (!(obj instanceof Complex)) return false;
+		return this.equals((Complex) obj);
+	}
+
+	/**
+	 * Consistent with equals(Object): quantizes rep/imp to the current SIGNIFICATIVE precision
+	 * so that values considered equal within ZERO_THRESHOLD tolerance are very likely to share
+	 * a hash bucket. Not a mathematical guarantee (fuzzy equality can never map perfectly onto
+	 * hashCode), but far safer than the inherited identity-based Object.hashCode.
+	 * @return The hash code.
+	 */
+	@Override
+	public int hashCode() {
+		long qRep = Math.round(this.rep * DIGITS);
+		long qImp = Math.round(this.imp * DIGITS);
+		return java.util.Objects.hash(qRep, qImp);
 	}
 
 	/**
@@ -2064,7 +2139,13 @@ public class Complex {
 	 * @return The new Complex Object with the result of the product.
 	 */
 	public Complex times(Complex that) {
-		return new Complex('P', this.mod * that.mod, this.pha + that.pha);
+		// Rectangular product (a+bi)(c+di) = (ac-bd)+(ad+bc)i, reusing already-cached
+		// moduli/phases for the polar pair instead of re-deriving them via cos/sin/atan2.
+		double newRep = this.rep * that.rep - this.imp * that.imp;
+		double newImp = this.rep * that.imp + this.imp * that.rep;
+		double newMod = this.mod * that.mod;
+		double newPha = normalizePhase(this.pha + that.pha);
+		return raw(newRep, newImp, newMod, newPha);
 	}
 
 	/**
@@ -2073,9 +2154,8 @@ public class Complex {
 	 * @return The new Complex Object with the result of the product.
 	 */
 	public Complex times(double alpha) {
-		double aMod = Math.abs(alpha);
-		double aPha = alpha >= 0.0 ? 0 : Math.PI;
-		return new Complex('P', aMod * mod, pha + aPha);
+		double newPha = alpha >= 0.0 ? this.pha : normalizePhase(this.pha + Math.PI);
+		return raw(this.rep * alpha, this.imp * alpha, this.mod * Math.abs(alpha), newPha);
 	}
 
 	/**
@@ -2095,7 +2175,14 @@ public class Complex {
 	 * @return The new Complex Object with the result of the division.
 	 */
 	public Complex divides(Complex that) {
-		return new Complex('P', this.mod / that.mod, this.pha - that.pha);
+		// Rectangular division (a+bi)/(c+di) = ((ac+bd)+(bc-ad)i)/(c²+d²). The denominator
+		// reuses that.mod² (already cached via Math.hypot) instead of recomputing c²+d².
+		double denom = that.mod * that.mod;
+		double newRep = (this.rep * that.rep + this.imp * that.imp) / denom;
+		double newImp = (this.imp * that.rep - this.rep * that.imp) / denom;
+		double newMod = this.mod / that.mod;
+		double newPha = normalizePhase(this.pha - that.pha);
+		return raw(newRep, newImp, newMod, newPha);
 	}
 
 	/**
@@ -2104,11 +2191,136 @@ public class Complex {
 	 * @return The new Complex Object with the result of the division.
 	 */
 	public Complex divides(double alpha) {
-		double aMod = Math.abs(alpha);
-		double aPha = alpha >= 0.0 ? 0 : Math.PI;
-		return new Complex('P', this.mod / aMod, this.pha - aPha);
+		double newPha = alpha >= 0.0 ? this.pha : normalizePhase(this.pha + Math.PI);
+		return raw(this.rep / alpha, this.imp / alpha, this.mod / Math.abs(alpha), newPha);
 	}
-	
+
+	/*
+	 * ***********************************************
+	 * IN-PLACE (MUTATING) ARITHMETIC OPERATIONS
+	 * For accumulator-style hot loops (e.g. series/product summations) where reassigning to a
+	 * freshly allocated Complex on every iteration is the dominant cost. These mutate 'this' and
+	 * return 'this' for fluent chaining; they do NOT allocate. Unlike plus/minus/times/divides,
+	 * calling these on a shared/cached Complex (e.g. Complex.ONE) would corrupt it - only use
+	 * them on a private accumulator instance.
+	 * ***********************************************
+	 */
+
+	/**
+	 * In-place addition: mutates 'this' to 'this' + 'that'. Does not allocate.
+	 * @param that The Complex Object to add to 'this'.
+	 * @return 'this', for chaining.
+	 */
+	public Complex plusEq(Complex that) {
+		this.rep += that.rep;
+		this.imp += that.imp;
+		this.setPolCoord();
+		return this;
+	}
+
+	/**
+	 * In-place addition with a REAL number: mutates 'this' to 'this' + 'that'. Does not allocate.
+	 * @param that The REAL number to add to 'this'.
+	 * @return 'this', for chaining.
+	 */
+	public Complex plusEq(double that) {
+		this.rep += that;
+		this.setPolCoord();
+		return this;
+	}
+
+	/**
+	 * In-place subtraction: mutates 'this' to 'this' - 'that'. Does not allocate.
+	 * @param that The Complex Object to subtract from 'this'.
+	 * @return 'this', for chaining.
+	 */
+	public Complex minusEq(Complex that) {
+		this.rep -= that.rep;
+		this.imp -= that.imp;
+		this.setPolCoord();
+		return this;
+	}
+
+	/**
+	 * In-place subtraction with a REAL number: mutates 'this' to 'this' - 'that'. Does not allocate.
+	 * @param that The REAL number to subtract from 'this'.
+	 * @return 'this', for chaining.
+	 */
+	public Complex minusEq(double that) {
+		this.rep -= that;
+		this.setPolCoord();
+		return this;
+	}
+
+	/**
+	 * In-place product: mutates 'this' to 'this' * 'that'. Does not allocate; zero trigonometric
+	 * calls, same rectangular-product shortcut as times(Complex).
+	 * @param that The Complex Object to multiply 'this' by.
+	 * @return 'this', for chaining.
+	 */
+	public Complex timesEq(Complex that) {
+		double newRep = this.rep * that.rep - this.imp * that.imp;
+		double newImp = this.rep * that.imp + this.imp * that.rep;
+		double newMod = this.mod * that.mod;
+		double newPha = normalizePhase(this.pha + that.pha);
+		this.rep = newRep;
+		this.imp = newImp;
+		this.mod = newMod;
+		this.pha = newPha;
+		this.setCre();
+		return this;
+	}
+
+	/**
+	 * In-place product with a REAL number: mutates 'this' to 'this' * 'alpha'. Does not allocate.
+	 * @param alpha The REAL number to multiply 'this' by.
+	 * @return 'this', for chaining.
+	 */
+	public Complex timesEq(double alpha) {
+		double newPha = alpha >= 0.0 ? this.pha : normalizePhase(this.pha + Math.PI);
+		this.mod *= Math.abs(alpha);
+		this.rep *= alpha;
+		this.imp *= alpha;
+		this.pha = newPha;
+		this.setCre();
+		return this;
+	}
+
+	/**
+	 * In-place division: mutates 'this' to 'this' / 'that'. Does not allocate; zero trigonometric
+	 * calls, same rectangular-division shortcut as divides(Complex).
+	 * @param that The Complex Object to divide 'this' by.
+	 * @return 'this', for chaining.
+	 */
+	public Complex dividesEq(Complex that) {
+		double denom = that.mod * that.mod;
+		double newRep = (this.rep * that.rep + this.imp * that.imp) / denom;
+		double newImp = (this.imp * that.rep - this.rep * that.imp) / denom;
+		double newMod = this.mod / that.mod;
+		double newPha = normalizePhase(this.pha - that.pha);
+		this.rep = newRep;
+		this.imp = newImp;
+		this.mod = newMod;
+		this.pha = newPha;
+		this.setCre();
+		return this;
+	}
+
+	/**
+	 * In-place division by a REAL number: mutates 'this' to 'this' / 'alpha'. Does not allocate.
+	 * @param alpha The REAL number to divide 'this' by.
+	 * @return 'this', for chaining.
+	 */
+	public Complex dividesEq(double alpha) {
+		double newPha = alpha >= 0.0 ? this.pha : normalizePhase(this.pha + Math.PI);
+		this.mod /= Math.abs(alpha);
+		this.rep /= alpha;
+		this.imp /= alpha;
+		this.pha = newPha;
+		this.setCre();
+		return this;
+	}
+
 	/*
 	 * ***********************************************
 	 * FUNCTIONS
@@ -2187,7 +2399,7 @@ public class Complex {
 	 * @param base The Complex Object base of the Logarithm.
 	 * @return The new Complex Object with the Logarithm in base 'base'.
 	 */
-	public static Complex logb(Complex z, Complex base) {
+	public static Complex logbase(Complex z, Complex base) {
 		Complex cNum = new Complex('C', Math.log(z.mod), z.pha);
 		Complex cDen = new Complex('C', Math.log(base.mod()), base.pha());
 		return cNum.divides(cDen); 
@@ -2199,9 +2411,9 @@ public class Complex {
 	 * @param base The Real base of the Logarithm.
 	 * @return The new Complex Object with the Logarithm in base 'base'.
 	 */
-	public static Complex logb(Complex z, double base) {
+	public static Complex logbase(Complex z, double base) {
 		Complex cBase = new Complex('C', base, 0.0);
-		return Complex.logb(z, cBase); 
+		return Complex.logbase(z, cBase); 
 	}
 
 	/**
@@ -2211,23 +2423,22 @@ public class Complex {
 	 */
 	public Complex power(Complex z) {
 		double comExp, comTri;
-		
+
 		if (Double.isInfinite(z.mod)) {
 			return new Complex('P', z.mod, this.pha * z.rep);
 		}
-		
+
 		if (this.mod != 0) {
 			comExp = Math.exp(z.rep * Math.log(this.mod) - this.pha * z.imp);
 			comTri = this.pha * z.rep + z.imp * Math.log(this.mod);
+			return new Complex('P', comExp, comTri);
 		}
-		else {
-			comExp = 0;
-			comTri = 0;
-		}
-		return new Complex('P', comExp, comTri);
-		//double nRe = comExp * Math.cos(comTri);
-		//double nIm = comExp * Math.sin(comTri);
-		//return new Complex('C', nRe, nIm);
+		// 0^z branch cut: 0^0 = 1 by convention; 0^z with Re(z) > 0 = 0;
+		// 0^z with Re(z) < 0 is unbounded (Infinity); 0^z with Re(z) == 0, Im(z) != 0 is indeterminate (NaN).
+		if (z.isZero()) return Complex.ONE.copy();
+		if (z.rep > 0) return Complex.ZERO.copy();
+		if (z.rep < 0) return new Complex('C', Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+		return new Complex('C', Double.NaN, Double.NaN);
 	}
 	
 	/**
@@ -2239,6 +2450,16 @@ public class Complex {
 		return new Complex('P', Math.pow(this.mod, nExp), nExp * this.pha);  
 	}
 
+	/**
+	 * Calculates the value of 'this' raised to the REAL number 'nExp'.
+	 * @param nExp The Complex Object to raise 'this'.
+	 * @return The new COmplex Object with the value of 'this' raised to 'nExp'.
+	 */
+	public Complex power(int iExp) {
+		return new Complex('P', Math.pow(this.mod, iExp), iExp * this.pha);  
+	}
+	
+	
 	/**
 	 * Calculates the "1st" pot-root of the Complex Object 'this'.
 	 * @param z The complex number.
@@ -2493,7 +2714,8 @@ public class Complex {
 		Complex zdi = new Complex();
 		for (int i = 1; i <= iterations; ++i) {
 			zdi = z.divides(i);
-			prod = prod.times((zdi.plus(ONE)).inverse().times(Complex.exp(zdi)));
+			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
+			prod.timesEq((zdi.plus(ONE)).inverse().times(Complex.exp(zdi)));
 		}
 		return Complex.exp(z.times(-EULER_MASC)).divides(z).times(prod);
 	}
@@ -2528,7 +2750,8 @@ public class Complex {
 			//term1 = (ONE.divides(n).plus(1)).power(z); // (1+1/n)^z
 			term1 = (ONE.plus(ONE.divides(n))).power(z); // (1+1/n)^z
 			term2 = (ONE.plus(z.divides(n))).inverse(); // (1+z/n)⁻¹
-			prod = prod.times(term1.times(term2));
+			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
+			prod.timesEq(term1).timesEq(term2);
 		}
 		return prod.divides(z);
 	}
@@ -2640,14 +2863,16 @@ public class Complex {
 	public static Complex zeta_re(Complex s) {
 		Complex z1 = new Complex(0);
 		Complex z2 = new Complex(0);
-		Complex k = Complex.ONE;
+		// A private, mutable accumulator - NOT Complex.ONE itself, which timesEq/plusEq would corrupt.
+		Complex k = new Complex(1, 0);
+		Complex sOpp = s.opposite();
 		boolean notFinished = true;
-		
+
 		while (notFinished) {
-			z1 = z1.plus(k.power(s.opposite()));
+			z1.plusEq(k.power(sOpp));
 			if (z1.equals(z2)) notFinished = false;
 			z2 = z1.copy();
-			k = k.plus(1);
+			k.plusEq(1);
 		}
 		return z1;
 	}
@@ -2761,15 +2986,16 @@ public class Complex {
 		Complex term = Complex.ONE.minus(cDOS.power(Complex.ONE.minus(s)));
 		Complex z1 = new Complex(0);
 		Complex z2 = new Complex(0);
-		Complex k = Complex.ONE;
+		// A private, mutable accumulator - NOT Complex.ONE itself, which plusEq would corrupt.
+		Complex k = new Complex(1, 0);
 		boolean notFinished = true;
-		
+
 		while (notFinished) {
-			z1 = z1.plus((Complex.mONE.power(k.minus(1))).divides(k.power(s)));
+			z1.plusEq((Complex.mONE.power(k.minus(1))).divides(k.power(s)));
 			//z1.println("z1 = ");
 			if (z1.equals(z2)) notFinished = false;
 			z2 = z1.copy();
-			k = k.plus(1);
+			k.plusEq(1);
 			k.println("k=");
 		}
 		return z1.divides(term);
@@ -2783,16 +3009,15 @@ public class Complex {
 	 */
 	public static Complex zeta_havil(Complex s) {
 		int maxN = 170;
-		Complex sum2 = new Complex();
-		Complex sum = new Complex();
 		Complex sum1 = new Complex();
 		for (int n = 0; n < maxN; ++n) {
-			sum2 = Complex.ONE.power(s);
+			// power(s) always allocates a fresh Complex (not an alias of Complex.ONE), safe to mutate.
+			Complex sum2 = Complex.ONE.power(s);
 			for (int k = 1; k <= n; ++k) {
-				sum = (Complex.mONE.power(k).times(Complex.binomialCoef(n, k))).divides((Complex.ONE.plus(k)).power(s));
-				sum2 = sum2.plus(sum);
+				Complex sum = (Complex.mONE.power(k).times(Complex.binomialCoef(n, k))).divides((Complex.ONE.plus(k)).power(s));
+				sum2.plusEq(sum);
 			}
-			sum1 = sum1.plus(Complex.ONE.divides(Math.pow(2,n+1)).times(sum2));
+			sum1.plusEq(Complex.ONE.divides(Math.pow(2,n+1)).times(sum2));
 		}
 		return sum1.divides(Complex.ONE.minus(new Complex(2,0).power(Complex.ONE.minus(s))));
 	}
@@ -3239,7 +3464,8 @@ public class Complex {
 		while (uplimit > point.mod) {
 			prevVal = func.apply(prevPoint);
 			val = func.apply(point);
-			integral = integral.plus(val);
+			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
+			integral.plusEq(val);
 			//System.out.printf("ulimit:%f point:%f val:%s \n", ulimit, point.mod, val.toString());
 			prevPoint = point;
 			point = prevPoint.plus(step);
@@ -3327,8 +3553,9 @@ public class Complex {
 			nextImp = lolimit.imp + vectSlope * (nextRep - lolimit.rep);
 			nextPoint.setComplexRec(nextRep, nextImp);
 			val = func.apply(nextPoint);
-			integral = integral.plus(val);
-		}		
+			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
+			integral.plusEq(val);
+		}
 		// System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
 		return integral.times(uplimit.minus(lolimit)).divides(iter);
 	}
@@ -3374,7 +3601,8 @@ public class Complex {
 			nextRep = lolimit.rep + vectSlope * (nextImp - lolimit.imp);
 			nextPoint.setComplexRec(nextRep, nextImp);
 			val = func.apply(nextPoint);
-			integral = integral.plus(val);
+			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
+			integral.plusEq(val);
 		}
 		// System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
 		return integral.times(uplimit.minus(lolimit)).divides(iter);
