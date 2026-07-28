@@ -2717,7 +2717,10 @@ public class Complex {
 			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
 			prod.timesEq((zdi.plus(ONE)).inverse().times(Complex.exp(zdi)));
 		}
-		return Complex.exp(z.times(-EULER_MASC)).divides(z).times(prod);
+		Complex result = Complex.exp(z.times(-EULER_MASC));
+		result.dividesEq(z);
+		result.timesEq(prod);
+		return result;
 	}
 
 	/**
@@ -2753,7 +2756,8 @@ public class Complex {
 			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
 			prod.timesEq(term1).timesEq(term2);
 		}
-		return prod.divides(z);
+		prod.dividesEq(z);
+		return prod;
 	}
 	
 	/**
@@ -2780,7 +2784,7 @@ public class Complex {
 	 * @return
 	 */
 	public static Complex gamma_fast(Complex z) {
-		Complex result = new Complex();
+		Complex result;
 	    double p[] = {676.5203681218851, -1259.1392167224028, 771.32342877765313,
 	    			  -176.61502916214059, 12.507343278686905, -0.13857109526572012,
 	    			  9.9843695780195716e-6, 1.5056327351493116e-7};
@@ -2791,10 +2795,13 @@ public class Complex {
 	        Complex x = new Complex(0.99999999999980993);
 	        for (int i = 0; i < p.length; ++i) { // pval) in enumerate(p):
 	        	Complex pval = new Complex(p[i]);
-	        	x = x.plus(pval.divides(z.plus(i+1)));
+	        	// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
+	        	x.plusEq(pval.divides(z.plus(i+1)));
 	        }
             Complex t = z.plus(p.length - 0.5);
-            result = Complex.sqrt(Complex.DOSPI).times(t.power(z.plus(0.5))).times(Complex.exp(t.opposite()).times(x));
+            result = Complex.sqrt(Complex.DOSPI);
+            result.timesEq(t.power(z.plus(0.5)));
+            result.timesEq(Complex.exp(t.opposite()).times(x));
 	    }
 	    return result;
 	}
