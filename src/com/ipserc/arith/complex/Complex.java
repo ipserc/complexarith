@@ -2970,23 +2970,40 @@ public class Complex {
 	
 	/**
 	 * The Riemann-Siegel formula for 0 < Re(s) < 1
+	 * <p>
+	 * <b>KNOWN BUG (unresolved):</b> this is an asymptotic method whose term count is
+	 * N = floor(sqrt(|Im(s)|/2*pi)); for |Im(s)| &lt; 2*pi that floors to 0, so the sums are empty
+	 * and the method returns exactly 0 regardless of 's' (e.g. zeta_riemann_siegel(0.5) returns 0.0
+	 * instead of the correct -1.4603545...). Even where the loop does run it was found to be
+	 * substantially inaccurate against the validated {@link #zeta_havil(Complex)} reference (e.g. at
+	 * s=0.5+14.134725i, near the first nontrivial zero where zeta(s) should be near 0, this returns
+	 * 0.049-0.31i, not close to 0). This method is NOT called by {@link #zeta(Complex)} - the
+	 * dispatcher uses zeta_re/zeta_ext/zeta_havil instead, none of which have this issue - so the bug
+	 * has no impact unless this method is called directly.
 	 * @param s
 	 * @return
 	 */
 	public static Complex zeta_riemann_siegel(Complex s) {
 		double m = Math.sqrt(Math.abs(s.imp()/2/Math.PI));
-		Complex dos = new Complex(2);
 		Complex one_s = Complex.ONE.minus(s);
-		Complex X = dos.power(s).times(Complex.PI.power(s.minus(1))).times(Complex.sin(Complex.PI.times(s).divides(2))).times(Complex.gamma(one_s));
+		// X is a freshly allocated private accumulator (from power()), so the chain mutates it in
+		// place instead of allocating an intermediate Complex for each step.
+		Complex X = new Complex(2).power(s);
+		X.timesEq(Complex.PI.power(s.minus(1)));
+		X.timesEq(Complex.sin(Complex.PI.times(s).divides(2)));
+		X.timesEq(Complex.gamma(one_s));
 		Complex S1 = new Complex(0);
 		Complex S2 = new Complex(0);
 		Complex N = new Complex(0);
 		for(int n = 1; n <= m; ++n) {
 			N.setComplexRec(n, 0);
-			S1 = S1.plus((N.power(s)).inverse());
-			S2 = S2.plus((N.power(one_s)).inverse());
+			// Accumulators mutated in place instead of reassigned to a new Complex each iteration.
+			S1.plusEq((N.power(s)).inverse());
+			S2.plusEq((N.power(one_s)).inverse());
 		}
-		return S1.plus(X.times(S2));
+		X.timesEq(S2);
+		S1.plusEq(X);
+		return S1;
 	}
 	
 	//https://www.robertelder.ca/calculatevalue
@@ -3011,9 +3028,9 @@ public class Complex {
 			if (z1.equals(z2)) notFinished = false;
 			z2 = z1.copy();
 			k.plusEq(1);
-			k.println("k=");
 		}
-		return z1.divides(term);
+		z1.dividesEq(term);
+		return z1;
 	}
 
 	/**
