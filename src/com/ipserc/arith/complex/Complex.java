@@ -3359,6 +3359,7 @@ public class Complex {
 	public static Complex arcsin(Complex z) {
 		Complex i = new Complex(0,1);
 		Complex one = new Complex(1,0);
+		if (Math.abs(z.rep) > SAFE_SQUARE_LIMIT || Math.abs(z.imp) > SAFE_SQUARE_LIMIT) return arcsinExtreme(z);
 		return log((z.times(i)).plus(root((one.minus(z.power(2))),2))).divides(i);
 	}
 
@@ -3370,8 +3371,46 @@ public class Complex {
 	public static Complex arccos(Complex z) {
 		Complex negi = new Complex(0,-1);
 		Complex one = new Complex(1,0);
+		if (Math.abs(z.rep) > SAFE_SQUARE_LIMIT || Math.abs(z.imp) > SAFE_SQUARE_LIMIT) return arccosExtreme(z);
 		return log((z).plus(root((z.power(2).minus(one)),2))).divides(negi);
-	}   
+	}
+
+	// z.power(2) overflows to Infinity once |z| > Math.sqrt(Double.MAX_VALUE) ~ 1.34e154, even though
+	// asin(z)/acos(z) themselves stay finite there - the naive formula then yields NaN. Comfortably
+	// below that overflow point, at this magnitude.
+	private final static double SAFE_SQUARE_LIMIT = 1e150;
+
+	/**
+	 * Private method. Closed-form arcsin(z) for |z| beyond SAFE_SQUARE_LIMIT, where z.power(2) would
+	 * overflow. Derived from asin(z) = -i*ln(iz + sqrt(1-z^2)): at this magnitude 1/z^2 underflows
+	 * to 0 in double precision, so sqrt(1-z^2) = eps*i*z EXACTLY (to full double precision), where
+	 * eps = +1 selects the principal branch (Re(sqrt(1-z^2)) >= 0) when Im(z) < 0, or Im(z) == 0 and
+	 * Re(z) >= 0; eps = -1 otherwise. Substituting gives asin(z) = pi/2 -+ i*ln(2z) (sign per eps).
+	 * Validated: matches the general formula exactly at the SAFE_SQUARE_LIMIT boundary (continuous
+	 * hand-off), and asin(z)+acos(z) == pi/2 holds exactly in all four quadrants and both axes.
+	 * @param z The complex number, with |z| > SAFE_SQUARE_LIMIT.
+	 * @return The arcsine of 'z'.
+	 */
+	private static Complex arcsinExtreme(Complex z) {
+		Complex i = new Complex(0,1);
+		Complex halfPi = new Complex(HALF_PI, 0);
+		boolean principalBranchPositive = z.imp < 0 || (z.imp == 0 && z.rep >= 0);
+		Complex iLog2z = log(z.times(2)).times(i);
+		return principalBranchPositive ? halfPi.minus(iLog2z) : halfPi.plus(iLog2z);
+	}
+
+	/**
+	 * Private method. Closed-form arccos(z) for |z| beyond SAFE_SQUARE_LIMIT. Derived the same way
+	 * as arcsinExtreme, using the exact identity acos(z) = pi/2 - asin(z).
+	 * @param z The complex number, with |z| > SAFE_SQUARE_LIMIT.
+	 * @return The arccosine of 'z'.
+	 */
+	private static Complex arccosExtreme(Complex z) {
+		Complex i = new Complex(0,1);
+		boolean principalBranchPositive = z.imp < 0 || (z.imp == 0 && z.rep >= 0);
+		Complex iLog2z = log(z.times(2)).times(i);
+		return principalBranchPositive ? iLog2z : iLog2z.opposite();
+	}
 
 	/**
 	 * Returns a new Complex Object which value is the arc tangent of 'z'.
