@@ -2834,7 +2834,12 @@ public class Complex {
 	 * @return the Beta of p,q
 	 */
 	public static Complex beta(Complex p, Complex q) {
-		return gamma(p).times(gamma(q)).divides(gamma(p.plus(q)));
+		// gamma(p) is a freshly allocated private accumulator; times/divides mutate it in place
+		// instead of allocating an intermediate Complex for each step of the chain.
+		Complex result = gamma(p);
+		result.timesEq(gamma(q));
+		result.dividesEq(gamma(p.plus(q)));
+		return result;
 	}
 	
 	/*
@@ -2893,12 +2898,14 @@ public class Complex {
 	public static Complex zeta_ext(Complex s) {
 		Complex s_one = s.minus(1);
 		Complex one_s = Complex.ONE.minus(s);
+		// z is a freshly allocated private accumulator (from sin(), not a shared constant), so the
+		// subsequent product chain mutates it in place instead of allocating at each step.
 		Complex z = Complex.sin(Complex.PI.divides(2).times(s));
 		if (z.equals(Complex.ZERO)) return Complex.ZERO;
-		z = z.times(new Complex(2).power(s));
-		z = z.times(Complex.PI.power(s_one));
-		z = z.times(Complex.gamma(one_s));
-		z = z.times(zeta(one_s));
+		z.timesEq(new Complex(2).power(s));
+		z.timesEq(Complex.PI.power(s_one));
+		z.timesEq(Complex.gamma(one_s));
+		z.timesEq(zeta(one_s));
 		return z;
 	}
 
