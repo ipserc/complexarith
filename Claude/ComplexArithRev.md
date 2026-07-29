@@ -199,18 +199,30 @@ Este commit, como en las sesiones anteriores, toca **solo** `src/com/ipserc/arit
 
 Al escribir el test de verificación, un primer intento con `(1000.0, 1e-4)` (el mismo par usado en la sesión 1 para el bug de `ZERO_THRESHOLD_APPROX` fijo) **no disparaba** el chequeo de pureza de `rePartNull()`/`imPartNull()`: con `EXACT=true` (valor por defecto), el umbral real es `ZERO_THRESHOLD*CORRECTION_FACTOR = ZERO_THRESHOLD_EXACT*10 = (PRECISION*10)*10 = 1e-11`, y el ratio `1e-4/1000=1e-7` queda muy por encima. Hubo que bajar a `(1000.0, 1e-9)` (ratio `1e-12`) para que la purga se activara. **Si en el futuro se verifica cualquier purga de pureza (`rePartNull`/`imPartNull`) con `EXACT=true`, usar un ratio bastante por debajo de `1e-11`, no `1e-7`** — ese umbral más laxo (`ZERO_THRESHOLD_APPROX≈3.16e-7`) solo aplica en modo `EXACT=false`.
 
-## Ideas pendientes que quedaron fuera de esta sesión (sin cambios respecto a la lista de la sesión 2/3)
+## Ideas pendientes que quedaron fuera de la primera parte de esta sesión (retomadas después, ver más abajo)
 
-- Estado estático mutable global no thread-safe (`EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`, `randomNbr`...) — sigue fuera de alcance por decisión consciente.
-- `randomNbr` como único `Random` estático compartido (fuente del ruido no determinista en tests de regresión).
+- Estado estático mutable global no thread-safe (`EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`...) — sigue fuera de alcance por decisión consciente. (`randomNbr` ya no forma parte de este grupo, ver siguiente commit.)
 - `System.exit(1)` dentro de `setComplex` ante parseo inválido.
 - Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado.
 - `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (y `MatrixComplex.java` sigue con cambios locales sin commitear del usuario).
 - Reestructuración arquitectónica de `Complex.java` (separar aritmética/parsing/formato/cajas ASCII/integración/límites) — no abordada.
 - Limpieza de los 88 ficheros con line-endings+contenido mezclados (sesión de mantenimiento) — sigue pendiente.
 
-No se ha propuesto continuar con ninguna de estas; sesión cerrada tras este único commit.
+## Continuación de la Cuarta sesión: `randomNbr` → `ThreadLocalRandom` (mismo día, 29 julio 2026)
+
+2. **`randomNbr` (único `Random` estático compartido) sustituido por `ThreadLocalRandom`** (commit `6131af8`). Usado solo en `boxTitleRandom()`/`boxTextRandom()` (selección aleatoria del estilo de caja ASCII, puramente cosmético). Se eliminó el campo `private static Random randomNbr` y el `import java.util.Random`, sustituyendo cada `randomNbr.nextInt(7)+1` por `ThreadLocalRandom.current().nextInt(7)+1`; se añadió `import java.util.concurrent.ThreadLocalRandom`. Verificado con test suelto en el scratchpad: 500 llamadas a cada método siguen dando las 7 variantes; smoke test con 8 hilos concurrentes (1000 llamadas c/u) sin excepciones. Batería de regresión exit 0 en las 4, sin diferencias numéricas salvo el ruido ya documentado de `TestZeta01` — nota: ese mismo ruido (aleatorio en cada corrida, no relacionado con `randomNbr`, viene de los puntos de prueba de zeta) sigue presente porque `TestZeta01` tiene su propia fuente de aleatoriedad independiente, no relacionada con el campo eliminado.
+
+Ambos commits de esta sesión (`a5d6a99`, `6131af8`) tocan **solo** `src/com/ipserc/arith/complex/Complex.java`.
+
+## Ideas pendientes actualizadas tras `randomNbr`
+
+- Estado estático mutable global no thread-safe (resto del grupo: `EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`) — sigue fuera de alcance por decisión consciente, cambio arquitectónico grande.
+- `System.exit(1)` dentro de `setComplex` ante parseo inválido.
+- Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado.
+- `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (y `MatrixComplex.java` sigue con cambios locales sin commitear del usuario).
+- Reestructuración arquitectónica de `Complex.java` — no abordada.
+- Limpieza de los 88 ficheros con line-endings+contenido mezclados (sesión de mantenimiento) — sigue pendiente.
 
 ---
 
-*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras el commit `a5d6a99`.*
+*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99` y `6131af8`.*
