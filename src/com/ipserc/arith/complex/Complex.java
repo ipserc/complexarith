@@ -1186,11 +1186,14 @@ public class Complex {
 		double fRep = formatNbr(rep);
 		double fImp = formatNbr(imp);
 
-		// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
-		// (ZERO_THRESHOLD*CORRECTION_FACTOR), same as toStringRec/toStringPol/setRecCoord.
-		// Kept unconditional (not gated by FORMAT_NBR) to match this method's prior behavior.
-		if (this.rePartNull()) fRep = 0.0;
-		if (this.imPartNull()) fImp = 0.0;
+		if (FORMAT_NBR) {
+			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
+			// (ZERO_THRESHOLD*CORRECTION_FACTOR), same as toStringRec/toStringPol/setRecCoord.
+			// Now gated by FORMAT_NBR like the other three formatters, instead of purging
+			// unconditionally regardless of the flag.
+			if (this.rePartNull()) fRep = 0.0;
+			if (this.imPartNull()) fImp = 0.0;
+		}
 		if (fImp == 0) return Double.toString(fRep);
 		return "{" + fRep + "," + fImp + "}";
 	}
