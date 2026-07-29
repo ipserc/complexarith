@@ -185,4 +185,32 @@ No se ha propuesto continuar con ninguna de estas; el usuario decidió parar aqu
 
 ---
 
-*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`.*
+# CUARTA SESIÓN DE REVISIÓN DE `Complex.java` — 29 julio 2026 (retoma la lista de "Ideas pendientes")
+
+> Continúa picoteando la lista de "Ideas pendientes" de la sesión 2/3, mismo workflow de siempre. Al retomar, se preguntó al usuario cuál de las ideas pendientes abordar (con `AskUserQuestion`) y eligió la más pequeña y acotada.
+
+## Qué se hizo
+
+1. **`toStringGNUPlot()` no respetaba el flag `FORMAT_NBR`** (commit `a5d6a99`). Purgaba `rep`/`imp` a `0.0` (vía `rePartNull()`/`imPartNull()`) de forma incondicional, a diferencia de `toStringRec`/`toStringRecI`/`toStringPol`, que solo purgan si `FORMAT_NBR` está activo — era el único de los 4 formateadores que no se podía desactivar con `setFormatOFF()`. Fix: envolver el chequeo de pureza en `if (FORMAT_NBR) { ... }`, igual que los otros 3. Verificado con test suelto en el scratchpad (`z1=(1000.0, 1e-9)`, `z2=(1e-9, 1000.0)`, ratio `1e-12` por debajo de `ZERO_THRESHOLD*CORRECTION_FACTOR=1e-11` con `EXACT=true`): en el build original la purga ocurría igual con `FORMAT_NBR` on/off/default (bug confirmado); en el corregido solo tras `setFormatON()`. Batería de regresión (`TestComplex01/07`, `TestGamma01`, `TestZeta01`) exit 0 en las 4, sin diferencias numéricas salvo el ruido no determinista ya documentado de `TestZeta01`.
+
+Este commit, como en las sesiones anteriores, toca **solo** `src/com/ipserc/arith/complex/Complex.java` — verificado con `git diff --cached --stat` antes y después del `git add`.
+
+## Nota de calibración de umbral (aprendida esta sesión)
+
+Al escribir el test de verificación, un primer intento con `(1000.0, 1e-4)` (el mismo par usado en la sesión 1 para el bug de `ZERO_THRESHOLD_APPROX` fijo) **no disparaba** el chequeo de pureza de `rePartNull()`/`imPartNull()`: con `EXACT=true` (valor por defecto), el umbral real es `ZERO_THRESHOLD*CORRECTION_FACTOR = ZERO_THRESHOLD_EXACT*10 = (PRECISION*10)*10 = 1e-11`, y el ratio `1e-4/1000=1e-7` queda muy por encima. Hubo que bajar a `(1000.0, 1e-9)` (ratio `1e-12`) para que la purga se activara. **Si en el futuro se verifica cualquier purga de pureza (`rePartNull`/`imPartNull`) con `EXACT=true`, usar un ratio bastante por debajo de `1e-11`, no `1e-7`** — ese umbral más laxo (`ZERO_THRESHOLD_APPROX≈3.16e-7`) solo aplica en modo `EXACT=false`.
+
+## Ideas pendientes que quedaron fuera de esta sesión (sin cambios respecto a la lista de la sesión 2/3)
+
+- Estado estático mutable global no thread-safe (`EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`, `randomNbr`...) — sigue fuera de alcance por decisión consciente.
+- `randomNbr` como único `Random` estático compartido (fuente del ruido no determinista en tests de regresión).
+- `System.exit(1)` dentro de `setComplex` ante parseo inválido.
+- Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado.
+- `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (y `MatrixComplex.java` sigue con cambios locales sin commitear del usuario).
+- Reestructuración arquitectónica de `Complex.java` (separar aritmética/parsing/formato/cajas ASCII/integración/límites) — no abordada.
+- Limpieza de los 88 ficheros con line-endings+contenido mezclados (sesión de mantenimiento) — sigue pendiente.
+
+No se ha propuesto continuar con ninguna de estas; sesión cerrada tras este único commit.
+
+---
+
+*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras el commit `a5d6a99`.*
