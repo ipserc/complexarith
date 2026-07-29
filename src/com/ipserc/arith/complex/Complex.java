@@ -1909,6 +1909,11 @@ public class Complex {
 	/**
 	 * Checks if the Complex is reduced zero.
 	 * @return true if this Complex value is reduced zero, false otherwise.
+	 * @apiNote Not called anywhere in this codebase (grepped across all of src/). Predates
+	 * {@link #isZero()}'s EXACT-aware ZERO_THRESHOLD -- this always uses the loose
+	 * ZERO_THRESHOLD_APPROX regardless of the EXACT flag. Left as dead code rather than removed,
+	 * consistent with how other confirmed-dead methods in this class (e.g. zeta_riemann_siegel)
+	 * were handled.
 	 */
 	public boolean isZeroRed__() {
 		//if (this.mod() <= ZERO_THRESHOLD_R) return true;
@@ -1929,6 +1934,9 @@ public class Complex {
 	/**
 	 * Checks if the imaginary part is reduced zero.
 	 * @return true if imaginary part is reduced zero, false otherwise.
+	 * @apiNote Not called anywhere in this codebase. Same rationale as {@link #isZeroRed__()}:
+	 * superseded by the EXACT-aware {@link #imPartNull()}, kept as documented dead code.
+	 * Unlike imPartNull(), also has no {@code rep==0.0} guard, so it can divide by zero.
 	 */
 	public boolean imPartNullRed__() {
 		if (Math.abs(imp/rep) <= ZERO_THRESHOLD_APPROX) return true;
@@ -1948,6 +1956,9 @@ public class Complex {
 	/**
 	 * Checks if the real part is reduced zero.
 	 * @return true if real part is reduced zero, false otherwise.
+	 * @apiNote Not called anywhere in this codebase. Same rationale as {@link #isZeroRed__()}:
+	 * superseded by the EXACT-aware {@link #rePartNull()}, kept as documented dead code.
+	 * Unlike rePartNull(), also has no {@code imp==0.0} guard, so it can divide by zero.
 	 */
 	public boolean rePartNullRed__() {
 		if (Math.abs(rep/imp) <= ZERO_THRESHOLD_APPROX) return true;
@@ -1996,6 +2007,9 @@ public class Complex {
 	 * Compares the Complex Object with another using the equal operator.
 	 * @param cNum Complex to compare.
 	 * @return The result of the comparison.
+	 * @apiNote Not called anywhere in this codebase; only self-referential (delegates to
+	 * {@link #equalsred__(double, double)}). Superseded by {@link #equals(Complex)}, kept as
+	 * documented dead code.
 	 */
 	public boolean equalsred__(Complex cNum) {
 		return this.equalsred__(cNum.rep, cNum.imp);
@@ -2017,6 +2031,9 @@ public class Complex {
 	 * @param n1 The real part.
 	 * @param n2 The imaginary part.
 	 * @return The result of the comparison.
+	 * @apiNote Not called anywhere in this codebase except by {@link #equalsred__(Complex)},
+	 * which itself has no external callers either. Superseded by {@link #equals(double, double)},
+	 * kept as documented dead code.
 	 */
 	public boolean equalsred__(double n1, double n2) {
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
@@ -2043,6 +2060,9 @@ public class Complex {
 	 * @param n2 The imaginary part.
 	 * @param numDecs The number of precision decimals.
 	 * @return The result of the comparison.
+	 * @apiNote Not called anywhere in this codebase. Also, {@code numDecs} is accepted but never
+	 * used in the body (it compares with the fixed ZERO_THRESHOLD_APPROX regardless), which is
+	 * itself a latent bug independent of this method being dead. Kept as documented dead code.
 	 */
 	public boolean equalsred__(double n1, double n2, int numDecs) {
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
@@ -2071,6 +2091,12 @@ public class Complex {
 	 * @param cNum The complex number.
 	 * @param numDecs The number of precision decimals.
 	 * @return The result of the comparison.
+	 * @apiNote Not called anywhere in this codebase. Despite the name and the commented-out line
+	 * above the return, its body no longer calls any {@code equalsred__} variant -- it delegates
+	 * to {@link #equals(double, double, int)}, so it is now a no-op wrapper around the
+	 * non-reduced comparison rather than an independent "reduced threshold" implementation.
+	 * Kept as documented dead code rather than removed or "corrected" back to reduced semantics,
+	 * since nothing calls it either way.
 	 */
 	public boolean equalsred__(Complex cNum, int numDecs) {
 		Complex _this_ = Complex.round(this, numDecs);
@@ -2507,6 +2533,9 @@ public class Complex {
 	 * Calculates the "1st" square root of the Complex Object 'this'.
 	 * @param z The complex number.
 	 * @return The "1st" pot-root of the Complex Object 'this'.
+	 * @apiNote Not called anywhere in this codebase. Identical body to {@link #sqrt(Complex)},
+	 * already marked DEPRECATED in this file's own version-history comment. Kept as documented
+	 * dead code rather than removed.
 	 */
 	public static Complex sqrroot__(Complex z) {
 		return root(z, 2);
@@ -2527,6 +2556,9 @@ public class Complex {
 	 * @param z The complex number.
 	 * @param k The "k-th" root.
 	 * @return The "k-th" pot-root of the Complex Object 'this'.
+	 * @apiNote Not called anywhere in this codebase. Identical body to
+	 * {@link #sqrt(Complex, int)}, already marked DEPRECATED in this file's own version-history
+	 * comment. Kept as documented dead code rather than removed.
 	 */
 	public static Complex sqrroot__(Complex z, int k) {
 		return root(z, 2, k);
