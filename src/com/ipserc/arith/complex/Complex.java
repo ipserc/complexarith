@@ -450,6 +450,13 @@ public class Complex {
 	private void setPolCoord() {
 		this.mod = Math.hypot(this.rep, this.imp); //Math.sqrt(this.rep*this.rep + this.imp*this.imp );
 		this.pha = Math.atan2(this.imp, this.rep);
+		// Mirrors setRecCoord()'s rep/imp purification in the other direction: snap the phase to
+		// the nearest axis-aligned value (0, +-HALF_PI, PI) when the other rectangular component
+		// is negligible by the same rePartNull()/imPartNull() predicates, instead of carrying a
+		// meaningless residual angle (e.g. atan2(1e-8,1000)~=1e-11) that would otherwise propagate
+		// through phase-additive ops like times/timesEq/divides.
+		if (this.imPartNull()) this.pha = (this.rep >= 0.0) ? 0.0 : Math.PI;
+		else if (this.rePartNull()) this.pha = (this.imp >= 0.0) ? HALF_PI : -HALF_PI;
 		this.normalizePhase();
 		this.setCre();
 	}
