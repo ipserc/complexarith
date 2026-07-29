@@ -1061,11 +1061,12 @@ public class Complex {
 		}
 
 		if (FORMAT_NBR) {
-			// Uses the current value of ZERO_THRESHOLD_APPROX (ZERO_THRESHOLD_R was the before setting)
+			// Uses ZERO_THRESHOLD (current EXACT/APPROX value, same as toStringPol/formatNbr/isZero/equals)
+			// so that this respects the EXACT flag instead of always forcing the loose APPROX threshold.
 			if (fImp != 0.0)
-				if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_APPROX) fRep = 0.0;
+				if (Math.abs(fRep/fImp) < ZERO_THRESHOLD) fRep = 0.0;
 			if (fRep != 0.0)
-				if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_APPROX) fImp = 0.0;
+				if (Math.abs(fImp/fRep) < ZERO_THRESHOLD) fImp = 0.0;
 		}
 		sfRep = String.valueOf(fRep);
 		if (SCIENTIFIC_NOTATION) sfRep = String.format("%."+MAX_DECIMALS+"E", fRep).replace(',', '.');
@@ -1101,16 +1102,17 @@ public class Complex {
 		double fImp = imp;
 
 		if (FORMAT_NBR) {
-			// Uses the current value of ZERO_THRESHOLD_APPROX (ZERO_THRESHOLD_R was the before setting)
+			// Uses ZERO_THRESHOLD (current EXACT/APPROX value, same as toStringPol/formatNbr/isZero/equals)
+			// so that this respects the EXACT flag instead of always forcing the loose APPROX threshold.
 			if (fImp != 0.0)
-				if (Math.abs(fRep/fImp) < ZERO_THRESHOLD_APPROX) fRep = 0.0;
+				if (Math.abs(fRep/fImp) < ZERO_THRESHOLD) fRep = 0.0;
 			if (fRep != 0.0)
-				if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_APPROX) fImp = 0.0;
+				if (Math.abs(fImp/fRep) < ZERO_THRESHOLD) fImp = 0.0;
 		}
-		if (fImp == 0.0 ) 
+		if (fImp == 0.0 )
 			return fRep + "";
-		if (fRep == 0.0) 
-			if (Math.abs(fImp) != 1.0) 
+		if (fRep == 0.0)
+			if (Math.abs(fImp) != 1.0)
 				return fImp + "i";
 			else 
 				return (fImp == -1.0) ? "-i" : "i";
@@ -1169,9 +1171,10 @@ public class Complex {
 		double fRep = formatNbr(rep);
 		double fImp = formatNbr(imp);
 
-		// Uses the current value of ZERO_THRESHOLD_APPROX (ZERO_THRESHOLD_R was the before setting)
-		if (Math.abs(fRep*ZERO_THRESHOLD_APPROX) > Math.abs(fImp)) fImp = 0.0;
-		if (Math.abs(fImp*ZERO_THRESHOLD_APPROX) > Math.abs(fRep)) fRep = 0.0;
+		// Uses ZERO_THRESHOLD (current EXACT/APPROX value, same as toStringPol/formatNbr/isZero/equals)
+		// so that this respects the EXACT flag instead of always forcing the loose APPROX threshold.
+		if (Math.abs(fRep*ZERO_THRESHOLD) > Math.abs(fImp)) fImp = 0.0;
+		if (Math.abs(fImp*ZERO_THRESHOLD) > Math.abs(fRep)) fRep = 0.0;
 		if (fImp == 0) return Double.toString(fRep);
 		return "{" + fRep + "," + fImp + "}";
 	}
