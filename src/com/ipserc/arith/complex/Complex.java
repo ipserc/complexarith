@@ -3566,25 +3566,34 @@ public class Complex {
 	 * @param lolimit the lower limit of the integral
 	 * @param uplimit the upper limit of the integral
 	 * @param func the function to be integrated
-	 * @param numDec the number of significant decimals 
+	 * @param numDec the number of significant decimals
 	 * @return The value of the integral
+	 * @apiNote Fixed-step Riemann sum: iterates roughly 10^(numDec+1) times with no adaptive
+	 * convergence check, so the cost of this method (and of {@link #gamma_integral(Complex)}/
+	 * {@link #gamma_integral2(Complex)}, which call it internally with numDec=5/6) scales
+	 * directly with the requested decimals. Bumping numDec by 1 multiplies the cost by ~10.
 	 */
 	public static Complex integrate(double lolimit, double uplimit, Function <Complex, Complex> func, int numDec) {
 		int iter  = 1;
 		double precision = Math.pow(10, -Math.abs(++numDec));
 		double step = (uplimit - lolimit) * precision;
-		
+
 		Complex integral = new Complex();
 		Complex prevPoint = new Complex(lolimit, 0);
 		Complex point = new Complex(lolimit + step, 0);
-		Complex prevVal = new Complex();
 		Complex val = new Complex();
-		
+
 		val = func.apply(prevPoint);
 		integral = val;
 		//System.out.printf("ulimit:%f point:%f val:%s \n", ulimit, prevPoint.mod, val.toString());
-		while (uplimit > point.mod) {
-			prevVal = func.apply(prevPoint);
+		// Loop condition compares point.rep (position along the real line, signed) against
+		// uplimit in the direction step already points to -- NOT point.mod (magnitude), which
+		// used to make this loop terminate after a single iteration (silently returning a wrong
+		// result) whenever uplimit was negative, or whenever uplimit < lolimit (descending
+		// integration), since a magnitude can never be less than a negative uplimit. Verified
+		// against the closed form of integrate(x)dx=(b^2-a^2)/2 for lolimit/uplimit both negative
+		// and for reversed (descending) limits.
+		while (step > 0 ? point.rep < uplimit : point.rep > uplimit) {
 			val = func.apply(point);
 			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
 			integral.plusEq(val);
@@ -3615,8 +3624,11 @@ public class Complex {
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param numDec the number of significant decimals 
+	 * @param numDec the number of significant decimals
 	 * @return The value of the integral
+	 * @apiNote Dispatches to {@link #integrateRE} or {@link #integrateIM} (fixed-step Riemann
+	 * sums, ~10^(numDec+2) iterations, no adaptive convergence check), so cost scales directly
+	 * with numDec here too.
 	 */
 	public static Complex integrate(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, int numDec) {
 		Complex vector = uplimit.minus(lolimit);
@@ -3648,19 +3660,19 @@ public class Complex {
 		Complex integral = new Complex();
 
 		//Recorrer la recta con distancia Euclidea
+		// stepRe used to be computed as vector.mod*Math.cos(Math.atan(vector.imp/vector.rep))*precision*Math.signum(vector.rep).
+		// cos(atan(x)) == 1/sqrt(1+x^2), so that projection algebraically reduces to
+		// Math.abs(vector.rep), and Math.abs(vector.rep)*Math.signum(vector.rep) == vector.rep,
+		// i.e. the atan/cos round-trip was just computing vector.rep*precision the long way.
 		double vectSlope = vector.imp/vector.rep;
-		double vectAngle = Math.atan(vectSlope);
-		double projRe = vector.mod * Math.cos(vectAngle);
-		double stepRe = projRe * precision * Math.signum(vector.rep);
+		double stepRe = vector.rep * precision;
 		double nextRep, nextImp;
-		
+
 		int iter = 0;
 		nextPoint = lolimit.copy();
-		
+
 		/** /
 		System.out.println("vectSlope:" + vectSlope);
-		System.out.println("vectAngle: PI*" + vectAngle*Math.PI);
-		System.out.println("projRe   :" + projRe);
 		System.out.println("stepRe   :" + stepRe);
 		System.out.println("iter:" + iter + "   nextPoint:" + lolimit.toString());
 		/**/
@@ -3696,19 +3708,18 @@ public class Complex {
 		Complex integral = new Complex();
 
 		//Recorrer la recta con distancia Euclidea
+		// stepIm used to be computed as vector.mod*Math.cos(Math.atan(vector.rep/vector.imp))*precision*Math.signum(vector.imp);
+		// see integrateRE's comment for the algebraic reduction -- this simplifies the same way
+		// to vector.imp*precision.
 		double vectSlope = vector.rep/vector.imp;
-		double vectAngle = Math.atan(vectSlope);
-		double projIm = vector.mod * Math.cos(vectAngle);
-		double stepIm = projIm * precision * Math.signum(vector.imp);
+		double stepIm = vector.imp * precision;
 		double nextRep, nextImp;
-		
+
 		int iter = 0;
 		nextPoint = lolimit.copy();
-		
+
 		/** /
 		System.out.println("vectSlope:" + vectSlope);
-		System.out.println("vectAngle: PI*" + vectAngle*Math.PI);
-		System.out.println("projIm   :" + projIm);
 		System.out.println("stepIm   :" + stepIm);
 		System.out.println("iter:" + iter + "   nextPoint:" + lolimit.toString());
 		/**/
@@ -3734,8 +3745,17 @@ public class Complex {
 	 * Returns the value of the derivative at the point point
 	 * @param point the point to calculate the derivative
 	 * @param func the complex function to derived
-	 * @param precision The precision of the result 
+	 * @param precision The precision of the result
 	 * @return the complex value of the derivative at the point
+	 * @apiNote Central difference (f(point+h)-f(point-h))/(2h) with a DIAGONAL complex step
+	 * h=hComp+hComp*i, not a purely real or purely imaginary one. This is deliberate and valid
+	 * for a holomorphic func: by the Cauchy-Riemann equations, a holomorphic function's complex
+	 * derivative is direction-independent, so the limit is the same regardless of which way h
+	 * points, as long as |h|->0. Near a branch cut, pole, or any point where func is not
+	 * holomorphic, this is no longer guaranteed and the result can depend on which side of the
+	 * cut the diagonal step happens to land on. Also, hComp=10^-precision underflows to exactly
+	 * 0.0 for precision above ~308 (double range), which would divide by zero; not a concern for
+	 * the only current caller ({@code TestIntegral01.java}, precision=3).
 	 */
 	static public Complex derivative(Complex point, Function <Complex, Complex> func, double precision) {
 		double hComp = Math.pow(10, -precision);
