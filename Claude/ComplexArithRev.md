@@ -214,10 +214,15 @@ Al escribir el test de verificación, un primer intento con `(1000.0, 1e-4)` (el
 
 Ambos commits de esta sesión (`a5d6a99`, `6131af8`) tocan **solo** `src/com/ipserc/arith/complex/Complex.java`.
 
-## Ideas pendientes actualizadas tras `randomNbr`
+## Continuación de la Cuarta sesión: `System.exit(1)` → `IllegalArgumentException` en `setComplex` (mismo día, 29 julio 2026)
 
-- Estado estático mutable global no thread-safe (resto del grupo: `EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`) — sigue fuera de alcance por decisión consciente, cambio arquitectónico grande.
-- `System.exit(1)` dentro de `setComplex` ante parseo inválido.
+3. **`System.exit(1)` en `setComplex(String)`/`setComplex(char,double,double)` sustituido por `IllegalArgumentException`** (commit `bd1b3fd`). Había 4 puntos (`System.err.println(...); System.exit(1);`): 3 en `setComplex(String)` (parseo polar no reconocido, selector rectangular sin caso válido, patrón rectangular no reconocido), alcanzables desde cualquier caller externo con un string mal formado; 1 en `setComplex(char,double,double)` (privado), en la práctica inalcanzable porque todos sus llamadores internos pasan siempre `'C'`/`'P'`/`'c'`/`'p'` literal — corregido igualmente por consistencia. Terminar la JVM entera por un input inválido es inaceptable para una clase de librería (mata cualquier app/hilo que la use por un simple typo, sin poder recuperarse). Fix: `throw new IllegalArgumentException(mensaje)` en los 4 puntos, eliminando el `println` redundante (el mensaje ya va en la excepción). Cambio de contrato de la API: antes mataba el proceso, ahora lanza una excepción no comprobada capturable. Verificado con test suelto: 8 inputs válidos (`"3+4i"`, `"2.5|1.0"`, `"i"`, etc.) sin cambios; inputs inválidos (`"abc"`, `"3+4x"`, `"3||4"`) lanzan `IllegalArgumentException` capturable con el mensaje esperado, y el proceso sigue vivo después. Nota: `"3+"` es aceptado como `3.0` por leniencia preexistente del regex, no relacionado con este cambio. Batería de regresión exit 0 en las 4, sin diferencias numéricas.
+
+Los tres commits de esta sesión (`a5d6a99`, `6131af8`, `bd1b3fd`) tocan **solo** `src/com/ipserc/arith/complex/Complex.java`.
+
+## Ideas pendientes actualizadas tras `randomNbr` y `System.exit`
+
+- Estado estático mutable global no thread-safe (`EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`) — sigue fuera de alcance por decisión consciente, cambio arquitectónico grande.
 - Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado.
 - `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (y `MatrixComplex.java` sigue con cambios locales sin commitear del usuario).
 - Reestructuración arquitectónica de `Complex.java` — no abordada.
@@ -225,4 +230,4 @@ Ambos commits de esta sesión (`a5d6a99`, `6131af8`) tocan **solo** `src/com/ips
 
 ---
 
-*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99` y `6131af8`.*
+*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`.*
