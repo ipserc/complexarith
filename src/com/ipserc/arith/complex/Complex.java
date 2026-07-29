@@ -3765,6 +3765,11 @@ public class Complex {
 	 * Gets the decimal part of a double number
 	 * @param num The number
 	 * @return The decimal part
+	 * @apiNote Not called anywhere in this codebase (grepped across all of src/). Also,
+	 * {@link BigDecimal#intValue()} silently truncates/wraps for values outside the int range
+	 * (per its own contract), so this has no overflow guard for large num. Left as-is and
+	 * documented rather than removed, consistent with how other confirmed-dead methods in this
+	 * class (e.g. zeta_riemann_siegel) were handled.
 	 */
 	static public double getDecPart(double num) {
 		BigDecimal bigDecimal = new BigDecimal(String.valueOf(num));
@@ -3776,6 +3781,7 @@ public class Complex {
 	 * Gets the integer part of a double number
 	 * @param num The number
 	 * @return The integre part
+	 * @apiNote Not called anywhere in this codebase. Same overflow caveat as {@link #getDecPart(double)}.
 	 */
 	static public double getIntPart(double num) {
 		BigDecimal bigDecimal = new BigDecimal(String.valueOf(num));
@@ -3788,6 +3794,11 @@ public class Complex {
 	 * @param complex The number to round
 	 * @param d The number of decimals
 	 * @return The rounded number
+	 * @apiNote Not called anywhere in this codebase except internally by {@link #trunc(Complex, int)},
+	 * which itself has no external callers either. Despite the name, this rounds (via
+	 * {@code String.format}'s HALF_UP-ish behaviour) rather than truncating/flooring -- for actual
+	 * truncation to d decimals, use {@code Math.floor(num * 10^d) / 10^d} instead. Left undocumented
+	 * behaviour aside, this is otherwise correct; kept as dead code rather than removed.
 	 */
 	static public double trunc(double num, int d) {
 		String format = "%." + d +"f";
@@ -3801,6 +3812,7 @@ public class Complex {
 	 * @param num Complex to truncate
 	 * @param d Nbr of decimals to keep
 	 * @return the new truncated complex
+	 * @apiNote Not called anywhere in this codebase (grepped across all of src/).
 	 */
 	static public Complex trunc(Complex num, int d) {
 		Complex truncated = new Complex();
@@ -3832,6 +3844,14 @@ public class Complex {
 	 * @param complex The number to round
 	 * @param decs The number of decimals
 	 * @return The rounded number
+	 * @apiNote Always delegates to {@link #roundRec(Complex, int)}, never {@link #roundPol(Complex, int)}.
+	 * This is intentional, not an oversight: the two production callers of this method
+	 * ({@code Eigenspace.java}, deduplicating/counting eigenvalue multiplicity, and
+	 * {@code Polynom.java}, cleaning up polynomial roots) both work with values that are computed
+	 * and compared as rectangular components; rounding rep/imp directly avoids the extra
+	 * trig-function round-trip (and its associated FP noise) that converting to polar and back
+	 * would introduce. Call {@link #roundPol(Complex, int)} directly if polar-based rounding is
+	 * what's actually needed.
 	 */
 	static public Complex round(Complex complex, int decs) {
 		if (complex.isNaN()) return complex;
