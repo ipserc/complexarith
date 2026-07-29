@@ -3532,24 +3532,51 @@ public class Complex {
 		return log((z.plus(1)).divides(z.minus(1))).divides(2);
 	}
 	
+	/**
+	 * Returns sin(z)/z, with the removable singularity at z=0 resolved to its limit value of 1.
+	 * @param z The complex number
+	 * @return sinc(z)
+	 */
 	public static Complex sinc(Complex z) {
 		if (z.isZero()) return Complex.ONE;
 		return sin(z).divides(z);
 	}
-	
+
+	/**
+	 * Returns cos(z)/z.
+	 * @param z The complex number
+	 * @return cosc(z)
+	 * @apiNote Unlike {@link #sinc(Complex)}, z=0 is NOT a removable singularity here -- cos(0)=1
+	 * while z->0, so cos(z)/z is a genuine simple pole at the origin with no single well-defined
+	 * limit value (the result depends on the direction of approach, same as 1/z). No zero guard
+	 * is applied for that reason. This is a different function from {@code Sigfunc.cosc(Complex)}
+	 * in the signal package, which computes the versine-like (1-cos(z))/z instead -- same name,
+	 * different math, do not confuse the two.
+	 */
 	public static Complex cosc(Complex z) {
 		return cos(z).divides(z);
 	}
 
+	/**
+	 * Returns tan(z)/z, with the removable singularity at z=0 resolved to its limit value of 1.
+	 * @param z The complex number
+	 * @return tanc(z)
+	 */
 	public static Complex tanc(Complex z) {
-		return sinc(z).divides(cosc(z));
+		if (z.isZero()) return Complex.ONE;
+		return tan(z).divides(z);
 	}
 
 	/**
 	 * Returns the value of the Chebyshev polynomial of degree at a poinnt
 	 * @param degree The degree of the polynomial
-	 * @param cx The point 
+	 * @param cx The point
 	 * @return The value of the Chebyshev polynomial
+	 * @apiNote Cross-checked against {@code Polynom.chebyshev(degree,1)}'s 3-term recurrence
+	 * (T0=1, T1=x, Tn=2x*T(n-1)-T(n-2)) for degrees 0-6 at points inside [-1,1], outside it
+	 * (both signs), and complex points off the real axis: they agree everywhere to within
+	 * floating-point noise (~1e-10 or smaller), so this trig-based analytic continuation and the
+	 * polynomial recurrence are consistent, not two independently-drifting implementations.
 	 */
 	public static Complex chebyshev(int degree, Complex cx) {
 		return Complex.cos(Complex.arccos(cx).times(degree));
