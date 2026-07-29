@@ -2213,6 +2213,21 @@ public class Complex {
 	 * @return The new Complex Object with the result of the division.
 	 */
 	public Complex divides(Complex that) {
+		// Division by complex zero: the rectangular formula below always yields rep=imp=NaN
+		// here (0/0, since that.rep=that.imp=0 kills the numerator regardless of 'this'),
+		// while newMod=this.mod/0 would independently give Infinity (this≠0) or NaN (this==0).
+		// Left uncorrected, that mismatch produces a self-contradictory state: e.g. mod=Infinity
+		// but pha a finite, meaningless value derived from that.pha (undefined for a modulus-0
+		// divisor). Handled explicitly so all four fields agree on what is/isn't defined.
+		if (that.mod == 0.0) {
+			if (this.mod == 0.0) {
+				// 0/0: truly indeterminate.
+				return raw(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+			}
+			// nonzero/0: magnitude is well-defined (Infinity), but a modulus-0 divisor has no
+			// defined direction, so the resulting direction (rep/imp/pha) is undefined too.
+			return raw(Double.NaN, Double.NaN, Double.POSITIVE_INFINITY, Double.NaN);
+		}
 		// Rectangular division (a+bi)/(c+di) = ((ac+bd)+(bc-ad)i)/(c²+d²). The denominator
 		// reuses that.mod² (already cached via Math.hypot) instead of recomputing c²+d².
 		double denom = that.mod * that.mod;
