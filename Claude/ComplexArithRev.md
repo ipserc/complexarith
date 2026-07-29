@@ -48,6 +48,7 @@ Actúa como un **Principal Java Performance Engineer**, **Doctor en Matemáticas
 - **Rama:** `master`. Se hacen commits directos, no hay rama de feature.
 - **Último commit de esta tarea:** `72fd463` "Complex: documenta la familia *Red__ y sqrroot__ como código muerto confirmado" (29 julio 2026). Con este commit se completó el plan de 6 fases acordado con el usuario para esta segunda sesión de revisión (ver lista completa más abajo).
 - Esta sesión completó las 6 fases planificadas de principio a fin — no se paró a mitad, a diferencia de la sesión anterior. Quedan ideas pendientes explícitamente fuera de alcance (ver más abajo), no por falta de tiempo sino por decisión consciente del usuario sobre riesgo/beneficio.
+- **Actualización:** hay una Tercera sesión de revisión, posterior a ésta y a la sesión de mantenimiento de repo, que retomó dos de las "Ideas pendientes" de aquí (`divides()` inconsistente y `setPolCoord()` sin purificar fase). Ver la sección "TERCERA SESIÓN DE REVISIÓN" al final del documento para el estado más reciente antes de asumir que esta sección es el final del hilo.
 
 ## Permisos y preferencias del usuario (vigentes, no hace falta re-preguntar)
 
@@ -103,13 +104,13 @@ for t in TestComplex01 TestComplex07 TestGamma01 TestZeta01; do java TestComplex
 
 ## Trucos, reglas y patrones específicos de este código (aprendidos esta sesión, además de los de la anterior)
 
-- **`rePartNull()`/`imPartNull()` son los predicados canónicos de "pureza"** (¿es esta componente despreciable frente a la otra?, ratio `ZERO_THRESHOLD*CORRECTION_FACTOR`). Ya se usaban dentro de `setRecCoord()` (conversión polar→rectangular) para purificar `rep`/`imp`, pero **NO** hay equivalente en `setPolCoord()` (rectangular→polar) para purificar `pha` a un valor alineado a los ejes — asimetría real, confirmada, dejada fuera de alcance a propósito (ver "Ideas pendientes") por su blast radius (se llama en cada conversión rectangular→polar de toda la clase).
+- **`rePartNull()`/`imPartNull()` son los predicados canónicos de "pureza"** (¿es esta componente despreciable frente a la otra?, ratio `ZERO_THRESHOLD*CORRECTION_FACTOR`). Ya se usaban dentro de `setRecCoord()` (conversión polar→rectangular) para purificar `rep`/`imp`. La asimetría con `setPolCoord()` (rectangular→polar, que no purificaba `pha`) detectada en la sesión anterior se corrigió en la Tercera sesión de revisión (commit `a39f99a`, ver esa sección) reutilizando el mismo patrón de `toStringPol()`.
 - **`ZERO_THRESHOLD` (dinámico, conmuta con `EXACT`) vs `ZERO_THRESHOLD_APPROX` (fijo, más laxo):** el patrón correcto en todo el fichero es usar `ZERO_THRESHOLD` por defecto para que el comportamiento respete el flag `EXACT`; `ZERO_THRESHOLD_APPROX` es un modo opt-in (activar con `EXACT=false`), no algo que deba colarse incondicionalmente en el camino "exacto". Antes de esta sesión, 3 de los 4 formateadores lo hacían mal.
 - **Patrón de bug a vigilar: comparar un módulo/magnitud (siempre ≥0) contra un límite que puede ser negativo.** Así se encontró el bug de `integrate(double,double,...)`: `uplimit > point.mod` nunca puede ser cierto si `uplimit<0`, sea cual sea el punto. Si se ve una condición de bucle que mezcla `.mod` con un límite con signo, sospechar.
 - **Identidad `cos(atan(x)) == 1/sqrt(1+x²)`** es útil para reconocer cuándo un cálculo con `atan`/`cos` encadenados es en realidad una fórmula lineal disfrazada (así se simplificó `stepRe`/`stepIm` en `integrateRE`/`integrateIM` a `vector.rep*precision`/`vector.imp*precision`).
 - **Comparar `sin(θ)²+cos(θ)²==1` (u otras identidades trigonométricas) con igualdad EXACTA tras calcular con `Math.sin`/`Math.cos` es frágil:** medido, falla ~22% de las veces por 1-2 ULP de ruido en los propios senos/cosenos. Nunca usar esto como criterio de igualdad; usar `equals(Complex)` (tolerancia sobre rep/imp) o una comparación con tolerancia explícita.
 - **`equals(Complex)`/`equals(double,double)`** (tolerancia `ZERO_THRESHOLD*CORRECTION_FACTOR` sobre rep/imp) es el criterio de igualdad "con tolerancia" ya establecido y confiable en toda la clase — úsalo en vez de reinventar comparaciones ad-hoc (mod, fase, identidades trigonométricas) para "¿son estos dos complejos el mismo valor?".
-- **División por `Complex.ZERO` produce un estado interno inconsistente:** `divides()` calcula `rep`/`imp` (que dan `NaN`, por `0/0`) y `mod` (que da `Infinity`, por `x/0` con `x≠0`) de forma independiente vía la factoría `raw()`, sin verificar consistencia entre ellos — el objeto resultante tiene `rep=NaN, imp=NaN, mod=Infinity` simultáneamente, una combinación contradictoria. Descubierto al analizar `cosc(0)=cos(0)/0`. No se ha arreglado (tocaría el núcleo aritmético usado en todo el fichero); documentado como hallazgo para una futura revisión dedicada de `divides()`.
+- ~~**División por `Complex.ZERO` produce un estado interno inconsistente**~~ → **Resuelto en la Tercera sesión de revisión (commit `20a4bb3`), ver esa sección.** (Descubierto al analizar `cosc(0)=cos(0)/0` en la sesión anterior.)
 - **Antes de compilar un test file que falla con "cannot find symbol" para un método que SÍ existe en el fichero actual**, comprobar si el test file tiene ediciones locales sin commitear que asumen una versión distinta del `.java` que se está usando como referencia (`git show HEAD:...` puede no coincidir con el working tree si el test file — no `Complex.java` — está modificado). Pasó con `TestComplex01.java` y el método `logbase`/`logb`.
 - **`Edit` preserva CRLF; herramientas de shell tipo `sed -i`/`perl -i` en Git Bash no** (ver incidente arriba). Si hay que tocar espacio en blanco al final de una línea, es más seguro aceptar un pequeño diff cosmético residual que arriesgarse con `sed`.
 
@@ -119,7 +120,7 @@ De la sesión anterior (sin cambios): `zeta_riemann_siegel(s)` (da `0.0` para `|
 
 Nuevos de esta sesión:
 - `limit_inf`: el bucle interior `while (result2.mod/result.mod != 1)` no tiene cota de iteraciones (a diferencia del bucle externo de `limit()`, que sí está acotado). Si el ratio nunca cae exactamente en 1.0, sigue doblando `point.mod` indefinidamente. No arreglado (cambiaría qué se considera "convergente").
-- `cosc(z)=cos(z)/z` en `z=0`: polo genuino sin valor límite único (depende de la dirección de aproximación), documentado que no lleva guarda a propósito — pero el resultado real que produce hoy (`rep=NaN, imp=NaN, mod=Infinity`) es un estado inconsistente del núcleo de división, no arreglado (ver "Trucos" arriba).
+- `cosc(z)=cos(z)/z` en `z=0`: polo genuino sin valor límite único (depende de la dirección de aproximación), documentado que no lleva guarda a propósito. El estado inconsistente que esto producía en `divides()` (`rep=NaN, imp=NaN` junto con `mod=Infinity`) se corrigió en la Tercera sesión (commit `20a4bb3`): ahora `cosc(0)` da el estado consistente `rep=NaN, imp=NaN, mod=Infinity, pha=NaN` (magnitud infinita, dirección explícitamente indefinida) en vez de una `pha` finita engañosa.
 - `equalsred__(double,double,int)`: recibe `numDecs` pero nunca lo usa en el cuerpo — bug latente propio, pero el método está muerto (sin callers), así que no se ha corregido.
 - `toStringGNUPlot`: su purga de cero es incondicional (no respeta el flag `FORMAT_NBR`), a diferencia de los otros 3 formateadores que sí lo respetan. Detectado durante la Fase 1, señalado al usuario, decisión de cambiarlo o no queda pendiente (no se tocó).
 
@@ -128,8 +129,8 @@ Nuevos de esta sesión:
 Actualizado tras esta sesión — lo que YA se cubrió (`sinc`/`cosc`/`tanc`, `chebyshev`, `integrate*`/`derivative`, `limit`/`limit_inf`, `round`/`trunc`/`getDecPart`/`getIntPart`, métodos `*Red__`/`sqrroot__`) se ha quitado de esta lista. Lo que sigue sin tocar:
 
 - **Estado estático mutable global** (`EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`, `randomNbr`...) — no es thread-safe. Preguntado explícitamente esta sesión y el usuario decidió dejarlo **fuera de alcance**: es un cambio arquitectónico grande (candidato a `ThreadLocal` o config por instancia) que merece su propio plan dedicado, no mezclarse con una revisión puntual.
-- **`setPolCoord()` no purifica la fase** a valores alineados a los ejes (0, ±π/2, π) cuando una componente es despreciable, a diferencia de `setRecCoord()` que sí purifica rep/imp en la dirección contraria. Se decidió conscientemente NO tocarlo esta sesión por su blast radius (se ejecuta en cada conversión rectangular→polar de toda la clase); el síntoma visible (que `toStringPol` no detectaba "casi real negativo"/"casi imaginario") se arregló en la Fase 1 solo a nivel de formateo, sin tocar la conversión estructural subyacente.
-- **`divides()` produce un estado interno inconsistente al dividir por `Complex.ZERO`** (`rep`/`imp=NaN` junto con `mod=Infinity`) — descubierto al analizar `cosc(0)`, no arreglado, tocaría el núcleo aritmético.
+- ~~`divides()` produce un estado interno inconsistente al dividir por `Complex.ZERO`~~ → **Resuelto en la Tercera sesión de revisión (29 julio 2026), commit `20a4bb3`, ver sección siguiente.**
+- ~~`setPolCoord()` no purifica la fase a valores alineados a los ejes~~ → **Resuelto en la Tercera sesión de revisión (29 julio 2026), commit `a39f99a`, ver sección siguiente.**
 - `toStringGNUPlot` no respeta `FORMAT_NBR` (incondicional), a diferencia de los otros 3 formateadores — señalado, no resuelto.
 - `randomNbr` es un único `Random` estático compartido (candidato a `ThreadLocalRandom`), usado solo en `boxTitle*`/`boxText*` (cosmético, bajo impacto). Nota: esto también es la fuente del ruido no determinista en los tests de regresión (ver arriba).
 - `System.exit(1)` dentro de `setComplex` ante parseo inválido — debería lanzar excepción en vez de matar la JVM.
@@ -158,4 +159,30 @@ Actualizado tras esta sesión — lo que YA se cubrió (`sinc`/`cosc`/`tanc`, `c
 
 ---
 
-*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`).*
+# TERCERA SESIÓN DE REVISIÓN DE `Complex.java` — 29 julio 2026 (retoma la lista de "Ideas pendientes")
+
+> Esta sección continúa la revisión de `Complex.java` de las dos primeras sesiones (arriba), después de la sesión de mantenimiento de repo (line-endings + versionado, sección anterior). Se retomó picoteando la lista de "Ideas pendientes" de la sesión 2, de una en una, con el mismo workflow de siempre (resumen antes de cada fase, confirmación del usuario, `Edit` únicamente, compilar y verificar contra el build anterior antes de fiarse, batería de regresión, commit único con solo `Complex.java`).
+
+## Qué se hizo
+
+1. **`divides(Complex)` — estado interno inconsistente al dividir por complejo cero** (commit `20a4bb3`). Al dividir por un complejo de módulo 0 (p.ej. `Complex.ZERO`), la fórmula rectangular anulaba siempre el numerador de `rep`/`imp` (dando `NaN` sin importar la magnitud del numerador), mientras `mod` se calculaba de forma independiente y correcta (`Infinity` si el numerador≠0, `NaN` si también es 0), y `pha` quedaba en un valor finito sin sentido derivado de la fase del propio cero. Resultado: hasta 4 campos contradictorios en el mismo objeto (p.ej. `mod=Infinity` con una `pha` finita). Fix: detectar explícitamente `that.mod==0` y devolver un estado consistente — `rep=imp=mod=pha=NaN` si también el numerador es cero (0/0 indeterminado), o `rep=imp=pha=NaN, mod=Infinity` si el numerador es no-cero (magnitud bien definida, dirección indefinida). Verificado con un test aparte en el scratchpad comparando explícitamente contra el build anterior en los 4 casos de división por cero, más un par de sanity checks de división normal (bit a bit idénticos). Batería de regresión sin cambios numéricos.
+2. **`setPolCoord()` — asimetría con `setRecCoord()`, la fase no se purificaba** (commit `a39f99a`). `setRecCoord()` (polar→rectangular) purifica `rep`/`imp` a `0.0` exacto vía `rePartNull()`/`imPartNull()` cuando la componente es despreciable frente a la otra; `setPolCoord()` (rectangular→polar) no tenía el equivalente para `pha` — quedaba en un residuo sin sentido (p.ej. `atan2(1e-14,1000)≈1e-17` en vez de `0.0`). Fix: reutilizar el mismo patrón que ya usaba `toStringPol()` (línea ~1159-1160) para snapear `pha` al eje más cercano (`0`, `±HALF_PI`, `PI`) justo tras calcularla con `atan2`, sin tocar nunca `rep`/`imp`. Verificado con un test aparte: purificación correcta en los 4 cuadrantes cerca de cada eje, ausencia de purificación en un caso justo fuera del umbral (ratio `1e-3`), ida-y-vuelta rectangular→polar→rectangular sin cambios (ya lo purificaba `setRecCoord()` de forma independiente), y una multiplicación encadenada (50×`timesEq`) con `rep`/`imp` resultantes bit a bit idénticos antes/después del fix (solo cambia la última cifra de la `pha` interna, ruido de redondeo eliminado). Batería de regresión sin cambios numéricos.
+
+Ambos commits, como en las sesiones anteriores, tocan **solo** `src/com/ipserc/arith/complex/Complex.java` — verificado con `git diff --cached --stat` antes y después de cada `git add`.
+
+## Ideas pendientes que quedaron fuera de esta sesión (sin cambios respecto a la lista de la sesión 2)
+
+- `toStringGNUPlot` no respeta `FORMAT_NBR` (incondicional).
+- Estado estático mutable global no thread-safe (`EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`, `randomNbr`...) — sigue fuera de alcance por decisión consciente (cambio arquitectónico grande).
+- `randomNbr` como único `Random` estático compartido (fuente del ruido no determinista en tests de regresión, ver sección de sesión 2).
+- `System.exit(1)` dentro de `setComplex` ante parseo inválido.
+- Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado.
+- `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (y `MatrixComplex.java` sigue con cambios locales sin commitear del usuario).
+- Reestructuración arquitectónica de `Complex.java` (separar aritmética/parsing/formato/cajas ASCII/integración/límites) — no abordada.
+- Limpieza de los 88 ficheros con line-endings+contenido mezclados (sesión de mantenimiento) — sigue pendiente, sin avances en esta sesión.
+
+No se ha propuesto continuar con ninguna de estas; el usuario decidió parar aquí por hoy.
+
+---
+
+*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`.*
