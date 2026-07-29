@@ -1061,12 +1061,12 @@ public class Complex {
 		}
 
 		if (FORMAT_NBR) {
-			// Uses ZERO_THRESHOLD (current EXACT/APPROX value, same as toStringPol/formatNbr/isZero/equals)
-			// so that this respects the EXACT flag instead of always forcing the loose APPROX threshold.
-			if (fImp != 0.0)
-				if (Math.abs(fRep/fImp) < ZERO_THRESHOLD) fRep = 0.0;
-			if (fRep != 0.0)
-				if (Math.abs(fImp/fRep) < ZERO_THRESHOLD) fImp = 0.0;
+			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
+			// (ZERO_THRESHOLD*CORRECTION_FACTOR), the same ones setRecCoord() already uses when
+			// building a Complex from polar coordinates, so every toString* formatter agrees on
+			// when a component is negligible relative to the other.
+			if (this.rePartNull()) fRep = 0.0;
+			if (this.imPartNull()) fImp = 0.0;
 		}
 		sfRep = String.valueOf(fRep);
 		if (SCIENTIFIC_NOTATION) sfRep = String.format("%."+MAX_DECIMALS+"E", fRep).replace(',', '.');
@@ -1102,12 +1102,12 @@ public class Complex {
 		double fImp = imp;
 
 		if (FORMAT_NBR) {
-			// Uses ZERO_THRESHOLD (current EXACT/APPROX value, same as toStringPol/formatNbr/isZero/equals)
-			// so that this respects the EXACT flag instead of always forcing the loose APPROX threshold.
-			if (fImp != 0.0)
-				if (Math.abs(fRep/fImp) < ZERO_THRESHOLD) fRep = 0.0;
-			if (fRep != 0.0)
-				if (Math.abs(fImp/fRep) < ZERO_THRESHOLD) fImp = 0.0;
+			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
+			// (ZERO_THRESHOLD*CORRECTION_FACTOR), the same ones setRecCoord() already uses when
+			// building a Complex from polar coordinates, so every toString* formatter agrees on
+			// when a component is negligible relative to the other.
+			if (this.rePartNull()) fRep = 0.0;
+			if (this.imPartNull()) fImp = 0.0;
 		}
 		if (fImp == 0.0 )
 			return fRep + "";
@@ -1147,9 +1147,17 @@ public class Complex {
 		*/
 		
 		if (FORMAT_NBR) {
-			if (fMod < ZERO_THRESHOLD) fMod = 0.0;
-			if (Math.abs(fPha) < ZERO_THRESHOLD) fPha = 0.0;
-			if (fMod == 0.0) fPha = 0.0;
+			// Purity check: snaps the phase to the nearest axis-aligned value (0, +HALF_PI, PI,
+			// -HALF_PI) using the same rePartNull()/imPartNull() predicates as toStringRec and
+			// setRecCoord(), instead of only detecting "phase near zero" (pure positive real) as
+			// before -- this also recognizes pure negative real (phase near PI) and pure
+			// imaginary (phase near +-HALF_PI) numbers, which the previous check missed entirely.
+			if (fMod < ZERO_THRESHOLD) {
+				fMod = 0.0;
+				fPha = 0.0;
+			}
+			else if (this.imPartNull()) fPha = (this.rep >= 0.0) ? 0.0 : Math.PI;
+			else if (this.rePartNull()) fPha = (this.imp >= 0.0) ? HALF_PI : -HALF_PI;
 		}
 		
 		sfMod = String.valueOf(fMod);
@@ -1171,10 +1179,11 @@ public class Complex {
 		double fRep = formatNbr(rep);
 		double fImp = formatNbr(imp);
 
-		// Uses ZERO_THRESHOLD (current EXACT/APPROX value, same as toStringPol/formatNbr/isZero/equals)
-		// so that this respects the EXACT flag instead of always forcing the loose APPROX threshold.
-		if (Math.abs(fRep*ZERO_THRESHOLD) > Math.abs(fImp)) fImp = 0.0;
-		if (Math.abs(fImp*ZERO_THRESHOLD) > Math.abs(fRep)) fRep = 0.0;
+		// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
+		// (ZERO_THRESHOLD*CORRECTION_FACTOR), same as toStringRec/toStringPol/setRecCoord.
+		// Kept unconditional (not gated by FORMAT_NBR) to match this method's prior behavior.
+		if (this.rePartNull()) fRep = 0.0;
+		if (this.imPartNull()) fImp = 0.0;
 		if (fImp == 0) return Double.toString(fRep);
 		return "{" + fRep + "," + fImp + "}";
 	}
