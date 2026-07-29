@@ -364,8 +364,7 @@ public class Complex {
 				this.normalizePhase();
 				this.setRecCoord();
 			} else {
-				System.err.println("Invalid number:" + numC);
-				System.exit(1);
+				throw new IllegalArgumentException("Invalid number:" + numC);
 			}
 		}
 		else {
@@ -413,14 +412,12 @@ public class Complex {
 					imp = Double.parseDouble((((recMatcher.group(6) == null) ? "" : recMatcher.group(6)) + recMatcher.group(7)).toString());
 					break;
 				default:
-					System.err.println("Invalid number:" + numC);
-					System.exit(1);
+					throw new IllegalArgumentException("Invalid number:" + numC);
 				}
 				this.setPolCoord();
 			}
 			else {
-				System.err.println("Not matched number:" + numC);
-				System.exit(1);
+				throw new IllegalArgumentException("Not matched number:" + numC);
 			}
 		}
 		return this;
@@ -515,8 +512,7 @@ public class Complex {
 			this.setRecCoord();
 			break;
 		default:
-			System.err.println("Invalid type of coordinates:" + coordType);
-			System.exit(1);   	
+			throw new IllegalArgumentException("Invalid type of coordinates:" + coordType);
 		}
 	}
 
