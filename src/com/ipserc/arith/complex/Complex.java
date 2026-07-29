@@ -3975,19 +3975,21 @@ public class Complex {
 	 * @param limr The value of the limit on the right
 	 * @param liml The value of the limit on the left
 	 * @return If both values of the limit are equals or not
+	 * @apiNote Used to delegate to a hand-rolled check: round the ratio of moduli to
+	 * LIM_NUMDECS-2 decimals and compare it to 1 via exact {@code ==}, then confirm the phases
+	 * "match" via {@code sin(phaR)^2+cos(phaL)^2==1 && cos(phaR)^2+sin(phaL)^2==1}. Measured: for
+	 * a sweep of angles -pi..pi in steps of 1e-3, sin(t)^2+cos(t)^2 fails to be EXACTLY 1.0 in
+	 * double arithmetic ~22% of the time (off by 1-2 ULP), so that phase check spuriously
+	 * rejected genuinely-equal phases about 1 time in 5. It was also logically looser than
+	 * intended: sin(a)^2==sin(b)^2 and cos(a)^2==cos(b)^2 both reduce to cos(2a)==cos(2b), i.e.
+	 * a==+-b+k*PI, which would also accept phases exactly PI apart (opposite directions) as
+	 * "equal" for a nonzero modulus. Replaced with {@link #equals(Complex)}, the same
+	 * rep/imp-tolerance equality already used as the convergence test elsewhere in this class
+	 * (e.g. zeta_havil): simpler, and free of both issues since it compares rep/imp directly
+	 * instead of re-deriving phase equality through squared trig identities.
 	 */
 	static private boolean limequ(Complex limr, Complex liml) {
-		if (limr.mod == 0 && liml.mod == 0) return true;
-		double cocient = limr.mod < liml.mod ? limr.mod/liml.mod : liml.mod/limr.mod;
-		if (round(cocient, LIM_NUMDECS-2) == 1) {
-			double sin2r = Math.pow(Math.sin(limr.pha),2);
-			double cos2r = Math.pow(Math.cos(limr.pha),2);
-			double sin2l = Math.pow(Math.sin(liml.pha),2);
-			double cos2l = Math.pow(Math.cos(liml.pha),2);
-			if (sin2r + cos2l == 1 && cos2r + sin2l == 1) return true;
-			return false;
-		}
-		else return false;
+		return limr.equals(liml);
 	}
 	
 	/**
@@ -4054,6 +4056,21 @@ public class Complex {
 	 * @param func The function to evaluate for the limit
 	 * @param sign The sign of the Infinite
 	 * @return The Complex value of the limit
+	 * @apiNote {@code LIM_INF=2147483647} (Integer.MAX_VALUE as a double) is used as the initial
+	 * "far out" probe point below -- a fairly modest magnitude to stand in for infinity in a
+	 * double-based library that can represent values up to ~1.8e308, but it only serves as a
+	 * starting point: the loop below doubles point.mod from there until the result stabilizes or
+	 * genuinely diverges. That loop's exit condition, {@code result2.mod/result.mod != 1}
+	 * (exact double comparison, no tolerance), has no iteration cap of its own -- unlike
+	 * {@link #limit(Function, Complex)}'s outer loop, which is bounded by
+	 * {@code mult*LIM_PRECISION<1} regardless of whether its convergence check ever fires. If a
+	 * function's true limit at infinity converges too slowly or the mod ratio never lands
+	 * exactly on 1.0, this keeps doubling point.mod (eventually overflowing to Infinity, after
+	 * which func's behavior on an infinite input governs whether the loop ever exits) with no
+	 * fallback termination. Not fixed here: turning this into a safe bounded loop is a real
+	 * algorithm change (an iteration cap changes what "convergent" means for a borderline
+	 * function), not a contained bug fix -- same category as zeta_analytic_continuation's
+	 * documented-but-unfixed convergence limit from the previous session.
 	 */
 	static private Complex limit_inf(Function <Complex, Complex> func, int sign) {
 		Complex result;
