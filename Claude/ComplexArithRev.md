@@ -137,8 +137,25 @@ Actualizado tras esta sesión — lo que YA se cubrió (`sinc`/`cosc`/`tanc`, `c
 - `MatrixComplex.java` y `VectorComplex.java` no se han tocado ni revisado (y `MatrixComplex.java` tiene cambios locales sin commitear del usuario, ver arriba).
 - El bloque de formateo/presentación (`boxTitle*`/`boxText*`, ASCII art) no se ha revisado por corrección — solo se tocó la lógica de umbral de cero de `toString*`, no el resto del pipeline de formato.
 - La clase entera sigue siendo ~4125 líneas mezclando aritmética + parsing + formato + cajas de texto ASCII + integración numérica + límites + funciones especiales — la reestructuración arquitectónica (separar responsabilidades) que pedía el prompt original sigue sin abordarse.
-- Line-endings: el `HEAD` actual tiene CRLF pero el "natural" del proyecto (desarrollado en Linux) es LF — no normalizado, ver nota en "Permisos y preferencias" arriba.
+- ~~Line-endings: el `HEAD` actual tiene CRLF pero el "natural" del proyecto (desarrollado en Linux) es LF — no normalizado~~ → **Resuelto en la sesión de mantenimiento del 29 julio 2026, ver sección siguiente.**
 
 ---
 
-*Última actualización de este bloque: sesión del 29 julio 2026, tras el commit `72fd463`.*
+# SESIÓN DE MANTENIMIENTO DE REPOSITORIO — 29 julio 2026 (independiente de la revisión de `Complex.java`)
+
+> Esta sección documenta trabajo que **no** forma parte del plan de auditoría/refactor de `Complex.java` de las secciones anteriores. Es una sesión distinta, de higiene de repositorio (line-endings + versionado), hecha el mismo día. Las "Ideas pendientes" de `Complex.java` de la sección anterior siguen intactas y sin tocar — no se avanzó en ellas en esta sesión.
+
+## Qué se hizo
+
+1. **Normalización de line-endings a LF** (commit `75c95a1`). El usuario forzó a Eclipse a usar LF como terminador de línea, lo que reescribió el terminador (sin cambios de contenido) en 137 ficheros que tenían CRLF heredado del port Linux→Windows. Se separó cuidadosamente qué ficheros tenían **solo** cambio de terminador (verificado con `git diff -w`, insertions==deletions exactas) de los que mezclaban terminador + contenido real; solo los 137 "puros" entraron en este commit. Se añadió `.gitattributes` (`* text eol=lf`) para fijar LF de forma consistente en el repo hacia adelante, independientemente de `core.autocrlf` local. El usuario confirmó que ya tiene `git config --global core.autocrlf false`.
+2. **Versionado a nivel de proyecto** (commit `ef7bfc2`, tag anotado `v1.0`). Hasta ahora la versión solo se llevaba por clase (constante `VERSION = "1.X (YYYY_MMDD_HHMM)"` en cada `.java`, ej. `Complex.java` en `1.9`). Se acordó con el usuario un esquema **secuencial incremental** (no SemVer ni CalVer — no aplican bien a un proyecto sin paquete publicado ni cadencia de release regular) y se añadió un fichero `VERSION` en la raíz del repo con el mismo formato `MAJOR.MINOR (YYYY_MMDD_HHMM)`, ahora en `1.0 (2026_0729_0943)`. Cada versión de proyecto futura se marcará con `VERSION` actualizado + commit + tag `vX.Y` (tag local únicamente; no se empuja al remoto salvo petición explícita).
+
+## Qué queda pendiente / sin tocar
+
+- **88 ficheros con cambios "mezclados"** (terminador de línea + contenido real del usuario en el mismo diff), deliberadamente dejados fuera del commit de normalización LF — siguen sin commitear, tal y como estaban. Incluyen `src/com/ipserc/arith/matrixcomplex/MatrixComplex.java` (ya documentado en la sección anterior como WIP grande del usuario), `.gitignore` (cambio real: comenta `*.class`), los borrados `src/TestComplex/SchurCalc.java` y `src/com/ipserc/arith/vector/Vector.java`, y ~84 ficheros más de `TestComplex/` y de los paquetes `factorization`/`geom`/`matrixcomplex`/`polynom`/`signal`. Para verlos: `git status --short | grep '^ M\|^ D'` tras el estado de este commit. Si se retoma este trabajo, el mismo método de separación (`git diff -w` vacío ⇒ puro terminador) sirve para ir limpiando estos ficheros uno a uno o por lotes, pero cada uno requiere revisar qué parte es contenido real antes de commitear.
+- No se ha propuesto ni acordado con el usuario si el `VERSION` de proyecto debe subirse también en cada commit relevante de ahora en adelante, o solo cuando el usuario lo pida explícitamente — asumir esto último salvo que diga lo contrario.
+- No se han tocado los tags remotos ni se ha hecho push de nada de esta sesión.
+
+---
+
+*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`).*
