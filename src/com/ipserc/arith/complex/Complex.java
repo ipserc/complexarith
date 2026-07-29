@@ -41,7 +41,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.text.NumberFormat;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.io.*;
 import java.util.Scanner;
 
@@ -265,8 +265,6 @@ public class Complex {
 	private double mod;	// the modulus
 	private double pha;	// the phase
 	private double cre; // sgn*modulus sgn=any func. Used to compare Complex
-	
-	private static Random randomNbr = new Random(System.currentTimeMillis());
 
 	/*
 	 * ***********************************************
@@ -1508,7 +1506,7 @@ public class Complex {
 	 * @return
 	 */
 	public static String boxTitleRandom(int size, String title) {
-		switch (randomNbr.nextInt(7)+1) {		 
+		switch (ThreadLocalRandom.current().nextInt(7)+1) {
 			case 1: return boxTitle1(size, title);
 			case 2: return boxTitle2(size, title);
 			case 3: return boxTitle3(size, title);
@@ -1691,7 +1689,7 @@ public class Complex {
 	 * @return
 	 */
 	public static String boxTextRandom(int size, String title) {
-		switch (randomNbr.nextInt(7)+1) {		 
+		switch (ThreadLocalRandom.current().nextInt(7)+1) {
 			case 1: return boxText1(size, title);
 			case 2: return boxText2(size, title);
 			case 3: return boxText3(size, title);
