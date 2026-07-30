@@ -68,9 +68,14 @@ public class Complex {
 	public static void numpPadPLUS() {
 		__NUMPAD__ = "+";
 	}
+
+	/** Package-private accessor for {@link ComplexFormat}, which cannot see the private field. */
+	static String numpad() {
+		return __NUMPAD__;
+	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.13 (2026_0730_1933)";
+	private final static String VERSION = "1.14 (2026_0730_1940)";
 	/* VERSION Release Note
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {
@@ -650,28 +655,6 @@ public class Complex {
 	public static void restoreRepres() { ComplexState.restoreRepres(); }
 
 	/**
-	 * Returns the character string for the character code
-	 * @param charCode The character code
-	 * @return The character string
-	 */
-	private static String chr(int charCode) {
-		return Character.toString((char) charCode);
-	}
-
-	/**
-	 * Formats the number according with a ZERO_THRESHOLD and SIGNIFICATIVE decimals.
-	 * Tries to return pretty integers keeping the maximum of decimals for reals.
-	 * @param number The number to be formatted.
-	 * @return The formatted number.
-	 */
-	private static double formatNbr(double number) {
-		if (!ComplexState.getFortmatStatus()) return number;
-		if (Math.abs(number) < ComplexState.zero_treshold()) return 0.0;
-		double newNumber = Math.rint(number * ComplexState.digits()) / ComplexState.digits();
-		return newNumber;
-	}
-
-	/**
 	 * Private Method. Uses the normalizedPhase_X method selected
 	 * @param phase to normalize.
 	 * @return phase normalized.
@@ -728,81 +711,23 @@ public class Complex {
 	 * @return The string representation in Rectangular coordinates.
 	 */
 	public String toString() {
-		String strComplex = "";
-		switch (ComplexState.representation()) {
-		case RECTANGULAR:
-			strComplex = this.toStringRec();
-			break;
-		case POLAR:
-			strComplex =  this.toStringPol();
-			break;
-		}
-		return strComplex;
+		return ComplexFormat.toString(this);
 	}
 
 	/**
-	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS. 
+	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS.
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringRec() {
-		return this.toStringRec("i");
+		return ComplexFormat.toStringRec(this);
 	}
 
 	/**
-	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS. 
+	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS.
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringRecWolfram() {
-		String strWolfram = this.toStringRec("I");
-		return strWolfram.replace("E", "*10^");
-	}
-	
-	/**
-	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS. 
-	 * @return The string representation of a complex number using scientific notation.
-	 */
-	private String toStringRec(String imu) {
-		double fRep = formatNbr(rep);
-		double fImp = formatNbr(imp);
-		String sfRep = new String();
-		String sfImp = new String();
-		
-		if (Double.isInfinite(mod)) {
-			if (Math.tan(this.pha) >= 0) return ("Infinity");
-			else return ("-Infinity");
-		}
-
-		if (ComplexState.getFortmatStatus()) {
-			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
-			// (ZERO_THRESHOLD*CORRECTION_FACTOR), the same ones setRecCoord() already uses when
-			// building a Complex from polar coordinates, so every toString* formatter agrees on
-			// when a component is negligible relative to the other.
-			if (this.rePartNull()) fRep = 0.0;
-			if (this.imPartNull()) fImp = 0.0;
-		}
-		sfRep = String.valueOf(fRep);
-		if (ComplexState.getScientificStatus()) sfRep = String.format("%."+ComplexState.getMaxDecimals()+"E", fRep).replace(',', '.');
-		else if (ComplexState.getFixedStatus()) sfRep = String.format("%."+ComplexState.getMaxDecimals()+"f", fRep).replace(',', '.');
-			//else sfRep = String.format("%."+MAX_DECIMALS+"f", fRep).replace(',', '.');
-
-		sfImp = String.valueOf(fImp);
-		if (ComplexState.getScientificStatus()) sfImp = String.format("%."+ComplexState.getMaxDecimals()+"E", fImp).replace(',', '.');
-		else if (ComplexState.getFixedStatus()) sfImp = String.format("%."+ComplexState.getMaxDecimals()+"f", fImp).replace(',', '.');
-			//else sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
-		
-		String strComplex;
-
-		if (fImp == 0.0 || Double.parseDouble(sfImp) == 0.0)
-			strComplex =  sfRep + "";
-		else if (fRep == 0.0 || Double.parseDouble(sfRep) == 0.0)  
-			strComplex = sfImp + imu;
-		else if (fImp <  0.0) 
-			strComplex = sfRep + sfImp + imu;
-		else strComplex = sfRep + "+" + sfImp + imu;
-		
-		// Padding the complex
-		strComplex = strComplex.charAt(0)== '-' ? strComplex : __NUMPAD__ + strComplex ;
-		return strComplex;
+		return ComplexFormat.toStringRecWolfram(this);
 	}
 
 	/**
@@ -810,97 +735,25 @@ public class Complex {
 	 * @return The string representation of a complex number in rectangular coordinates.
 	 */
 	public String toStringRecI() {
-		double fRep = rep;
-		double fImp = imp;
-
-		if (ComplexState.getFortmatStatus()) {
-			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
-			// (ZERO_THRESHOLD*CORRECTION_FACTOR), the same ones setRecCoord() already uses when
-			// building a Complex from polar coordinates, so every toString* formatter agrees on
-			// when a component is negligible relative to the other.
-			if (this.rePartNull()) fRep = 0.0;
-			if (this.imPartNull()) fImp = 0.0;
-		}
-		if (fImp == 0.0 )
-			return fRep + "";
-		if (fRep == 0.0)
-			if (Math.abs(fImp) != 1.0)
-				return fImp + "i";
-			else 
-				return (fImp == -1.0) ? "-i" : "i";
-		if (fImp <  0.0) 
-			return fRep + "-" + ((fImp == -1.0) ? "" : (-fImp)) + "i";
-		return fRep + "+" + ((fImp == 1.0) ? "" : fImp) + "i";
+		return ComplexFormat.toStringRecI(this);
 	}
 
 	/**
 	 * Builds the string representation of a complex number using scientific notation with MAX_DECIMALS.
 	 * Corrects the VERY VERY BAD fact of having two ways to represent decimals and thousands in English/Latin way using commas for points or viceversa
-	 * I would like to promote a worldwide amendment to adopt the English way for number representation and by the way the use of YYYY/MM/DD for dates as default 
+	 * I would like to promote a worldwide amendment to adopt the English way for number representation and by the way the use of YYYY/MM/DD for dates as default
 	 * @return The string representation of a complex number using scientific notation.
 	 */
 	public String toStringPol() {
-		double fMod = mod;
-		double fPha = pha;
-		String sfMod = new String();
-		String sfPha = new String();
-
-		/*
-		if (FORMAT_NBR) {
-			if (Math.abs(rep/imp) < ZERO_THRESHOLD_R) {
-				fMod = Math.abs(imp);
-				fPha = Complex.HALF_PI*Math.signum(imp);
-			}
-			else if (Math.abs(fImp/fRep) < ZERO_THRESHOLD_R) {
-				fMod = Math.abs(rep);
-				fPha = 0;
-			}			
-		}
-		*/
-		
-		if (ComplexState.getFortmatStatus()) {
-			// Purity check: snaps the phase to the nearest axis-aligned value (0, +HALF_PI, PI,
-			// -HALF_PI) using the same rePartNull()/imPartNull() predicates as toStringRec and
-			// setRecCoord(), instead of only detecting "phase near zero" (pure positive real) as
-			// before -- this also recognizes pure negative real (phase near PI) and pure
-			// imaginary (phase near +-HALF_PI) numbers, which the previous check missed entirely.
-			if (fMod < ComplexState.zero_treshold()) {
-				fMod = 0.0;
-				fPha = 0.0;
-			}
-			else if (this.imPartNull()) fPha = (this.rep >= 0.0) ? 0.0 : Math.PI;
-			else if (this.rePartNull()) fPha = (this.imp >= 0.0) ? HALF_PI : -HALF_PI;
-		}
-
-		sfMod = String.valueOf(fMod);
-		if (ComplexState.getScientificStatus()) sfMod = String.format("%."+ComplexState.getMaxDecimals()+"E", fMod).replace(',', '.');
-		else if (ComplexState.getFixedStatus()) sfMod = String.format("%."+ComplexState.getMaxDecimals()+"f", fMod).replace(',', '.');
-			//else sfMod = String.format("%."+MAX_DIGITS+"f", fMod).replace(',', '.');
-
-		sfPha = String.valueOf(fPha);
-		if (ComplexState.getScientificStatus() || ComplexState.getFixedStatus())sfPha = String.format("%."+ComplexState.getMaxDecimals()+"f", fPha).replace(',', '.');
-
-		return sfMod + "|" + sfPha;
+		return ComplexFormat.toStringPol(this);
 	}
 
 	/**
-	 * Express a complex number in GNUPlot format {<real>,<imag>}, where <real> and <imag> must be numerical constants. 
-	 * @return The string representation of a complex number in GNUPlot format 
+	 * Express a complex number in GNUPlot format {<real>,<imag>}, where <real> and <imag> must be numerical constants.
+	 * @return The string representation of a complex number in GNUPlot format
 	 */
 	public String toStringGNUPlot() {
-		double fRep = formatNbr(rep);
-		double fImp = formatNbr(imp);
-
-		if (ComplexState.getFortmatStatus()) {
-			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
-			// (ZERO_THRESHOLD*CORRECTION_FACTOR), same as toStringRec/toStringPol/setRecCoord.
-			// Now gated by FORMAT_NBR like the other three formatters, instead of purging
-			// unconditionally regardless of the flag.
-			if (this.rePartNull()) fRep = 0.0;
-			if (this.imPartNull()) fImp = 0.0;
-		}
-		if (fImp == 0) return Double.toString(fRep);
-		return "{" + fRep + "," + fImp + "}";
+		return ComplexFormat.toStringGNUPlot(this);
 	}
 
 	/**
