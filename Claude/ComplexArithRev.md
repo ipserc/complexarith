@@ -414,12 +414,11 @@ Antes de pasar al paso 3 (extender la revisión a `MatrixComplex.java`/`VectorCo
 
 ## Catálogo completo de hallazgos (por orden de riesgo/esfuerzo)
 
-**Ya resueltos** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`; `round(double,int)` usando la representación binaria exacta en vez de la decimal; `zeta_havil` sin criterio de convergencia; `binomialCoef(int,int)` inestable numéricamente; `gamma_weiertrass`/`gamma_euler` bug de `switch` + convergencia adaptativa; `zeta_reflex` eliminado; `tan`/`tanh` con identidad de ángulo doble (`cot`/`coth` deliberadamente sin tocar, ver Fix 7); `normalizePhase_0`/`normalizePhase_2` eliminados; `divides`/`dividesEq` con algoritmo de Smith; `arctan`/`arctanh`/`acotan`/`acoth` cerrado sin cambio (falsa alarma, ver "Cierre" tras el Fix 9).
+**Ya resueltos** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`; `round(double,int)` usando la representación binaria exacta en vez de la decimal; `zeta_havil` sin criterio de convergencia; `binomialCoef(int,int)` inestable numéricamente; `gamma_weiertrass`/`gamma_euler` bug de `switch` + convergencia adaptativa; `zeta_reflex` eliminado; `tan`/`tanh` con identidad de ángulo doble (`cot`/`coth` deliberadamente sin tocar, ver Fix 7); `normalizePhase_0`/`normalizePhase_2` eliminados; `divides`/`dividesEq` con algoritmo de Smith; `arctan`/`arctanh`/`acotan`/`acoth` cerrado sin cambio (falsa alarma, ver "Cierre" tras el Fix 9); `zeta_re` con sumación de Euler-Maclaurin (Fix 10).
 
 **Bajo riesgo / alto valor: COMPLETO** — los 8 hallazgos de esta categoría están resueltos (Fix 1-8).
 
 **Riesgo medio, pendientes:**
-- `zeta_re` (Re(s)>2): sin aceleración de cola cerca de `Re(s)=2`, podría ser lento cerca del borde.
 - `derivative`: paso `h` absoluto (`10^-precision`) en vez de relativo a la magnitud del punto — para puntos de magnitud muy grande, un `h` absoluto tan pequeño puede quedar por debajo de la resolución de `double` (cancelación catastrófica).
 
 **Riesgo alto / decisión de alcance, pendientes:**
@@ -490,6 +489,16 @@ Verificado: test ejercitando la normalización de fase a través de operaciones 
 
 ## Fix 9 — `divides`/`dividesEq`: algoritmo de Smith + `dividesEq` gana la guarda de división por cero (commit `e81d8f9`)
 
+## Fix 10 — `zeta_re` usa sumación de Euler-Maclaurin en vez de serie de Dirichlet directa (commit `683c917`)
+
+`zeta_re(s)` (ruta de producción de `zeta()` para `Re(s)>2`) sumaba `k^-s` directamente, cortando cuando el último término añadido ya no cambiaba el acumulador (`equals()` con tolerancia `PRECISION=1E-13`, el mismo patrón usado en `zeta_havil` antes del Fix 3). Ese criterio solo es válido cuando los términos decaen **geométricamente**: aquí decaen **polinómicamente** (`k^-s`), así que la cola real restante (aprox. `N^(1-s)/(s-1)` por el test integral) puede ser del orden de `N` veces **mayor** que el último término sumado — el criterio de parada la subestimaba silenciosamente, sin señal de error.
+
+**Confirmado y cuantificado** con una referencia Euler-Maclaurin independiente (validada: reproduce `ζ(2)=π²/6` a 15 dígitos): cerca de `Re(s)=2` el código original solo daba **~5-6 dígitos correctos** en vez de los ~13 que `PRECISION` promete, con el error **estabilizándose en ~3.16e-6** en vez de desaparecer al acercarse más al borde. El problema no era exclusivo del borde: `zeta(3)` (Apéry) ya tenía error `~2.3e-8`, `zeta(4)` (`π⁴/90`) `~1.9e-9` — silenciosamente peor de lo que `PRECISION` sugiere en todo el dominio, cada vez peor cuanto más cerca de `Re(s)=2`.
+
+**Fix**: sumar los primeros `N-1=19` términos directos más la corrección analítica de la cola (fórmula de Euler-Maclaurin: `N^(1-s)/(s-1) + N^-s/2 +` 5 términos de corrección ponderados por los números de Bernoulli `B_2..B_10`). A diferencia de la serie directa, esta suma tiene tamaño **fijo** (`N=20` más 5 correcciones, ~25 potencias complejas) y su error decae como `N^(-s-2M-1)` — mejora con `N` regardless de lo cerca que esté `s` del borde, sin depender de un criterio de parada frágil.
+
+Verificado: `N=20` comparado contra `N=100` (misma fórmula) — coincide a precisión de `double` en todo el rango probado (`Re(s)` de `2.000001` a `100`, real y complejo, incluyendo `Im(s)` hasta 50). Bonus de rendimiento no buscado: al ser tamaño fijo en vez de iterar hasta converger, deja de depender de la lentitud de convergencia cerca del borde — `zeta(2.001+5i)` pasó de ~34ms a ~85µs por llamada (~400x), y la nueva versión es simultáneamente más precisa. Batería de regresión (`TestComplex01/07`, `TestGamma01`, `TestZeta01`) exit 0 en las 4 contra un build de referencia fresco desde `HEAD`; único ruido son las cajas ASCII aleatorias ya documentadas y los valores de `s` aleatorios de `TestZeta01` (usa `setComplexRandomRec`, por diseño distintos cada ejecución).
+
 ## Cierre — `arctan`/`arctanh`/`acotan`/`acoth`: sin cambio, la sospecha de overflow era falsa alarma (sin commit de código)
 
 Hallazgo de riesgo medio pendiente desde el catálogo inicial: posible overflow análogo al de `arcsin`/`arccos`, vía `divides()`, revisar si seguía aplicando tras el Fix 9. **Verificado que no aplicaba ni antes ni después del Fix 9** — no fue el Fix 9 quien lo resolvió, es estructural.
@@ -508,7 +517,7 @@ Verificado exhaustivamente contra un build de referencia fresco: ambos bugs repr
 
 ## Próximos pasos
 
-Quedan 2 hallazgos de riesgo medio: `zeta_re` (sin aceleración cerca de `Re(s)=2`, siguiente en curso) y `derivative` (paso `h` absoluto en vez de relativo). Después, las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código (`gamma_weiertrass`/`gamma_euler` como referencias lentas — ya no rotas tras el Fix 5, siguen siendo alternativas lentas legítimas; y la cuadratura adaptativa general). **Lección de proceso acumulada** (Fix 3, 5, 7 y 9): (a) al usar un criterio de convergencia, verificar SIEMPRE si debe ser igualdad exacta o si el umbral debe ligarse al parámetro de precisión que el método ya expone (no a un ajuste global); (b) antes de reusar una operación "de alto nivel" (`inverse()`, `divides()`, etc.) como atajo de optimización, verificar que no reintroduzca pasos (conversión polar↔rectangular) que rompan la pureza exacta o cambien la representación de casos frontera (polos, ejes); (c) al revisar el código exacto antes de implementar un fix acordado, si aparece un hallazgo adicional relacionado (como la guarda que le faltaba a `dividesEq`), preguntar si incluirlo en vez de ignorarlo o aplazarlo sin más — suele ser barato de incluir en el mismo commit.
+Queda 1 hallazgo de riesgo medio: `derivative` (paso `h` absoluto en vez de relativo — siguiente en curso). Después, las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código (`gamma_weiertrass`/`gamma_euler` como referencias lentas — ya no rotas tras el Fix 5, siguen siendo alternativas lentas legítimas; y la cuadratura adaptativa general). **Lección de proceso acumulada** (Fix 3, 5, 7 y 9): (a) al usar un criterio de convergencia, verificar SIEMPRE si debe ser igualdad exacta o si el umbral debe ligarse al parámetro de precisión que el método ya expone (no a un ajuste global); (b) antes de reusar una operación "de alto nivel" (`inverse()`, `divides()`, etc.) como atajo de optimización, verificar que no reintroduzca pasos (conversión polar↔rectangular) que rompan la pureza exacta o cambien la representación de casos frontera (polos, ejes); (c) al revisar el código exacto antes de implementar un fix acordado, si aparece un hallazgo adicional relacionado (como la guarda que le faltaba a `dividesEq`), preguntar si incluirlo en vez de ignorarlo o aplazarlo sin más — suele ser barato de incluir en el mismo commit.
 
 ---
 
