@@ -1601,7 +1601,12 @@ public class Complex {
 		String theTitleMid;
 		String theTitleBot;
 		
-		int titleSize = title.length() < size ? size : title.length()+4;
+		// Math.max guards the case where 'size' is only 1-3 chars more than the title: the
+		// mandatory overhead below (mdi + space + space + mdd = 4 chars) needs titleSize-title.length()
+		// >= 4, or ((titleSize-title.length())/2)-2 goes negative, repeat() silently treats that as
+		// 0, and the resulting title line ends up LONGER than titleSize -- misaligned vs.
+		// theTitleTop/Mid/Bot below, which are always exactly titleSize wide.
+		int titleSize = Math.max(size, title.length()+4);
 		theTitleTop = csi+repeat(top, titleSize-2)+csd;
 		theTitleMid = msi+repeat(" ", titleSize-2)+msd;
 		theTitleText = mdi+repeat(" ", ((titleSize-title.length())/2)-2)+" "+title;
@@ -1757,7 +1762,10 @@ public class Complex {
 			case 6: return boxText6(size, title);
 			case 7: return boxText7(size, title);
 		}
-		return boxTitle1(size, title);
+		// Unreachable in practice (nextInt(7)+1 is always in [1,7], matching all 7 cases above),
+		// but was calling boxTitle1 (wrong family) instead of boxText1 -- copy-paste from boxTitleRandom's
+		// analogous fallback.
+		return boxText1(size, title);
 	}
 
 	/**
@@ -1769,8 +1777,11 @@ public class Complex {
 	public static String makeBoxText(int size, String text, String csi, String top, String csd, String mdi, String mdd) {
 		String theBoxTopBot;
 		String theBoxText;
-		int boxSize = text.length() < size ? size : text.length()+4;
-		
+		// Math.max guards the case where 'size' is exactly text.length()+1: the mandatory overhead
+		// below (mdi+mdd = 2 chars) needs boxSize-text.length() >= 2, or the padding math ends up
+		// producing a text line 1 char longer than theBoxTopBot below (always exactly boxSize wide).
+		int boxSize = text.length() < size ? Math.max(size, text.length()+2) : text.length()+4;
+
 		theBoxTopBot = csi+repeat(top, boxSize-2)+csd;
 		theBoxText = mdi+repeat(" ", (boxSize-text.length()-2)/2)+text;
 		theBoxText += repeat(" ", boxSize-1-theBoxText.length())+mdd;
