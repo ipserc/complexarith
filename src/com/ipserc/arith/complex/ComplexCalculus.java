@@ -53,7 +53,11 @@ final class ComplexCalculus {
 		Complex val = new Complex();
 
 		val = func.apply(prevPoint);
-		integral = val;
+		// .copy() is precautionary here, not fixing an active bug: prevPoint/point are always
+		// rebound to freshly-allocated objects each iteration (never re-derived from a Complex
+		// this method still reads by reference later), unlike integrateRE/integrateIM's lolimit,
+		// which the loop keeps re-reading -- see the identical-shaped fix there for the real bug.
+		integral = val.copy();
 		//System.out.printf("ulimit:%f point:%f val:%s \n", ulimit, prevPoint.mod, val.toString());
 		// Loop condition compares point.rep() (position along the real line, signed) against
 		// uplimit in the direction step already points to -- NOT point.mod() (magnitude), which
@@ -98,6 +102,18 @@ final class ComplexCalculus {
 	 * @apiNote Dispatches to {@link #integrateRE} or {@link #integrateIM} (fixed-step Riemann
 	 * sums, ~10^(numDec+2) iterations, no adaptive convergence check), so cost scales directly
 	 * with numDec here too.
+	 * <p>
+	 * KNOWN BUG, not fixed here (out of scope for the aliasing fix in {@link #integrateRE}/
+	 * {@link #integrateIM}): {@code func} is assumed to never mutate the {@code Complex} argument
+	 * it is given and return that same mutated reference (e.g. {@code z -> z.plusEq(Complex.ONE)}).
+	 * {@code integrateRE}/{@code integrateIM} reuse a single {@code nextPoint} instance across all
+	 * iterations (mutated in place via {@code setComplexRec} for performance) and read it back to
+	 * compute the next position, so a self-mutating {@code func} corrupts that position tracking.
+	 * Every real caller in this codebase constructs a fresh {@code Complex} via non-mutating ops
+	 * ({@code times}, {@code plus}, ...), so this has no observed impact; documented as a caveat
+	 * for the {@code func} contract rather than fixed, since fixing it would mean copying on every
+	 * iteration instead of just once per call (a real cost/correctness trade-off to weigh, not a
+	 * one-line fix like the aliasing bug below).
 	 */
 	static Complex integrate(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, int numDec) {
 		Complex vector = uplimit.minus(lolimit);
@@ -148,7 +164,14 @@ final class ComplexCalculus {
 
 		Complex val = new Complex();
 		val = func.apply(lolimit);
-		integral = val;
+		// .copy() breaks aliasing: if func returns the same reference it was given (e.g. the
+		// identity z->z, or any in-place-style func written using Complex's own plusEq/timesEq/etc.
+		// idiom, which return 'this'), 'integral' would otherwise BE 'lolimit' itself -- and the loop
+		// below keeps re-reading lolimit.imp()/lolimit.rep() as the fixed lower limit on every
+		// iteration while integral.plusEq(val) mutates that same object underneath it, silently
+		// corrupting the limit mid-integration. Confirmed with integrate(0,3,z->z,...): without the
+		// copy this returned -22497.75 instead of the correct 4.5.
+		integral = val.copy();
 
 		while (++iter <= 1/precision) {
 			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
@@ -195,7 +218,9 @@ final class ComplexCalculus {
 
 		Complex val = new Complex();
 		val = func.apply(lolimit);
-		integral = val;
+		// .copy() breaks aliasing -- see the identical comment in integrateRE just above this
+		// method for the full explanation (the same lolimit-corruption bug affects this method too).
+		integral = val.copy();
 
 		while (++iter <= 1/precision) {
 			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
