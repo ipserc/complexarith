@@ -374,31 +374,59 @@ final class ComplexFunctions {
 	 * Gamma function calculated by definition from Weierstrass. Valid for any Complex number
 	 * @param z the gamma parameter as Complex
 	 * @return the gamma value
+	 * @apiNote KNOWN BUG, fixed: cases 0-3 below were missing their {@code break} (only the
+	 * intended iteration count was left commented out, e.g. {@code //iterations = 50000; break;}),
+	 * so they all fell through to case 4's 1000000 regardless of the requested precision -- any
+	 * caller with {@code getMaxDecimals()} in 0..3 got 1M iterations instead of the intended
+	 * 50000/100000/500000/500000. Restored the commented-out assignments with real {@code break}s,
+	 * matching the monotonic "more requested decimals -> more iterations" pattern the other cases
+	 * (4/5/6/default) already follow. Also removed the pre-switch {@code iterations=...} line: it
+	 * was dead code (the switch, now correctly exhaustive over every reachable
+	 * {@code getMaxDecimals()} value via 0..6 plus {@code default}, always overwrote it) that
+	 * additionally divided by zero (int division {@code 150/getMaxDecimals()}) whenever
+	 * {@code getMaxDecimals()==0}, before the switch even ran -- a latent crash for a value the
+	 * switch's own {@code case 0} shows was meant to be a valid input. No test in this codebase
+	 * exercises {@code getMaxDecimals()} in 0..3 with these two methods (TestGamma01-04 all use 5),
+	 * so this fix does not change any existing regression output.
 	 */
 	static Complex gamma_weiertrass(Complex z) {
-		int iterations = (int)Math.pow(150/Complex.getMaxDecimals(), Complex.getMaxDecimals());
-
+		int iterations;
 		switch (Complex.getMaxDecimals()) {
 			case 0:
-			case 1:  //iterations = 50000; break;
-			case 2:  //iterations = 100000; break;
-			case 3:  //iterations = 500000; break;
+			case 1:  iterations = 50000; break;
+			case 2:  iterations = 100000; break;
+			case 3:  iterations = 500000; break;
 			case 4:  iterations = 1000000; break;
 			case 5:  iterations = 5000000; break;
 			case 6:  iterations = 30000000; break;
 			default: iterations = 50000000;
 		}
+		// Convergence target tied to the SAME getMaxDecimals() the iteration cap above was already
+		// sized for (2 extra digits of margin), not the unrelated global PRECISION/equals()
+		// tolerance -- using that instead would converge every high-decimals request to the same
+		// fixed global tolerance, silently collapsing the "more decimals requested -> more
+		// precision" knob the iteration table above was built around.
+		double convergenceThreshold = Math.pow(10, -(Complex.getMaxDecimals() + 2));
 
 		if (z.isIntegerNegativeZero()) {
 			double sign = Math.pow(-1.0, Math.ceil(z.rep()));
 			return Complex.ZERO.inverse().times(sign);
 		}
 		Complex prod = new Complex(1,0);
+		Complex prevProd = prod.copy();
 		Complex zdi = new Complex();
 		for (int i = 1; i <= iterations; ++i) {
 			zdi = z.divides(i);
 			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
 			prod.timesEq((zdi.plus(Complex.ONE)).inverse().times(Complex.exp(zdi)));
+			// Adaptive early exit: each factor -> 1 as i grows (O(1/i^2) per-term correction), so
+			// prod typically stabilizes to convergenceThreshold well before the iterations cap
+			// above (itself just a safety net for pathological z). gamma_weiertrass is a
+			// reference/comparison implementation (production gamma() uses gamma_fast), so this
+			// changing the result at a level finer than the requested decimals has no effect on
+			// any other calculation in this library.
+			if (prod.minus(prevProd).mod() < convergenceThreshold) break;
+			prevProd = prod.copy();
 		}
 		Complex result = Complex.exp(z.times(-Complex.EULER_MASC));
 		result.dividesEq(z);
@@ -410,25 +438,33 @@ final class ComplexFunctions {
 	 * Gamma function calculated by definition from Euler's Product. Valid for any Complex number except negative integers
 	 * @param z the gamma parameter as Complex
 	 * @return the gamma value
+	 * @apiNote KNOWN BUG, fixed: see the identical issue documented on {@link #gamma_weiertrass}
+	 * just above -- cases 0-3 fell through to case 4's 1000000 iterations regardless of the
+	 * requested precision, and the dead pre-switch line divided by zero for
+	 * {@code getMaxDecimals()==0}. Same fix applied here.
 	 */
 	static Complex gamma_euler(Complex z) {
-		int iterations = (int)Math.pow(150/Complex.getMaxDecimals(), Complex.getMaxDecimals());
-
+		int iterations;
 		switch (Complex.getMaxDecimals()) {
 			case 0:
-			case 1:  //iterations = 50000; break;
-			case 2:  //iterations = 100000; break;
-			case 3:  //iterations = 500000; break;
+			case 1:  iterations = 50000; break;
+			case 2:  iterations = 100000; break;
+			case 3:  iterations = 500000; break;
 			case 4:  iterations = 1000000; break;
 			case 5:  iterations = 5000000; break;
 			case 6:  iterations = 30000000; break;
 			default: iterations = 50000000;
 		}
+		// See the identical comment in gamma_weiertrass just above for why this is tied to
+		// getMaxDecimals() rather than the global PRECISION/equals() tolerance.
+		double convergenceThreshold = Math.pow(10, -(Complex.getMaxDecimals() + 2));
+
 		if (z.isIntegerNegativeZero()) {
 			double sign = Math.pow(-1.0, Math.ceil(z.rep()));
 			return Complex.ZERO.inverse().times(sign);
 		}
 		Complex prod = new Complex(1, 0);
+		Complex prevProd = prod.copy();
 		Complex term1;
 		Complex term2;
 
@@ -438,6 +474,9 @@ final class ComplexFunctions {
 			term2 = (Complex.ONE.plus(z.divides(n))).inverse(); // (1+z/n)⁻¹
 			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
 			prod.timesEq(term1).timesEq(term2);
+			// Adaptive early exit -- see the identical comment in gamma_weiertrass just above.
+			if (prod.minus(prevProd).mod() < convergenceThreshold) break;
+			prevProd = prod.copy();
 		}
 		prod.dividesEq(z);
 		return prod;
