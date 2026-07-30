@@ -361,9 +361,15 @@ Verificado: compila limpio junto con `ComplexBoxArt.java`; test suelto que cubre
 
 Nota metodológica: al comparar contra `/tmp/origbuild`, la sección de anidamiento de `storePrecision` mostró una diferencia esperada — ese build de comparación es una instantánea muy temprana de esta misma sesión (de antes del fix de reentrada ya commiteado hoy), no un problema de esta fase. Las demás secciones (precisión básica, `setRepres` anidado, formato, concurrencia) fueron idénticas.
 
+## Fase 2.3 — `ComplexParser` (commit `7c3721f`)
+
+Movida la lógica de parseo por regex de `setComplex(String)` (patrones `REC_PATTERN`/`POL_PATTERN` precompilados + el `switch` de interpretación de grupos capturados) a la nueva clase package-private `ComplexParser`, con un método `parse(String)` que devuelve un resultado inmutable (`Parsed`: indica si es polar o rectangular + los dos valores). `Complex.setComplex(String)` mantiene su firma pública exacta; ahora solo llama a `ComplexParser.parse(numC)`, asigna los campos según el resultado, y llama a `setRecCoord()`/`setPolCoord()` (que se quedan en el núcleo, mutan `this` directamente). El resto de `INITIALIZERS & SETTERS` (`setCre`, `setPolCoord`, `setRecCoord`, `setComplex(char,double,double)`, `setComplexRec/Pol`, `setComplexRandom*`, `integrize`) se queda sin tocar — son métodos que mutan la instancia, no lógica de parsing.
+
+Verificado: compila junto con `ComplexState.java`/`ComplexBoxArt.java`. Test suelto con 17 entradas válidas (rectangular, polar, casos frontera como `"i"`/`"-i"`/`"3+"`/notación científica) y 4 inválidas (esperando `IllegalArgumentException`) — salida idéntica byte a byte al build original, incluidos los mensajes de excepción exactos (solo difieren las líneas del stack trace, que apuntan al nuevo fichero, como es de esperar). Batería de regresión exit 0 en las 4, sin diferencias numéricas.
+
 ## Próximos pasos
 
-Al retomar, la Fase 2.3 (`ComplexParser`, el parseo por regex de `setComplex(String)`) es la siguiente — confirmar con el usuario antes de empezar, siguiendo el mismo patrón de resumen+confirmación de todas las fases anteriores.
+Al retomar, la Fase 2.4 (`ComplexFormat`, la presentación/`toString*`) es la siguiente — confirmar con el usuario antes de empezar, siguiendo el mismo patrón de resumen+confirmación de todas las fases anteriores.
 
 ---
 
