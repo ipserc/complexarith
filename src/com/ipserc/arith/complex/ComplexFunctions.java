@@ -872,9 +872,20 @@ final class ComplexFunctions {
 	 * Returns a new Complex Object which value is the tangent of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object tangent of 'z'.
+	 * @apiNote Was {@code sin(z).divides(cos(z))}: for z=x+iy, sin(z) and cos(z) each recompute
+	 * the SAME 4 real values (sin(x), cos(x), sinh(y), cosh(y)) independently, so 8 real
+	 * trig/hyperbolic calls were made for what only needs 4, plus a full complex division on top.
+	 * Uses the double-angle identity tan(x+iy) = (sin(2x)+i*sinh(2y)) / (cos(2x)+cosh(2y))
+	 * instead (derived from sin(z)/cos(z) via the conjugate-of-cos(z) trick and the
+	 * cos^2+sin^2=1 / cosh^2-sinh^2=1 identities) -- only 4 real calls, and the denominator is
+	 * real, so the division is a simple real division of each component instead of a general
+	 * complex division.
 	 */
 	static Complex tan(Complex z) {
-		return sin(z).divides(cos(z));
+		double x2 = 2 * z.rep();
+		double y2 = 2 * z.imp();
+		double denom = Math.cos(x2) + Math.cosh(y2);
+		return new Complex('C', Math.sin(x2) / denom, Math.sinh(y2) / denom);
 	}
 
 	/**
@@ -891,6 +902,14 @@ final class ComplexFunctions {
 	 * Returns a new Complex Object which value is the cotangent of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object cotangent of 'z'.
+	 * @apiNote Deliberately NOT given the same double-angle optimization as {@link #tan(Complex)}:
+	 * tried {@code tan(z).inverse()} first, but verified it introduces two real behavior changes
+	 * vs. this direct rectangular form -- (1) purity loss for pure-real/pure-imaginary z (the
+	 * polar round-trip inside inverse() computes cos/sin of +-pi/2, which is not exactly 0 in
+	 * double, leaving a spurious ~1e-16 residual component where this form gives an exact 0), and
+	 * (2) at the pole z=0 this form yields Infinity (via the already-established divides()-by-zero
+	 * handling), whereas a direct closed-form replacement would yield NaN instead. Not worth the
+	 * risk for a function likely called far less often than tan/tanh.
 	 */
 	static Complex cot(Complex z) {
 		return cos(z).divides(sin(z));
@@ -996,9 +1015,16 @@ final class ComplexFunctions {
 	 * Returns a new Complex Object which value is the hyperbolic tangent of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object hyperbolic tangent of 'z'.
+	 * @apiNote Was {@code sinh(z).divides(cosh(z))} -- same double-call duplication as the old
+	 * {@code tan(Complex)} (see its @apiNote). Uses the analogous double-angle identity
+	 * tanh(x+iy) = (sinh(2x)+i*sin(2y)) / (cosh(2x)+cos(2y)): 4 real calls instead of 8, real
+	 * (not complex) denominator.
 	 */
 	static Complex tanh(Complex z) {
-		return sinh(z).divides(cosh(z));
+		double x2 = 2 * z.rep();
+		double y2 = 2 * z.imp();
+		double denom = Math.cosh(x2) + Math.cos(y2);
+		return new Complex('C', Math.sinh(x2) / denom, Math.sin(y2) / denom);
 	}
 
 	/**
@@ -1015,6 +1041,9 @@ final class ComplexFunctions {
 	 * Returns a new Complex Object which value is the hyperbolic cotangent of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object hyperbolic cotangent of 'z'.
+	 * @apiNote Deliberately NOT given the double-angle optimization -- see {@link #cot(Complex)}'s
+	 * @apiNote for why ({@code tanh(z).inverse()} was tried and reverted: purity loss for pure-real/
+	 * pure-imaginary z, and a different pole (z=0) representation than this form's Infinity).
 	 */
 	static Complex coth(Complex z) {
 		return cosh(z).divides(sinh(z));
