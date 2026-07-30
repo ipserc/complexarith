@@ -414,10 +414,9 @@ Antes de pasar al paso 3 (extender la revisión a `MatrixComplex.java`/`VectorCo
 
 ## Catálogo completo de hallazgos (por orden de riesgo/esfuerzo)
 
-**Ya resuelto** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`.
+**Ya resueltos** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`; `round(double,int)` usando la representación binaria exacta en vez de la decimal.
 
 **Bajo riesgo / alto valor, pendientes:**
-- `round(double,int)` (núcleo `Complex.java`) usa `new BigDecimal(value)` (binario exacto) en vez de `new BigDecimal(Double.toString(value))` (ya comentado correctamente justo encima en el código) — clásico error de redondeo Java confirmado con test (`round(1.005,2)` da `1.0` en vez de `1.01`; también falla en `2.675`, `0.145`, `1.15`, `0.35`). Afecta a `round(Complex,int)`/`roundRec`/`roundPol`, usados por `Eigenspace.java`/`Polynom.java` para deduplicar autovalores/raíces, y al criterio de convergencia de `limit()`.
 - `zeta_havil` (`ComplexFunctions.java`): bucle fijo `maxN=170` sin criterio de convergencia — ruta de producción de la franja crítica (`-1<=Re(s)<=2`), margen claro para cortar antes con el mismo patrón `equals()` ya usado en `zeta_re`.
 - `binomialCoef(int,int)`: inestable numéricamente (tres factoriales grandes — hasta `169!≈4.27e304`, cerca del límite de `double` — divididos) en vez del producto incremental de razones, la forma estándar estable; está en el bucle caliente de `zeta_havil`.
 - `gamma_weiertrass`/`gamma_euler`: bug de `switch` sin `break` en los casos 0-3, cae en cascada hasta el caso 4 (1M iteraciones) sin importar la precisión pedida — arreglo trivial (restaurar los `break`).
@@ -445,9 +444,15 @@ Fix: `integral = val.copy();` en ambos métodos (rompe el aliasing sin cambiar n
 
 Verificado: test suelto reproduciendo los 3 síntomas exactos contra un build de referencia fresco desde `HEAD` (confirma que el bug existía tal cual se describe) y contra el build corregido (confirma que da los valores matemáticamente correctos, con `Complex.ONE` intacto tras la llamada). Funciones no aliasantes dan resultados idénticos antes y después. Batería de regresión estándar exit 0 en las 4, sin diferencias (ninguno de esos tests dispara el bug).
 
+## Fix 2 — `round(double,int)` usando la representación decimal (commit `885d974`)
+
+`round(double,int)` construía el `BigDecimal` con `new BigDecimal(value)` (representación binaria EXACTA del `double`, que para la mayoría de literales decimales tiene decenas de dígitos extra invisibles en su forma decimal habitual — p.ej. `1.005` es en realidad `1.00499999999999989341...`) en vez de `new BigDecimal(Double.toString(value))` (la representación decimal "tal como se ve"), que estaba correctamente comentada justo encima en el propio código. Redondear con `HALF_UP` la representación binaria exacta redondea hacia abajo silenciosamente cada vez que el valor binario "real" cae justo por debajo del límite decimal esperado — el clásico gotcha de `BigDecimal(double)` en Java.
+
+Confirmado con test: `round(1.005,2)` daba `1.0` en vez de `1.01`; también fallaba en `2.675/2` (`2.67` en vez de `2.68`), `0.145/2`, `1.15/1`, `0.35/1`, y su versión negativa `-1.005/2`. Afecta a `round(Complex,int)`/`roundRec`/`roundPol` (dedup de autovalores/raíces en `Eigenspace`/`Polynom`) y al criterio de convergencia de `limit()`. Fix: usar `new BigDecimal(Double.toString(value))`. Verificado contra un build de referencia fresco (los 5 casos rotos ahora correctos; los ya-correctos sin dígito 5 límite — `1.0`, `2.5`, `3.14159`, `0.0`, `100.125` — idénticos antes y después); batería de regresión exit 0 en las 4, sin diferencias.
+
 ## Próximos pasos
 
-Quedan pendientes de la auditoría, por orden sugerido: los 6 hallazgos de bajo riesgo/alto valor (empezando probablemente por `round(double,int)`, el más simple), luego los de riesgo medio (empezando por `divides`, del que depende el de `arctan`/`arctanh`), y por último las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código.
+Quedan pendientes de la auditoría, por orden sugerido: los 5 hallazgos de bajo riesgo/alto valor que quedan (empezando probablemente por `zeta_havil`), luego los de riesgo medio (empezando por `divides`, del que depende el de `arctan`/`arctanh`), y por último las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código.
 
 ---
 
