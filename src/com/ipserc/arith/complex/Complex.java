@@ -2954,15 +2954,6 @@ public class Complex {
 	 * @return The Riemann's zeta function value
 	 */
 	public static Complex zeta(Complex s) {
-		/* * /
-		Complex.storeFormatStatus();
-		Complex.storePrecision();
-		boolean _exact_ = Complex.exact();
-
-		Complex.setFixedON(8);
-		Complex.exact(true);
-		/* */
-
 		if (s.isZero()) return new Complex(-0.5);
 		// if (s.equals(ZERO)) return new Complex(-0.5);
 		if (s.rep == 1.0 && s.isPureReal()) return Complex.ONE.divides(0);
