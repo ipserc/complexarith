@@ -378,9 +378,17 @@ Decisiones de diseño:
 
 Verificado: compila junto con `ComplexState`/`ComplexParser`/`ComplexBoxArt`. Test suelto con 13 casos (pares real/imaginario puros, signos mixtos, purga de pureza con `FORMAT_NBR` on, notación fija(3)/científica(2), el switch de representación por defecto visto por `toString()`, los 3 modos de numpad, e `Infinity`/`-Infinity`) — salida idéntica byte a byte al build original en los 6 formatos. Batería de regresión exit 0 en las 4, sin diferencias numéricas.
 
+## Fase 2.5 — `ComplexFunctions` (delegada a un fork en segundo plano)
+
+El usuario pidió explícitamente delegar esta fase (la más grande, ~1150 líneas de `FUNCTIONS`+`TRIGONOMETRICS`, con más reescritura mecánica `campo`→`campo()`) a un fork en segundo plano, replicando el patrón de la migración a `ThreadLocal` de la Quinta sesión. Lanzado con instrucciones detalladas: alcance exacto (no tocar `INTEGRATION & DERIVATION`/`LIMITS`/`ROUND`, fases futuras), el riesgo técnico central (accesos directos a campos privados `rep/imp/mod/pha/cre` de parámetros `Complex` deben reescribirse a los getters públicos, ya que al vivir en una clase nueva distinta ese acceso directo no compila), el mismo ciclo de verificación de las fases 2.1-2.4 (build de referencia fresco desde `HEAD`, test con valores conocidos y casos frontera recordando los fixes de esta sesión — `gamma_nemes`, `tanc(0)`, overflow de `arcsin`/`arccos`, eliminación de `zeta_riemann_siegel`/`zeta_analytic_continuation` — batería de regresión, bump de `VERSION`), y autorización para commitear él mismo si su propia verificación pasa (modo auto activo). **Resultado pendiente de la notificación del fork — no asumir nada hasta que llegue.**
+
+## Instrucción del usuario para DESPUÉS de completar el paso 2 (Fase 2.6 inclusive)
+
+Antes de pasar al paso 3 (extender la revisión a `MatrixComplex.java`/`VectorComplex.java`/etc.), el usuario pidió explícitamente: **hacer un análisis MATEMÁTICO de todas las funciones y métodos implementados en `Complex.java` (y las clases extraídas del paso 2) para ver si se pueden mejorar/optimizar** — no se refiere a estructura de código (eso ya lo cubre el paso 2), sino a precisión numérica, estabilidad, elección de algoritmo, posibles simplificaciones o aceleraciones matemáticas. Pedido el 30 julio 2026, a falta de terminar la Fase 2.6. Tratarlo como un paso formal más (candidato a workflow pesado dado el volumen: fork de exploración primero, luego plan con `EnterPlanMode`, dada la envergadura de revisar TODAS las funciones matemáticas del fichero).
+
 ## Próximos pasos
 
-Al retomar, la Fase 2.5 (`ComplexFunctions`: funciones especiales + trigonometría, ~1150 líneas, la más grande y con más reescritura mecánica `campo`→`campo()`) es la siguiente. El plan contempla evaluar si delegarla a un fork en segundo plano dado su tamaño — confirmar el enfoque con el usuario antes de empezar.
+Al retomar: (1) confirmar el resultado de la Fase 2.5 (fork en segundo plano) si aún no ha notificado; (2) seguir con la Fase 2.6 (`ComplexCalculus`: integración/derivación/límites); (3) al cerrar el paso 2, iniciar el análisis matemático de optimización pedido arriba, antes de proponer nada del paso 3.
 
 ---
 
