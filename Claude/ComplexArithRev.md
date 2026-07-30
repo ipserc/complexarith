@@ -406,9 +406,48 @@ Verificado con el nivel más riguroso de todo el paso 2: build de referencia rec
 
 Antes de pasar al paso 3 (extender la revisión a `MatrixComplex.java`/`VectorComplex.java`/etc.), el usuario pidió explícitamente: **hacer un análisis MATEMÁTICO de todas las funciones y métodos implementados en `Complex.java` (y las clases extraídas del paso 2) para ver si se pueden mejorar/optimizar** — no se refiere a estructura de código (eso ya lo cubre el paso 2), sino a precisión numérica, estabilidad, elección de algoritmo, posibles simplificaciones o aceleraciones matemáticas. Pedido el 30 julio 2026, a falta de terminar la Fase 2.6. Tratarlo como un paso formal más (candidato a workflow pesado dado el volumen: fork de exploración primero, luego plan con `EnterPlanMode`, dada la envergadura de revisar TODAS las funciones matemáticas del fichero).
 
+---
+
+# AUDITORÍA MATEMÁTICA (Sexta sesión, 30 julio 2026, tras cerrar el paso 2)
+
+> Cumple la instrucción del usuario de la sección anterior. Arrancada con dos forks en paralelo (uno para `ComplexFunctions.java`, otro para `ComplexCalculus.java` + núcleo aritmético de `Complex.java`), más una revisión propia de los ficheros restantes (`ComplexState`/`ComplexFormat`/`ComplexParser`/`ComplexBoxArt` — sin hallazgos, son config/presentación/parsing/arte ASCII puros, no hay algoritmo numérico que auditar ahí).
+
+## Catálogo completo de hallazgos (por orden de riesgo/esfuerzo)
+
+**Ya resuelto** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`.
+
+**Bajo riesgo / alto valor, pendientes:**
+- `round(double,int)` (núcleo `Complex.java`) usa `new BigDecimal(value)` (binario exacto) en vez de `new BigDecimal(Double.toString(value))` (ya comentado correctamente justo encima en el código) — clásico error de redondeo Java confirmado con test (`round(1.005,2)` da `1.0` en vez de `1.01`; también falla en `2.675`, `0.145`, `1.15`, `0.35`). Afecta a `round(Complex,int)`/`roundRec`/`roundPol`, usados por `Eigenspace.java`/`Polynom.java` para deduplicar autovalores/raíces, y al criterio de convergencia de `limit()`.
+- `zeta_havil` (`ComplexFunctions.java`): bucle fijo `maxN=170` sin criterio de convergencia — ruta de producción de la franja crítica (`-1<=Re(s)<=2`), margen claro para cortar antes con el mismo patrón `equals()` ya usado en `zeta_re`.
+- `binomialCoef(int,int)`: inestable numéricamente (tres factoriales grandes — hasta `169!≈4.27e304`, cerca del límite de `double` — divididos) en vez del producto incremental de razones, la forma estándar estable; está en el bucle caliente de `zeta_havil`.
+- `gamma_weiertrass`/`gamma_euler`: bug de `switch` sin `break` en los casos 0-3, cae en cascada hasta el caso 4 (1M iteraciones) sin importar la precisión pedida — arreglo trivial (restaurar los `break`).
+- `zeta_reflex`: código muerto, incompleto (nunca referencia `zeta(1-s)`, variable local `s_one` calculada y nunca leída), cero callers, superado por `zeta_ext` — mismo patrón que `zeta_riemann_siegel`/`zeta_analytic_continuation`, eliminados esta sesión.
+- `tan`/`cot`/`tanh`/`coth`: recalculan las mismas 4 llamadas trascendentales dos veces (vía `sin(z).divides(cos(z))`); identidades de ángulo doble (`tan(x+iy)=(sin(2x)+i·sinh(2y))/(cos(2x)+cosh(2y))` y análoga para `tanh`) lo reducen a la mitad de coste sin perder precisión.
+- `normalizePhase_0`/`normalizePhase_2` (núcleo `Complex.java`): código muerto confirmado (solo `normalizePhase_1` en uso vía el dispatcher) — mismo patrón que la familia `*Red__`/`sqrroot__` de sesiones anteriores.
+
+**Riesgo medio, pendientes:**
+- `divides`/`dividesEq` (núcleo `Complex.java`): para divisores de módulo muy grande (~1e200) dan `rep`/`imp` inconsistentes con `mod`/`pha` (confirmado: `1/(1e200+1e200i)` da `rep=0.0,imp=-0.0` pero `mod=7.07e-201` — objeto internamente contradictorio). Causa: `denom=that.mod*that.mod` recalcula `c²+d²` elevando al cuadrado un módulo ya calculado de forma segura vía `Math.hypot`, reintroduciendo el riesgo de overflow que `hypot` evita. Dos vías con distinto trade-off: algoritmo de Smith (mantiene el camino rectangular rápido) vs. delegar en `this.times(that.inverse())` (más simple, pero reintroduce trigonometría que el camino rápido actual evita deliberadamente). Decisión de diseño a tomar con el usuario.
+- `arctan`/`arctanh`/`acotan`/`acoth`: posible overflow análogo al ya corregido en `arcsin`/`arccos` en sesiones anteriores, vía la división de `divides` de arriba — requiere resolver primero el punto de `divides`.
+- `zeta_re` (Re(s)>2): sin aceleración de cola cerca de `Re(s)=2`, podría ser lento cerca del borde.
+- `derivative`: paso `h` absoluto (`10^-precision`) en vez de relativo a la magnitud del punto — para puntos de magnitud muy grande, un `h` absoluto tan pequeño puede quedar por debajo de la resolución de `double` (cancelación catastrófica).
+
+**Riesgo alto / decisión de alcance, pendientes:**
+- `gamma_weiertrass`/`gamma_euler`: implementaciones de referencia correctas-pero-lentísimas (hasta 30-50M iteraciones), sin más propósito que comparar con `gamma_fast` (Lanczos, la que se usa en producción). Las usan activamente `TestGamma01`-`04` — decisión de alcance de si mantenerlas, similar a la ya tomada con `zeta_riemann_siegel`, pero aquí no están rotas (más allá del bug de `switch` de arriba), solo son alternativas lentas con uso real en tests.
+- Patrón general de integración/sumas de paso fijo sin convergencia adaptativa en todo `ComplexCalculus`/`gamma_integral`/`gamma_integral2` — una cuadratura de Simpson compuesta sería mucho más eficiente, pero es un cambio de algoritmo (mismos resultados "igual de correctos", no bit a bit idénticos a los actuales) que merece decidirse aparte, no como fix puntual.
+
+## Fix 1 — aliasing en `integrateRE`/`integrateIM` (commit `5c945ed`)
+
+**El hallazgo más grave de la auditoría, confirmado con test dirigido**: `integrateRE`/`integrateIM` hacían `integral = val;` (sin copiar) justo después de `val = func.apply(lolimit);`. Si `func` devuelve la MISMA referencia que recibe (la identidad `z->z`, cualquier función constante que devuelva un singleton compartido como `Complex.ONE`, o cualquier estilo in-place que devuelva `this`), `integral` quedaba aliasado a ese mismo objeto en vez de ser un acumulador independiente. Dos consecuencias distintas según el caso:
+- Con la identidad: `integral` queda aliasado a `lolimit` mismo, que el bucle sigue releyendo como "el límite inferior fijo" mientras `integral.plusEq(val)` lo mutaba por debajo — corrompiendo el propio límite de integración a mitad de cálculo. Esto explica el resultado raro (`-2249997.75` en vez de `4.5`) que se vio al cerrar la Fase 2.6 con `integrate(String,String,...)`.
+- Con una función constante que devuelve un singleton (patrón habitual, p.ej. `z->Complex.ONE`): `integral` queda aliasado al propio `Complex.ONE` **compartido por toda la aplicación**, y se corrompía de forma permanente (confirmado: quedaba en `Infinity` tras la llamada) — un bug potencialmente mucho más grave que solo "un resultado incorrecto puntual", ya que contamina estado global.
+
+Fix: `integral = val.copy();` en ambos métodos (rompe el aliasing sin cambiar ningún resultado ya correcto), más por higiene (sin bug activo) en `integrate(double,double,...)`. Documentado como limitación conocida y no corregida: si `func` MUTA su propio argumento y devuelve esa misma referencia (p.ej. `z->z.plusEq(Complex.ONE)`), la lógica de seguimiento de posición (`nextPoint`, reutilizado y mutado in-place por rendimiento) también se corrompe — un problema distinto y más profundo (el contrato de "func no debe mutar su entrada" en todo el módulo de cálculo) sin impacto real porque ningún caller real de la librería pasa una función así.
+
+Verificado: test suelto reproduciendo los 3 síntomas exactos contra un build de referencia fresco desde `HEAD` (confirma que el bug existía tal cual se describe) y contra el build corregido (confirma que da los valores matemáticamente correctos, con `Complex.ONE` intacto tras la llamada). Funciones no aliasantes dan resultados idénticos antes y después. Batería de regresión estándar exit 0 en las 4, sin diferencias (ninguno de esos tests dispara el bug).
+
 ## Próximos pasos
 
-**El paso 2 (reestructuración arquitectónica) está completo** (commit `87b23f0`, Fase 2.6). Al retomar: iniciar el análisis matemático de optimización pedido por el usuario (ver instrucción arriba) — recorrer todas las funciones/métodos de `Complex.java` y las 6 clases extraídas buscando mejoras de precisión/estabilidad/algoritmo, no de estructura. Dado el volumen (7 ficheros, ~4800 líneas), probablemente merece el proceso pesado (fork de exploración primero, luego plan). Dos hallazgos ya anotados como candidatos concretos para esa auditoría: `integrate(String,String,...)` (Fase 2.6) y el patrón general de sumas/integrales de paso fijo sin convergencia adaptativa (documentado en varios `@apiNote` a lo largo de las fases). No proponer nada del paso 3 (extender a `MatrixComplex`/`VectorComplex`) hasta cerrar esta auditoría.
+Quedan pendientes de la auditoría, por orden sugerido: los 6 hallazgos de bajo riesgo/alto valor (empezando probablemente por `round(double,int)`, el más simple), luego los de riesgo medio (empezando por `divides`, del que depende el de `arctan`/`arctanh`), y por último las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código.
 
 ---
 
