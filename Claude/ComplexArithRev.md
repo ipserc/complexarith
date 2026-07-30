@@ -367,9 +367,20 @@ Movida la lógica de parseo por regex de `setComplex(String)` (patrones `REC_PAT
 
 Verificado: compila junto con `ComplexState.java`/`ComplexBoxArt.java`. Test suelto con 17 entradas válidas (rectangular, polar, casos frontera como `"i"`/`"-i"`/`"3+"`/notación científica) y 4 inválidas (esperando `IllegalArgumentException`) — salida idéntica byte a byte al build original, incluidos los mensajes de excepción exactos (solo difieren las líneas del stack trace, que apuntan al nuevo fichero, como es de esperar). Batería de regresión exit 0 en las 4, sin diferencias numéricas.
 
+## Fase 2.4 — `ComplexFormat` (commit `87f3bc1`)
+
+Movida la lógica de presentación (`toString`, `toStringRec`/`RecWolfram`/`RecI`/`Pol`/`GNUPlot`, `formatNbr`, `chr`) a la nueva clase package-private `ComplexFormat`, con métodos `static` que reciben la instancia `Complex` como parámetro y la leen vía sus getters públicos (`rep()`/`imp()`/`mod()`/`pha()`) y `rePartNull()`/`imPartNull()` — `ComplexFormat` no puede tocar campos privados de otra instancia directamente. `Complex.java` mantiene los métodos `toString*` públicos con la firma exacta (`toString()` debe seguir viviendo en la clase por ser un override de `Object.toString()`); sus cuerpos delegan en `ComplexFormat`, pasando `this`.
+
+Decisiones de diseño:
+- `normalizePhase()`/`normalizePhase_0/1/2` **se quedan** en `Complex.java` (decisión ya tomada en la Fase 2.2): aunque vivían bajo el mismo banner `PRESENTATION`, son invariantes de aritmética usados también por las operaciones in-place, no lógica de presentación.
+- `print()`/`printRec()`/`printPol()`/`println()`/etc. **no se tocan**: solo llaman a `this.toString()`/`toStringRec()`/`toStringPol()`, que siguen funcionando igual independientemente de dónde viva su implementación.
+- `__NUMPAD__` (privado, usado solo por el `toStringRec` interno que se movió) gana un accesor package-private `numpad()` en `Complex.java`.
+
+Verificado: compila junto con `ComplexState`/`ComplexParser`/`ComplexBoxArt`. Test suelto con 13 casos (pares real/imaginario puros, signos mixtos, purga de pureza con `FORMAT_NBR` on, notación fija(3)/científica(2), el switch de representación por defecto visto por `toString()`, los 3 modos de numpad, e `Infinity`/`-Infinity`) — salida idéntica byte a byte al build original en los 6 formatos. Batería de regresión exit 0 en las 4, sin diferencias numéricas.
+
 ## Próximos pasos
 
-Al retomar, la Fase 2.4 (`ComplexFormat`, la presentación/`toString*`) es la siguiente — confirmar con el usuario antes de empezar, siguiendo el mismo patrón de resumen+confirmación de todas las fases anteriores.
+Al retomar, la Fase 2.5 (`ComplexFunctions`: funciones especiales + trigonometría, ~1150 líneas, la más grande y con más reescritura mecánica `campo`→`campo()`) es la siguiente. El plan contempla evaluar si delegarla a un fork en segundo plano dado su tamaño — confirmar el enfoque con el usuario antes de empezar.
 
 ---
 
