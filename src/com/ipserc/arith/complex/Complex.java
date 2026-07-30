@@ -1979,8 +1979,8 @@ public class Complex {
 	 * @apiNote Not called anywhere in this codebase (grepped across all of src/). Predates
 	 * {@link #isZero()}'s EXACT-aware ZERO_THRESHOLD -- this always uses the loose
 	 * ZERO_THRESHOLD_APPROX regardless of the EXACT flag. Left as dead code rather than removed,
-	 * consistent with how other confirmed-dead methods in this class (e.g. zeta_riemann_siegel)
-	 * were handled.
+	 * consistent with how other confirmed-dead methods in this class (e.g. the rest of the
+	 * {@code *Red__} family) were handled.
 	 */
 	public boolean isZeroRed__() {
 		//if (this.mod() <= ZERO_THRESHOLD_R) return true;
@@ -3086,91 +3086,6 @@ public class Complex {
 	}
 	
 	/**
-	 * The Riemann-Siegel formula for 0 < Re(s) < 1
-	 * <p>
-	 * <b>KNOWN BUG (unresolved):</b> this is an asymptotic method whose term count is
-	 * N = floor(sqrt(|Im(s)|/2*pi)); for |Im(s)| &lt; 2*pi that floors to 0, so the sums are empty
-	 * and the method returns exactly 0 regardless of 's' (e.g. zeta_riemann_siegel(0.5) returns 0.0
-	 * instead of the correct -1.4603545...). Even where the loop does run it was found to be
-	 * substantially inaccurate against the validated {@link #zeta_havil(Complex)} reference (e.g. at
-	 * s=0.5+14.134725i, near the first nontrivial zero where zeta(s) should be near 0, this returns
-	 * 0.049-0.31i, not close to 0). This method is NOT called by {@link #zeta(Complex)} - the
-	 * dispatcher uses zeta_re/zeta_ext/zeta_havil instead, none of which have this issue - so the bug
-	 * has no impact unless this method is called directly.
-	 * @param s
-	 * @return
-	 */
-	public static Complex zeta_riemann_siegel(Complex s) {
-		double m = Math.sqrt(Math.abs(s.imp()/2/Math.PI));
-		Complex one_s = Complex.ONE.minus(s);
-		// X is a freshly allocated private accumulator (from power()), so the chain mutates it in
-		// place instead of allocating an intermediate Complex for each step.
-		Complex X = new Complex(2).power(s);
-		X.timesEq(Complex.PI.power(s.minus(1)));
-		X.timesEq(Complex.sin(Complex.PI.times(s).divides(2)));
-		X.timesEq(Complex.gamma(one_s));
-		Complex S1 = new Complex(0);
-		Complex S2 = new Complex(0);
-		Complex N = new Complex(0);
-		for(int n = 1; n <= m; ++n) {
-			N.setComplexRec(n, 0);
-			// Accumulators mutated in place instead of reassigned to a new Complex each iteration.
-			S1.plusEq((N.power(s)).inverse());
-			S2.plusEq((N.power(one_s)).inverse());
-		}
-		X.timesEq(S2);
-		S1.plusEq(X);
-		return S1;
-	}
-	
-	//https://www.robertelder.ca/calculatevalue
-	//https://mathworld.wolfram.com/RiemannZetaFunction.html
-	/**
-	 * The Riemann's zeta function. Only for Re(s) > 0
-	 * <p>
-	 * <b>KNOWN LIMITATION (unresolved):</b> the stopping condition (stop when consecutive partial
-	 * sums stagnate within the ~1e-12 tolerance of {@link #equals(Complex)}) is only reachable in
-	 * practice when Re(s) is not too small, because the underlying alternating series has terms
-	 * decaying like 1/k^Re(s): reaching 1e-12 stagnation needs roughly k ~ 1e6 terms at Re(s)=2, but
-	 * ~1e24 terms at Re(s)=0.5 (the critical line, e.g. near a nontrivial zeta zero) - astronomically
-	 * unreachable regardless of speed. For Re(s) &lt;= ~0.7 this method will not terminate in any
-	 * practical amount of time; use {@link #zeta_havil(Complex)} instead (used by
-	 * {@link #zeta(Complex)} itself), which converges for all s with far fewer terms. This method is
-	 * not called by zeta() or any other method in this file.
-	 * @param s
-	 * @return
-	 */
-	public static Complex zeta_analytic_continuation(Complex s) {
-		Complex cDOS = new Complex(2);
-		Complex term = Complex.ONE.minus(cDOS.power(Complex.ONE.minus(s)));
-		Complex z1 = new Complex(0);
-		Complex z2 = new Complex(0);
-		// A private, mutable accumulator - NOT Complex.ONE itself, which plusEq would corrupt.
-		Complex k = new Complex(1, 0);
-		// (-1)^(k-1) tracked directly as a plain double instead of via Complex.mONE.power(k-1):
-		// mONE has phase pi, so that call's internal angle grows as pi*(k-1) without bound, making
-		// each call both increasingly expensive (normalizing an ever-larger phase back into
-		// (-pi,pi] is an O(k) loop) and increasingly inaccurate (by k=5e6 the "sign" had already
-		// drifted to -0.99999993-3.7e-4i instead of exactly -1+0i) - a bug found while investigating
-		// why this method never terminates near the critical line: that noise alone could prevent
-		// z1 from ever stagnating within tolerance for moderate Re(s), independent of the deeper
-		// term-count limitation documented above.
-		double sign = 1.0;
-		boolean notFinished = true;
-
-		while (notFinished) {
-			z1.plusEq(k.power(s).inverse().times(sign));
-			//z1.println("z1 = ");
-			if (z1.equals(z2)) notFinished = false;
-			z2 = z1.copy();
-			k.plusEq(1);
-			sign = -sign;
-		}
-		z1.dividesEq(term);
-		return z1;
-	}
-
-	/**
 	 * Sondow, Jonathan and Weisstein, Eric W. "Riemann Zeta Function." From MathWorld--A Wolfram Web Resource. 
 	 * https://mathworld.wolfram.com/RiemannZetaFunction.html
 	 * @param s
@@ -3921,7 +3836,7 @@ public class Complex {
 	 * {@link BigDecimal#intValue()} silently truncates/wraps for values outside the int range
 	 * (per its own contract), so this has no overflow guard for large num. Left as-is and
 	 * documented rather than removed, consistent with how other confirmed-dead methods in this
-	 * class (e.g. zeta_riemann_siegel) were handled.
+	 * class (e.g. the {@code *Red__} family) were handled.
 	 */
 	static public double getDecPart(double num) {
 		BigDecimal bigDecimal = new BigDecimal(String.valueOf(num));
