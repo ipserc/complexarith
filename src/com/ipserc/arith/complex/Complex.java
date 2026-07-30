@@ -42,6 +42,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.text.NumberFormat;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.io.*;
 import java.util.Scanner;
 
@@ -234,6 +236,15 @@ public class Complex {
 	 * constructor path calls {@link #state()}. Since static initializers run in textual/declared
 	 * order, if {@code STATE} were declared after those constants, {@code STATE} would still be
 	 * {@code null} when they run, throwing a {@code NullPointerException} at class-load time.
+	 * <p>
+	 * REENTRANCY: {@code storePrecision()}/{@code restorePrecision()}, {@code setRepres()}/
+	 * {@code restoreRepres()} and {@code storeFormatStatus()}/{@code restoreFormatStatus()} each
+	 * push/pop a snapshot on a per-thread {@link Deque} ({@code precisionStack}/{@code represStack}/
+	 * {@code formatStack}) instead of overwriting a single backup slot, so a store/restore pair
+	 * nested inside another one on the same thread no longer clobbers the outer call's backup.
+	 * A restore with an empty stack is a no-op (matches the previous single-slot behavior when
+	 * restore is called without a prior store: the backup slot was initialized equal to the live
+	 * value, so restoring was already a no-op in that case).
 	 */
 	private static final class State {
 		boolean EXACT = true;
@@ -246,28 +257,47 @@ public class Complex {
 		int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD));
 		long DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
 
-		/* BACK UP to allow restoring status */
-		double PRECISION_BCK = PRECISION;
-		double ZERO_THRESHOLD_EXACT_BCK = ZERO_THRESHOLD_EXACT;
-		double ZERO_THRESHOLD_APPROX_BCK = ZERO_THRESHOLD_APPROX;
-		double ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
-		int SIGNIFICATIVE_BCK = SIGNIFICATIVE;
-		long DIGITS_BCK = DIGITS;
+		/* Stack of backups to allow restoring status, one push per storePrecision(), reentrant */
+		final Deque<PrecisionSnapshot> precisionStack = new ArrayDeque<>();
 
 		/* Formating block */
 		boolean FORMAT_NBR = false; //Member Variable. Flag for formatting numbers
 		boolean FIXED_NOTATION = false; //Member Variable. Flag for comma fixed notation
 		boolean SCIENTIFIC_NOTATION = false; //Member Variable. Flag for scientific notation
 		int MAX_DECIMALS = MAX_DECIMALS_DEFAULT; //Member Variable
-		/* BACK UP to allow restoring status */
-		boolean FORMAT_NBR_BCK = FORMAT_NBR; //Member Variable. Flag for formatting numbers
-		boolean FIXED_NOTATION_BCK = FIXED_NOTATION; //Member Variable. Flag for comma fixed notation
-		boolean SCIENTIFIC_NOTATION_BCK = SCIENTIFIC_NOTATION; //Member Variable. Flag for scientific notation
-		int MAX_DECIMALS_BCK = MAX_DECIMALS; //Member Variable
+		/* Stack of backups to allow restoring status, one push per storeFormatStatus(), reentrant */
+		final Deque<FormatSnapshot> formatStack = new ArrayDeque<>();
 
 		/* REPRESENTATION BLOCK */
 		Representation REPRESENTATION = Representation.RECTANGULAR;
-		Representation REPRESENTATION_BCK = REPRESENTATION;
+		/* Stack of backups to allow restoring status, one push per setRepres(), reentrant */
+		final Deque<Representation> represStack = new ArrayDeque<>();
+	}
+
+	/** Immutable snapshot of the precision block, pushed/popped by {@link #storePrecision()}/{@link #restorePrecision()}. */
+	private static final class PrecisionSnapshot {
+		final double precision, zeroThresholdExact, zeroThresholdApprox;
+		final int significative;
+		final long digits;
+		PrecisionSnapshot(double precision, double zeroThresholdExact, double zeroThresholdApprox, int significative, long digits) {
+			this.precision = precision;
+			this.zeroThresholdExact = zeroThresholdExact;
+			this.zeroThresholdApprox = zeroThresholdApprox;
+			this.significative = significative;
+			this.digits = digits;
+		}
+	}
+
+	/** Immutable snapshot of the format block, pushed/popped by {@link #storeFormatStatus()}/{@link #restoreFormatStatus()}. */
+	private static final class FormatSnapshot {
+		final boolean formatNbr, fixedNotation, scientificNotation;
+		final int maxDecimals;
+		FormatSnapshot(boolean formatNbr, boolean fixedNotation, boolean scientificNotation, int maxDecimals) {
+			this.formatNbr = formatNbr;
+			this.fixedNotation = fixedNotation;
+			this.scientificNotation = scientificNotation;
+			this.maxDecimals = maxDecimals;
+		}
 	}
 
 	private static final ThreadLocal<State> STATE = ThreadLocal.withInitial(State::new);
@@ -900,23 +930,24 @@ public class Complex {
 	}
 
 	/**
-	 * Stores the Format Status to be restored by restoreFormatStatus
+	 * Stores the Format Status to be restored by restoreFormatStatus. Reentrant: each call pushes
+	 * a new backup, so nested store/restore pairs on the same thread do not clobber each other.
 	 */
 	public static void storeFormatStatus() {
-		state().FORMAT_NBR_BCK = state().FORMAT_NBR;
-		state().FIXED_NOTATION_BCK = state().FIXED_NOTATION;
-		state().SCIENTIFIC_NOTATION_BCK = state().SCIENTIFIC_NOTATION;
-		state().MAX_DECIMALS_BCK = state().MAX_DECIMALS;
+		state().formatStack.push(new FormatSnapshot(state().FORMAT_NBR, state().FIXED_NOTATION, state().SCIENTIFIC_NOTATION, state().MAX_DECIMALS));
 	}
-	
+
 	/**
-	 * Restore the Format Status to its previous condition if it was stored before
+	 * Restore the Format Status to its previous condition if it was stored before. A no-op if
+	 * called without a matching prior {@link #storeFormatStatus()} on the same thread.
 	 */
 	public static void restoreFormatStatus() {
-		state().FORMAT_NBR = state().FORMAT_NBR_BCK;
-		state().FIXED_NOTATION = state().FIXED_NOTATION_BCK;
-		state().SCIENTIFIC_NOTATION = state().SCIENTIFIC_NOTATION_BCK;
-		state().MAX_DECIMALS = state().MAX_DECIMALS_BCK;
+		FormatSnapshot snapshot = state().formatStack.poll();
+		if (snapshot == null) return;
+		state().FORMAT_NBR = snapshot.formatNbr;
+		state().FIXED_NOTATION = snapshot.fixedNotation;
+		state().SCIENTIFIC_NOTATION = snapshot.scientificNotation;
+		state().MAX_DECIMALS = snapshot.maxDecimals;
 	}
 
 	/**
@@ -962,14 +993,13 @@ public class Complex {
 	}
 	
 	/**
-	 * Sets the output format of the complex representation
+	 * Sets the output format of the complex representation. Reentrant: each call pushes the
+	 * previous representation onto a backup stack, so nested setRepres()/restoreRepres() pairs
+	 * on the same thread do not clobber each other. See {@link State}.
 	 * @param Repres
-	 * KNOWN BUG, not fixed: {@code REPRESENTATION_BCK} is a single backup slot, not a stack, so a
-	 * {@code setRepres()}/{@code restoreRepres()} pair nested inside another one on the same
-	 * thread clobbers the outer call's backup. See {@link State}.
 	 */
 	public static void setRepres(Representation Repres) {
-		state().REPRESENTATION_BCK = state().REPRESENTATION;
+		state().represStack.push(state().REPRESENTATION);
 		state().REPRESENTATION = Repres;
 	}
 
@@ -986,14 +1016,13 @@ public class Complex {
 	}
 
 	/**
-	 * Restores the last used output format of the complex representation
-	 * KNOWN BUG, not fixed: see {@link #setRepres(Representation)}.
+	 * Restores the last used output format of the complex representation. A no-op if called
+	 * without a matching prior {@link #setRepres(Representation)} on the same thread.
 	 */
 	public static void restoreRepres() {
-		Representation oldRepres;
-		oldRepres = state().REPRESENTATION;
-		state().REPRESENTATION = state().REPRESENTATION_BCK;
-		state().REPRESENTATION_BCK = oldRepres;
+		Representation previous = state().represStack.poll();
+		if (previous == null) return;
+		state().REPRESENTATION = previous;
 	}
 
 	/**
@@ -1467,32 +1496,26 @@ public class Complex {
 	}
 
 	/**
-	 * Stores the Precision parameters for recover them later
-	 * KNOWN BUG, not fixed: the {@code _BCK} fields below are each a single backup slot, not a
-	 * stack, so a {@code storePrecision()}/{@code restorePrecision()} pair nested inside another
-	 * one on the same thread clobbers the outer call's backup. See {@link State}.
+	 * Stores the Precision parameters for recover them later. Reentrant: each call pushes a new
+	 * backup, so nested store/restore pairs on the same thread do not clobber each other.
 	 */
 	public static void storePrecision() {
-	    state().PRECISION_BCK = state().PRECISION;
-	    state().ZERO_THRESHOLD_BCK = state().ZERO_THRESHOLD;
-	    state().ZERO_THRESHOLD_EXACT_BCK = state().ZERO_THRESHOLD_EXACT;
-	    state().ZERO_THRESHOLD_APPROX_BCK = state().ZERO_THRESHOLD_APPROX;
-	    state().SIGNIFICATIVE_BCK = state().SIGNIFICATIVE;
-	    state().DIGITS_BCK = state().DIGITS;
+	    state().precisionStack.push(new PrecisionSnapshot(state().PRECISION, state().ZERO_THRESHOLD_EXACT, state().ZERO_THRESHOLD_APPROX, state().SIGNIFICATIVE, state().DIGITS));
 	}
 
 	/**
-	 * Recovers the Precision parameters stored before
-	 * KNOWN BUG, not fixed: see {@link #storePrecision()}.
+	 * Recovers the Precision parameters stored before. A no-op if called without a matching
+	 * prior {@link #storePrecision()} on the same thread.
 	 */
 	public static void restorePrecision() {
-	    state().PRECISION = state().PRECISION_BCK;
-	    state().ZERO_THRESHOLD_EXACT = state().ZERO_THRESHOLD_EXACT_BCK;
-	    state().ZERO_THRESHOLD_APPROX = state().ZERO_THRESHOLD_APPROX_BCK;
+	    PrecisionSnapshot snapshot = state().precisionStack.poll();
+	    if (snapshot == null) return;
+	    state().PRECISION = snapshot.precision;
+	    state().ZERO_THRESHOLD_EXACT = snapshot.zeroThresholdExact;
+	    state().ZERO_THRESHOLD_APPROX = snapshot.zeroThresholdApprox;
 	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
-	    //ZERO_THRESHOLD = ZERO_THRESHOLD_BCK;
-	    state().SIGNIFICATIVE = state().SIGNIFICATIVE_BCK;
-	    state().DIGITS = state().DIGITS_BCK;
+	    state().SIGNIFICATIVE = snapshot.significative;
+	    state().DIGITS = snapshot.digits;
 	}
 
 	/**
