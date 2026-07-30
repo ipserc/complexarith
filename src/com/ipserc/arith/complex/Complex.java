@@ -71,7 +71,7 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.26 (2026_0730_2239)";
+	private final static String VERSION = "1.27 (2026_0730_2245)";
 	/* VERSION Release Note
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {
@@ -1512,11 +1512,28 @@ public class Complex {
 			// defined direction, so the resulting direction (rep/imp/pha) is undefined too.
 			return raw(Double.NaN, Double.NaN, Double.POSITIVE_INFINITY, Double.NaN);
 		}
-		// Rectangular division (a+bi)/(c+di) = ((ac+bd)+(bc-ad)i)/(c²+d²). The denominator
-		// reuses that.mod² (already cached via Math.hypot) instead of recomputing c²+d².
-		double denom = that.mod * that.mod;
-		double newRep = (this.rep * that.rep + this.imp * that.imp) / denom;
-		double newImp = (this.imp * that.rep - this.rep * that.imp) / denom;
+		// Smith's algorithm for (a+bi)/(c+di): the previous formula computed
+		// denom=that.mod*that.mod, i.e. squared an already-safe Math.hypot(c,d) result, which
+		// overflows to Infinity for |that| beyond ~1.34e154 even though that.mod itself is still
+		// finite -- silently zeroing newRep/newImp (finite/Infinity=0.0) while newMod (below,
+		// computed independently from that.mod, never squared) stayed correct, leaving rep/imp
+		// inconsistent with mod/pha. Smith's algorithm never forms c²+d² directly: it picks
+		// whichever of c,d has the larger magnitude as pivot and uses the ratio of the other to
+		// it (always <=1 in magnitude, so it can't itself overflow), keeping every intermediate
+		// value near the actual working magnitudes instead of near c²+d².
+		double a = this.rep, b = this.imp, c = that.rep, d = that.imp;
+		double newRep, newImp;
+		if (Math.abs(c) >= Math.abs(d)) {
+			double r = d / c;
+			double denom = c + d * r;
+			newRep = (a + b * r) / denom;
+			newImp = (b - a * r) / denom;
+		} else {
+			double r = c / d;
+			double denom = d + c * r;
+			newRep = (a * r + b) / denom;
+			newImp = (b * r - a) / denom;
+		}
 		double newMod = this.mod / that.mod;
 		double newPha = normalizePhase(this.pha - that.pha);
 		return raw(newRep, newImp, newMod, newPha);
@@ -1628,11 +1645,37 @@ public class Complex {
 	 * calls, same rectangular-division shortcut as divides(Complex).
 	 * @param that The Complex Object to divide 'this' by.
 	 * @return 'this', for chaining.
+	 * @apiNote KNOWN BUG, fixed: this lacked the divide-by-complex-zero handling that
+	 * {@link #divides(Complex)} already got in a previous session -- dividing by a modulus-0
+	 * Complex used to fall straight through to the rectangular formula, giving rep=imp=NaN (0/0)
+	 * while mod independently became Infinity or NaN, the same self-contradictory-state bug
+	 * {@code divides(Complex)} was fixed for. Now shares the identical explicit handling. Also
+	 * gains the Smith's-algorithm fix for large-|that| overflow -- see {@link #divides(Complex)}'s
+	 * @apiNote for the full explanation.
 	 */
 	public Complex dividesEq(Complex that) {
-		double denom = that.mod * that.mod;
-		double newRep = (this.rep * that.rep + this.imp * that.imp) / denom;
-		double newImp = (this.imp * that.rep - this.rep * that.imp) / denom;
+		if (that.mod == 0.0) {
+			if (this.mod == 0.0) {
+				this.rep = Double.NaN; this.imp = Double.NaN; this.mod = Double.NaN; this.pha = Double.NaN;
+			} else {
+				this.rep = Double.NaN; this.imp = Double.NaN; this.mod = Double.POSITIVE_INFINITY; this.pha = Double.NaN;
+			}
+			this.setCre();
+			return this;
+		}
+		double a = this.rep, b = this.imp, c = that.rep, d = that.imp;
+		double newRep, newImp;
+		if (Math.abs(c) >= Math.abs(d)) {
+			double r = d / c;
+			double denom = c + d * r;
+			newRep = (a + b * r) / denom;
+			newImp = (b - a * r) / denom;
+		} else {
+			double r = c / d;
+			double denom = d + c * r;
+			newRep = (a * r + b) / denom;
+			newImp = (b * r - a) / denom;
+		}
 		double newMod = this.mod / that.mod;
 		double newPha = normalizePhase(this.pha - that.pha);
 		this.rep = newRep;
