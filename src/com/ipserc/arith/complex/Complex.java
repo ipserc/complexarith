@@ -71,7 +71,7 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.22 (2026_0730_2102)";
+	private final static String VERSION = "1.23 (2026_0730_2215)";
 	/* VERSION Release Note
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {
@@ -1798,7 +1798,6 @@ public class Complex {
 	public static Complex zeta(Complex s) { return ComplexFunctions.zeta(s); }
 	public static Complex zeta_re(Complex s) { return ComplexFunctions.zeta_re(s); }
 	public static Complex zeta_ext(Complex s) { return ComplexFunctions.zeta_ext(s); }
-	public static Complex zeta_reflex(Complex s) { return ComplexFunctions.zeta_reflex(s); }
 	public static Complex zeta_primes(Complex s) { return ComplexFunctions.zeta_primes(s); }
 	public static Complex zeta_havil(Complex s) { return ComplexFunctions.zeta_havil(s); }
 	public static Complex ChebyshevZero(int n, int k) { return ComplexFunctions.ChebyshevZero(n, k); }

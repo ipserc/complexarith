@@ -623,21 +623,6 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * TODO
-	 * @param s
-	 * @return
-	 */
-	static Complex zeta_reflex(Complex s) {
-		Complex s_one = s.minus(1);
-		Complex one_s = Complex.ONE.minus(s);
-		Complex z = Complex.cos(Complex.PI.divides(2).times(one_s));
-		if (z.equals(Complex.ZERO)) return Complex.ZERO;
-		z = z.times(one_s.divides(2*Math.PI*Math.E));
-		z = z.times(Complex.sqrt(new Complex(8*Math.PI).divides(one_s)));
-		return z;
-	}
-
-	/**
 	 * Solo vale para s.rep() > 1 - Only for Re(s) > 1
 	 * @param s
 	 * @return
