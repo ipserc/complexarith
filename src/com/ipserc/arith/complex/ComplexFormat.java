@@ -12,8 +12,9 @@ package com.ipserc.arith.complex;
  * touch {@code Complex}'s private fields directly).
  * <p>
  * Extracted verbatim (Sexta sesion, paso 2, Fase 2.4) from {@code Complex.java}'s "PRESENTATION"
- * section. {@code normalizePhase()}/{@code normalizePhase_0/1/2} stayed in {@code Complex.java}'s
- * core despite living under the same banner -- they are arithmetic invariant-maintenance helpers
+ * section. {@code normalizePhase()} (originally a dispatcher over three normalizePhase_0/1/2
+ * variants; the two dead ones were removed in a later audit fix) stayed in {@code Complex.java}'s
+ * core despite living under the same banner -- it is an arithmetic invariant-maintenance helper
  * also used by the core arithmetic (plus/minus/times/divides and their in-place variants), not
  * presentation. The {@code print*}/{@code println*} instance methods also stayed: they only call
  * {@code this.toString()}/{@code toStringRec()}/{@code toStringPol()}, so they work unchanged

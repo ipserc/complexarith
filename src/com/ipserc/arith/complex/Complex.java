@@ -71,7 +71,7 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.25 (2026_0730_2233)";
+	private final static String VERSION = "1.26 (2026_0730_2239)";
 	/* VERSION Release Note
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {
@@ -661,48 +661,23 @@ public class Complex {
 	public static void restoreRepres() { ComplexState.restoreRepres(); }
 
 	/**
-	 * Private Method. Uses the normalizedPhase_X method selected
-	 * @param phase to normalize.
-	 * @return phase normalized.
-	 */
-	private static double normalizePhase(double phase) {
-		return normalizePhase_1(phase);
-	}
-
-	/**
-	 * Private Method. Normalizes the phase between [-pi, pi]
-	 * @param phase to normalize.
-	 * @return phase normalized.
-	 */
-	private static double normalizePhase_0(double phase) {
-		int sign = phase < 0.0 ? -1 : 1;
-		phase *= sign;
-		while (phase > Math.PI) phase -= DOS_PI;
-		return phase * sign;
-	}
-
-	/**
 	 * Private Method. Normalizes the phase between (-pi, pi]
 	 * @param phase to normalize.
 	 * @return phase normalized.
+	 * @apiNote Used to dispatch to one of three normalizedPhase_X variants ([-pi,pi] / (-pi,pi] /
+	 * [0,2pi)). The other two ({@code normalizePhase_0}, {@code normalizePhase_2}) had zero
+	 * callers anywhere in this codebase (grepped across all 7 files of the split) -- only this
+	 * one, (-pi,pi], was ever actually selected -- so they were removed instead of kept as
+	 * documented dead code, consistent with how {@code zeta_riemann_siegel}/
+	 * {@code zeta_analytic_continuation}/{@code zeta_reflex} were handled earlier this session
+	 * (private, no public API impact either way, unlike those three).
 	 */
-	private static double normalizePhase_1(double phase) {
+	private static double normalizePhase(double phase) {
 		int sign = phase < 0.0 ? -1 : 1;
 		phase *= sign;
 		while (phase > Math.PI) phase -= DOS_PI;
-		if (phase == Math.PI) return Math.PI; 
+		if (phase == Math.PI) return Math.PI;
 		return phase * sign;
-	}
-
-	/**
-	 * Private Method. Normalizes the phase between [0, 2·pi)
-	 * @param phase to normalize.
-	 * @return phase normalized.
-	 */
-	private static double normalizePhase_2(double phase) {
-		while (phase >= DOS_PI) phase -= DOS_PI;
-		while (phase < 0.0) phase += DOS_PI;
-		return phase;
 	}
 
 	/**
