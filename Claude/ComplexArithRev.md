@@ -305,8 +305,51 @@ Ambos commits (`1474c56`, `d8a9e85`) tocan **solo** `src/com/ipserc/arith/comple
 - ~~Bloque `boxTitle*`/`boxText*` (ASCII art) — nunca revisado por corrección~~ → **Resuelto en esta sesión, commit `80b731f`.** Primera revisión real del bloque encontró 3 bugs: `makeBoxTitle`/`makeBoxText` no garantizaban hueco para su overhead mínimo (4 y 2 caracteres respectivamente), rompiendo la alineación de la caja cuando `size` quedaba a 1-3 caracteres del título/texto (verificado: build de `HEAD` da líneas de longitud distinta dentro de la misma caja para esos casos, confirmado con un test que compara longitudes); y `boxTextRandom()` llamaba a `boxTitle1` en su rama de repliegue (inalcanzable hoy, copy-paste). Riesgo real confirmado antes de arreglar: varios tests pasan textos dependientes de valores en tiempo de ejecución (`chrono.toString()`, `dim+"x"+dim`) con `boxSize` fijo, así que el bug podía dispararse de forma intermitente según la longitud exacta resultante. Fix con `Math.max` para garantizar el hueco mínimo, sin cambiar ningún caso que ya funcionara (verificado byte a byte idéntico). **Con este commit se completan todos los puntos del paso 1 acordado al final de la Quinta sesión — el siguiente paso es el 2 (reestructuración arquitectónica).**
 - Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado. Fuera del paso 1 (candidato para más adelante).
 - `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (paso 3, más adelante).
-- Reestructuración arquitectónica de `Complex.java` — no abordada (paso 2; decidido split en paquete + API pública intacta, ver arriba).
+- Reestructuración arquitectónica de `Complex.java` — **en curso, ver sección "PASO 2" más abajo.**
 - Limpieza de los 88 ficheros con line-endings+contenido mezclados (sesión de mantenimiento) — sigue pendiente, sin relación con el plan de `Complex.java`.
+
+---
+
+# PASO 2 — REESTRUCTURACIÓN ARQUITECTÓNICA DE `Complex.java` (Sexta sesión, 30 julio 2026)
+
+> Arranca con el plan escrito y aprobado en `EnterPlanMode`/`ExitPlanMode` (proceso "pesado", como en la migración a `ThreadLocal` de la Quinta sesión), precedido de un fork de exploración que mapeó el acoplamiento real entre las secciones de `Complex.java` antes de diseñar el split — evitando un plan genérico. El plan completo queda guardado en `C:\Users\josel\.claude\plans\shimmying-scribbling-umbrella.md`.
+
+## Decisiones de alcance (confirmadas con el usuario antes de escribir código)
+
+- **Forma de la reestructuración**: split en paquete `com.ipserc.arith.complex` — varias clases *package-private* (config/`State`, parsing, formato, cajas ASCII, funciones especiales, cálculo), no una reorganización de un único fichero.
+- **API pública**: la de `Complex` debe permanecer **100% intacta** (usada por `MatrixComplex`, `Eigenspace`, `Polynom`, `Laplace`, `Fourier`, `Z`, `Spline` y ~200 test files). Cada método que se mueve a otra clase deja en `Complex` un **delegador público de una línea** con la firma exacta actual.
+
+## Hallazgo clave del fork de exploración de acoplamiento (antes de diseñar el split)
+
+- **Solo el bloque `BOXES & TITLES` tiene acoplamiento cero** con el resto de la clase (ningún método toca campos privados de `Complex` ni `state()`) — la extracción más segura, elegida como Fase 2.1 para validar el patrón.
+- Todo lo demás tiene dependencias reales: `FUNCTIONS`/`TRIGONOMETRICS`/`INTEGRATION & DERIVATION`/`LIMITS`/`ROUND` tocan **campos privados directamente** (`z.rep`, `point.mod`, etc.) de instancias `Complex` recibidas como parámetro, no solo de `this` — mover ese código exige reescribir esos accesos a los getters públicos ya existentes (`rep()`, `imp()`, `mod()`, `pha()`).
+- `state()` lo llaman Presentación, Setters, Boolean Ops y Funciones.
+- `normalizePhase()` (bajo el banner "PRESENTATION" pero es en realidad un invariante de aritmética) lo usan tanto Presentación como la aritmética core in-place — debe quedarse en el núcleo (`Complex.java`), no moverse al formateador.
+
+## Arquitectura objetivo (6 nuevas clases *package-private* + `Complex.java` como núcleo)
+
+1. `ComplexState` — config/precisión (`State`/`PrecisionSnapshot`/`FormatSnapshot`/`ThreadLocal`, `exact()/precision()/storePrecision()/setRepres()/...`).
+2. `ComplexBoxArt` — cajas ASCII (**Fase 2.1, ya hecha**).
+3. `ComplexParser` — parseo por regex de `setComplex(String)`.
+4. `ComplexFormat` — `toStringRec/Pol/GNUPlot`, `printRec/Pol`.
+5. `ComplexFunctions` — `power/sqrt/exp/log/gamma*/zeta*/binomialCoef/factorial` + trigonometría.
+6. `ComplexCalculus` — `integrate*/derivative` + `limit*`.
+
+`Complex.java` (núcleo, permanece): campos privados, constructores, getters, `copy()`, operaciones unarias/booleanas/aritméticas (allocantes e in-place), `round`/`trunc`, y `normalizePhase()`.
+
+Plan de ejecución: **una fase por commit, verificada y confirmada con el usuario antes de la siguiente** (no las 6 de golpe) — de menor a mayor riesgo/acoplamiento. Fases 2.5/2.6 (funciones especiales/trigonometría, cálculo) son las más grandes y con más reescritura mecánica `campo`→`campo()`; el plan contempla replicar el proceso pesado de la Quinta sesión (posible fork en segundo plano) para esas dos.
+
+## Fase 2.1 — `ComplexBoxArt` (commit `aab0fd3`)
+
+Extraído verbatim el bloque `BOXES & TITLES` completo (`boxTitle1..7`, `boxText1..7`, `makeBoxTitle`, `makeBoxText`, `repeat`, `boxTitleRandom/boxTextRandom`, `printBoxTitle/printBoxText`) a la nueva clase package-private `ComplexBoxArt`, incluyendo los 3 fixes de la fase de revisión anterior de esta misma sesión (los `Math.max` de `makeBoxTitle`/`makeBoxText` y el copy-paste de `boxTextRandom`). `Complex.java` mantiene cada método público como delegador de una línea. Se eliminó el import `ThreadLocalRandom` de `Complex.java` (quedó sin uso).
+
+Verificado: compila junto con `Complex.java`; un test suelto que imita el patrón de uso externo real (`Syseq.java` llama `Complex.repeat(...)`) da la misma salida determinista que el build original. Batería de regresión exit 0 en las 4, sin diferencias numéricas. `Syseq.java` no se pudo compilar de forma aislada por un problema de entorno preexistente y ajeno a este cambio (`Polynom.java` depende de la librería externa `JavaPlot` no presente, y `VectorComplex.java` tiene un error de sintaxis en trabajo local sin commitear del usuario, confirmado con `git status`) — cubierto por el test de uso externo equivalente.
+
+**Incidente sin explicación durante esta fase**: el campo `VERSION` del fichero de trabajo apareció con un sufijo `" (commit 5475774)"` que Claude no añadió intencionadamente (no hay hooks de git, ni filtros `.gitattributes`, ni el fork de exploración de solo lectura lanzado antes de esta fase pueden haberlo escrito). Corregido antes de compilar/verificar/commitear (`VERSION` final: `1.11 (2026_0730_1916)`). Si vuelve a pasar en fases futuras, revisar con más detalle antes de asumir que es inofensivo.
+
+## Próximos pasos
+
+Al retomar, la Fase 2.2 (`ComplexState`) es la siguiente — confirmar con el usuario antes de empezar, siguiendo el mismo patrón de resumen+confirmación de todas las fases anteriores.
 
 ---
 
