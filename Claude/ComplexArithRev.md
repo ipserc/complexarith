@@ -222,7 +222,7 @@ Los tres commits de esta sesión (`a5d6a99`, `6131af8`, `bd1b3fd`) tocan **solo*
 
 ## Ideas pendientes actualizadas tras `randomNbr` y `System.exit`
 
-- Estado estático mutable global no thread-safe (`EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`) — sigue fuera de alcance por decisión consciente, cambio arquitectónico grande.
+- ~~Estado estático mutable global no thread-safe (`EXACT`, `PRECISION`, `ZERO_THRESHOLD*`, `REPRESENTATION`, `FORMAT_NBR`)~~ → **Resuelto en la Quinta sesión de revisión (30 julio 2026), commit `dccaf1f`, ver sección siguiente.**
 - Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado.
 - `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (y `MatrixComplex.java` sigue con cambios locales sin commitear del usuario).
 - Reestructuración arquitectónica de `Complex.java` — no abordada.
@@ -230,4 +230,39 @@ Los tres commits de esta sesión (`a5d6a99`, `6131af8`, `bd1b3fd`) tocan **solo*
 
 ---
 
-*Última actualización de este bloque: sesión del 29 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`.*
+# QUINTA SESIÓN DE REVISIÓN DE `Complex.java` — 30 julio 2026 (estado estático → `ThreadLocal`)
+
+> Retoma la idea pendiente más grande de la lista, aparcada desde la Sesión 2 por su tamaño ("cambio arquitectónico grande, candidato a `ThreadLocal` o config por instancia... merece su propio plan dedicado"). Antes de tocar código se lanzó un fork de exploración para medir el alcance real (call-sites externos, si el uso real depende de que el estado sea compartido entre instancias), y con esos datos se entró en `EnterPlanMode` para acordar el enfoque con el usuario vía `AskUserQuestion` antes de escribir una sola línea — a diferencia de las fases 1-6 anteriores (bugs puntuales acotados), aquí sí se siguió el proceso completo de planificación formal que el propio documento pedía para este ítem.
+
+## Qué se hizo
+
+1. **Los 23 campos estáticos mutables de configuración global** (`EXACT`, `PRECISION`, `ZERO_THRESHOLD_EXACT`, `ZERO_THRESHOLD_APPROX`, `ZERO_THRESHOLD`, `SIGNIFICATIVE`, `DIGITS`, sus 6 `_BCK`, `FORMAT_NBR`, `FIXED_NOTATION`, `SCIENTIFIC_NOTATION`, `MAX_DECIMALS`, sus 4 `_BCK` de formato, `REPRESENTATION`, `REPRESENTATION_BCK`) migrados a `ThreadLocal` (commit `dccaf1f`). Antes eran `private static` compartidos por todas las instancias **y todos los hilos** de la JVM — dos hilos usando `Complex` simultáneamente (p.ej. dos llamadas a `storePrecision()/setPrecision(...)/restorePrecision()` en paralelo) se corrompían mutuamente la configuración. Ahora viven como campos de instancia de una clase anidada `State`, respaldada por un único `ThreadLocal<State>` y un helper privado `state()`: cada hilo tiene su propia copia aislada, pero dentro de un mismo hilo el estado sigue compartido entre todas las instancias `Complex` creadas en él — que es exactamente el patrón que ya usan `MatrixComplex`/`Eigenspace`/`Polynom`/`Laplace`/`Fourier`/`Z`/`Spline` (`storePrecision()` → cambiar modo → calcular con muchas instancias `Complex` anidadas → `restorePrecision()`).
+2. **La API pública no cambió**: todos los getters/setters existentes (`exact()`, `getPrecision()`, `setPrecision()`, `setFormatON/OFF`, `setFixedON/OFF`, `setScientificON/OFF`, `setRepres()`/`getRepres()`/`restoreRepres()`, `storePrecision()`/`restorePrecision()`, `digits()`, etc.) conservan firma y comportamiento observable, solo cambia dónde leen/escriben internamente. Confirmado por el fork de exploración previo: de los ~216 ficheros que usan estos métodos, solo 7 son código de librería real (el resto es `TestComplex/*`); ninguno necesitó cambiar una línea.
+3. Los campos que son **constantes de fábrica** y nunca se reasignan tras la inicialización (`PRECISION_DEF`, `ZERO_THRESHOLD_EXACT_DEF`, `ZERO_THRESHOLD_APPROX_DEF`, `ZERO_THRESHOLD_DEF`, `SIGNIFICATIVE_DEF`, `DIGITS_DEF`, `MAX_DECIMALS_DEFAULT`) se quedaron fuera de `State`, como `static` planos — confirmado por grep que ningún setter los reasigna, así que son inmutables en la práctica y seguros de compartir entre hilos sin cambios.
+4. **Bug real encontrado y corregido durante la propia migración** (no presente en el código original, introducido y arreglado en el mismo commit): orden de inicialización estática. El bloque `State`/`STATE`/`state()` estaba declarado *después* de las constantes `Complex i/j/ZERO/ONE/mONE/PI/DOSPI/TWOPI/HALFPI`, cuyos inicializadores construyen instancias `Complex` que llaman a `state()` durante el propio `<clinit>` de la clase. Como los inicializadores estáticos de Java se ejecutan en orden textual, `STATE` seguía siendo `null` cuando esas constantes se construían, lanzando `NullPointerException` al cargar la clase. Se corrigió moviendo el enum `Representation` y el bloque completo `State`/`STATE`/`state()` (y las constantes `_DEF` de las que depende) a *antes* de esas constantes `Complex`, dejando la restricción de orden documentada en el Javadoc de `State`.
+5. **Bug de reentrancia preexistente, documentado pero explícitamente NO corregido** (decisión del usuario, tomada antes de empezar la fase vía `AskUserQuestion`): `storePrecision()`/`restorePrecision()` y `setRepres()`/`restoreRepres()` usan un único slot `_BCK`, no una pila — una llamada `store→restore` anidada dentro de otra, en el *mismo* hilo, sigue pisando el backup de la llamada externa. Esta migración arregla el aislamiento **entre hilos**, no la reentrancia **dentro** de un hilo; queda documentado en el Javadoc de esos 4 métodos con el mismo estilo que otros bugs conocidos-no-corregidos del fichero.
+
+## Verificación (más rigurosa que en fases anteriores, por tratarse de concurrencia)
+
+Además del ciclo habitual (compilar solo, comparar contra build original, batería de regresión), esta fase añadió dos pruebas nuevas porque el patrón de verificación de sesiones anteriores no cubre concurrencia:
+- **Test de un solo hilo**: la misma secuencia `storePrecision()→exact(false)/setPrecision(...)→calcular→restorePrecision()` (más `setRepres/restoreRepres` y `setFormatON/setFixedON/restoreFormatStatus`) da resultado **bit a bit idéntico** al build del `HEAD` anterior — confirma que el comportamiento actual de la app (single-threaded) no cambió.
+- **Test de concurrencia nuevo**: 8 hilos × 200 iteraciones, cada uno con su propia combinación de `precision`/`exact`/`representación`/`formato`, sin ninguna corrupción cruzada entre hilos ni excepciones — es la prueba que demuestra que la migración realmente resuelve el problema de origen, no solo que no rompe nada en single-thread.
+- Batería de regresión estándar (`TestComplex01/07`, `TestGamma01`, `TestZeta01`) exit 0 en las 4, sin diferencias numéricas más allá del ruido no determinista ya documentado de `TestZeta01`.
+
+Este commit, como en las sesiones anteriores, toca **solo** `src/com/ipserc/arith/complex/Complex.java` (242 inserciones, 202 borrados) — verificado con `git diff --stat` antes y después del `git add`.
+
+## Nota de proceso (nueva esta sesión)
+
+A diferencia de las fases 1-6 (bugs puntuales, workflow ligero de "resumen breve + confirmación"), esta fase se trabajó con el proceso completo: fork de exploración de alcance → `AskUserQuestion` para decidir el enfoque técnico (ThreadLocal con API intacta, sin arreglar la reentrancia en esta pasada) → `EnterPlanMode`/`ExitPlanMode` con plan escrito y aprobado explícitamente → implementación delegada a un fork en segundo plano con instrucciones muy explícitas (reglas duras: solo `Edit`, solo `Complex.java`, sin commit hasta terminar verificación) → el usuario activó "modo auto" a mitad de tarea, lo que autorizó al fork a comitear él mismo en cuanto pasara su propia verificación, en vez de esperar una revisión manual del diff en el hilo principal. **Precedente para ideas pendientes igual de grandes** (p.ej. la reestructuración arquitectónica de `Complex.java`): este es el proceso a replicar, no el workflow ligero de fases pequeñas.
+
+## Ideas pendientes actualizadas tras la Quinta sesión
+
+- Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado.
+- `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (y `MatrixComplex.java` sigue con cambios locales sin commitear del usuario).
+- Reestructuración arquitectónica de `Complex.java` — no abordada.
+- Limpieza de los 88 ficheros con line-endings+contenido mezclados (sesión de mantenimiento) — sigue pendiente.
+- Bug de reentrancia de `_BCK` (single slot, no pila) en `storePrecision`/`restorePrecision`/`setRepres`/`restoreRepres` — documentado en Javadoc, sin corregir.
+
+---
+
+*Última actualización de este bloque: sesión del 30 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`; sección "Quinta sesión de revisión" añadida tras el commit `dccaf1f`.*
