@@ -263,6 +263,19 @@ A diferencia de las fases 1-6 (bugs puntuales, workflow ligero de "resumen breve
 - Limpieza de los 88 ficheros con line-endings+contenido mezclados (sesión de mantenimiento) — sigue pendiente.
 - Bug de reentrancia de `_BCK` (single slot, no pila) en `storePrecision`/`restorePrecision`/`setRepres`/`restoreRepres` — documentado en Javadoc, sin corregir.
 
+## Decisión del usuario para la Sexta sesión (al retomar, leer esto primero)
+
+El usuario ha declarado una intención de alcance mayor que las sesiones anteriores: **limpiar/corregir del todo `Complex.java` y luego darle una reestructuración arquitectónica "de programador senior"** (separar responsabilidades en vez de una clase de ~4100 líneas que mezcla aritmética/parsing/formato/cajas ASCII/integración/límites/funciones especiales), y **después** pasar a revisar las demás clases del proyecto (`MatrixComplex.java`, `VectorComplex.java`, etc., no tocadas hasta ahora).
+
+**Orden acordado explícitamente (antes de decidir los detalles, la sesión se cortó porque el usuario tuvo que irse):**
+1. **Primero**, terminar los bugs/limpieza puntuales que ya se conocen y están documentados en la lista de arriba (workflow ligero de fases pequeñas, como las Fases 1-6): el bug de reentrancia de `_BCK`, `zeta_riemann_siegel`/`zeta_analytic_continuation` (documentados, ver más arriba en el documento), `limit_inf` sin cota, y revisar por corrección el bloque `boxTitle*`/`boxText*` (nunca revisado, solo se tocó el umbral de cero de `toString*`).
+2. **Después**, acometer la reestructuración arquitectónica de `Complex.java` — con el proceso pesado (fork de exploración → `AskUserQuestion`/`EnterPlanMode` → implementación delegada), como se hizo en la Quinta sesión, no el workflow ligero.
+3. **Al final**, extender la revisión a las demás clases del proyecto.
+
+**Preguntas sin responder aún, para hacer nada más retomar** (se lanzaron vía `AskUserQuestion` pero el usuario cortó la sesión antes de contestar — no asumir respuesta, volver a preguntar):
+- Forma concreta de la reestructuración: ¿split en varias clases/paquete dentro de `com.ipserc.arith.complex` (aritmética core, parsing, formato, config/`State`, cajas ASCII, integración/límites, funciones especiales), o reorganización dentro de un único fichero, o dejar que Claude proponga 1-2 arquitecturas candidatas tras explorar el fichero completo?
+- ¿Es la API pública actual (usada por 7 clases de librería real — `MatrixComplex`, `Eigenspace`, `Polynom`, `Laplace`, `Fourier`, `Z`, `Spline` — y ~200 test files) una restricción dura a mantener intacta durante el refactor, o se puede actualizar callers si el diseño lo pide?
+
 ---
 
 *Última actualización de este bloque: sesión del 30 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`; sección "Quinta sesión de revisión" añadida tras el commit `dccaf1f`.*
