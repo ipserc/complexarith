@@ -71,7 +71,7 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.29 (2026_0730_2326)";
+	private final static String VERSION = "1.30 (2026_0731_0007)";
 	/* VERSION Release Note
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {

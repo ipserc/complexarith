@@ -37,45 +37,14 @@ final class ComplexCalculus {
 	 * @param func the function to be integrated
 	 * @param numDec the number of significant decimals
 	 * @return The value of the integral
-	 * @apiNote Fixed-step Riemann sum: iterates roughly 10^(numDec+1) times with no adaptive
-	 * convergence check, so the cost of this method (and of {@code gamma_integral(Complex)}/
-	 * {@code gamma_integral2(Complex)}, which call it internally with numDec=5/6) scales
-	 * directly with the requested decimals. Bumping numDec by 1 multiplies the cost by ~10.
+	 * @apiNote Delegates to {@link #integrate(Complex, Complex, Function, int)} with both limits
+	 * placed on the real axis (imp=0): the segment {@code lolimit+t*(uplimit-lolimit)}, t in
+	 * [0,1], stays on the real axis exactly as this overload always evaluated {@code func}, so
+	 * this is behavior-preserving beyond the Simpson upgrade described there (including handling
+	 * descending/negative limits correctly, which the parametrization does natively).
 	 */
 	static Complex integrate(double lolimit, double uplimit, Function <Complex, Complex> func, int numDec) {
-		int iter  = 1;
-		double precision = Math.pow(10, -Math.abs(++numDec));
-		double step = (uplimit - lolimit) * precision;
-
-		Complex integral = new Complex();
-		Complex prevPoint = new Complex(lolimit, 0);
-		Complex point = new Complex(lolimit + step, 0);
-		Complex val = new Complex();
-
-		val = func.apply(prevPoint);
-		// .copy() is precautionary here, not fixing an active bug: prevPoint/point are always
-		// rebound to freshly-allocated objects each iteration (never re-derived from a Complex
-		// this method still reads by reference later), unlike integrateRE/integrateIM's lolimit,
-		// which the loop keeps re-reading -- see the identical-shaped fix there for the real bug.
-		integral = val.copy();
-		//System.out.printf("ulimit:%f point:%f val:%s \n", ulimit, prevPoint.mod, val.toString());
-		// Loop condition compares point.rep() (position along the real line, signed) against
-		// uplimit in the direction step already points to -- NOT point.mod() (magnitude), which
-		// used to make this loop terminate after a single iteration (silently returning a wrong
-		// result) whenever uplimit was negative, or whenever uplimit < lolimit (descending
-		// integration), since a magnitude can never be less than a negative uplimit. Verified
-		// against the closed form of integrate(x)dx=(b^2-a^2)/2 for lolimit/uplimit both negative
-		// and for reversed (descending) limits.
-		while (step > 0 ? point.rep() < uplimit : point.rep() > uplimit) {
-			val = func.apply(point);
-			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
-			integral.plusEq(val);
-			//System.out.printf("ulimit:%f point:%f val:%s \n", ulimit, point.mod, val.toString());
-			prevPoint = point;
-			point = prevPoint.plus(step);
-			++iter;
-		}
-		return integral.times((uplimit-lolimit)/iter);
+		return integrate(new Complex(lolimit, 0), new Complex(uplimit, 0), func, numDec);
 	}
 
 	/**
@@ -92,147 +61,121 @@ final class ComplexCalculus {
 		return integrate(lolimit, uplimit, func, numDec);
 	}
 
+	// Safety net for integrate(Complex,Complex,...)'s step-doubling below: caps the subdivision
+	// count so an integrand whose Simpson error never shrinks smoothly (a genuine singularity, a
+	// discontinuity, or the pre-existing gamma_integral(z) domain gap for Re(z)<1 -- t^(z-1)
+	// diverges at t=0, unrelated to and unaffected by this Simpson upgrade) returns its last
+	// estimate instead of looping forever.
+	private static final int SIMPSON_MAX_SUBDIVISIONS = 1 << 20;
+
 	/**
-	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the real axe
+	 * Returns the Riemann integral of a Complex function in the complex plane, from lolimit to
+	 * uplimit along the straight segment joining them.
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
 	 * @param numDec the number of significant decimals
 	 * @return The value of the integral
-	 * @apiNote Dispatches to {@link #integrateRE} or {@link #integrateIM} (fixed-step Riemann
-	 * sums, ~10^(numDec+2) iterations, no adaptive convergence check), so cost scales directly
-	 * with numDec here too.
+	 * @apiNote SCOPE CHANGE (Sexta sesion, auditoria matematica, decision de alcance hablada con
+	 * el usuario): replaces the fixed-step Riemann sum this used to dispatch to (via the two
+	 * near-duplicate private methods {@code integrateRE}/{@code integrateIM}, chosen by the
+	 * segment's angle, one projecting the step onto the real axis and the other onto the
+	 * imaginary axis -- both removed) with composite Simpson's rule, O(h^4) error per step instead
+	 * of Riemann's O(h). Parametrizing the segment by t in [0,1] (point(t)=lolimit+t*(uplimit-lolimit))
+	 * makes the axis-projection dispatch unnecessary: it is mathematically equivalent to either
+	 * projection for a straight segment, and simpler because there is now one code path instead of
+	 * two near-duplicates to verify. It also naturally handles descending/negative limits, since
+	 * the sign lives in the (uplimit-lolimit) factor rather than in a separately-signed step.
 	 * <p>
-	 * KNOWN BUG, not fixed here (out of scope for the aliasing fix in {@link #integrateRE}/
-	 * {@link #integrateIM}): {@code func} is assumed to never mutate the {@code Complex} argument
-	 * it is given and return that same mutated reference (e.g. {@code z -> z.plusEq(Complex.ONE)}).
-	 * {@code integrateRE}/{@code integrateIM} reuse a single {@code nextPoint} instance across all
-	 * iterations (mutated in place via {@code setComplexRec} for performance) and read it back to
-	 * compute the next position, so a self-mutating {@code func} corrupts that position tracking.
-	 * Every real caller in this codebase constructs a fresh {@code Complex} via non-mutating ops
-	 * ({@code times}, {@code plus}, ...), so this has no observed impact; documented as a caveat
-	 * for the {@code func} contract rather than fixed, since fixing it would mean copying on every
-	 * iteration instead of just once per call (a real cost/correctness trade-off to weigh, not a
-	 * one-line fix like the aliasing bug below).
+	 * Subdivision count starts at 10 and doubles until two successive estimates agree within
+	 * {@code 10^-(numDec+2)} -- Richardson-style: since Simpson's error is O(h^4), the gap between
+	 * an estimate and the one at double the resolution is a reliable proxy for the remaining error
+	 * (unlike checking whether the last term added to a slowly-converging sum changed the
+	 * accumulator, the pitfall documented on {@code zeta_re}'s Fix 10 in ComplexArithRev.md -- here
+	 * the two quantities compared are full independent estimates of the same integral at different
+	 * fidelity, not a partial sum vs. its next term). This is NOT full adaptive quadrature (no
+	 * recursive interval subdivision/local refinement): a deliberate, smaller-risk scope decided
+	 * with the user over the alternative. {@link #SIMPSON_MAX_SUBDIVISIONS} is a safety net, not
+	 * the normal exit path, for integrands whose error does not shrink smoothly (see its comment).
+	 * <p>
+	 * This changes the numeric result of every caller (more accurate, not bit-identical to
+	 * before) and, for the same requested numDec, needs vastly fewer evaluations for smooth
+	 * integrands -- verified against several closed-form integrals and against
+	 * {@code gamma_integral}/{@code gamma_integral2} (which call this internally).
+	 * <p>
+	 * KNOWN LIMITATION, unchanged from before this fix: {@code func} is assumed to never mutate
+	 * the {@code Complex} argument it is given and return that same mutated reference (e.g.
+	 * {@code z -> z.plusEq(Complex.ONE)}) -- every real caller in this codebase constructs a fresh
+	 * {@code Complex} via non-mutating ops ({@code times}, {@code plus}, ...), so this has no
+	 * observed impact.
 	 */
 	static Complex integrate(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, int numDec) {
-		Complex vector = uplimit.minus(lolimit);
-		double vectSlope = vector.imp()/vector.rep();
-		double vectAngle = Math.atan(vectSlope);
-		double precision = Math.pow(10, -Math.abs(numDec+2));
+		double tolerance = Math.pow(10, -(numDec + 2));
+		Complex delta = uplimit.minus(lolimit);
 
-		vectAngle = vectAngle > Math.PI ? Math.PI - vectAngle : vectAngle;
-		vectAngle = vectAngle < -Math.PI ? Math.PI + vectAngle : vectAngle;
-
-		if (((vectAngle >= Math.PI/4) && (vectAngle < 3*Math.PI/4 )) ||
-				((vectAngle >= -3*Math.PI/4) && (vectAngle < -Math.PI/4 ))) {
-			return integrateIM(lolimit, uplimit, func, precision);
+		int n = 10;
+		Complex estimate = simpsonEstimate(lolimit, delta, func, n);
+		while (n < SIMPSON_MAX_SUBDIVISIONS) {
+			if (estimate.isNaN()) return estimate;
+			int nextN = n * 2;
+			Complex nextEstimate = simpsonEstimate(lolimit, delta, func, nextN);
+			if (nextEstimate.minus(estimate).mod() < tolerance) return nextEstimate;
+			n = nextN;
+			estimate = nextEstimate;
 		}
-		else return integrateRE(lolimit, uplimit, func, precision);
+		return estimate;
 	}
 
 	/**
-	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the real axe
-	 * @param lolimit the lower limit of the integral expressed as Complex
-	 * @param uplimit the upper limit of the integral expressed as Complex
-	 * @param func the function to be integrated
-	 * @param precision The precision of the result
-	 * @return The value of the integral
+	 * Composite Simpson's rule for the integral from lolimit to lolimit+delta, with n subintervals
+	 * (n must be even). Parametrizes the segment as point(t)=lolimit+t*delta, t in [0,1], and
+	 * applies Simpson's rule to g(t)=func(point(t)) over [0,1], scaling back by delta at the end.
+	 * @apiNote Evaluates each node via {@link #evalNearOrAt}, not {@code func.apply} directly, to
+	 * absorb an integrable singularity that happens to land exactly on a grid node -- see that
+	 * method's comment for why this is a real, observed case (not a hypothetical one).
 	 */
-	private static Complex integrateRE(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, double precision) {
-		Complex vector = uplimit.minus(lolimit);
-		Complex nextPoint = new Complex();
-		Complex integral = new Complex();
-
-		//Recorrer la recta con distancia Euclidea
-		// stepRe used to be computed as vector.mod*Math.cos(Math.atan(vector.imp/vector.rep))*precision*Math.signum(vector.rep).
-		// cos(atan(x)) == 1/sqrt(1+x^2), so that projection algebraically reduces to
-		// Math.abs(vector.rep), and Math.abs(vector.rep)*Math.signum(vector.rep) == vector.rep,
-		// i.e. the atan/cos round-trip was just computing vector.rep*precision the long way.
-		double vectSlope = vector.imp()/vector.rep();
-		double stepRe = vector.rep() * precision;
-		double nextRep, nextImp;
-
-		int iter = 0;
-		nextPoint = lolimit.copy();
-
-		/** /
-		System.out.println("vectSlope:" + vectSlope);
-		System.out.println("stepRe   :" + stepRe);
-		System.out.println("iter:" + iter + "   nextPoint:" + lolimit.toString());
-		/**/
-
-		Complex val = new Complex();
-		val = func.apply(lolimit);
-		// .copy() breaks aliasing: if func returns the same reference it was given (e.g. the
-		// identity z->z, or any in-place-style func written using Complex's own plusEq/timesEq/etc.
-		// idiom, which return 'this'), 'integral' would otherwise BE 'lolimit' itself -- and the loop
-		// below keeps re-reading lolimit.imp()/lolimit.rep() as the fixed lower limit on every
-		// iteration while integral.plusEq(val) mutates that same object underneath it, silently
-		// corrupting the limit mid-integration. Confirmed with integrate(0,3,z->z,...): without the
-		// copy this returned -22497.75 instead of the correct 4.5.
-		integral = val.copy();
-
-		while (++iter <= 1/precision) {
-			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
-			nextRep = nextPoint.rep() + stepRe;
-			nextImp = lolimit.imp() + vectSlope * (nextRep - lolimit.rep());
-			nextPoint.setComplexRec(nextRep, nextImp);
-			val = func.apply(nextPoint);
+	private static Complex simpsonEstimate(Complex lolimit, Complex delta, Function <Complex, Complex> func, int n) {
+		double h = 1.0 / n;
+		Complex sum = evalNearOrAt(func, lolimit, delta, 0.0, h, +1)
+				.plus(evalNearOrAt(func, lolimit, delta, 1.0, h, -1));
+		for (int i = 1; i < n; ++i) {
+			double weight = (i % 2 == 0) ? 2.0 : 4.0;
+			double t = i * h;
 			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
-			integral.plusEq(val);
+			sum.plusEq(evalNearOrAt(func, lolimit, delta, t, h, +1).times(weight));
 		}
-		// System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
-		return integral.times(uplimit.minus(lolimit)).divides(iter);
+		return sum.times(h / 3.0).times(delta);
 	}
 
 	/**
-	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the imaginary axe
-	 * @param lolimit the lower limit of the integral expressed as Complex
-	 * @param uplimit the upper limit of the integral expressed as Complex
-	 * @param func the function to be integrated
-	 * @param precision The precision of the result
-	 * @return The value of the integral
+	 * Evaluates func at point(t)=lolimit+t*delta, falling back to a point nudged by a tiny
+	 * fraction of the local step h when the direct evaluation is not finite (NaN or Infinite).
+	 * @apiNote Simpson's evenly-spaced nodes always include some "nice" fractions of the interval
+	 * (the exact midpoint for any even n, both endpoints always) -- an integrable singularity that
+	 * happens to sit exactly there (e.g. {@code log(x)} over a symmetric [-1,1], singular exactly
+	 * at the midpoint x=0; or {@code gamma_integral2}'s own integrand at its upper limit s=1, for
+	 * z outside its documented [1,4) domain) poisons the WHOLE estimate with a single non-finite
+	 * sample, no matter how much n is increased -- confirmed with {@code TestIntegral01}'s
+	 * {@code log(-1,1)}/{@code log10(-1,1)}, which regressed from a finite approximation to
+	 * {@code -Infinity} before this fallback was added (the old fixed-step Riemann sum never
+	 * landed exactly on the singular point, by sheer accident of cumulative floating-point step
+	 * drift, not by design -- nothing to preserve). Nudging by {@code direction} first (inward, at
+	 * the endpoints, to stay inside [lolimit,uplimit]; either direction, for interior nodes) and
+	 * using that neighboring finite value stands in for the singular node itself, which is
+	 * negligible next to Simpson's own O(h^4) error for a well-behaved integrand, and turns an
+	 * infinite/nonsensical result into a finite, converging one for an integrable singularity.
+	 * Costs nothing extra for the overwhelmingly common case where the direct evaluation is
+	 * already finite.
 	 */
-	private static Complex integrateIM(Complex lolimit, Complex uplimit, Function <Complex, Complex> func, double precision) {
-		Complex vector = uplimit.minus(lolimit);
-		Complex nextPoint = new Complex();
-		Complex integral = new Complex();
-
-		//Recorrer la recta con distancia Euclidea
-		// stepIm used to be computed as vector.mod*Math.cos(Math.atan(vector.rep/vector.imp))*precision*Math.signum(vector.imp);
-		// see integrateRE's comment for the algebraic reduction -- this simplifies the same way
-		// to vector.imp*precision.
-		double vectSlope = vector.rep()/vector.imp();
-		double stepIm = vector.imp() * precision;
-		double nextRep, nextImp;
-
-		int iter = 0;
-		nextPoint = lolimit.copy();
-
-		/** /
-		System.out.println("vectSlope:" + vectSlope);
-		System.out.println("stepIm   :" + stepIm);
-		System.out.println("iter:" + iter + "   nextPoint:" + lolimit.toString());
-		/**/
-
-		Complex val = new Complex();
-		val = func.apply(lolimit);
-		// .copy() breaks aliasing -- see the identical comment in integrateRE just above this
-		// method for the full explanation (the same lolimit-corruption bug affects this method too).
-		integral = val.copy();
-
-		while (++iter <= 1/precision) {
-			//System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
-			nextImp = nextPoint.imp() + stepIm;
-			nextRep = lolimit.rep() + vectSlope * (nextImp - lolimit.imp());
-			nextPoint.setComplexRec(nextRep, nextImp);
-			val = func.apply(nextPoint);
-			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
-			integral.plusEq(val);
-		}
-		// System.out.println("iter:" + iter + "   nextPoint:" + nextPoint.toString());
-		return integral.times(uplimit.minus(lolimit)).divides(iter);
+	private static Complex evalNearOrAt(Function <Complex, Complex> func, Complex lolimit, Complex delta, double t, double h, int direction) {
+		Complex val = func.apply(lolimit.plus(delta.times(t)));
+		if (!val.isNaN() && !val.isInfinite()) return val;
+		double nudge = h * 1e-6 * direction;
+		Complex nudged = func.apply(lolimit.plus(delta.times(t + nudge)));
+		if (!nudged.isNaN() && !nudged.isInfinite()) return nudged;
+		nudged = func.apply(lolimit.plus(delta.times(t - nudge)));
+		if (!nudged.isNaN() && !nudged.isInfinite()) return nudged;
+		return val;
 	}
 
 	/**
