@@ -378,9 +378,17 @@ Decisiones de diseño:
 
 Verificado: compila junto con `ComplexState`/`ComplexParser`/`ComplexBoxArt`. Test suelto con 13 casos (pares real/imaginario puros, signos mixtos, purga de pureza con `FORMAT_NBR` on, notación fija(3)/científica(2), el switch de representación por defecto visto por `toString()`, los 3 modos de numpad, e `Infinity`/`-Infinity`) — salida idéntica byte a byte al build original en los 6 formatos. Batería de regresión exit 0 en las 4, sin diferencias numéricas.
 
-## Fase 2.5 — `ComplexFunctions` (delegada a un fork en segundo plano)
+## Fase 2.5 — `ComplexFunctions` (delegada a un fork en segundo plano, commit `4f28afe`)
 
-El usuario pidió explícitamente delegar esta fase (la más grande, ~1150 líneas de `FUNCTIONS`+`TRIGONOMETRICS`, con más reescritura mecánica `campo`→`campo()`) a un fork en segundo plano, replicando el patrón de la migración a `ThreadLocal` de la Quinta sesión. Lanzado con instrucciones detalladas: alcance exacto (no tocar `INTEGRATION & DERIVATION`/`LIMITS`/`ROUND`, fases futuras), el riesgo técnico central (accesos directos a campos privados `rep/imp/mod/pha/cre` de parámetros `Complex` deben reescribirse a los getters públicos, ya que al vivir en una clase nueva distinta ese acceso directo no compila), el mismo ciclo de verificación de las fases 2.1-2.4 (build de referencia fresco desde `HEAD`, test con valores conocidos y casos frontera recordando los fixes de esta sesión — `gamma_nemes`, `tanc(0)`, overflow de `arcsin`/`arccos`, eliminación de `zeta_riemann_siegel`/`zeta_analytic_continuation` — batería de regresión, bump de `VERSION`), y autorización para commitear él mismo si su propia verificación pasa (modo auto activo). **Resultado pendiente de la notificación del fork — no asumir nada hasta que llegue.**
+El usuario pidió explícitamente delegar esta fase (la más grande, ~1150 líneas de `FUNCTIONS`+`TRIGONOMETRICS`, con más reescritura mecánica `campo`→`campo()`) a un fork en segundo plano, replicando el patrón de la migración a `ThreadLocal` de la Quinta sesión. Lanzado con instrucciones detalladas: alcance exacto (no tocar `INTEGRATION & DERIVATION`/`LIMITS`/`ROUND`, fases futuras), el riesgo técnico central (accesos directos a campos privados `rep/imp/mod/pha/cre` de parámetros `Complex` deben reescribirse a los getters públicos), el mismo ciclo de verificación de las fases 2.1-2.4, y autorización para commitear él mismo si su propia verificación pasaba (modo auto activo).
+
+**Resultado**: el fork movió `sign/inverse/signP/signN/log/log10/logbase`, `root/sqrt/sqrroot__/exp/mod/abs/positive`, toda la familia `gamma*`, `factorial/beta`, toda la familia `zeta*`, `ChebyshevZero/binomialCoef`, y todo el bloque de trigonometría/hiperbólicas/inversas/`sinc`/`cosc`/`tanc`/`chebyshev` a `ComplexFunctions`. Dos decisiones de diseño no triviales que tuvo que tomar:
+- `power(Complex)/power(double)/power(int)` eran métodos de **instancia** (únicos en estas dos secciones, todo lo demás es `static`) — se quedaron como instancia en `Complex.java` (API pública), delegando en `ComplexFunctions.power(base, ...)` con el antiguo `this` como primer parámetro explícito.
+- `isInteger()`/`isIntegerPositive()`/`isIntegerNegative()`/`isIntegerPositiveZero()`/`isIntegerNegativeZero()` vivían bajo el banner `FUNCTIONS` pero son predicados sobre los propios campos de `this` (como `BOOLEAN OPERATIONS`) — **no se movieron**, siguen en el núcleo.
+
+Limpieza incidental: eliminó los imports `Scanner`/`java.io.*` (huérfanos tras mover `zeta_primes`) y `Locale`/`NumberFormat` (huérfanos desde la Fase 2.2, sin detectar hasta ahora).
+
+Verificado: compiló las 6 clases juntas al primer intento; reconstruyó un build de referencia **fresco** desde `HEAD` (no reutilizó ningún build antiguo de la sesión); test suelto con 155 líneas de salida cubriendo power/sqrt/exp/log, gamma/zeta en varios argumentos, trigonometría/hiperbólicas en 11 puntos, `sinc/cosc/tanc` incluyendo `z=0`, `chebyshev` en 7×5 combinaciones, `arcsin/arccos/arctan/arcsinh/arccosh/arctanh` incluyendo `|z|~1e160` — idéntico byte a byte al build de referencia. Batería de regresión estándar también reconstruida contra el build fresco: exit 0 en las 4, sin diferencias numéricas más allá del ruido de caja aleatoria ya documentado.
 
 ## Instrucción del usuario para DESPUÉS de completar el paso 2 (Fase 2.6 inclusive)
 
@@ -388,7 +396,7 @@ Antes de pasar al paso 3 (extender la revisión a `MatrixComplex.java`/`VectorCo
 
 ## Próximos pasos
 
-Al retomar: (1) confirmar el resultado de la Fase 2.5 (fork en segundo plano) si aún no ha notificado; (2) seguir con la Fase 2.6 (`ComplexCalculus`: integración/derivación/límites); (3) al cerrar el paso 2, iniciar el análisis matemático de optimización pedido arriba, antes de proponer nada del paso 3.
+Al retomar: (1) seguir con la Fase 2.6 (`ComplexCalculus`: integración/derivación/límites), la última del paso 2; (2) al cerrarla, iniciar el análisis matemático de optimización pedido arriba, antes de proponer nada del paso 3.
 
 ---
 
