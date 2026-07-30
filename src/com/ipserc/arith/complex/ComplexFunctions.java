@@ -388,6 +388,15 @@ final class ComplexFunctions {
 	 * switch's own {@code case 0} shows was meant to be a valid input. No test in this codebase
 	 * exercises {@code getMaxDecimals()} in 0..3 with these two methods (TestGamma01-04 all use 5),
 	 * so this fix does not change any existing regression output.
+	 * <p>
+	 * SCOPE DECISION (Sexta sesion, auditoria matematica): deliberately left slow, not touched
+	 * further. This is a direct implementation of the Weierstrass canonical product for Gamma --
+	 * its O(1/k^2)-per-term convergence is the mathematical nature of that formula, not an
+	 * implementation defect (the real bug above is already fixed). No caller in this library
+	 * reaches it except {@code TestGamma02}/{@code TestGamma04}: production code calls
+	 * {@code gamma()}, which always uses {@link #gamma_fast} (Lanczos). "Speeding this up" would
+	 * mean replacing the Weierstrass product with something like Lanczos, which would defeat its
+	 * purpose as a reference implementation to compare against the fast path -- so it stays as-is.
 	 */
 	static Complex gamma_weiertrass(Complex z) {
 		int iterations;
@@ -442,6 +451,14 @@ final class ComplexFunctions {
 	 * just above -- cases 0-3 fell through to case 4's 1000000 iterations regardless of the
 	 * requested precision, and the dead pre-switch line divided by zero for
 	 * {@code getMaxDecimals()==0}. Same fix applied here.
+	 * <p>
+	 * SCOPE DECISION (Sexta sesion, auditoria matematica): deliberately left slow, not touched
+	 * further -- see the identical rationale on {@link #gamma_weiertrass} just above. This is a
+	 * direct implementation of Euler's limit definition of Gamma; its O(1/k^2)-per-term
+	 * convergence is that formula's mathematical nature, not a defect. No caller in this library
+	 * reaches it except {@code TestGamma01}/{@code TestGamma03} (directly, and indirectly via
+	 * {@link #gamma_zones}, only exercised by {@code TestGamma01}/{@code TestGamma02}): production
+	 * code calls {@code gamma()}, which always uses {@link #gamma_fast} (Lanczos).
 	 */
 	static Complex gamma_euler(Complex z) {
 		int iterations;
