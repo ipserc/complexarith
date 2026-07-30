@@ -4044,6 +4044,8 @@ public class Complex {
 
 	static int LIM_NUMDECS = 10; // Number of significative decimals for limits calculations
 	static double LIM_PRECISION = Math.pow(10, -LIM_NUMDECS);
+	// Hard iteration cap for limit_inf's point.mod-doubling search, see its Javadoc.
+	static int LIM_INF_MAX_ITER = 2000;
 
 	/**
 	 * Gets the next point in a series for evaluating a function
@@ -4165,17 +4167,24 @@ public class Complex {
 	 * "far out" probe point below -- a fairly modest magnitude to stand in for infinity in a
 	 * double-based library that can represent values up to ~1.8e308, but it only serves as a
 	 * starting point: the loop below doubles point.mod from there until the result stabilizes or
-	 * genuinely diverges. That loop's exit condition, {@code result2.mod/result.mod != 1}
-	 * (exact double comparison, no tolerance), has no iteration cap of its own -- unlike
-	 * {@link #limit(Function, Complex)}'s outer loop, which is bounded by
-	 * {@code mult*LIM_PRECISION<1} regardless of whether its convergence check ever fires. If a
-	 * function's true limit at infinity converges too slowly or the mod ratio never lands
-	 * exactly on 1.0, this keeps doubling point.mod (eventually overflowing to Infinity, after
-	 * which func's behavior on an infinite input governs whether the loop ever exits) with no
-	 * fallback termination. Not fixed here: turning this into a safe bounded loop is a real
-	 * algorithm change (an iteration cap changes what "convergent" means for a borderline
-	 * function), not a contained bug fix -- same category as zeta_analytic_continuation's
-	 * documented-but-unfixed convergence limit from the previous session.
+	 * genuinely diverges. Its exit condition, {@code result2.mod/result.mod != 1} (exact double
+	 * comparison, no tolerance), by itself never terminates for a function whose ratio hovers
+	 * near-but-not-exactly 1.0 forever; this used to be a genuine hang, not just "many
+	 * iterations": once {@code point.mod} doubles past {@code Double.MAX_VALUE} it overflows to
+	 * {@code Infinity}, further doubling leaves it at {@code Infinity} forever, and if
+	 * {@code func} maps an infinite-modulus point to a {@code NaN} result (common with
+	 * {@code Infinity*0} inside trig identities), every comparison against that {@code NaN}
+	 * (the growth check, the zero check, and the loop condition itself) silently evaluates to
+	 * "keep looping" -- an infinite loop the JVM cannot recover from. Fixed by (1) breaking out
+	 * with the last finite result as soon as {@code result} is {@code NaN}, and (2) a hard
+	 * iteration cap ({@link #LIM_INF_MAX_ITER}) as a backstop, mirroring how
+	 * {@link #limit(Function, Complex)}'s outer loop is bounded by {@code mult*LIM_PRECISION<1}.
+	 * Neither changes the result for any function that already converged within the previous
+	 * (uncapped) behavior: {@code LIM_INF_MAX_ITER=2000} is far more doublings than
+	 * {@code point.mod} can perform before overflowing (~992, starting from {@code LIM_INF}), so
+	 * it only ever triggers in the pathological non-finite-result case the NaN check already
+	 * catches, or for a function that never converges, never grows, and never NaNs/hits zero --
+	 * a case the previous "no cap" behavior handled by hanging forever.
 	 */
 	static private Complex limit_inf(Function <Complex, Complex> func, int sign) {
 		Complex result;
@@ -4201,12 +4210,19 @@ public class Complex {
 			//	System.out.println(" + + + Infinito detectado pha = " + result.pha);
 			return result;
 		}
+		int iterations = 0;
 		do {
 			result2 = result.copy();
-			point.setComplexPol(point.mod*2, point.pha);			
+			point.setComplexPol(point.mod*2, point.pha);
 			result = func.apply(point);
 			//	System.out.println("result2 = " + result2.toStringPol());
 			//	System.out.println("result  = " + result.toStringPol());
+			// func mapped an infinite-modulus point to NaN: every comparison below against NaN
+			// would silently mean "keep looping", so this must be checked before them.
+			if (result.isNaN()) {
+				result = result2;
+				break;
+			}
 			// If it grows the cut it
 			if ((result.mod-result2.mod) > 0 ) {
 				// System.out.println("result.mod-result2.mod)*sign  = " + (result.mod-result2.mod)*sign);
@@ -4216,8 +4232,8 @@ public class Complex {
 			if ((result.mod == 0)) {
 				result.setComplexPol(0, 0);
 				break;
-			}		
-		} while (result2.mod/result.mod != 1);
+			}
+		} while (result2.mod/result.mod != 1 && ++iterations < LIM_INF_MAX_ITER);
 		return result;
 	}
 	
