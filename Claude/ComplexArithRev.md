@@ -421,7 +421,6 @@ Antes de pasar al paso 3 (extender la revisión a `MatrixComplex.java`/`VectorCo
 **Riesgo medio: COMPLETO** — los 3 hallazgos de esta categoría están resueltos/cerrados (`arctan`/etc. cerrado sin cambio, `zeta_re` Fix 10, `derivative` Fix 11).
 
 **Riesgo alto / decisión de alcance, pendientes:**
-- `gamma_weiertrass`/`gamma_euler`: implementaciones de referencia correctas-pero-lentísimas (hasta 30-50M iteraciones), sin más propósito que comparar con `gamma_fast` (Lanczos, la que se usa en producción). Las usan activamente `TestGamma01`-`04` — decisión de alcance de si mantenerlas, similar a la ya tomada con `zeta_riemann_siegel`, pero aquí no están rotas (más allá del bug de `switch` de arriba), solo son alternativas lentas con uso real en tests.
 - Patrón general de integración/sumas de paso fijo sin convergencia adaptativa en todo `ComplexCalculus`/`gamma_integral`/`gamma_integral2` — una cuadratura de Simpson compuesta sería mucho más eficiente, pero es un cambio de algoritmo (mismos resultados "igual de correctos", no bit a bit idénticos a los actuales) que merece decidirse aparte, no como fix puntual.
 
 ## Fix 1 — aliasing en `integrateRE`/`integrateIM` (commit `5c945ed`)
@@ -526,9 +525,19 @@ Verificado: el mismo barrido de magnitudes/precisiones ahora da un error relativ
 
 **Con este commit se completan los 3 hallazgos de riesgo medio de la auditoría matemática.**
 
+## Cierre — `gamma_weiertrass`/`gamma_euler`: decisión de alcance, sin cambio de comportamiento (commit `c9413c1`)
+
+Primera de las 2 decisiones de alcance de riesgo alto, hablada explícitamente con el usuario antes de tocar código. Ambos métodos ya son correctos desde el Fix 5 (el bug de `switch` real); la pregunta era si merecía la pena acelerarlos ahora que dejaron de estar rotos.
+
+**Análisis**: `Complex.gamma()` (la ruta de producción, la que usa el resto de la librería — `MatrixComplex`, `Eigenspace`, `Polynom`, etc.) llama siempre a `gamma_fast` (Lanczos); `gamma_weiertrass`/`gamma_euler` no los alcanza ningún caller de producción, solo `TestGamma01`-`04` directamente (y `gamma_euler` también indirectamente vía `gamma_zones`, a su vez solo usado por `TestGamma01`/`TestGamma02`). Son la implementación literal de dos fórmulas clásicas (producto de Weierstrass, límite de Euler); su convergencia `O(1/k²)` por término es la naturaleza matemática de esas fórmulas, no un defecto de implementación. Acelerarlas de verdad equivaldría a sustituirlas por algo tipo Lanczos, lo que les quitaría su valor como referencia para comparar contra la ruta rápida — a diferencia de `zeta_re` (Fix 10), aquí no hay una aceleración analítica (tipo Euler-Maclaurin) que preserve la identidad de la fórmula mientras la acelera.
+
+**Decisión (confirmada por el usuario)**: dejarlas exactamente como están, sin más cambios de código. Se documenta el porqué directamente en el Javadoc de ambos métodos en `ComplexFunctions.java` (nota "SCOPE DECISION"), para que quede constancia junto al propio código y no solo aquí.
+
+Sin verificación de regresión necesaria (cambio puramente de comentarios, `git diff --stat` confirma que solo se tocan líneas de Javadoc).
+
 ## Próximos pasos
 
-Quedan solo las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código (`gamma_weiertrass`/`gamma_euler` como referencias lentas — ya no rotas tras el Fix 5, siguen siendo alternativas lentas legítimas; y la cuadratura adaptativa general). **Lección de proceso acumulada** (Fix 3, 5, 7 y 9): (a) al usar un criterio de convergencia, verificar SIEMPRE si debe ser igualdad exacta o si el umbral debe ligarse al parámetro de precisión que el método ya expone (no a un ajuste global); (b) antes de reusar una operación "de alto nivel" (`inverse()`, `divides()`, etc.) como atajo de optimización, verificar que no reintroduzca pasos (conversión polar↔rectangular) que rompan la pureza exacta o cambien la representación de casos frontera (polos, ejes); (c) al revisar el código exacto antes de implementar un fix acordado, si aparece un hallazgo adicional relacionado (como la guarda que le faltaba a `dividesEq`), preguntar si incluirlo en vez de ignorarlo o aplazarlo sin más — suele ser barato de incluir en el mismo commit.
+Queda 1 decisión de alcance: la cuadratura adaptativa general para `ComplexCalculus`/`gamma_integral`/`gamma_integral2` (patrón de paso fijo sin convergencia adaptativa) — pendiente de hablar con el usuario antes de tocar código. `gamma_weiertrass`/`gamma_euler` ya se cerró sin cambio (ver "Cierre" justo arriba). **Lección de proceso acumulada** (Fix 3, 5, 7 y 9): (a) al usar un criterio de convergencia, verificar SIEMPRE si debe ser igualdad exacta o si el umbral debe ligarse al parámetro de precisión que el método ya expone (no a un ajuste global); (b) antes de reusar una operación "de alto nivel" (`inverse()`, `divides()`, etc.) como atajo de optimización, verificar que no reintroduzca pasos (conversión polar↔rectangular) que rompan la pureza exacta o cambien la representación de casos frontera (polos, ejes); (c) al revisar el código exacto antes de implementar un fix acordado, si aparece un hallazgo adicional relacionado (como la guarda que le faltaba a `dividesEq`), preguntar si incluirlo en vez de ignorarlo o aplazarlo sin más — suele ser barato de incluir en el mismo commit.
 
 ---
 
