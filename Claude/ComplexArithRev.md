@@ -347,9 +347,23 @@ Verificado: compila junto con `Complex.java`; un test suelto que imita el patró
 
 **Incidente sin explicación durante esta fase**: el campo `VERSION` del fichero de trabajo apareció con un sufijo `" (commit 5475774)"` que Claude no añadió intencionadamente (no hay hooks de git, ni filtros `.gitattributes`, ni el fork de exploración de solo lectura lanzado antes de esta fase pueden haberlo escrito). Corregido antes de compilar/verificar/commitear (`VERSION` final: `1.11 (2026_0730_1916)`). Si vuelve a pasar en fases futuras, revisar con más detalle antes de asumir que es inofensivo.
 
+## Fase 2.2 — `ComplexState` (commit `9d634f0`)
+
+Movida toda la maquinaria de configuración per-hilo (clase `State` anidada, `PrecisionSnapshot`/`FormatSnapshot`, el `ThreadLocal`, las constantes `_DEF`, y los ~50 métodos de `exact()/precision()/storePrecision()/setFormatON()/setFixedON()/setScientificON()/setRepres()/getRepres()/restoreRepres()/etc.`) a la nueva clase package-private `ComplexState`. `Complex.java` mantiene cada método público como delegador de una línea.
+
+Detalles de diseño importantes:
+- **`Complex.Representation`** (el enum público, referenciado externamente como `Complex.setRepres(Complex.Representation.POLAR)` en tests) **se queda declarado en `Complex.java`** — solo la configuración `State` que lo usa se movió, no el tipo en sí. Si se hubiera movido el enum entero a `ComplexState`, se habría roto la API pública (el nombre cualificado cambiaría de `Complex.Representation` a `ComplexState.Representation`).
+- `showPrecision()` se queda en `Complex.java` (mezcla valores de `ComplexState` con `LIM_INF`/`LIM_NUMDECS`/`LIM_PRECISION`, constantes propias de `Complex` no relacionadas con el estado de precisión), pero ahora llama a los getters públicos ya delegados en vez de tocar `state()` directamente.
+- `normalizePhase()`/`chr()`/`formatNbr()` se quedan en `Complex.java` por ahora (Fase 2.4 moverá `formatNbr`/`chr` junto con el resto de presentación); sus llamadas a `state()` se reescribieron a los getters package-private de `ComplexState`, incluyendo un getter nuevo `representation()` (devuelve el enum, a diferencia de `getRepres()` que devuelve el `String`) para los `switch` de `toString()`/`toStringPol()`.
+- Todos los call-sites que quedan en `Complex.java` (`setCre()`, la familia `toString*`/`formatNbr`, `equals`/`isZero`/`rePartNull`/`imPartNull`, y 2 sitios en `FUNCTIONS`) pasan de `state().CAMPO` a `ComplexState.getter()` — ningún acceso directo a campos de `State` fuera de `ComplexState.java`.
+
+Verificado: compila limpio junto con `ComplexBoxArt.java`; test suelto que cubre precisión/exacto, el anidamiento real de `storePrecision`/`restorePrecision` y de `setRepres`/`restoreRepres` (confirma que el fix de reentrada de esta misma sesión sigue funcionando tras la extracción), los 3 flags de formato afectando de verdad a `toStringRec()`, y un smoke test de concurrencia (8 hilos × 300 iteraciones) sin fallos; test separado que imita el patrón de uso real de `MatrixComplex`/`Eigenspace`/etc. (`storePrecision()`→cambiar modo→calcular→`restorePrecision()`) con salida idéntica al build anterior. Batería de regresión exit 0 en las 4, sin diferencias numéricas. `TestBase01/02` no se pudieron compilar de forma aislada por la misma limitación de entorno preexistente (dependen de `MatrixComplex`/`VectorComplex`, que a su vez dependen de `JavaPlot` no presente) — cubierto por el test de patrón externo equivalente.
+
+Nota metodológica: al comparar contra `/tmp/origbuild`, la sección de anidamiento de `storePrecision` mostró una diferencia esperada — ese build de comparación es una instantánea muy temprana de esta misma sesión (de antes del fix de reentrada ya commiteado hoy), no un problema de esta fase. Las demás secciones (precisión básica, `setRepres` anidado, formato, concurrencia) fueron idénticas.
+
 ## Próximos pasos
 
-Al retomar, la Fase 2.2 (`ComplexState`) es la siguiente — confirmar con el usuario antes de empezar, siguiendo el mismo patrón de resumen+confirmación de todas las fases anteriores.
+Al retomar, la Fase 2.3 (`ComplexParser`, el parseo por regex de `setComplex(String)`) es la siguiente — confirmar con el usuario antes de empezar, siguiendo el mismo patrón de resumen+confirmación de todas las fases anteriores.
 
 ---
 
