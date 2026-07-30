@@ -189,6 +189,90 @@ public class Complex {
 	public final static double EULER_MASC = 0.5772156649015328606065120900824024310421; // Constant of Euler-Mascheroni
 	public final static double LIM_INF = 2147483647; //2147483647
 
+	public static enum Representation {RECTANGULAR, POLAR};
+
+	/*
+	 * ***********************************************
+	 * MEMBER VARS
+	 * ***********************************************
+	 */
+
+	/* Factory defaults -- computed once from the literal initial values below, never reassigned.
+	 * Kept as plain static fields (not part of State): they are immutable in practice, so they
+	 * are safe to share across all threads without any synchronization. */
+	private final static double PRECISION_DEF = 1E-13;
+	private final static double ZERO_THRESHOLD_EXACT_DEF = PRECISION_DEF*10;
+	private final static double ZERO_THRESHOLD_APPROX_DEF = Math.sqrt(PRECISION_DEF);
+	private final static double ZERO_THRESHOLD_DEF = ZERO_THRESHOLD_EXACT_DEF; // EXACT defaults to true
+	private final static int SIGNIFICATIVE_DEF = (int)Math.abs(Math.log10(ZERO_THRESHOLD_DEF)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD_DEF));
+	private final static long DIGITS_DEF = (long)Math.pow(10, SIGNIFICATIVE_DEF);
+	private final static int MAX_DECIMALS_DEFAULT = 8; //Member Variable
+
+	/**
+	 * Per-thread calculation configuration (EXACT, PRECISION, zero thresholds, number
+	 * formatting flags, default representation). Backed by a {@link ThreadLocal} so each
+	 * thread gets its own independent copy -- state is still shared globally within a single
+	 * thread (across all {@code Complex} instances created on it), matching how
+	 * {@code storePrecision()}/{@code restorePrecision()} and {@code setRepres()}/
+	 * {@code restoreRepres()} are actually used by callers like {@code MatrixComplex},
+	 * {@code Eigenspace}, {@code Polynom}, {@code Laplace}, {@code Fourier}, {@code Z} and
+	 * {@code Spline}: temporarily override the mode, run a nested computation that creates many
+	 * {@code Complex} instances, then restore. Before this class existed, this configuration was
+	 * a set of {@code private static} fields shared by every thread in the JVM -- not thread-safe.
+	 * <p>
+	 * KNOWN BUG, not fixed by this migration (out of scope, kept for parity with the previous
+	 * behavior): {@code PRECISION_BCK}/{@code ZERO_THRESHOLD*_BCK}/{@code SIGNIFICATIVE_BCK}/
+	 * {@code DIGITS_BCK} and {@code REPRESENTATION_BCK} are each a single backup slot, not a
+	 * stack. A nested {@code storePrecision()}/{@code restorePrecision()} (or {@code setRepres()}/
+	 * {@code restoreRepres()}) call inside another one on the <i>same thread</i> still clobbers
+	 * the outer call's backup. This migration only fixes visibility/isolation across threads; it
+	 * does not make store/restore reentrant.
+	 * <p>
+	 * NOTE ON DECLARATION ORDER: {@code STATE} (and this class) must be declared/initialized
+	 * before any {@code static final Complex} constant below (e.g. {@code i}, {@code ZERO},
+	 * {@code ONE}...) -- their initializers construct {@code Complex} instances, whose
+	 * constructor path calls {@link #state()}. Since static initializers run in textual/declared
+	 * order, if {@code STATE} were declared after those constants, {@code STATE} would still be
+	 * {@code null} when they run, throwing a {@code NullPointerException} at class-load time.
+	 */
+	private static final class State {
+		boolean EXACT = true;
+
+		/* Precision Block */
+		double PRECISION = 1E-13; //1E-16; //1E-13;
+		double ZERO_THRESHOLD_EXACT = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
+		double ZERO_THRESHOLD_APPROX = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
+		double ZERO_THRESHOLD = EXACT ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;	//Current in use Zero threshold for formatting numbers
+		int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD));
+		long DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
+
+		/* BACK UP to allow restoring status */
+		double PRECISION_BCK = PRECISION;
+		double ZERO_THRESHOLD_EXACT_BCK = ZERO_THRESHOLD_EXACT;
+		double ZERO_THRESHOLD_APPROX_BCK = ZERO_THRESHOLD_APPROX;
+		double ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
+		int SIGNIFICATIVE_BCK = SIGNIFICATIVE;
+		long DIGITS_BCK = DIGITS;
+
+		/* Formating block */
+		boolean FORMAT_NBR = false; //Member Variable. Flag for formatting numbers
+		boolean FIXED_NOTATION = false; //Member Variable. Flag for comma fixed notation
+		boolean SCIENTIFIC_NOTATION = false; //Member Variable. Flag for scientific notation
+		int MAX_DECIMALS = MAX_DECIMALS_DEFAULT; //Member Variable
+		/* BACK UP to allow restoring status */
+		boolean FORMAT_NBR_BCK = FORMAT_NBR; //Member Variable. Flag for formatting numbers
+		boolean FIXED_NOTATION_BCK = FIXED_NOTATION; //Member Variable. Flag for comma fixed notation
+		boolean SCIENTIFIC_NOTATION_BCK = SCIENTIFIC_NOTATION; //Member Variable. Flag for scientific notation
+		int MAX_DECIMALS_BCK = MAX_DECIMALS; //Member Variable
+
+		/* REPRESENTATION BLOCK */
+		Representation REPRESENTATION = Representation.RECTANGULAR;
+		Representation REPRESENTATION_BCK = REPRESENTATION;
+	}
+
+	private static final ThreadLocal<State> STATE = ThreadLocal.withInitial(State::new);
+	private static State state() { return STATE.get(); }
+
 	public final static Complex i = new Complex(0,1);
 	public final static Complex j = i; // For Electric Engineering
 	public final static Complex ZERO = new Complex(0,0);
@@ -196,70 +280,18 @@ public class Complex {
 	public final static Complex mONE = new Complex(-1,0);
 	public final static Complex PI = new Complex(Math.PI,0);
 	public final static Complex DOSPI = new Complex(DOS_PI,0);
-	public final static Complex TWOPI = DOSPI;	
+	public final static Complex TWOPI = DOSPI;
 	public final static Complex HALFPI = new Complex(HALF_PI,0);
-	
+
 	// FIXED - Correction factor for equality comparisons. I hate these kind of things that seem to work but have no way to justify or prove
-	public final static int CORRECTION_FACTOR = 10; 
-	// FIXED - The same feeling as Einstein before the cosmological constant 
+	public final static int CORRECTION_FACTOR = 10;
+	// FIXED - The same feeling as Einstein before the cosmological constant
 	// FIXED: PRECISION = 1E-13
-	
-	public static enum Representation {RECTANGULAR, POLAR};
 
 	// Precompiled once instead of on every setComplex(String) call.
 	private final static Pattern REC_PATTERN = Pattern.compile("[ \\t]*(([\\+|\\-])?[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?))?[ \\t]*(([\\+|\\-])?[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?)?)(i)?");
 	private final static Pattern POL_PATTERN = Pattern.compile("[ \\t]*(\\d*\\.?\\d+(E[\\+|\\-|\\d]\\d*)?){1}[ \\t]*(\\|){1}[ \\t]*((\\+|\\-)?[\\d]*\\.?[\\d]+?){1}");
-	/*
-	 * ***********************************************
-	 * MEMBER VARS
-	 * ***********************************************
-	 */
 
-	/**
-	 * To use approximated equality. true use EXACT equality. false use APPROX equality.
-	 */
-	private static boolean EXACT = true;
-
-	/* Precision Block */
-	private static double PRECISION = 1E-13; //1E-16; //1E-13;
-	private static double ZERO_THRESHOLD_EXACT = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
-	private static double ZERO_THRESHOLD_APPROX = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
-	private static double ZERO_THRESHOLD = EXACT ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;	//Current in use Zero threshold for formatting numbers
-	private static int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD));
-	private static long DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
-
-	/* BACK UP to allow restoring status */
-	private static double PRECISION_DEF = PRECISION;
-	private static double ZERO_THRESHOLD_EXACT_DEF = ZERO_THRESHOLD_EXACT;
-	private static double ZERO_THRESHOLD_APPROX_DEF = ZERO_THRESHOLD_APPROX;
-	private static double ZERO_THRESHOLD_DEF = ZERO_THRESHOLD;
-	private static int SIGNIFICATIVE_DEF = SIGNIFICATIVE;
-	private static long DIGITS_DEF = DIGITS; 
-	
-	/* BACK UP to allow restoring status */
-	private static double PRECISION_BCK = PRECISION;
-	private static double ZERO_THRESHOLD_EXACT_BCK = ZERO_THRESHOLD_EXACT;
-	private static double ZERO_THRESHOLD_APPROX_BCK = ZERO_THRESHOLD_APPROX;
-	private static double ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
-	private static int SIGNIFICATIVE_BCK = SIGNIFICATIVE;
-	private static long DIGITS_BCK = DIGITS; 
-	
-	/* Formating block */
-	private static boolean FORMAT_NBR = false; //Member Variable. Flag for formatting numbers
-	private static boolean FIXED_NOTATION = false; //Member Variable. Flag for comma fixed notation
-	private static boolean SCIENTIFIC_NOTATION = false; //Member Variable. Flag for scientific notation
-	private static int MAX_DECIMALS_DEFAULT = 8; //Member Variable
-	private static int MAX_DECIMALS = MAX_DECIMALS_DEFAULT; //Member Variable
-	/* BACK UP to allow restoring status */
-	private static boolean FORMAT_NBR_BCK = FORMAT_NBR; //Member Variable. Flag for formatting numbers
-	private static boolean FIXED_NOTATION_BCK = FIXED_NOTATION; //Member Variable. Flag for comma fixed notation
-	private static boolean SCIENTIFIC_NOTATION_BCK = SCIENTIFIC_NOTATION; //Member Variable. Flag for scientific notation
-	private static int MAX_DECIMALS_BCK = MAX_DECIMALS; //Member Variable
-
-	/* REPRESENTATION BLOCK */
-	private static Representation REPRESENTATION = Representation.RECTANGULAR; 
-	private static Representation REPRESENTATION_BCK = REPRESENTATION; 
-	
 	private double rep;	// the real part
 	private double imp;	// the imaginary part
 	private double mod;	// the modulus
@@ -430,7 +462,7 @@ public class Complex {
 	private void setCre() {
 		//double sgn = this.rep == 0.0 ? Math.signum(this.imp): Math.signum(Math.cos(pha));
 		//double sgn = (Math.abs(this.rep) <= ZERO_THRESHOLD_R) ? Math.signum(this.imp): Math.signum(Math.cos(pha));
-		if ((Math.abs(this.imp) <= ZERO_THRESHOLD_APPROX)) this.cre = this.rep;
+		if ((Math.abs(this.imp) <= state().ZERO_THRESHOLD_APPROX)) this.cre = this.rep;
 		else {
 			//double sgn = Math.signum(this.rep);
 			double sgn = Math.signum(this.rep*this.imp);
@@ -716,9 +748,9 @@ public class Complex {
 	 * Activates the numbers' formatting. This value is GLOBAL. Prints a message in the Console.
 	 * @param printStat
 	 */
-	public static void setFormatON(boolean printStat) { 
-		FORMAT_NBR = true;
-		if (printStat) printFormatStatus();	
+	public static void setFormatON(boolean printStat) {
+		state().FORMAT_NBR = true;
+		if (printStat) printFormatStatus();
 	}
 
 	/**
@@ -733,11 +765,11 @@ public class Complex {
 	 * @param decimals Number of decimals to show
 	 * @param printStat
 	 */
-	public static void setFixedON(int decimals, boolean printStat) { 
-		FIXED_NOTATION = true;
-		SCIENTIFIC_NOTATION = false;
-		MAX_DECIMALS = decimals;
-		if (printStat) printFormatStatus();	
+	public static void setFixedON(int decimals, boolean printStat) {
+		state().FIXED_NOTATION = true;
+		state().SCIENTIFIC_NOTATION = false;
+		state().MAX_DECIMALS = decimals;
+		if (printStat) printFormatStatus();
 	}
 
 	/**
@@ -753,11 +785,11 @@ public class Complex {
 	 * @param decimals Number of decimals to show
 	 * @param printStat
 	 */
-	public static void setScientificON(int decimals, boolean printStat) { 
-		FIXED_NOTATION = false;
-		SCIENTIFIC_NOTATION = true;
-		MAX_DECIMALS = decimals;
-		if (printStat) printFormatStatus();	
+	public static void setScientificON(int decimals, boolean printStat) {
+		state().FIXED_NOTATION = false;
+		state().SCIENTIFIC_NOTATION = true;
+		state().MAX_DECIMALS = decimals;
+		if (printStat) printFormatStatus();
 	}
 
 	/**
@@ -772,9 +804,9 @@ public class Complex {
 	 * Deactivates the numbers' formatting presentation. This value is GLOBAL. Prints a message in the Console.
 	 * @param printStat
 	 */
-	public static void setFormatOFF(boolean printStat) { 
-		FORMAT_NBR = false; 
-		if (printStat) printFormatStatus();	
+	public static void setFormatOFF(boolean printStat) {
+		state().FORMAT_NBR = false;
+		if (printStat) printFormatStatus();
 	}
 
 	/**
@@ -789,7 +821,7 @@ public class Complex {
 	 * @return True or False
 	 */
 	public static Boolean getFortmatStatus() {
-		return FORMAT_NBR;
+		return state().FORMAT_NBR;
 	}
 
 	/**
@@ -797,8 +829,8 @@ public class Complex {
 	 * @param printStat
 	 */
 	public static void setFixedOFF(boolean printStat) {
-		FIXED_NOTATION = false;
-		if (printStat) printFormatStatus();	
+		state().FIXED_NOTATION = false;
+		if (printStat) printFormatStatus();
 	}
 
 	/**
@@ -813,7 +845,7 @@ public class Complex {
 	 * @return
 	 */
 	public static Boolean getFixedStatus() {
-		return FIXED_NOTATION;
+		return state().FIXED_NOTATION;
 	}
 
 	/**
@@ -821,8 +853,8 @@ public class Complex {
 	 * @param printStat
 	 */
 	public static void setScientificOFF(boolean printStat) {
-		SCIENTIFIC_NOTATION = false;
-		if (printStat) printFormatStatus();	
+		state().SCIENTIFIC_NOTATION = false;
+		if (printStat) printFormatStatus();
 	}
 	
 	/**
@@ -837,7 +869,7 @@ public class Complex {
 	 * @return The value of SCIENTIFIC_NOTATION
 	 */
 	public static Boolean getScientificStatus() {
-		return SCIENTIFIC_NOTATION;
+		return state().SCIENTIFIC_NOTATION;
 	}
 	
 	/**
@@ -845,7 +877,7 @@ public class Complex {
 	 * @return MAX_DECIMALS
 	 */
 	public static int getMaxDecimals() {
-		return MAX_DECIMALS;
+		return state().MAX_DECIMALS;
 	}
 
 	/**
@@ -853,7 +885,7 @@ public class Complex {
 	 * @return SIGNIFICATIVE
 	 */
 	public static int getSignificative() {
-		return SIGNIFICATIVE;
+		return state().SIGNIFICATIVE;
 	}
 
 	/**
@@ -861,9 +893,9 @@ public class Complex {
 	 */
 	public static void printFormatStatus() {
 		System.out.println( "------------------------------------------------");
-		System.out.println( "Formatting numbers is " + (FORMAT_NBR ? "ENABLED" : "DISABLED"));
-		System.out.println( "Fixed notation is " + (FIXED_NOTATION ? "ENABLED decimals:" + getMaxDecimals() : "DISABLED"));
-		System.out.println( "Scientific notation is " + (SCIENTIFIC_NOTATION ? "ENABLED decimals:" + getMaxDecimals() : "DISABLED"));	
+		System.out.println( "Formatting numbers is " + (state().FORMAT_NBR ? "ENABLED" : "DISABLED"));
+		System.out.println( "Fixed notation is " + (state().FIXED_NOTATION ? "ENABLED decimals:" + getMaxDecimals() : "DISABLED"));
+		System.out.println( "Scientific notation is " + (state().SCIENTIFIC_NOTATION ? "ENABLED decimals:" + getMaxDecimals() : "DISABLED"));
 		System.out.println( "------------------------------------------------");
 	}
 
@@ -871,30 +903,30 @@ public class Complex {
 	 * Stores the Format Status to be restored by restoreFormatStatus
 	 */
 	public static void storeFormatStatus() {
-		FORMAT_NBR_BCK = FORMAT_NBR;
-		FIXED_NOTATION_BCK = FIXED_NOTATION;
-		SCIENTIFIC_NOTATION_BCK = SCIENTIFIC_NOTATION;
-		MAX_DECIMALS_BCK = MAX_DECIMALS;
+		state().FORMAT_NBR_BCK = state().FORMAT_NBR;
+		state().FIXED_NOTATION_BCK = state().FIXED_NOTATION;
+		state().SCIENTIFIC_NOTATION_BCK = state().SCIENTIFIC_NOTATION;
+		state().MAX_DECIMALS_BCK = state().MAX_DECIMALS;
 	}
 	
 	/**
 	 * Restore the Format Status to its previous condition if it was stored before
 	 */
 	public static void restoreFormatStatus() {
-		FORMAT_NBR = FORMAT_NBR_BCK;
-		FIXED_NOTATION = FIXED_NOTATION_BCK;
-		SCIENTIFIC_NOTATION = SCIENTIFIC_NOTATION_BCK;
-		MAX_DECIMALS = MAX_DECIMALS_BCK;
+		state().FORMAT_NBR = state().FORMAT_NBR_BCK;
+		state().FIXED_NOTATION = state().FIXED_NOTATION_BCK;
+		state().SCIENTIFIC_NOTATION = state().SCIENTIFIC_NOTATION_BCK;
+		state().MAX_DECIMALS = state().MAX_DECIMALS_BCK;
 	}
 
 	/**
 	 * Reset the format status to the predefined condition
 	 */
 	public static void resetFormatStatus() {
-		FORMAT_NBR = false;
-		FIXED_NOTATION = false;
-		SCIENTIFIC_NOTATION = false;
-		MAX_DECIMALS = MAX_DECIMALS_DEFAULT;
+		state().FORMAT_NBR = false;
+		state().FIXED_NOTATION = false;
+		state().SCIENTIFIC_NOTATION = false;
+		state().MAX_DECIMALS = MAX_DECIMALS_DEFAULT;
 	}
 
 	/**
@@ -913,9 +945,9 @@ public class Complex {
 	 * @return The formatted number.
 	 */
 	private static double formatNbr(double number) {
-		if (!FORMAT_NBR) return number;
-		if (Math.abs(number) < ZERO_THRESHOLD) return 0.0;
-		double newNumber = Math.rint(number * DIGITS) / DIGITS;
+		if (!state().FORMAT_NBR) return number;
+		if (Math.abs(number) < state().ZERO_THRESHOLD) return 0.0;
+		double newNumber = Math.rint(number * state().DIGITS) / state().DIGITS;
 		return newNumber;
 	}
 
@@ -932,10 +964,13 @@ public class Complex {
 	/**
 	 * Sets the output format of the complex representation
 	 * @param Repres
+	 * KNOWN BUG, not fixed: {@code REPRESENTATION_BCK} is a single backup slot, not a stack, so a
+	 * {@code setRepres()}/{@code restoreRepres()} pair nested inside another one on the same
+	 * thread clobbers the outer call's backup. See {@link State}.
 	 */
 	public static void setRepres(Representation Repres) {
-		REPRESENTATION_BCK = REPRESENTATION;
-		REPRESENTATION = Repres;
+		state().REPRESENTATION_BCK = state().REPRESENTATION;
+		state().REPRESENTATION = Repres;
 	}
 
 	/**
@@ -943,7 +978,7 @@ public class Complex {
 	 */
 	public static String getRepres() {
 		String Repres = "";
-		switch (REPRESENTATION) {
+		switch (state().REPRESENTATION) {
 		case RECTANGULAR: Repres = "RECTANGULAR"; break;
 		case POLAR: Repres =  "POLAR"; break;
 		}
@@ -952,12 +987,13 @@ public class Complex {
 
 	/**
 	 * Restores the last used output format of the complex representation
+	 * KNOWN BUG, not fixed: see {@link #setRepres(Representation)}.
 	 */
 	public static void restoreRepres() {
 		Representation oldRepres;
-		oldRepres = REPRESENTATION;
-		REPRESENTATION = REPRESENTATION_BCK;		
-		REPRESENTATION_BCK = oldRepres;
+		oldRepres = state().REPRESENTATION;
+		state().REPRESENTATION = state().REPRESENTATION_BCK;
+		state().REPRESENTATION_BCK = oldRepres;
 	}
 
 	/**
@@ -1018,7 +1054,7 @@ public class Complex {
 	 */
 	public String toString() {
 		String strComplex = "";
-		switch (REPRESENTATION) {
+		switch (state().REPRESENTATION) {
 		case RECTANGULAR:
 			strComplex = this.toStringRec();
 			break;
@@ -1061,7 +1097,7 @@ public class Complex {
 			else return ("-Infinity");
 		}
 
-		if (FORMAT_NBR) {
+		if (state().FORMAT_NBR) {
 			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
 			// (ZERO_THRESHOLD*CORRECTION_FACTOR), the same ones setRecCoord() already uses when
 			// building a Complex from polar coordinates, so every toString* formatter agrees on
@@ -1070,13 +1106,13 @@ public class Complex {
 			if (this.imPartNull()) fImp = 0.0;
 		}
 		sfRep = String.valueOf(fRep);
-		if (SCIENTIFIC_NOTATION) sfRep = String.format("%."+MAX_DECIMALS+"E", fRep).replace(',', '.');
-		else if (FIXED_NOTATION) sfRep = String.format("%."+MAX_DECIMALS+"f", fRep).replace(',', '.');
+		if (state().SCIENTIFIC_NOTATION) sfRep = String.format("%."+state().MAX_DECIMALS+"E", fRep).replace(',', '.');
+		else if (state().FIXED_NOTATION) sfRep = String.format("%."+state().MAX_DECIMALS+"f", fRep).replace(',', '.');
 			//else sfRep = String.format("%."+MAX_DECIMALS+"f", fRep).replace(',', '.');
 
 		sfImp = String.valueOf(fImp);
-		if (SCIENTIFIC_NOTATION) sfImp = String.format("%."+MAX_DECIMALS+"E", fImp).replace(',', '.');
-		else if (FIXED_NOTATION) sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
+		if (state().SCIENTIFIC_NOTATION) sfImp = String.format("%."+state().MAX_DECIMALS+"E", fImp).replace(',', '.');
+		else if (state().FIXED_NOTATION) sfImp = String.format("%."+state().MAX_DECIMALS+"f", fImp).replace(',', '.');
 			//else sfImp = String.format("%."+MAX_DECIMALS+"f", fImp).replace(',', '.');
 		
 		String strComplex;
@@ -1102,7 +1138,7 @@ public class Complex {
 		double fRep = rep;
 		double fImp = imp;
 
-		if (FORMAT_NBR) {
+		if (state().FORMAT_NBR) {
 			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
 			// (ZERO_THRESHOLD*CORRECTION_FACTOR), the same ones setRecCoord() already uses when
 			// building a Complex from polar coordinates, so every toString* formatter agrees on
@@ -1147,27 +1183,27 @@ public class Complex {
 		}
 		*/
 		
-		if (FORMAT_NBR) {
+		if (state().FORMAT_NBR) {
 			// Purity check: snaps the phase to the nearest axis-aligned value (0, +HALF_PI, PI,
 			// -HALF_PI) using the same rePartNull()/imPartNull() predicates as toStringRec and
 			// setRecCoord(), instead of only detecting "phase near zero" (pure positive real) as
 			// before -- this also recognizes pure negative real (phase near PI) and pure
 			// imaginary (phase near +-HALF_PI) numbers, which the previous check missed entirely.
-			if (fMod < ZERO_THRESHOLD) {
+			if (fMod < state().ZERO_THRESHOLD) {
 				fMod = 0.0;
 				fPha = 0.0;
 			}
 			else if (this.imPartNull()) fPha = (this.rep >= 0.0) ? 0.0 : Math.PI;
 			else if (this.rePartNull()) fPha = (this.imp >= 0.0) ? HALF_PI : -HALF_PI;
 		}
-		
+
 		sfMod = String.valueOf(fMod);
-		if (SCIENTIFIC_NOTATION) sfMod = String.format("%."+MAX_DECIMALS+"E", fMod).replace(',', '.');
-		else if (FIXED_NOTATION) sfMod = String.format("%."+MAX_DECIMALS+"f", fMod).replace(',', '.');
+		if (state().SCIENTIFIC_NOTATION) sfMod = String.format("%."+state().MAX_DECIMALS+"E", fMod).replace(',', '.');
+		else if (state().FIXED_NOTATION) sfMod = String.format("%."+state().MAX_DECIMALS+"f", fMod).replace(',', '.');
 			//else sfMod = String.format("%."+MAX_DIGITS+"f", fMod).replace(',', '.');
 
 		sfPha = String.valueOf(fPha);
-		if (SCIENTIFIC_NOTATION || FIXED_NOTATION)sfPha = String.format("%."+MAX_DECIMALS+"f", fPha).replace(',', '.');
+		if (state().SCIENTIFIC_NOTATION || state().FIXED_NOTATION)sfPha = String.format("%."+state().MAX_DECIMALS+"f", fPha).replace(',', '.');
 
 		return sfMod + "|" + sfPha;
 	}
@@ -1180,7 +1216,7 @@ public class Complex {
 		double fRep = formatNbr(rep);
 		double fImp = formatNbr(imp);
 
-		if (FORMAT_NBR) {
+		if (state().FORMAT_NBR) {
 			// Purity check: delegates to the canonical rePartNull()/imPartNull() predicates
 			// (ZERO_THRESHOLD*CORRECTION_FACTOR), same as toStringRec/toStringPol/setRecCoord.
 			// Now gated by FORMAT_NBR like the other three formatters, instead of purging
@@ -1267,55 +1303,55 @@ public class Complex {
 	 * Shows the Precision parameters used
 	 */
 	public static void showPrecision() {
-		System.out.println(HEADINFO + "MODE.................:" + exact_str()); 
-		System.out.println(HEADINFO + "PRECISION............:" + PRECISION); 
-		System.out.println(HEADINFO + "ZERO_THRESHOLD.......:" + ZERO_THRESHOLD); 
-		System.out.println(HEADINFO + "ZERO_THRESHOLD_EXACT.:" + ZERO_THRESHOLD_EXACT); 
-		System.out.println(HEADINFO + "ZERO_THRESHOLD_APPROX:" + ZERO_THRESHOLD_APPROX); 
-		System.out.println(HEADINFO + "SIGNIFICATIVE........:" + SIGNIFICATIVE);
-		System.out.println(HEADINFO + "DIGITS...............:" + DIGITS);		
-		System.out.println(HEADINFO + "LIM_INF..............:" + LIM_INF); 
-		System.out.println(HEADINFO + "LIM_NUMDECS..........:" + LIM_NUMDECS); 
-		System.out.println(HEADINFO + "LIM_PRECISION........:" + LIM_PRECISION); 
+		System.out.println(HEADINFO + "MODE.................:" + exact_str());
+		System.out.println(HEADINFO + "PRECISION............:" + state().PRECISION);
+		System.out.println(HEADINFO + "ZERO_THRESHOLD.......:" + state().ZERO_THRESHOLD);
+		System.out.println(HEADINFO + "ZERO_THRESHOLD_EXACT.:" + state().ZERO_THRESHOLD_EXACT);
+		System.out.println(HEADINFO + "ZERO_THRESHOLD_APPROX:" + state().ZERO_THRESHOLD_APPROX);
+		System.out.println(HEADINFO + "SIGNIFICATIVE........:" + state().SIGNIFICATIVE);
+		System.out.println(HEADINFO + "DIGITS...............:" + state().DIGITS);
+		System.out.println(HEADINFO + "LIM_INF..............:" + LIM_INF);
+		System.out.println(HEADINFO + "LIM_NUMDECS..........:" + LIM_NUMDECS);
+		System.out.println(HEADINFO + "LIM_PRECISION........:" + LIM_PRECISION);
 	}
 
 	/**
 	 * Gets the EXACT used for calculations.
-	 * @return The value of the pseudo-constant EXACT. 
+	 * @return The value of the pseudo-constant EXACT.
 	 */
 	public static boolean exact() {
-	    return EXACT; 
+	    return state().EXACT;
 	}
 
 	/**
 	 * Gets the STRING value of EXACT used for calculations.
-	 * @return The value of the pseudo-constant EXACT. 
+	 * @return The value of the pseudo-constant EXACT.
 	 */
 	public static String exact_str() {
-	    return EXACT ? "EXACT" : "APPROXIMATED"; 
+	    return state().EXACT ? "EXACT" : "APPROXIMATED";
 	}
 
 	/**
 	 * Sets the EXACT used for calculations
 	 */
 	public static void exact(boolean value) {
-	    EXACT = value;
-	    ZERO_THRESHOLD = EXACT ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	    state().EXACT = value;
+	    state().ZERO_THRESHOLD = state().EXACT ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	}
-	
+
 	/**
 	 * Gets the PRECISION used for calculations.
-	 * @return The value of the constant PRECISION. 
+	 * @return The value of the constant PRECISION.
 	 */
 	public static double precision() {
-	    return PRECISION; 
+	    return state().PRECISION;
 	}
 
 	/**
 	 * Sets the PRECISION used for calculations WIHTOUT updating the rest of Precision parameters
 	 */
 	public static void precision_(double value) {
-	    PRECISION = value;
+	    state().PRECISION = value;
 	}
 
 	/**
@@ -1323,37 +1359,37 @@ public class Complex {
 	 */
 	public static void precision(double value) {
 		storePrecision();
-	    PRECISION = value;
-	    ZERO_THRESHOLD_EXACT = PRECISION*10;
-	    ZERO_THRESHOLD_APPROX = Math.sqrt(PRECISION);
-	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
-	    SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
-	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
+	    state().PRECISION = value;
+	    state().ZERO_THRESHOLD_EXACT = state().PRECISION*10;
+	    state().ZERO_THRESHOLD_APPROX = Math.sqrt(state().PRECISION);
+	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
+	    state().SIGNIFICATIVE = (int)Math.abs(Math.log10(state().ZERO_THRESHOLD));
+	    state().DIGITS = (long)Math.pow(10, state().SIGNIFICATIVE);
 	}
 
 	/**
 	 * Gets the ZERO_THRESHOLD used for calculations.
-	 * @return The value of the constant ZERO_THRESHOLD. 
+	 * @return The value of the constant ZERO_THRESHOLD.
 	 */
 	public static double zero_treshold() {
-	    return ZERO_THRESHOLD; 
+	    return state().ZERO_THRESHOLD;
 	}
 
 	/**
 	 * Gets the ZERO_THRESHOLD_EXACT used for calculations.
-	 * @return The value of the constant ZERO_THRESHOLD_EXACT. 
+	 * @return The value of the constant ZERO_THRESHOLD_EXACT.
 	 */
 	public static double zero_treshold_exact() {
-	    return ZERO_THRESHOLD_EXACT; 
+	    return state().ZERO_THRESHOLD_EXACT;
 	}
 
 	/**
 	 * Sets the ZERO_THRESHOLD_EXACT used for calculations WIHTOUT updating the rest of Precision parameters
 	 */
 	public static void zero_threshold_exact(double value) {
-	    ZERO_THRESHOLD_EXACT = value;
+	    state().ZERO_THRESHOLD_EXACT = value;
 	    // ---- ZERO_THRESHOLD_APPROX = Math.sqrt(ZERO_THRESHOLD_EXACT);
-	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	}
 
 	/**
@@ -1362,25 +1398,25 @@ public class Complex {
 	public static void zero_threshold_exact_prec(double value) {
 		storePrecision();
 		zero_threshold_exact(value);
-	    SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD));
-	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
+	    state().SIGNIFICATIVE = (int)Math.abs(Math.log10(state().ZERO_THRESHOLD));
+	    state().DIGITS = (long)Math.pow(10, state().SIGNIFICATIVE);
 	}
 
 	/**
 	 * Gets the ZERO_THRESHOLD_APPROX used for calculations.
-	 * @return The value of the constant ZERO_THRESHOLD_APPROX. 
+	 * @return The value of the constant ZERO_THRESHOLD_APPROX.
 	 */
 	public static double zero_threshold_approx() {
-	    return ZERO_THRESHOLD_APPROX; 
+	    return state().ZERO_THRESHOLD_APPROX;
 	}
 
 	/**
 	 * Sets the ZERO_THRESHOLD_APPROX used for calculations
 	 */
 	public static void zero_threshold_approx(double value) {
-	    ZERO_THRESHOLD_APPROX = value;
+	    state().ZERO_THRESHOLD_APPROX = value;
 	    // ---- ZERO_THRESHOLD_EXACT = Math.power(ZERO_THRESHOLD_APPROX, 2);
-	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	}
 
 	/**
@@ -1388,22 +1424,22 @@ public class Complex {
 	 * @return Hhe value for zero used in the calculations.
 	 */
 	public static double zero() {
-		return exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+		return exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	}
-	
+
 	/**
 	 * Gets the SIGNIFICATIVE used for calculations.
-	 * @return The value of the constant SIGNIFICATIVE. 
+	 * @return The value of the constant SIGNIFICATIVE.
 	 */
 	public static int significative() {
-	    return SIGNIFICATIVE; 
+	    return state().SIGNIFICATIVE;
 	}
 
 	/**
 	 * Sets the SIGNIFICATIVE used for calculations WIHTOUT updating the rest of Precision parameters
 	 */
 	public static void significative_(int value) {
-	    SIGNIFICATIVE = value;
+	    state().SIGNIFICATIVE = value;
 	}
 
 	/**
@@ -1411,62 +1447,66 @@ public class Complex {
 	 */
 	public static void significative(int value) {
 		storePrecision();
-	    SIGNIFICATIVE = value;
-	    DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
+	    state().SIGNIFICATIVE = value;
+	    state().DIGITS = (long)Math.pow(10, state().SIGNIFICATIVE);
 	}
 
 	/**
 	 * Gets the DIGITS used for calculations.
-	 * @return The value of the constant DIGITS. 
+	 * @return The value of the constant DIGITS.
 	 */
 	public static long digits() {
-	    return DIGITS; 
+	    return state().DIGITS;
 	}
 
 	/**
 	 * Sets the DIGITS used for calculations
 	 */
 	public static void digits(long value) {
-	    DIGITS = value;
+	    state().DIGITS = value;
 	}
 
 	/**
 	 * Stores the Precision parameters for recover them later
+	 * KNOWN BUG, not fixed: the {@code _BCK} fields below are each a single backup slot, not a
+	 * stack, so a {@code storePrecision()}/{@code restorePrecision()} pair nested inside another
+	 * one on the same thread clobbers the outer call's backup. See {@link State}.
 	 */
 	public static void storePrecision() {
-	    PRECISION_BCK = PRECISION;
-	    ZERO_THRESHOLD_BCK = ZERO_THRESHOLD;
-	    ZERO_THRESHOLD_EXACT_BCK = ZERO_THRESHOLD_EXACT;
-	    ZERO_THRESHOLD_APPROX_BCK = ZERO_THRESHOLD_APPROX;
-	    SIGNIFICATIVE_BCK = SIGNIFICATIVE;
-	    DIGITS_BCK = DIGITS;
+	    state().PRECISION_BCK = state().PRECISION;
+	    state().ZERO_THRESHOLD_BCK = state().ZERO_THRESHOLD;
+	    state().ZERO_THRESHOLD_EXACT_BCK = state().ZERO_THRESHOLD_EXACT;
+	    state().ZERO_THRESHOLD_APPROX_BCK = state().ZERO_THRESHOLD_APPROX;
+	    state().SIGNIFICATIVE_BCK = state().SIGNIFICATIVE;
+	    state().DIGITS_BCK = state().DIGITS;
 	}
 
 	/**
 	 * Recovers the Precision parameters stored before
+	 * KNOWN BUG, not fixed: see {@link #storePrecision()}.
 	 */
 	public static void restorePrecision() {
-	    PRECISION = PRECISION_BCK;
-	    ZERO_THRESHOLD_EXACT = ZERO_THRESHOLD_EXACT_BCK;
-	    ZERO_THRESHOLD_APPROX = ZERO_THRESHOLD_APPROX_BCK;
-	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	    state().PRECISION = state().PRECISION_BCK;
+	    state().ZERO_THRESHOLD_EXACT = state().ZERO_THRESHOLD_EXACT_BCK;
+	    state().ZERO_THRESHOLD_APPROX = state().ZERO_THRESHOLD_APPROX_BCK;
+	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	    //ZERO_THRESHOLD = ZERO_THRESHOLD_BCK;
-	    SIGNIFICATIVE = SIGNIFICATIVE_BCK;
-	    DIGITS = DIGITS_BCK;
-	}	
+	    state().SIGNIFICATIVE = state().SIGNIFICATIVE_BCK;
+	    state().DIGITS = state().DIGITS_BCK;
+	}
 
 	/**
 	 * Restores all the precision values to the Factory defined ones
 	 */
 	public static void restorePrecisionFactorySettings() {
-	    PRECISION = PRECISION_DEF;
-	    ZERO_THRESHOLD_EXACT = ZERO_THRESHOLD_EXACT_DEF;
-	    ZERO_THRESHOLD_APPROX = ZERO_THRESHOLD_APPROX_DEF;
-	    ZERO_THRESHOLD = exact() ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;
+	    state().PRECISION = PRECISION_DEF;
+	    state().ZERO_THRESHOLD_EXACT = ZERO_THRESHOLD_EXACT_DEF;
+	    state().ZERO_THRESHOLD_APPROX = ZERO_THRESHOLD_APPROX_DEF;
+	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	    //ZERO_THRESHOLD = ZERO_THRESHOLD_DEF;
-	    SIGNIFICATIVE = SIGNIFICATIVE_DEF;
-	    DIGITS = DIGITS_DEF;
-	}	
+	    state().SIGNIFICATIVE = SIGNIFICATIVE_DEF;
+	    state().DIGITS = DIGITS_DEF;
+	}
 
 	/*
 	 * ***********************************************
@@ -1906,7 +1946,7 @@ public class Complex {
 	 */
 	public boolean isZero() {
 		//if (this.mod() <= ZERO_THRESHOLD) return true;
-		if (Math.abs(this.rep()) <= ZERO_THRESHOLD*CORRECTION_FACTOR && Math.abs(this.imp()) <= ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
+		if (Math.abs(this.rep()) <= state().ZERO_THRESHOLD*CORRECTION_FACTOR && Math.abs(this.imp()) <= state().ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1921,7 +1961,7 @@ public class Complex {
 	 */
 	public boolean isZeroRed__() {
 		//if (this.mod() <= ZERO_THRESHOLD_R) return true;
-		if (Math.abs(this.rep()) <= ZERO_THRESHOLD_APPROX && Math.abs(this.imp()) <= ZERO_THRESHOLD_APPROX) return true;
+		if (Math.abs(this.rep()) <= state().ZERO_THRESHOLD_APPROX && Math.abs(this.imp()) <= state().ZERO_THRESHOLD_APPROX) return true;
 		else return false;
 	}
 	
@@ -1931,7 +1971,7 @@ public class Complex {
 	 */
 	public boolean imPartNull() {
 		if (this.rep == 0.0) return this.imp == 0.0;
-		if (Math.abs(imp/rep) <= ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
+		if (Math.abs(imp/rep) <= state().ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1943,7 +1983,7 @@ public class Complex {
 	 * Unlike imPartNull(), also has no {@code rep==0.0} guard, so it can divide by zero.
 	 */
 	public boolean imPartNullRed__() {
-		if (Math.abs(imp/rep) <= ZERO_THRESHOLD_APPROX) return true;
+		if (Math.abs(imp/rep) <= state().ZERO_THRESHOLD_APPROX) return true;
 		else return false;
 	}
 
@@ -1953,7 +1993,7 @@ public class Complex {
 	 */
 	public boolean rePartNull() {
 		if (this.imp == 0.0) return this.rep == 0.0;
-		if (Math.abs(rep/imp) <= ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
+		if (Math.abs(rep/imp) <= state().ZERO_THRESHOLD*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1965,7 +2005,7 @@ public class Complex {
 	 * Unlike rePartNull(), also has no {@code imp==0.0} guard, so it can divide by zero.
 	 */
 	public boolean rePartNullRed__() {
-		if (Math.abs(rep/imp) <= ZERO_THRESHOLD_APPROX) return true;
+		if (Math.abs(rep/imp) <= state().ZERO_THRESHOLD_APPROX) return true;
 		else return false;
 	}
 
@@ -2002,8 +2042,8 @@ public class Complex {
 	 */
 	@Override
 	public int hashCode() {
-		long qRep = Math.round(this.rep * DIGITS);
-		long qImp = Math.round(this.imp * DIGITS);
+		long qRep = Math.round(this.rep * state().DIGITS);
+		long qImp = Math.round(this.imp * state().DIGITS);
 		return java.util.Objects.hash(qRep, qImp);
 	}
 
@@ -2027,7 +2067,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2) {
-		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD*CORRECTION_FACTOR));
+		return ((Math.abs(this.rep - n1) <= state().ZERO_THRESHOLD*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= state().ZERO_THRESHOLD*CORRECTION_FACTOR));
 	}
 
 	/**
@@ -2042,7 +2082,7 @@ public class Complex {
 	public boolean equalsred__(double n1, double n2) {
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
 		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_APPROX) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_APPROX));
+		return ((Math.abs(this.rep - n1) <= state().ZERO_THRESHOLD_APPROX) && (Math.abs(this.imp - n2) <= state().ZERO_THRESHOLD_APPROX));
 	}
 
 	/**
@@ -2055,7 +2095,7 @@ public class Complex {
 	public boolean equals(double n1, double n2, int numDecs) {
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
 		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD*CORRECTION_FACTOR));
+		return ((Math.abs(this.rep - n1) <= state().ZERO_THRESHOLD*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= state().ZERO_THRESHOLD*CORRECTION_FACTOR));
 	}
 
 	/**
@@ -2071,7 +2111,7 @@ public class Complex {
 	public boolean equalsred__(double n1, double n2, int numDecs) {
 		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
 		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ZERO_THRESHOLD_APPROX) && (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_APPROX));
+		return ((Math.abs(this.rep - n1) <= state().ZERO_THRESHOLD_APPROX) && (Math.abs(this.imp - n2) <= state().ZERO_THRESHOLD_APPROX));
 	}
 
 	/**
@@ -2747,7 +2787,7 @@ public class Complex {
 		}
 		Function<Complex, Complex> gammafunc;
 		gammafunc = s -> (Complex.log(s).opposite()).power(z.minus(ONE));
-		return Complex.integrate(ZERO_THRESHOLD_EXACT, 1, gammafunc, 6);
+		return Complex.integrate(state().ZERO_THRESHOLD_EXACT, 1, gammafunc, 6);
 	}
 	
 	/**
@@ -3024,7 +3064,7 @@ public class Complex {
 			epsilon = z.minus(z0);
 			//System.out.println("epsilon:" + epsilon.mod()); 
 			if (Double.isNaN(epsilon.mod())) break;
-			if (epsilon.mod() <= Complex.ZERO_THRESHOLD) break;
+			if (epsilon.mod() <= state().ZERO_THRESHOLD) break;
 			z0 = z.copy();		
 		}   
 		sc.close();  //closes the scanner  	
