@@ -414,10 +414,9 @@ Antes de pasar al paso 3 (extender la revisión a `MatrixComplex.java`/`VectorCo
 
 ## Catálogo completo de hallazgos (por orden de riesgo/esfuerzo)
 
-**Ya resueltos** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`; `round(double,int)` usando la representación binaria exacta en vez de la decimal; `zeta_havil` sin criterio de convergencia; `binomialCoef(int,int)` inestable numéricamente; `gamma_weiertrass`/`gamma_euler` bug de `switch` + convergencia adaptativa; `zeta_reflex` eliminado.
+**Ya resueltos** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`; `round(double,int)` usando la representación binaria exacta en vez de la decimal; `zeta_havil` sin criterio de convergencia; `binomialCoef(int,int)` inestable numéricamente; `gamma_weiertrass`/`gamma_euler` bug de `switch` + convergencia adaptativa; `zeta_reflex` eliminado; `tan`/`tanh` con identidad de ángulo doble (`cot`/`coth` deliberadamente sin tocar, ver Fix 7).
 
 **Bajo riesgo / alto valor, pendientes:**
-- `tan`/`cot`/`tanh`/`coth`: recalculan las mismas 4 llamadas trascendentales dos veces (vía `sin(z).divides(cos(z))`); identidades de ángulo doble (`tan(x+iy)=(sin(2x)+i·sinh(2y))/(cos(2x)+cosh(2y))` y análoga para `tanh`) lo reducen a la mitad de coste sin perder precisión.
 - `normalizePhase_0`/`normalizePhase_2` (núcleo `Complex.java`): código muerto confirmado (solo `normalizePhase_1` en uso vía el dispatcher) — mismo patrón que la familia `*Red__`/`sqrroot__` de sesiones anteriores.
 
 **Riesgo medio, pendientes:**
@@ -476,9 +475,19 @@ Sesión pausada aquí para hibernar el ordenador (marca de pausa ya retirada tra
 
 Sin otras referencias colgantes en Javadocs de otros métodos (a diferencia de `zeta_riemann_siegel`, citado como ejemplo en dos `@apiNote` distintos) — solo se tocó el delegador público y la implementación. Verificado: compila limpio, batería de regresión exit 0 en las 4, sin diferencias numéricas.
 
+## Fix 7 — `tan`/`tanh` con identidad de ángulo doble; `cot`/`coth` deliberadamente sin tocar (commit `8fb014e`)
+
+`tan(z)=sin(z).divides(cos(z))` y `tanh(z)=sinh(z).divides(cosh(z))` recalculaban, cada uno vía sus dos mitades por separado, los mismos 4 valores reales (`sin(x)`, `cos(x)`, `sinh(y)`, `cosh(y)` para `z=x+iy`) — 8 llamadas trascendentales para lo que solo necesita 4, más una división compleja completa encima. Fix: identidad de ángulo doble, **demostrada algebraicamente antes de implementar** (multiplicando por el conjugado del denominador y usando `cos²+sin²=1`/`cosh²-sinh²=1`): `tan(x+iy)=(sin(2x)+i·sinh(2y))/(cos(2x)+cosh(2y))`, análoga para `tanh`. Solo 4 llamadas reales, denominador real (división real simple, no compleja).
+
+**`cot`/`coth` deliberadamente NO recibieron la misma optimización.** Primer intento (`cot(z)=tan(z).inverse()`) verificado y descartado: introducía (1) pérdida de pureza para `z` puramente real/imaginario (el paso por forma polar dentro de `inverse()` calcula `cos`/`sin` de `±π/2`, no exactamente 0 en `double`, dejando un residuo espurio ~1e-16 donde la forma rectangular da 0 exacto), y (2) en el polo `z=0` esa vía daría `NaN` en vez del `Infinity` que ya da la forma actual (vía la lógica de división por cero ya establecida en sesiones anteriores). Una fórmula cerrada directa análoga a la de `tan`/`tanh` evitaría el problema de pureza pero seguiría cambiando el caso `z=0`. Decidido con el usuario: no asumir ese riesgo para una función probablemente bastante menos usada que `tan`/`tanh` — `cot`/`coth` se dejan exactamente como estaban.
+
+Verificado: rejilla de 10×10 puntos (4 cuadrantes + ejes puros + ángulos notables como `π/4` + valores grandes/pequeños) comparada contra un build de referencia fresco — `tan`/`tanh` idénticos salvo ruido de últimos 1-2 dígitos (con una mejora incidental: `tan(π/4)` da exactamente `1.0` en vez de `0.9999999999999998`); `cot`/`coth` bit a bit **idénticos** en las 100 combinaciones (confirma que revertir el primer intento no dejó rastro). Batería de regresión exit 0 en las 4, sin diferencias numéricas.
+
+**Con este commit se completan los 8 hallazgos de bajo riesgo/alto valor... salvo uno**: queda pendiente `normalizePhase_0`/`normalizePhase_2` (código muerto en el núcleo, ver lista de arriba) — no incluido en este fix, es un hallazgo independiente.
+
 ## Próximos pasos
 
-Queda 1 hallazgo de bajo riesgo/alto valor: `tan`/`cot`/`tanh`/`coth` (recálculo doble de las mismas 4 llamadas trascendentales, identidades de ángulo doble lo reducen a la mitad). Después, los de riesgo medio (empezando por `divides`, del que depende el de `arctan`/`arctanh`), y por último las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código (`gamma_weiertrass`/`gamma_euler` como referencias lentas — ya no están rotas tras el Fix 5, siguen siendo alternativas lentas legítimas; y la cuadratura adaptativa general). **Lección de proceso para las fases siguientes** (aprendida en los Fix 3 y 5): al usar un criterio de convergencia como "fix de bajo riesgo", verificar SIEMPRE (a) si la parada debe ser con igualdad exacta para garantizar resultado idéntico, o (b) si se acepta un cambio, que el umbral de convergencia esté ligado al parámetro de precisión que el propio método ya expone al llamador (`getMaxDecimals()`, `numDec`, etc.) y no a un ajuste global de la librería.
+Quedan: `normalizePhase_0`/`normalizePhase_2` (bajo riesgo, código muerto — candidato rápido, mismo patrón que `*Red__`/`sqrroot__`), luego los de riesgo medio (empezando por `divides`, del que depende `arctan`/`arctanh`), y por último las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código (`gamma_weiertrass`/`gamma_euler` como referencias lentas — ya no rotas tras el Fix 5, siguen siendo alternativas lentas legítimas; y la cuadratura adaptativa general). **Lección de proceso acumulada** (Fix 3, 5 y 7): (a) al usar un criterio de convergencia, verificar SIEMPRE si debe ser igualdad exacta o si el umbral debe ligarse al parámetro de precisión que el método ya expone (no a un ajuste global); (b) antes de reusar una operación "de alto nivel" (`inverse()`, `divides()`, etc.) como atajo de optimización, verificar que no reintroduzca pasos (conversión polar↔rectangular) que rompan la pureza exacta o cambien la representación de casos frontera (polos, ejes) — no asumir que "matemáticamente equivalente" implica "bit a bit compatible con los casos límite ya establecidos".
 
 ---
 
