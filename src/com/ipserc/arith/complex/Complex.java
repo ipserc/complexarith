@@ -71,7 +71,7 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.17 (2026_0730_2027)";
+	private final static String VERSION = "1.18 (2026_0730_2031)";
 	/* VERSION Release Note
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {
@@ -1938,8 +1938,18 @@ public class Complex {
 	    if (DBval.isNaN()) return value;
 		if (DBval.isInfinite()) return value;
 
-	   //BigDecimal bd = new BigDecimal(Double.toString(value));
-	    BigDecimal bd = new BigDecimal(DBval);
+	    // new BigDecimal(double) (the previous code here) constructs from the EXACT binary value
+	    // of the double, which for most decimal literals has dozens of extra digits invisible in
+	    // the double's usual decimal rendering (e.g. 1.005 is actually
+	    // 1.00499999999999989341...). Rounding THAT with HALF_UP silently rounds down whenever the
+	    // "true" binary value sits just below the decimal boundary a caller would expect from the
+	    // number's usual printed form -- confirmed: round(1.005,2) gave 1.0 instead of 1.01, and
+	    // the same happened for 2.675/2, 0.145/2, 1.15/1, 0.35/1. Using the canonical decimal
+	    // string (Double.toString, matching what the number "looks like") rounds based on that
+	    // intended decimal value instead, which is what round(Complex,int)/roundRec/roundPol's
+	    // callers (Eigenspace/Polynom, deduplicating eigenvalues/roots by rounded value) and
+	    // limit()'s convergence check actually want.
+	    BigDecimal bd = new BigDecimal(Double.toString(value));
 	    bd = bd.setScale(decs, RoundingMode.HALF_UP);
 	    return bd.doubleValue();
 	}
