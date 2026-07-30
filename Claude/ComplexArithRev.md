@@ -414,10 +414,9 @@ Antes de pasar al paso 3 (extender la revisión a `MatrixComplex.java`/`VectorCo
 
 ## Catálogo completo de hallazgos (por orden de riesgo/esfuerzo)
 
-**Ya resueltos** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`; `round(double,int)` usando la representación binaria exacta en vez de la decimal; `zeta_havil` sin criterio de convergencia.
+**Ya resueltos** (ver más abajo): bug de aliasing en `integrateRE`/`integrateIM`; `round(double,int)` usando la representación binaria exacta en vez de la decimal; `zeta_havil` sin criterio de convergencia; `binomialCoef(int,int)` inestable numéricamente.
 
 **Bajo riesgo / alto valor, pendientes:**
-- `binomialCoef(int,int)`: inestable numéricamente (tres factoriales grandes — hasta `169!≈4.27e304`, cerca del límite de `double` — divididos) en vez del producto incremental de razones, la forma estándar estable; está en el bucle caliente de `zeta_havil`. **Nota tras arreglar `zeta_havil`**: esta inestabilidad se confirmó indirectamente al verificar ese fix — es la causa de que el `zeta_havil` original (170 iteraciones fijas) acumulara ruido de fondo en vez de solo converger limpiamente.
 - `gamma_weiertrass`/`gamma_euler`: bug de `switch` sin `break` en los casos 0-3, cae en cascada hasta el caso 4 (1M iteraciones) sin importar la precisión pedida — arreglo trivial (restaurar los `break`).
 - `zeta_reflex`: código muerto, incompleto (nunca referencia `zeta(1-s)`, variable local `s_one` calculada y nunca leída), cero callers, superado por `zeta_ext` — mismo patrón que `zeta_riemann_siegel`/`zeta_analytic_continuation`, eliminados esta sesión.
 - `tan`/`cot`/`tanh`/`coth`: recalculan las mismas 4 llamadas trascendentales dos veces (vía `sin(z).divides(cos(z))`); identidades de ángulo doble (`tan(x+iy)=(sin(2x)+i·sinh(2y))/(cos(2x)+cosh(2y))` y análoga para `tanh`) lo reducen a la mitad de coste sin perder precisión.
@@ -459,9 +458,15 @@ Confirmado con test: `round(1.005,2)` daba `1.0` en vez de `1.01`; también fall
 
 Verificado: comparado contra un build de referencia fresco desde `HEAD` en las 3 constantes + un barrido de 30 puntos — diferencias solo al nivel de ruido de FP ya descrito. Medido ~2x de mejora de rendimiento (3.29s vs 6.51s para 1600 llamadas de prueba). Batería de regresión exit 0 en las 4, sin diferencias en los tests deterministas (que no llaman a `zeta`).
 
+## Fix 4 — `binomialCoef(int,int)` con producto incremental estable (commit `439c243`)
+
+Calculaba `factorial(n)/factorial(k)/factorial(n-k)`, formando hasta tres números enormes de forma independiente (`169!≈4.27e304`, cerca del techo de `double`, ya que `zeta_havil` llama a este método con `n` hasta 169) cada uno acumulando hasta ~n errores de redondeo propios antes de la división final. Fix: producto incremental de razones `C(n,k)=Π_{i=1}^{k}(n-k+i)/i` (la forma estándar estable — el resultado parcial nunca crece más allá del propio valor final), eligiendo el menor de `k`/`n-k` para minimizar multiplicaciones.
+
+Verificado exhaustivamente contra el triángulo de Pascal exacto para `n=0..30` (todos los `k`): 0 discrepancias. Simetría exacta verificada en el rango relevante para `zeta_havil`: `binomialCoef(169,84)==binomialCoef(169,85)` bit a bit. Comparado contra el build anterior: idéntico para `n` pequeño, difiere en el último par de dígitos para `n` grande (169, 100) — ambos valores ya al límite de lo que un `double` puede representar para esa magnitud, ninguno es "el" valor exacto representable, pero el nuevo evita el camino con más ruido acumulado por construcción. Al alimentar `zeta_havil` (que ya corta con igualdad exacta), se propagan cambios adicionales de último dígito — esperado, mismo mecanismo que en el Fix 3. Batería de regresión exit 0 en las 4; `TestComplex07` (el único que ejercita `binomialCoef(int,int)` directamente, con `n`/`k` pequeños) idéntico salvo `VERSION` y ruido de caja ya documentado.
+
 ## Próximos pasos
 
-Quedan pendientes de la auditoría, por orden sugerido: los 4 hallazgos de bajo riesgo/alto valor que quedan (`binomialCoef(int,int)`, `gamma_weiertrass`/`gamma_euler` bug de `switch`, `zeta_reflex` código muerto, `tan`/`cot`/`tanh`/`coth` recálculo doble), luego los de riesgo medio (empezando por `divides`, del que depende el de `arctan`/`arctanh`), y por último las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código. **Lección de proceso para las fases siguientes**: al usar un criterio de convergencia como "fix de bajo riesgo", verificar SIEMPRE que la parada sea con igualdad exacta (no con `equals()`/tolerancia) si se quiere garantizar resultado idéntico — o, si se acepta un cambio a nivel de ruido de FP, medirlo y documentarlo explícitamente como se hizo aquí, no asumir que es "igual".
+Quedan pendientes de la auditoría, por orden sugerido: los 3 hallazgos de bajo riesgo/alto valor que quedan (`gamma_weiertrass`/`gamma_euler` bug de `switch`, `zeta_reflex` código muerto, `tan`/`cot`/`tanh`/`coth` recálculo doble), luego los de riesgo medio (empezando por `divides`, del que depende el de `arctan`/`arctanh`), y por último las 2 decisiones de alcance que requieren hablar con el usuario antes de tocar código. **Lección de proceso para las fases siguientes** (aprendida en el Fix 3): al usar un criterio de convergencia como "fix de bajo riesgo", verificar SIEMPRE que la parada sea con igualdad exacta (no con `equals()`/tolerancia) si se quiere garantizar resultado idéntico — o, si se acepta un cambio a nivel de ruido de FP, medirlo y documentarlo explícitamente como se hizo aquí, no asumir que es "igual".
 
 ---
 
