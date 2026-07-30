@@ -272,10 +272,41 @@ El usuario ha declarado una intención de alcance mayor que las sesiones anterio
 2. **Después**, acometer la reestructuración arquitectónica de `Complex.java` — con el proceso pesado (fork de exploración → `AskUserQuestion`/`EnterPlanMode` → implementación delegada), como se hizo en la Quinta sesión, no el workflow ligero.
 3. **Al final**, extender la revisión a las demás clases del proyecto.
 
-**Preguntas sin responder aún, para hacer nada más retomar** (se lanzaron vía `AskUserQuestion` pero el usuario cortó la sesión antes de contestar — no asumir respuesta, volver a preguntar):
-- Forma concreta de la reestructuración: ¿split en varias clases/paquete dentro de `com.ipserc.arith.complex` (aritmética core, parsing, formato, config/`State`, cajas ASCII, integración/límites, funciones especiales), o reorganización dentro de un único fichero, o dejar que Claude proponga 1-2 arquitecturas candidatas tras explorar el fichero completo?
-- ¿Es la API pública actual (usada por 7 clases de librería real — `MatrixComplex`, `Eigenspace`, `Polynom`, `Laplace`, `Fourier`, `Z`, `Spline` — y ~200 test files) una restricción dura a mantener intacta durante el refactor, o se puede actualizar callers si el diseño lo pide?
+**Preguntas que quedaron sin responder al cortar la sesión anterior — YA RESPONDIDAS al retomar (30 julio 2026):**
+- Forma de la reestructuración (para cuando se llegue al paso 2, no tocado aún): **split en paquete** — varias clases dentro de `com.ipserc.arith.complex` (aritmética core, parsing, formato, config/`State`, cajas ASCII, integración/límites, funciones especiales), no una reorganización de un único fichero ni dejarlo abierto a que Claude proponga arquitecturas.
+- API pública (usada por `MatrixComplex`, `Eigenspace`, `Polynom`, `Laplace`, `Fourier`, `Z`, `Spline` y ~200 test files): **mantenerla intacta** durante el refactor — ninguna firma pública debe romperse; si el diseño interno lo pide, resolver con métodos package-private/delegación en vez de tocar callers.
 
 ---
 
-*Última actualización de este bloque: sesión del 30 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`; sección "Quinta sesión de revisión" añadida tras el commit `dccaf1f`.*
+# SEXTA SESIÓN DE REVISIÓN DE `Complex.java` — 30 julio 2026 (paso 1: bugs/limpieza puntuales)
+
+> Continúa el "paso 1" acordado al final de la Quinta sesión (rematar bugs/limpieza puntuales documentados, workflow ligero, antes de la reestructuración arquitectónica). El usuario confirmó al retomar: empezar ya por el paso 1, y adoptar las dos recomendaciones de Claude para las preguntas de alcance del paso 2 (split en paquete + API pública intacta), ver sección anterior.
+
+## Qué se hizo
+
+1. **Limpieza de un falso positivo propio, verificado antes de tocar nada** (commit `1474c56`). Al revisar el punto de la lista de pendientes sobre reentrancia de `_BCK`, Claude creyó detectar un bug nuevo en `zeta(Complex)`: un bloque (`storeFormatStatus()`/`storePrecision()`/`setFixedON(8)`/`exact(true)`) que parecía código vivo camuflado tras un patrón de comentario `/* * /` ... `/* */` que Claude interpretó (mal) como autocerrado línea a línea, lo que habría significado una fuga de estado global permanente en cada llamada a `zeta()`. **El usuario pidió explícitamente verificar comentando el bloque y comparar resultados antes de asumir nada.** Verificado experimentalmente (build con el bloque tal cual vs. build con el bloque eliminado, 8 valores de `s` incluyendo casos frontera, comparando también el estado `EXACT`/`FIXED_NOTATION`/`MAX_DECIMALS` antes/después con `EXACT` forzado a `false`): **resultados idénticos en todos los casos**. Al revisar por qué, se confirmó que el error era de Claude contando caracteres: la línea `/* * /` NO se autocierra (el carácter antes de la barra final es un espacio, no un asterisco contiguo), así que el comentario permanece abierto hasta la siguiente línea `/* */`, que sí cierra con un `*/` contiguo — el bloque entero era comentario válido desde el principio, sin ningún efecto observable. Se eliminó como limpieza (comentario muerto, incluida la variable `_exact_` que ni se leía), sin cambio de comportamiento. **Lección: verificar experimentalmente contra el build original antes de reportar un hallazgo como bug real, tal y como pide el propio workflow — en este caso salvó de "arreglar" algo que no estaba roto.**
+2. **Bug de reentrancia de `_BCK` corregido en los 3 pares afectados** (commit `d8a9e85`): `storePrecision()`/`restorePrecision()`, `setRepres()`/`restoreRepres()` y `storeFormatStatus()`/`restoreFormatStatus()` (este último no estaba mencionado explícitamente en la lista de pendientes de la Quinta sesión, pero tenía el bug idéntico — el usuario confirmó incluirlo ya que se tocaba el mismo mecanismo). Los 3 pares usaban un único slot de backup (`*_BCK`) por bloque dentro de `State`; un store/restore anidado dentro de otro en el mismo hilo pisaba el backup de la llamada externa, y el restore externo devolvía el estado al valor intermedio en vez del original. Fix: cada bloque pasa a una pila (`ArrayDeque`) de snapshots inmutables (`PrecisionSnapshot`, `FormatSnapshot`, `Representation`) dentro de la misma `State` per-hilo; `store()` hace `push`, `restore()` hace `poll()` y aplica (o no hace nada si la pila está vacía, igual que antes cuando no había un store previo). Cambio de comportamiento deliberado y sin impacto real: `restoreRepres()` antes hacía un *swap* (togglear entre los dos últimos valores en llamadas consecutivas sin `setRepres()` de por medio); ahora hace un `pop` puro, consistente con los otros dos pares — revisado con grep en todo `src/` que ningún caller depende del toggle (siempre se usa en pares `store→restore`).
+
+## Verificación
+
+- **Caso no anidado** (el único que soportaba el diseño anterior): bit a bit idéntico al build de `HEAD` en los 3 pares.
+- **Caso anidado** (el bug en sí): store→cambiar→store anidado→cambiar→restore interno→restore externo devuelve correctamente al valor anterior al cambio externo, no al intermedio — verificado en `storePrecision`, `setRepres` y `storeFormatStatus`.
+- **Smoke test de concurrencia**: 8 hilos × 300 iteraciones con anidamiento real de `storePrecision`/`setRepres`, sin corrupción cruzada ni excepciones.
+- Batería de regresión (`TestComplex01/07`, `TestGamma01`, `TestZeta01`) exit 0 en las 4, sin diferencias numéricas más allá del ruido no determinista ya documentado.
+
+Ambos commits (`1474c56`, `d8a9e85`) tocan **solo** `src/com/ipserc/arith/complex/Complex.java` — verificado con `git diff --cached --stat` antes y después de cada `git add`.
+
+## Ideas pendientes actualizadas tras esta sesión (paso 1 en curso)
+
+- ~~Bug de reentrancia de `_BCK` (single slot, no pila) en `storePrecision`/`restorePrecision`/`setRepres`/`restoreRepres`~~ → **Resuelto en esta sesión, commit `d8a9e85`** (incluye también `storeFormatStatus`/`restoreFormatStatus`).
+- `zeta_riemann_siegel(s)`/`zeta_analytic_continuation(s)` — documentados, sin corregir (ver Bugs conocidos arriba). Pendiente del paso 1.
+- `limit_inf` sin cota de iteraciones — documentado, sin corregir. Pendiente del paso 1.
+- Bloque `boxTitle*`/`boxText*` (ASCII art) — nunca revisado por corrección. Pendiente del paso 1.
+- Trabajo de layout `double[]` / Vector API (`jdk.incubator.vector`) — no iniciado. Fuera del paso 1 (candidato para más adelante).
+- `MatrixComplex.java` y `VectorComplex.java` — no tocados ni revisados (paso 3, más adelante).
+- Reestructuración arquitectónica de `Complex.java` — no abordada (paso 2; decidido split en paquete + API pública intacta, ver arriba).
+- Limpieza de los 88 ficheros con line-endings+contenido mezclados (sesión de mantenimiento) — sigue pendiente, sin relación con el plan de `Complex.java`.
+
+---
+
+*Última actualización de este bloque: sesión del 30 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`; sección "Quinta sesión de revisión" añadida tras el commit `dccaf1f`; sección "Sexta sesión de revisión" añadida tras los commits `1474c56` y `d8a9e85` (paso 1 en curso, quedan 3 puntos: `zeta_riemann_siegel`/`zeta_analytic_continuation`, `limit_inf` sin cota, revisión de `boxTitle*`/`boxText*`).*
