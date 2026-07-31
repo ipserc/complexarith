@@ -18,8 +18,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.18 (2026_0731_2030)";
+	private final static String VERSION = "1.19 (2026_0731_2130)";
 	/* VERSION Release Note
+	 *
+	 * 1.19 (2026_0731_2130)
+	 * logTaylor()/logMercator()/logHat() (auditoria matematica, hallazgo 3): el
+	 * detector de divergencia ya existente (accumulator>500) devolvia
+	 * this.divides(Complex.ZERO) -- Infinity/NaN en silencio -- al dispararse.
+	 * Ahora lanza IllegalArgumentException. No arregla la convergencia en si
+	 * (decision de alcance explicita: el fix real, scaling-and-squaring inverso,
+	 * queda aplazado para otra sesion), solo deja de devolver basura sin avisar.
 	 *
 	 * 1.18 (2026_0731_2030)
 	 * Pivoteo parcial proactivo en inverse()/triangleUp()/triangleLo() (auditoria
@@ -2698,7 +2706,7 @@ public class MatrixComplex {
 						doPlot("-- DEVIATION --", dataTable, --c);
 					}
 					/* */
-					return this.divides(Complex.ZERO);
+					throw new IllegalArgumentException("logTaylor: The Taylor series log(1-x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
 				}
 				
 				/* * /
@@ -2817,7 +2825,7 @@ public class MatrixComplex {
 						trace("accumulator:" + accumulator);
 						doPlot("-- DEVIATION --", dataTable, --c);
 					}
-					return this.divides(Complex.ZERO);
+					throw new IllegalArgumentException("logMercator: The Mercator series log(1+x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
 				}
 			}
 			errAntMat = errMatrix.copy();
@@ -2885,10 +2893,10 @@ public class MatrixComplex {
 						trace("accumulator:" + accumulator);
 						doPlot("-- DEVIATION --", dataTable, --c);
 					}
-					return this.divides(Complex.ZERO);
+					throw new IllegalArgumentException("logHat: The Hyperbolic Arc Tangent series is divergent for this matrix.");
 				}
 			}
-			
+
 			errAnt = errMat.copy();
 		} while(k++ < maxIter);
 		if (__DEBUG__) {
