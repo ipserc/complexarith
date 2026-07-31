@@ -124,7 +124,7 @@ public class TestEigenV01 {
     	//aMatrix = new MatrixComplex("1,-1,0;9,3,1"); aMatrix = aMatrix.adjoint().times(aMatrix); doEigenCalculations(aMatrix);
     	//aMatrix = new MatrixComplex("-5,1,7,-15;-2,0,5,-7;1,-5,7,-3;4,-7,3,4");aMatrix = aMatrix.adjoint().times(aMatrix); doEigenCalculations(aMatrix);
     	//aMatrix = new MatrixComplex("-5,1,7,-14;-2,0,5,-7;1,-5,7,-3;4,-7,3,4"); doEigenCalculations(aMatrix);
-    	//aMatrix = new MatrixComplex(2); aMatrix.initMatrixRandomInteger(9); doEigenCalculations(aMatrix);
+    	//aMatrix = new MatrixComplex(2); aMatrix.initMatrixRandomInt(9); doEigenCalculations(aMatrix);
     	//aMatrix = new MatrixComplex("-1.0,0.0,-1.0,0.0;-1.0,0.0,-1.0,-1.0;0.0,0.0,0.0,0.0;0.0,-1.0,-1.0,-1.0"); doEigenCalculations(aMatrix);
     	//aMatrix = new MatrixComplex("3,2-i,-3i;2+i,0,1-i;3i,1+i,0"); doEigenCalculations(aMatrix);
     	//aMatrix = new MatrixComplex("1,2,0;-2,1,2;1,3,1"); doEigenCalculations(aMatrix);
@@ -214,7 +214,7 @@ public class TestEigenV01 {
      	doEigenCalculations(aMatrix);
 
      	aMatrix = new MatrixComplex(4); 
-     	aMatrix.initMatrixRandomInteger(4); 
+     	aMatrix.initMatrixRandomInt(4); 
      	doEigenCalculations(aMatrix);
 
      	System.out.println("\n\n__________________________________ Matriz HERMITICA __________________________________"); 

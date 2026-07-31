@@ -2,14 +2,11 @@ package com.ipserc.arith.matrixcomplex;
 
 import java.lang.Math;
 
-import javax.management.NotCompliantMBeanException;
-
 import com.ipserc.arith.combinatoric.*;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
 import com.ipserc.arith.polynom.*;
 import com.ipserc.arith.syseq.Syseq;
-import com.ipserc.arith.vector.Vector;
 import com.panayotis.gnuplot.JavaPlot;
 
 /**
@@ -21,9 +18,60 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.15 (2024_0408_1400)";
+	private final static String VERSION = "1.16 (2025_0131_2358)";
 	/* VERSION Release Note
 	 * 
+	 * 1.16 (2025_0131_2358)
+	 * 	private static double __log10__ = 2.30258509299405;
+	 * 	public static MatrixComplex log(MatrixComplex matrix)
+	 * 	public static MatrixComplex log10(MatrixComplex matrix)
+	 * 	public String toString()
+	 * 	public MatrixComplex sin()
+	 * 	public MatrixComplex cos()
+	 * 	public MatrixComplex tan()
+	 * 	public MatrixComplex sinh()
+	 * 	public MatrixComplex cosh()
+	 * 	public MatrixComplex tanh()
+	 * 	public MatrixComplex log()
+	 * 	public MatrixComplex logTaylor()
+	 * 	public MatrixComplex logMercator()
+	 * 	public MatrixComplex exp()
+	 * 	public MatrixComplex exp_()
+	 * 	public MatrixComplex minusMat(Complex cNum)
+	 * 	public MatrixComplex minusMat(double dNum)
+	 * 	public MatrixComplex minusMat(int iNum)
+	 * 	public MatrixComplex plusMat(Complex cNum)
+	 * 	public MatrixComplex plusMat(int iNum)
+	 * 	public MatrixComplex log()
+	 * 	public MatrixComplex ppower(int iExp)
+	 * 	public MatrixComplex ppower(double dExp)
+	 * 	public MatrixComplex ppower(Complex cExp)
+	 * 	public MatrixComplex ssin()
+	 * 	public static MatrixComplex ssin(MatrixComplex matrix)
+	 * 	public MatrixComplex ccos()
+	 * 	public static MatrixComplex ccos(MatrixComplex matrix)
+	 * 	public MatrixComplex ttan()
+	 * 	public static MatrixComplex ttan(MatrixComplex matrix)
+	 * 	public MatrixComplex ssinh()
+	 * 	public static MatrixComplex ssinh(MatrixComplex matrix)
+	 * 	public MatrixComplex ccosh()
+	 * 	public static MatrixComplex ccosh(MatrixComplex matrix)
+	 * 	public MatrixComplex ttanh()
+	 * 	public static MatrixComplex ttanh(MatrixComplex matrix)
+	 * 	public MatrixComplex llog()
+	 * 	public static MatrixComplex llog(MatrixComplex matrix)
+	 * 	public MatrixComplex llog10()
+	 * 	public static MatrixComplex llog10(MatrixComplex matrix)
+	 * 	public MatrixComplex llogbase(Complex base)
+	 * 	public MatrixComplex llogbase(double base)
+	 * 	public static MatrixComplex llogbase(MatrixComplex matrix, double base)
+	 *	public MatrixComplex minor(int rowPivot, int colPivot) {
+	 *	public MatrixComplex cofactors(int rowPivot, int colPivot) {
+	 *	public MatrixComplex orthogonalize()
+	 *	public MatrixComplex orthonormalize()
+	 *  public MatrixComplex kroneckerprod(MatrixComplex matrix) {
+	 * 
+	 *
 	 * 1.15 (2024_0408_1400)
 	 *  private MatrixComplex trigonTaylor(int sign)
 	 * 	private enum hyptrigon {SINH, COSH};
@@ -151,6 +199,18 @@ public class MatrixComplex {
 	 * solveGauss is now using the solveGauss2 Method. solveReduction and solveSubstition dosen't work right and are deprecated.
 	 */
 
+	/* 
+	 * ***********************************************
+	 * MATH & PROGRAM CONSTANTS 
+	 * ***********************************************
+	 */
+	private static double __log10__ = 2.30258509299405;
+
+	/* 
+	 * ***********************************************
+	 * INTERNAL FLAGS 
+	 * ***********************************************
+	 */
 	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangularization (Chio's rule)
 
 	/*
@@ -163,7 +223,7 @@ public class MatrixComplex {
 	 * Prints Class Version
 	 */
 	public static void version() {
-		System.out.println(HEADINFO + "VERSION:" + VERSION); 
+		trace("VERSION:" + VERSION); 
 	}
 	
 	/**
@@ -181,7 +241,7 @@ public class MatrixComplex {
 	 */
 	
 	private static boolean __DEBUG__ = false;
-
+	
 	public static void debugON() {
 		__DEBUG__ = true;
 	}
@@ -208,6 +268,18 @@ public class MatrixComplex {
 		return __DOPLOT__;
 	}
 
+	private static void trace(String cadena) {
+		if (__DEBUG__) System.out.println("--- TRACE --- " + HEADINFO + cadena);
+	}
+	
+	private static void trace(MatrixComplex mat, String cadena) {
+		if (__DEBUG__) mat.println("--- TRACE --- " + HEADINFO + cadena);		
+	}
+	
+	private static void trace(Complex complex, String cadena) {
+		if (__DEBUG__) complex.println("--- TRACE --- " + HEADINFO + cadena);		
+	}
+	
 	/*
 	 * ***********************************************
 	 * 	CONSTRUCTORS 
@@ -555,7 +627,7 @@ public class MatrixComplex {
 	 * Initializes an array with a complex number of real module between 0 and base in polar coordinates.
 	 * @param base Base to generate the number.
 	 */
-	public void initMatrixRandomInteger(int base) {
+	public void initMatrixRandomInt(int base) {
 		this.initMatrixRandom('B', base);
 	}
 
@@ -609,6 +681,10 @@ public class MatrixComplex {
 	/*
 	 * ***********************************************
 	 * ALGEBRAIC BASIS
+	 * REMOVED
+	 * No tiene sentido manejar bases en MatrixComplex
+	 * Se reprograman en la clase Vector
+	 * REMOVED
 	 * ***********************************************
 	 */
 
@@ -616,7 +692,7 @@ public class MatrixComplex {
 	 * Creates a base of a vector space.
 	 * Allows the input of a set vectors written by rows, the base. 
 	 * @param str the base vectors.
-	 */
+	 * /
 	public void base(String str) {
 		MatrixComplex setOfVectors = new MatrixComplex(str); 
 		this.complexMatrix = setOfVectors.complexMatrix.clone(); 
@@ -625,10 +701,13 @@ public class MatrixComplex {
 	/**
 	 * Calculates an orthonormal base associated to the first row component of the matrix
 	 * @return the orthonormal base
-	 */
+	 * /	
 	public MatrixComplex base() {
+		/*
 		MatrixComplex vectorBase = new MatrixComplex(this.rows(), this.cols());
 		vectorBase.initMatrixDiag(1, 0);
+		* /
+		MatrixComplex vectorBase = MatrixComplex.eye(this.rows());
 		MatrixComplex normal = this.getRow(0).normalize();
 		//Check for unitary vector and gets its position
 		Complex sum = new Complex();
@@ -651,7 +730,7 @@ public class MatrixComplex {
 	 * Allows the input of a set vectors written by rows, the base. 
 	 * @param str the base vectors.
 	 * @return The new matrix with the base.
-	 */
+	 * /
 	public MatrixComplex newBase(String str) {
 		MatrixComplex setOfVectors = new MatrixComplex(str);
 		return setOfVectors;
@@ -859,11 +938,13 @@ public class MatrixComplex {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		String toString = new String();
+		String itemStr;
 		for (int row = 0; row < rowLen; ++row) {
 			toString += "[ ";
 			for (int col = 0; col < colLen; ++col) {
-				//toString += (this.complexMatrix[row][col].rep()+"").charAt(0) == '-' ? "" : " " ;
-				toString += this.complexMatrix[row][col];
+				itemStr = this.complexMatrix[row][col].toString();
+				//toString += itemStr.charAt(0)== '-' ? itemStr : __NUMPAD__ + itemStr ;
+				toString += itemStr;
 				toString += (col == colLen-1 ? " ]" : " , ");
 			}
 			toString += (row == rowLen-1 ? "" : "\n");
@@ -1131,7 +1212,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Copies the value of the "copyRow" column of "origMatrix" in the "destRow" column of this.
+	 * Copies the value of the "copyRow" row of "origMatrix" in the "destRow" row of this.
 	 * @param destRow target copy row.
 	 * @param origMatrix Matrix in which values are copied.
 	 * @param copyRow index to the row to be copied.
@@ -1289,6 +1370,26 @@ public class MatrixComplex {
 	}
 	
 	/**
+	 * This method returns the sum for this plus dNum*I, where I is the identity matrix.
+	 * @param dNum the real number to construct the diagonal matrix dNum*I.
+	 * @return The matrix resulting from the matrices sum.
+	 */
+	public MatrixComplex plusMat(double dNum) {
+		Complex cNum = new Complex(dNum, 0);
+		return plusMat(cNum);
+	}
+	
+	/**
+	 * This method returns the sum for this plus iNum*I, where I is the identity matrix.
+	 * @param iNum the integer number to construct the diagonal matrix iNum*I.
+	 * @return The matrix resulting from the matrices sum.
+	 */
+	public MatrixComplex plusMat(int iNum) {
+		Complex cNum = new Complex(iNum, 0);
+		return plusMat(cNum);
+	}
+	
+	/**
 	 * This method returns the sum for this plus cNum*I, where I is the identity matrix.
 	 * @param cNum the complex number in String format to construct the diagonal matrix cNum*I.
 	 * @return The matrix resulting from the matrices sum.
@@ -1375,6 +1476,26 @@ public class MatrixComplex {
 		cNumMat.initMatrixDiag(cNum);
 		
 		return this.minus(cNumMat);
+	}
+
+	/**
+	 * This method returns the difference for this minus dNum*I, where I is the identity matrix.
+	 * @param dNum the real number to construct the diagonal matrix dNum*I.
+	 * @return The matrix resulting from the matrices difference.
+	 */
+	public MatrixComplex minusMat(double dNum) {
+		Complex cNum = new Complex(dNum, 0);
+		return minusMat(cNum);
+	}
+	
+	/**
+	 * This method returns the difference for this minus iNum*I, where I is the identity matrix.
+	 * @param iNum the integer number to construct the diagonal matrix iNum*I.
+	 * @return The matrix resulting from the matrices difference.
+	 */
+	public MatrixComplex minusMat(int iNum) {
+		Complex cNum = new Complex(iNum, 0);
+		return minusMat(cNum);		
 	}
 	
 	/**
@@ -1480,7 +1601,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the left division of two arrays as thisâ�»Â¹*cMatrix
+	 * Calculates the left division of two arrays as this⁻¹*cMatrix
 	 * @param cMatrix The matrix to divide
 	 * @return The left division
 	 */
@@ -1491,7 +1612,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the right division of two arrays as this*cMatrixâ�»Â¹
+	 * Calculates the right division of two arrays as this*cMatrix⁻¹
 	 * @param cMatrix The matrix used as divisor
 	 * @return The right division
 	 */
@@ -1502,20 +1623,61 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the power of a Matrix, power can be positive or negative
+	 * Calculates the power of a Matrix raised to an integer, power can be positive or negative
+	 * @param power The power at which the matrix is raised. Only integers are allowed
+	 * @return The matrix raised to power
+	 */
+	public MatrixComplex power(int iExp) {
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+    		trace("Power() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, this.getItem(i, i).power(iExp));
+			return powerMat;
+		}
+
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Power() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Dmat.getItem(i, i).power(iExp));
+    			trace(Dmat, "Dmat");
+            	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Power() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+    	
+    	// Finally use the Taylor Expansion
+		trace("Power() using the Taylor expansion");
+    	return power_(iExp);
+	}
+
+	/**
+	 * Calculates the power to iExp item to item of this matrix
+	 * @param iExp The integer exponent 
+	 * @return The power to iExp item to item of this matrix
+	 */
+	public MatrixComplex ppower(int iExp) {
+		MatrixComplex powerMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < powerMat.rows(); ++row)
+			for (int col = 0; col < powerMat.cols(); ++col)
+				powerMat.setItem(row, col, this.getItem(row, col).power(iExp));
+		return powerMat;
+	}
+	
+	/**
+	 * Calculates the power of a Matrix raised to an integer, power can be positive or negative
 	 * @param power The power at which the matrix is â€‹â€‹raised. Only integers are allowed
 	 * @return The matrix raised to power
 	 */
-	public MatrixComplex power(int power) {
+	public MatrixComplex power_(int power) {
 		boolean inverse = false;
-		
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-			MatrixComplex powerMat = this.copy();
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, this.getItem(i, i).power(power));
-			return powerMat;
-		}
 		
 		MatrixComplex powerMatrix = new MatrixComplex(this.rows(), this.cols());
 		powerMatrix.initMatrixDiag(1, 0);
@@ -1538,21 +1700,117 @@ public class MatrixComplex {
 		else
 			return powerMatrix;
 	}
+	
+	/**
+	 * Calculates the power of a Matrix raised to a real number
+	 * @param dExpo
+	 * @return
+	 */
+	public MatrixComplex power(double dExpo) {
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+    		trace("Power() of diagonal matrix");
+			MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, this.getItem(i, i).power(dExpo));
+			return powerMat;
+		}
+		
+		/* ************************************************************************		
+		if(Math.ceil(dExpo) == Math.floor(dExpo)) {
+			int iExpo = (int)Math.floor(dExpo);
+			return this.power(iExpo);
+		}
+		************************************************************************ */
+		
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Power() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Dmat.getItem(i, i).power(dExpo));
+			trace(Dmat, "Dmat");
+        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Power() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+    	
+		trace("Power() using MatrixComplex.exp((this.log()).times(dExpo))");
+		return MatrixComplex.exp((this.log()).times(dExpo));
+	}
 
 	/**
-	 * 
+	 * Calculates the power to dExp item to item of this matrix
+	 * @param dExp The real exponent 
+	 * @return The power to dExp item to item of this matrix
+	 */
+	public MatrixComplex ppower(double dExp) {
+		MatrixComplex powerMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < powerMat.rows(); ++row)
+			for (int col = 0; col < powerMat.cols(); ++col)
+				powerMat.setItem(row, col, this.getItem(row, col).power(dExp));
+		return powerMat;
+	}
+		
+	/**
+	 * Calculates the power to cExp item to item of this matrix
+	 * @param cExp The complex exponent 
+	 * @return The power to cExp item to item of this matrix
+	 */
+	public MatrixComplex ppower(Complex cExp) {
+		MatrixComplex powerMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < powerMat.rows(); ++row)
+			for (int col = 0; col < powerMat.cols(); ++col)
+				powerMat.setItem(row, col, this.getItem(row, col).power(cExp));
+		return powerMat;
+	}
+
+	/**
+	 * Calculates the power of a Matrix raised to a complex number
 	 * @param cExpo
 	 * @return
 	 */
-	public MatrixComplex power(Complex cExpo) {
+	public MatrixComplex power(Complex cExpo) {		
 		// Take advantage from diagonal matrices
 		if (this.isDiagonal()) {
-			MatrixComplex powerMat = this.copy();
+    		trace("Power() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
 			for (int i = 0; i < this.rows(); ++i)
 				powerMat.setItem(i, i, this.getItem(i, i).power(cExpo));
 			return powerMat;
 		}
-		
+
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Power() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Dmat.getItem(i, i).power(cExpo));
+			trace(Dmat, "Dmat");
+        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Power() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+
+    	// Finally use the taylor Expansion
+		trace("Power() using the Taylor expansion");
+    	return power_(cExpo);
+	}
+
+	/**
+	 * Calculates the power of a Matrix raised to a complex number
+	 * @param cExpo
+	 * @return
+	 */
+	public MatrixComplex power_(Complex cExpo) {	
 		if (cExpo.isPureReal()) {
 			double dExpo = cExpo.rep();
 			return this.power(dExpo);
@@ -1560,30 +1818,7 @@ public class MatrixComplex {
 		
 		return MatrixComplex.exp((this.log()).times(cExpo));
 	}
-
-	/**
-	 * 
-	 * @param dExpo
-	 * @return
-	 */
-	public MatrixComplex power(double dExpo) {
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-			MatrixComplex powerMat = this.copy();
-			
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, this.getItem(i, i).power(dExpo));
-			return powerMat;
-		}
-		
-		if(Math.ceil(dExpo) == Math.floor(dExpo)) {
-			int iExpo = (int)Math.floor(dExpo);
-			return this.power(iExpo);
-		}
-		
-		return MatrixComplex.exp((this.log()).times(dExpo));
-	}
-
+	
 	/**
 	 * Complex Matrix raised to a Complex Matrix 
 	 * @param mcExpo
@@ -1622,13 +1857,47 @@ public class MatrixComplex {
 	 * @return The value of e^this
 	 */
 	public MatrixComplex exp() {
-		if (__DEBUG__) System.out.println("------------ exp() ------------ ");
+		trace("------------ exp() ------------ ");
 		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
 		if (this.rows() != this.cols()) {
 			System.err.println("Not valid matrix: The matrix has to be square.");
 			System.exit(1);
 		}
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+    		trace("Exp() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, Complex.exp(getItem(i, i)));
+			return powerMat;
+		}
 
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+    		trace("Exp() using diagonalization P·D·P⁻¹");
+	        trace(dmat.P(), "Matrix P");
+	        trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Complex.exp(Dmat.getItem(i, i)));
+    		trace(Dmat, "Dmat");
+            trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Exp() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+
+    	// Finally use the taylor Expansion
+		trace("Exp() using the Taylor expansion");
+    	return this.exp_();
+	}
+	
+	/**
+	 * Calculates the exponential of the matrix (e^this)
+	 * This calculation is achieved using the Taylor's series of the exponential extended for complex matrices
+	 * @return The value of e^this
+	 */
+	public MatrixComplex exp_() {
 		MatrixComplex expMatrix = new MatrixComplex(this.rows(), this.cols());
 		MatrixComplex expMatant;
 		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
@@ -1651,14 +1920,12 @@ public class MatrixComplex {
 			expMatrix = expMatrix.plus(powMatrix.divides(fact));
 			errMatrix = expMatant.minus(expMatrix);
 			errMatrix.abs();
-			// errMatrix.println("public MatrixComplex exp() - errmatrix:");
+			trace(errMatrix, "public MatrixComplex exp() - errmatrix:");
 			if (errMatrix.isNaN()) break;
 			if (errMatrix.isNullC()) break;
 		} while(k < maxIter);
 		
-		if (__DEBUG__) {
-			System.out.println("Iterations to converge:" + k);
-		}
+		trace("Iterations to converge:" + k);
 
 		return expMatrix.power(cNorma);
 	}
@@ -1718,9 +1985,7 @@ public class MatrixComplex {
 			if (errMatrix.isNullC()) break;
 		} while(++k < maxIter);
 		
-		if (__DEBUG__) {
-			System.out.println("Iterations to converge:" + k);
-		}
+		trace("Iterations to converge:" + k);
 		
 		return trigonMatrix;
 	}
@@ -1753,6 +2018,32 @@ public class MatrixComplex {
 	 * @return The value of sin()
 	 */	
 	public MatrixComplex sin() {
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+    		trace("Sin() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, Complex.sin(this.getItem(i, i)));
+			return powerMat;
+		}
+
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Sin() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Complex.sin(Dmat.getItem(i, i)));
+			trace(Dmat, "Dmat");
+        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Sin() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+
+    	// Finally use the taylor Expansion
+		trace("Sin() using the Taylor expansion");
 		return this.sinTaylor();
 	}
 
@@ -1763,6 +2054,33 @@ public class MatrixComplex {
 	 */
 	public static MatrixComplex sin(MatrixComplex matrix) {
 		return matrix.sin();
+	}
+	
+	/**
+	 * Calculates the sin item to item of this matrix  
+	 * @return The sin item to item of this matrix
+	 */
+	public MatrixComplex ssin() {
+		MatrixComplex sinMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < sinMat.rows(); ++row)
+			for (int col = 0; col < sinMat.cols(); ++col)
+				sinMat.setItem(row, col, Complex.sin(this.getItem(row, col)));
+		return sinMat;
+	}
+			
+	/**
+	 * Calculates the sin item to item of the matrix ssin(matrix)
+	 * @param matrix
+	 * @return The sin item to item of matrix
+	 */
+	public static MatrixComplex ssin(MatrixComplex matrix) {
+		MatrixComplex sinMat = new MatrixComplex(matrix.rows(), matrix.cols());
+		
+		for (int row = 0; row < sinMat.rows(); ++row)
+			for (int col = 0; col < sinMat.cols(); ++col)
+				sinMat.setItem(row, col, Complex.sin(matrix.getItem(row, col)));
+		return sinMat;
 	}
 	
 	/**
@@ -1793,6 +2111,32 @@ public class MatrixComplex {
 	 * @return The value of cos()
 	 */	
 	public MatrixComplex cos() {
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+			trace("Cos() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, Complex.cos(this.getItem(i, i)));
+			return powerMat;
+		}
+
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Cos() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Complex.cos(Dmat.getItem(i, i)));
+			trace(Dmat, "Dmat");
+        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "cos() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+
+    	// Finally use the taylor Expansion
+		trace("Cos() using the Taylor expansion");
 		return this.cosTaylor();
 	}
 
@@ -1804,6 +2148,35 @@ public class MatrixComplex {
 	public static MatrixComplex cos(MatrixComplex matrix) {
 		return matrix.cos();
 	}
+
+	
+	/**
+	 * Calculates the cos item to item of this matrix  
+	 * @return The cos item to item of this matrix
+	 */
+	public MatrixComplex ccos() {
+		MatrixComplex cosMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < cosMat.rows(); ++row)
+			for (int col = 0; col < cosMat.cols(); ++col)
+				cosMat.setItem(row, col, Complex.cos(this.getItem(row, col)));
+		return cosMat;
+	}
+			
+	/**
+	 * Calculates the cos item to item of the matrix ccos(matrix)
+	 * @param matrix
+	 * @return The cos item to item of matrix
+	 */
+	public static MatrixComplex ccos(MatrixComplex matrix) {
+		MatrixComplex cosMat = new MatrixComplex(matrix.rows(), matrix.cols());
+		
+		for (int row = 0; row < cosMat.rows(); ++row)
+			for (int col = 0; col < cosMat.cols(); ++col)
+				cosMat.setItem(row, col, Complex.sin(matrix.getItem(row, col)));
+		return cosMat;
+	}
+
 	
 	/**
 	 * Calculates the tan of the matrix tanTaylor()
@@ -1842,8 +2215,35 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Euler's formula eâ�±Ë£=cos(x)+iâ‹…sin(x)
-	 * @return Euler's formula eâ�±Ë£
+	 * Calculates the tan item to item of this matrix  
+	 * @return The tan item to item of this matrix
+	 */
+	public MatrixComplex ttan() {
+		MatrixComplex tanMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < tanMat.rows(); ++row)
+			for (int col = 0; col < tanMat.cols(); ++col)
+				tanMat.setItem(row, col, Complex.tan(this.getItem(row, col)));
+		return tanMat;
+	}
+			
+	/**
+	 * Calculates the tan item to item of the matrix ttan(matrix)
+	 * @param matrix
+	 * @return The tan item to item of matrix
+	 */
+	public static MatrixComplex ttan(MatrixComplex matrix) {
+		MatrixComplex tanMat = new MatrixComplex(matrix.rows(), matrix.cols());
+		
+		for (int row = 0; row < tanMat.rows(); ++row)
+			for (int col = 0; col < tanMat.cols(); ++col)
+				tanMat.setItem(row, col, Complex.tan(matrix.getItem(row, col)));
+		return tanMat;
+	}	
+	
+	/**
+	 * Euler's formula e^[+/-]x=cos(x)[+/-]i·sin(x)
+	 * @return Euler's formula e^x
 	 */
 	public MatrixComplex euler() {	
 		MatrixComplex normalThis = this.normalize2PI();
@@ -1851,9 +2251,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Euler's formula eâ�±Ë£ 
+	 * Euler's formula e^[+/-]x=cos(x)[+/-]i·sin(x)
 	 * @param matrix
-	 * @return Euler's formula eâ�±Ë£
+	 * @return Euler's formula e^x
 	 */
 	public static MatrixComplex euler(MatrixComplex matrix) {
 		MatrixComplex normalThis = matrix.normalize2PI();
@@ -1898,10 +2298,7 @@ public class MatrixComplex {
 			if (errMatrix.isNullC()) break;
 		} while(++k < maxIter);
 		
-		if (__DEBUG__) {
-			System.out.println("Iterations to converge:" + k);
-		}
-	
+		trace("Iterations to converge:" + k);	
 		return trigHypMatrix;
 	}
 
@@ -1929,6 +2326,32 @@ public class MatrixComplex {
 	 * @return The value of sinh()
 	 */	
 	public MatrixComplex sinh() {
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+			trace("Sinh() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, Complex.sinh(this.getItem(i, i)));
+			return powerMat;
+		}
+
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Sinh() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Complex.sinh(Dmat.getItem(i, i)));
+			trace(Dmat, "Dmat");
+        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Sinh() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+
+    	// Finally use the taylor Expansion
+		trace("Sinh() using the Taylor expansion");
 		return this.sinhTaylor();
 	}
 
@@ -1939,6 +2362,33 @@ public class MatrixComplex {
 	 */
 	public static MatrixComplex sinh(MatrixComplex matrix) {
 		return matrix.sinh();
+	}
+	
+	/**
+	 * Calculates the sinh item to item of this matrix  
+	 * @return The sinh item to item of this matrix
+	 */
+	public MatrixComplex ssinh() {
+		MatrixComplex sinhMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < sinhMat.rows(); ++row)
+			for (int col = 0; col < sinhMat.cols(); ++col)
+				sinhMat.setItem(row, col, Complex.sinh(this.getItem(row, col)));
+		return sinhMat;
+	}
+			
+	/**
+	 * Calculates the sinh item to item of the matrix ssinh(matrix)
+	 * @param matrix
+	 * @return The sinh item to item of matrix
+	 */
+	public static MatrixComplex ssinh(MatrixComplex matrix) {
+		MatrixComplex sinhMat = new MatrixComplex(matrix.rows(), matrix.cols());
+		
+		for (int row = 0; row < sinhMat.rows(); ++row)
+			for (int col = 0; col < sinhMat.cols(); ++col)
+				sinhMat.setItem(row, col, Complex.sinh(matrix.getItem(row, col)));
+		return sinhMat;
 	}
 	
 	/**
@@ -1965,6 +2415,32 @@ public class MatrixComplex {
 	 * @return The value of cosh()
 	 */	
 	public MatrixComplex cosh() {
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+			trace("Cosh() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, Complex.cosh(this.getItem(i, i)));
+			return powerMat;
+		}
+
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Cosh() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Complex.cosh(Dmat.getItem(i, i)));
+			trace(Dmat, "Dmat");
+        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Cosh() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+
+    	// Finally use the taylor Expansion
+		trace("Cosh() using the Taylor expansion");
 		return this.coshTaylor();
 	}
 
@@ -1977,6 +2453,33 @@ public class MatrixComplex {
 		return matrix.cosh();
 	}
 
+	/**
+	 * Calculates the cosh item to item of this matrix  
+	 * @return The cosh item to item of this matrix
+	 */
+	public MatrixComplex ccosh() {
+		MatrixComplex coshMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < coshMat.rows(); ++row)
+			for (int col = 0; col < coshMat.cols(); ++col)
+				coshMat.setItem(row, col, Complex.cosh(this.getItem(row, col)));
+		return coshMat;
+	}
+			
+	/**
+	 * Calculates the cosh item to item of the matrix ccosh(matrix)
+	 * @param matrix
+	 * @return The cosh item to item of matrix
+	 */
+	public static MatrixComplex ccosh(MatrixComplex matrix) {
+		MatrixComplex coshMat = new MatrixComplex(matrix.rows(), matrix.cols());
+		
+		for (int row = 0; row < coshMat.rows(); ++row)
+			for (int col = 0; col < coshMat.cols(); ++col)
+				coshMat.setItem(row, col, Complex.cosh(matrix.getItem(row, col)));
+		return coshMat;
+	}
+	
 	/**
 	 * Calculates the hyperbolic tan of the matrix tanhTaylor()
 	 * This calculation uses the Taylor's series of the sin and cos extended for complex matrices
@@ -2003,6 +2506,32 @@ public class MatrixComplex {
 	 * @return The value of tanh()
 	 */
 	public MatrixComplex tanh() {
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+			trace("Tanh() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, Complex.tanh(this.getItem(i, i)));
+			return powerMat;
+		}
+
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Tanh() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Complex.tanh(Dmat.getItem(i, i)));
+			trace(Dmat, "Dmat");
+        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Tanh() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+
+    	// Finally use the taylor Expansion
+		trace("Tanh() using the Taylor expansion");
 		return this.tanhTaylor();
 	}
 
@@ -2016,12 +2545,39 @@ public class MatrixComplex {
 	}
 
 	/**
+	 * Calculates the tanh item to item of this matrix  
+	 * @return The tanh item to item of this matrix
+	 */
+	public MatrixComplex ttanh() {
+		MatrixComplex tanhMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < tanhMat.rows(); ++row)
+			for (int col = 0; col < tanhMat.cols(); ++col)
+				tanhMat.setItem(row, col, Complex.tanh(this.getItem(row, col)));
+		return tanhMat;
+	}
+			
+	/**
+	 * Calculates the tanh item to item of the matrix ttanh(matrix)
+	 * @param matrix
+	 * @return The tanh item to item of matrix
+	 */
+	public static MatrixComplex ttanh(MatrixComplex matrix) {
+		MatrixComplex tanhMat = new MatrixComplex(matrix.rows(), matrix.cols());
+		
+		for (int row = 0; row < tanhMat.rows(); ++row)
+			for (int col = 0; col < tanhMat.cols(); ++col)
+				tanhMat.setItem(row, col, Complex.tanh(matrix.getItem(row, col)));
+		return tanhMat;
+	}
+	
+	/**
 	 * Calculates the logarithm of a Matrix using Taylor's Extension summation log(1 - x)
 	 * @return The logarithm of a Matrix using Taylor's Extension 
 	 * https://es.wikipedia.org/wiki/Logaritmo_de_una_matriz
 	 */
 	public MatrixComplex logTaylor() {
-		if (__DEBUG__) System.out.println("------------ logtaylor() ------------ ");
+		trace("------------ logtaylor() ------------ ");
 		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
 		if (!this.isSquare()) {
 			System.err.println("Not valid matrix: The matrix has to be square.");
@@ -2034,19 +2590,12 @@ public class MatrixComplex {
 		 * 1st Transformation
 		 * Applying a reduction to reduce the 
 		 * overflow error risk 
-		 * ***************************************/		
-		int m = 0;
-		/**/
-		while (yMatrix.euc_norm() > .01) {
-			++m;
-			yMatrix = yMatrix.divides(Math.E);
-		}
+		* ***************************************/		
+		double factor = yMatrix.euc_norm();
+		yMatrix = yMatrix.divides(factor);
 
-		if (__DEBUG__) {
-			yMatrix.println("1st Transformation : Taylor's Extension log(1 - x) - yMatrix reduced "+ m +" times:");
-			System.out.println("yMatrix.euc_norm(): " + yMatrix.euc_norm());
-		}
-		/**/
+		trace(yMatrix, "1st Transformation : Taylor's Extension log(1 - x) - yMatrix reduced by factor:" + factor);
+		trace("yMatrix.euc_norm(): " + factor);
 
 		/* *************************************************
 		 * Taylor's Extension log(1 - x)
@@ -2059,27 +2608,10 @@ public class MatrixComplex {
 		 * *************************************************/
 		MatrixComplex thisMatrix = yMatrix.minusMat(1,0).opposite();
 
-		if (__DEBUG__) {
-			thisMatrix.println("2nd Transformation : thisMatrix:");
-			System.out.println("thisMatrix.euc_norm(): " +thisMatrix.euc_norm());
-		}
+		trace(thisMatrix, "2nd Transformation : thisMatrix:");
+		trace("thisMatrix.euc_norm(): " + thisMatrix.euc_norm());
 		
-		/* ***************************************
-		 * 3rd Transformation
-		 * Applying a reduction to bring the matrix 
-		 * to the region of convergence. NOT REALLY 
-		 * ***************************************/		
-		/** /
-		int n = 0;
-		while (thisMatrix.euc_norm() > .01) {
-			++n;
-			thisMatrix = thisMatrix.divides(Math.E);
-		}
-		if (__DEBUG__) thisMatrix.println("Taylor's Extension log(1 - x) - thisMatrix reduced "+ n +" times:");
-		thisMatrix.println("3rd thisMatrix reduced "+ n +" times:");
-		/**/
-
-		// These are the values for the 1st item of the summation
+		// These are the values for the 1st item of the summation. The first item of the expansion
 		// In this case we use the summation opposite. At the end we need to return the opposite
 		MatrixComplex logMatrix = thisMatrix.copy();
 		MatrixComplex powMatrix = thisMatrix.copy();
@@ -2096,7 +2628,7 @@ public class MatrixComplex {
 		double[][] dataTable = new double[maxPoints][2];
 		int c = 0;
 		double accumulator = 0.0;
-		double deviation;
+		Double deviation = 0.0;
 		
 		do {
 			logMatant = logMatrix.copy();
@@ -2110,32 +2642,68 @@ public class MatrixComplex {
 			 * Check convergence section
 			 */
 			if ( k > 100 ) {
+				
+				/* * /
+				logMatrix.println("- - - DEBUG · logMatrix:");
+				if ( errMatrix.norm() > 2 ) {
+					logMatrix.println("- - - DEBUG · logMatrix:");
+					System.out.println("- - - DEBUG · errMatrix.norm():" + errMatrix.norm());
+					System.out.println("- - - DEBUG · errAntMat.norm():" + errAntMat.norm());
+				}
+				/* */
+				
 				deviation = errMatrix.norm()/errAntMat.norm();
-				accumulator += deviation > 1 ? deviation: 0.0;
+				accumulator += deviation > 1 ? deviation : 0.0;
 				if (c < maxPoints) {
 					dataTable[c][0] = k;
 					dataTable[c++][1] = deviation;
 				}
+				/* */ 
 				if (accumulator > 500) {
+					/* * /
 					if (__DEBUG__) {
-						System.out.println("Iteration:"+ k +" - The logarithm is divergent");
-						System.out.println("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable);
+						System.out.println("- - - DEBUG · Iteration:"+ k +" - The logarithm is divergent");
+						System.out.println("- - - DEBUG · accumulator:" + accumulator);
+						System.out.println("- - - DEBUG · last deviation:" + deviation);
+						doPlot("-- DEVIATION --", dataTable, --c);
 					}
+					/* */
 					return this.divides(Complex.ZERO);
 				}
+				
+				/* * /
+				if (__DEBUG__) { 
+					if ( deviation > 0) System.out.println("- - - DEBUG · Iteration:"+ k);
+					System.out.println("- - - DEBUG · deviation:" + deviation);
+				}
+				/* */
+				
+				/* */
 			}
 			errAntMat = errMatrix.copy();
+			if ( deviation.isInfinite() ) break;
 			/*
 			 * End of  Check convergence section
 			 */
 		} while(k++ < maxIter);
+		
+		/* * /
 		if (__DEBUG__) {
-			System.out.println("Iterations to converge:" + k);
-			System.out.println("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable);
+			System.out.println("- - - DEBUG · Iterations to converge:" + k);
+			System.out.println("- - - DEBUG · accumulator:" + accumulator);
+			System.out.println("- - - DEBUG · last deviation:" + deviation);
+			doPlot("-- DEVIATION --", dataTable, --c);
 		}
-		return logMatrix.opposite().plusMat(m,0);
+		/* */
+		
+		/* * /
+		if (__DEBUG__) {
+			logMatrix.println("--- CHECK logMatrix:");
+			logMatrix.opposite().println("--- CHECK logMatrix.opposite():");
+			logMatrix.opposite().plusMat(m,0).println("--- CHECK logMatrix.opposite().plusMat(m,0)");
+		/* */
+		
+		return logMatrix.opposite().plusMat(Math.log(factor));
 	}
 	
 	/** 
@@ -2143,7 +2711,7 @@ public class MatrixComplex {
 	 * @return The logarithm of a Matrix using Mercator's Extension 
 	 */
 	public MatrixComplex logMercator() {
-		if (__DEBUG__) System.out.println("------------ logMercator() ------------ ");
+		trace("------------ logMercator() ------------ ");
 		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
 		if (!this.isSquare()) {
 			System.err.println("Not valid matrix: The matrix has to be square.");
@@ -2151,23 +2719,18 @@ public class MatrixComplex {
 		}
 
 		MatrixComplex yMatrix = this.copy();
-		if (__DEBUG__) yMatrix.determinant().println("[log()] - Determinant:");
+		trace(yMatrix.determinant(), "[log()] - Determinant:");
 
 		/* ***************************************
 		 * 1st Transformation
 		 * Applying a reduction to reduce the 
 		 * overflow error risk 
 		 * ***************************************/		
-		int m = 0;
-		while (yMatrix.euc_norm() > .01) {
-			++m;
-			yMatrix = yMatrix.divides(Math.E);
-		}
+		double factor = yMatrix.euc_norm();
+		yMatrix = yMatrix.divides(factor);
 
-		if (__DEBUG__) {
-			yMatrix.println("1st Transformation : Mercator's Extension log(1 + x) - yMatrix reduced "+ m +" times:");
-			System.out.println("yMatrix.euc_norm(): " +yMatrix.euc_norm());
-		}
+		trace(yMatrix, "1st Transformation : Taylor's Extension log(1 - x) - yMatrix reduced by factor:" + factor);
+		trace("yMatrix.euc_norm(): " + factor);
 
 		/* *************************************************
 		 * Mercator's Extension log(1 + x)
@@ -2180,10 +2743,8 @@ public class MatrixComplex {
 		 * *************************************************/
 		MatrixComplex thisMatrix = yMatrix.minusMat(1,0);
 	
-		if (__DEBUG__) {
-			thisMatrix.println("2nd Transformation : thisMatrix:");
-			System.out.println("thisMatrix.euc_norm(): " +thisMatrix.euc_norm());
-		}
+		trace(thisMatrix, "2nd Transformation : thisMatrix:");
+		trace("thisMatrix.euc_norm(): " +thisMatrix.euc_norm());
 
 		// These are the values for the 1st item of the summation
 		MatrixComplex logMatrix = thisMatrix.copy();
@@ -2223,9 +2784,9 @@ public class MatrixComplex {
 				}
 				if (accumulator > 500) {
 					if (__DEBUG__) {
-						System.out.println("Iteration:"+ k +" - The logarithm is divergent");
-						System.out.println("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable);
+						trace("Iteration:"+ k +" - The logarithm is divergent");
+						trace("accumulator:" + accumulator);
+						doPlot("-- DEVIATION --", dataTable, --c);
 					}
 					return this.divides(Complex.ZERO);
 				}
@@ -2236,11 +2797,11 @@ public class MatrixComplex {
 			 */			
 		} while(k++ < maxIter);		
 		if (__DEBUG__) {
-			System.out.println("Iterations to converge:" + k);
-			System.out.println("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable);
+			trace("Iterations to converge:" + k);
+			trace("accumulator:" + accumulator);
+			doPlot("-- DEVIATION --", dataTable, --c);
 		}
-		return logMatrix.plusMat(m,0);
+		return logMatrix.plusMat(Math.log(factor));
 	}
 
 	/**
@@ -2249,7 +2810,7 @@ public class MatrixComplex {
 	 * @return The logarithm of a Matrix using Hyperbolic Arc Tangent's Extension 
 	 */
 	public MatrixComplex logHat() {
-		if (__DEBUG__) System.out.println("------------ loghat() ------------ ");
+		trace("------------ loghat() ------------ ");
 		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
 		if (this.rows() != this.cols()) {
 			System.err.println("Not valid matrix: The matrix has to be square.");
@@ -2292,9 +2853,9 @@ public class MatrixComplex {
 				}
 				if (accumulator > 500) {
 					if (__DEBUG__) {
-						System.out.println("Iteration:"+ k +" - The logarithm is divergent");
-						System.out.println("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable);
+						trace("Iteration:"+ k +" - The logarithm is divergent");
+						trace("accumulator:" + accumulator);
+						doPlot("-- DEVIATION --", dataTable, --c);
 					}
 					return this.divides(Complex.ZERO);
 				}
@@ -2303,9 +2864,9 @@ public class MatrixComplex {
 			errAnt = errMat.copy();
 		} while(k++ < maxIter);
 		if (__DEBUG__) {
-			System.out.println("Iterations to converge:" + k);
-			System.out.println("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable);
+			trace("Iterations to converge:" + k);
+			trace("accumulator:" + accumulator);
+			doPlot("-- DEVIATION --", dataTable, --c);
 		}
 		return sumMat;
 	}
@@ -2315,11 +2876,37 @@ public class MatrixComplex {
 	 * @return the natural logarithm of the matrix
 	 */
 	public MatrixComplex log() {
+		// Take advantage from diagonal matrices
+		if (this.isDiagonal()) {
+    		trace("Log() of diagonal matrix");
+    		MatrixComplex powerMat = this.copy();
+			for (int i = 0; i < this.rows(); ++i)
+				powerMat.setItem(i, i, Complex.log(this.getItem(i, i)));
+			return powerMat;
+		}
+
+		// Try using diagonalization
+		Diagfactor dmat = new Diagfactor(this);
+    	if (dmat.isDiagonalizable()) {
+			trace("Log() using diagonalization P·D·P⁻¹");
+        	trace(dmat.P(), "Matrix P");
+        	trace(dmat.D(), "Matrix D");
+    		
+        	MatrixComplex Dmat = dmat.D().copy();
+        	for (int i = 0; i < Dmat.cols(); ++i) 
+        		Dmat.setItem(i, i, Complex.log(Dmat.getItem(i, i)));
+			trace(Dmat, "Dmat");
+        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Log() Diagonal");
+        	return dmat.P().times(Dmat).times(dmat.P().inverse());
+    	}
+
+    	// Finally use the taylor Expansion
+		trace("Log() using the Taylor expansion");
 		return logTaylor();
 	}
 
 	/**
-	 * Calculates the natural log of the matrix log(matrix)
+	 * Static method to get the natural log of the matrix log(matrix)
 	 * @param matrix
 	 * @return The log of matrix
 	 */
@@ -2328,23 +2915,77 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Calculates the natural log in base 10 of the matrix log10(matrix)
-	 * @param matrix
-	 * @return
+	 * Calculates the log item to item of this matrix  
+	 * @return The log item to item of this matrix
 	 */
-	public MatrixComplex log10() {
-		return this.log().divides(Math.log(10));
+	public MatrixComplex llog() {
+		MatrixComplex logMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < logMat.rows(); ++row)
+			for (int col = 0; col < logMat.cols(); ++col)
+				logMat.setItem(row, col, Complex.log(this.getItem(row, col)));
+		return logMat;
 	}
-
+			
+	/**
+	 * Calculates the log item to item of the matrix llog(matrix)
+	 * @param matrix
+	 * @return The log item to item of matrix
+	 */
+	public static MatrixComplex llog(MatrixComplex matrix) {
+		MatrixComplex logMat = new MatrixComplex(matrix.rows(), matrix.cols());
+		
+		for (int row = 0; row < logMat.rows(); ++row)
+			for (int col = 0; col < logMat.cols(); ++col)
+				logMat.setItem(row, col, Complex.log(matrix.getItem(row, col)));
+		return logMat;
+	}
+	
 	/**
 	 * Calculates the natural log in base 10 of the matrix log10(matrix)
 	 * @param matrix
 	 * @return
 	 */
-	public static MatrixComplex log10(MatrixComplex matrix) {
-		return log(matrix).divides(Math.log(10));
+	public MatrixComplex log10() {
+		return this.log().divides(__log10__);
 	}
 
+	/**
+	 * Static method to get the natural log in base 10 of the matrix log10(matrix)
+	 * @param matrix
+	 * @return
+	 */
+	public static MatrixComplex log10(MatrixComplex matrix) {
+		return log(matrix).divides(__log10__);
+	}
+
+	/**
+	 * Calculates the log10 item to item of this matrix  
+	 * @return The log  item to item of this matrix
+	 */
+	public MatrixComplex llog10() {
+		MatrixComplex logMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < logMat.rows(); ++row)
+			for (int col = 0; col < logMat.cols(); ++col)
+				logMat.setItem(row, col, Complex.log(this.getItem(row, col)).divides(__log10__));
+		return logMat;
+	}
+			
+	/**
+	 * Calculates the log10 item to item of the matrix llog10(matrix)
+	 * @param matrix
+	 * @return The log10 item to item of matrix
+	 */
+	public static MatrixComplex llog10(MatrixComplex matrix) {
+		MatrixComplex logMat = new MatrixComplex(matrix.rows(), matrix.cols());
+		
+		for (int row = 0; row < logMat.rows(); ++row)
+			for (int col = 0; col < logMat.cols(); ++col)
+				logMat.setItem(row, col, Complex.log(matrix.getItem(row, col)).divides(__log10__));
+		return logMat;
+	}
+	
 	/**
 	 * Calculates the natural log in Complex base "base" of the matrix logbase(matrix)
 	 * @param matrix
@@ -2361,10 +3002,35 @@ public class MatrixComplex {
 	 * @param base
 	 * @return
 	 */
+	public MatrixComplex llogbase(Complex base) {
+		MatrixComplex logMat = new MatrixComplex(this.rows(), this.cols());
+		
+		for (int row = 0; row < logMat.rows(); ++row)
+			for (int col = 0; col < logMat.cols(); ++col)
+				logMat.setItem(row, col, Complex.log(this.getItem(row, col)).divides(Complex.log(base)));
+		return logMat;
+	}
+	
+	/**
+	 * Calculates the natural log in Complex base "base" of the matrix logbase(matrix)
+	 * @param matrix
+	 * @param base
+	 * @return
+	 */
 	public static MatrixComplex logbase(MatrixComplex matrix, Complex base) {
 		return log(matrix).divides(Complex.log(base));
 	}
 
+	/**
+	 * Calculates the natural log in Complex base "base" of the matrix logbase(matrix)
+	 * @param matrix
+	 * @param base
+	 * @return
+	 */
+	public static MatrixComplex llogbase(MatrixComplex matrix, Complex base) {
+		return matrix.llogbase(base);
+	}
+	
 	/**
 	 * Calculates the natural log in Real base "base" of the matrix logbase(matrix)
 	 * @param matrix
@@ -2381,10 +3047,54 @@ public class MatrixComplex {
 	 * @param base
 	 * @return
 	 */
+	public MatrixComplex llogbase(double base) {
+		Complex cBase = new Complex(base);
+		return this.llogbase(cBase);
+	}
+	
+	/**
+	 * Calculates the natural log in Real base "base" of the matrix logbase(matrix)
+	 * @param matrix
+	 * @param base
+	 * @return
+	 */
 	public static MatrixComplex logbase(MatrixComplex matrix, double base) {
 		return log(matrix).divides(Math.log(base));
 	}
 
+	/**
+	 * Calculates the natural log in Complex base "base" of the matrix logbase(matrix)
+	 * @param matrix
+	 * @param base
+	 * @return
+	 */
+	public static MatrixComplex llogbase(MatrixComplex matrix, double base) {
+		return matrix.llogbase(base);
+	}
+
+	/**
+	 * Calculates the log in complex matrix base "baseMat" of the matrix mat
+	 * @param mat
+	 * @param baseMat
+	 * @return
+	 */
+	public MatrixComplex logbase(MatrixComplex baseMat) {
+		return this.log().divides(baseMat.log());
+	}
+
+	/**
+	 * Calculates the log in complex matrix base "baseMat" of the matrix mat
+	 * @param mat
+	 * @param baseMat
+	 * @return
+	 */
+	public static MatrixComplex logbase(MatrixComplex mat, MatrixComplex baseMat) {
+		return mat.log().divides(baseMat.log());
+	}
+
+	
+	
+	
 	/**
 	 * Calculates the power of a complex number raised a complex matrix
 	 * @param cBase
@@ -2394,7 +3104,7 @@ public class MatrixComplex {
 	public static MatrixComplex power(Complex cBase, MatrixComplex exponent) {
 		return exp(exponent.times(Complex.log(cBase)));
 	}
-
+		
 	/**
 	 * Calculates the power of a real number raised a complex matrix
 	 * @param base
@@ -2510,7 +3220,7 @@ public class MatrixComplex {
 	}
 	
  	/**
-	 * P Norm or HÃ¶lder Norm. Calculates HÃ¶lder's norm of order "p".
+	 * P Norm or Hölder Norm. Calculates Hölder's norm of order "p".
 	 * @param p The order of the norm.
 	 * @return The value of the norm.
 	 */
@@ -2616,15 +3326,16 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Normal matrices: AÂ·A.adjount() = A*A.adjoint()
+	 * Normal matrices: A*A.adjoint() = A.adjoint()*A
 	 * @return True if the matrix is normal, false otherwise
 	 */
 	public boolean isNormal() {
+		if (!isSquare()) return false;
 		return this.times(this.adjoint()).equals(this.adjoint().times(this));
 	}
 
 	/**
-	 * Normal matrices: AÂ·A.adjount() = A*A.adjoint() = I
+	 * Normal matrices: A square and A*A.adjoint() = A.adjoint()*A = I
 	 * @return True if the matrix is normal, false otherwise
 	 */
 	public boolean isUnitary() {
@@ -2653,16 +3364,31 @@ public class MatrixComplex {
 	 */
 	public boolean isOrthogonal() {
 		if (!isSquare()) return false;
-		return isDiagonal() && this.adjoint().times(this).equals(eye(this.rows()));
+		if (this.determinant().isZero()) return false;
+		//return isDiagonal() && this.adjoint().times(this).equals(eye(this.rows()));
+		//return this.times(this.adjoint()).determinant().abs() - 1 <= Complex.zero_threshold_approx();
+		/*
+		 * I've observed that this happens if the basis is orthogonal.
+		 * this.times(this.adjoint()).isDiagonal();
+		 * This will resolve the duality between orthogonal matrices and orthogonal bases of a vector space, allowing a single orthogonality method to be defined for matrices.
+		 * this.adjoint().times(this), on the other hand, does not satisfy this property.
+		 */
+		//return this.times(this.adjoint()).isDiagonal();
+		//Una matriz ortogonal es una matriz cuadrada cuya matriz inversa coincide con su matriz traspuesta conjugada.
+		return this.adjoint().equals(this.inverse());
+		// return this.isUnitary();
 	}
 
 	/**
-	 * Checks whether a Matrix is orthogonal or not
+	 * Checks whether a Matrix is orthonormal or not. Othonormal and Orthogonal are the same concept in Matrices. BAD!!!!
 	 * @return True if the matrix is orthonormal, false otherwise
 	 */
 	public boolean isOrthonormal() {
-		Complex det = determinant();
-		return isOrthogonal() && (det.equals(Complex.ONE) || det.equals(Complex.ONE.opposite()));
+		return isOrthogonal();
+		// if (!isSquare()) return false;
+		// if (this.determinant().equals(Complex.ZERO)) return false;
+		////return this.inverse().equals(this.adjoint());
+		//return this.times(this.adjoint()).equals(eye(this.rows()));
 	}
 	
 	/**
@@ -2808,7 +3534,7 @@ public class MatrixComplex {
 			cotrace = cotrace.plus(this.complexMatrix[i][col--]);
 		return cotrace;
 	}
-
+	
 	/**
 	 * Calculates the opposite of the matrix.
 	 * @return The matrix opposite.
@@ -2877,10 +3603,46 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Matrix of Cofactors order 1 for row "rowPivovt" and column "colPivot".
-	 * The cofactor is the determinant of the minor associated.
+	 * Minor for row "rowPivot" and column "colPivot".
+	 * The minor the Matrix resultant of removing the row "rowPivot" and column "colPivot".
 	 * @param rowPivot The index of the row to eliminate.
 	 * @param colPivot The index of the column to eliminate.
+	 * @return The minors' matrix.
+	 */
+	public MatrixComplex minor(int rowPivot, int colPivot) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+
+		if (rowPivot < 0 || rowPivot > rowLen) {
+			System.err.println("Not valid minor: The row to pivot is incorrect.");
+			System.exit(1);
+		}
+
+		if (colPivot < 0 || colPivot > colLen) {
+			System.err.println("Not valid minor: The col to pivot is incorrect.");
+			System.exit(1);
+		}
+
+		MatrixComplex resultMatrix = new MatrixComplex(rowLen-1, colLen-1);
+
+		for (int row = 0, rowf = 0; row < rowLen; ++row) {
+			if (row == rowPivot) 
+				continue;
+			for (int col = 0, colf = 0; col < colLen; ++col) {
+				if (col == colPivot) 
+					continue;
+				resultMatrix.complexMatrix[rowf][colf++] = this.complexMatrix[row][col];
+			}
+			++rowf;
+		}
+		return resultMatrix;
+	}
+
+	/**
+	 * Matrix of Cofactors order 1 for row "rowPivot" and column "colPivot".
+	 * The co-factor of an element of the matrix is equal to the product of the minor of the element and -1 to the power of the positional value of the element.
+	 * @param rowPivot The index of the row minor.
+	 * @param colPivot The index of the column minor.
 	 * @return The cofactors' matrix.
 	 */
 	public MatrixComplex cofactors(int rowPivot, int colPivot) {
@@ -2905,7 +3667,7 @@ public class MatrixComplex {
 			for (int col = 0, colf = 0; col < colLen; ++col) {
 				if (col == colPivot) 
 					continue;
-				resultMatrix.complexMatrix[rowf][colf++] = this.complexMatrix[row][col];
+				resultMatrix.complexMatrix[rowf][colf++] = this.complexMatrix[row][col].times(Math.pow(-1, row+col));
 			}
 			++rowf;
 		}
@@ -2993,13 +3755,13 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * The inverse of the matrix calculated by Gaussâ€“Jordan elimination method
-	 * Gaussâ€“Jordan elimination method can be used for finding the inverse of a matrix, if it exists. 
+	 * The inverse of the matrix calculated by Gauss-Jordan elimination method
+	 * Gauss-Jordan elimination method can be used for finding the inverse of a matrix, if it exists. 
 	 * If A is a n by n square matrix, then row reduction can be used to compute its inverse matrix, if it exists. 
 	 * First, the n by n identity matrix is augmented to the right of A, forming a n by 2n block matrix [A | I]. 
 	 * Now through application of elementary row operations, finds the reduced echelon form of this n by 2n matrix. 
 	 * The matrix A is invertible if and only if the left block can be reduced to the identity matrix I; in this case 
-	 * the right block of the final matrix is A^âˆ’1. If the algorithm is unable to reduce the left block to I, 
+	 * the right block of the final matrix is A⁻¹. If the algorithm is unable to reduce the left block to I, 
 	 * then A is not invertible.
 	 * @return The inverse matrix.
 	 */
@@ -3502,11 +4264,9 @@ public class MatrixComplex {
 		augmRank = this.rank();
 		coefRank = coefMatrix.rank();
 		
-		if (DEBUG_ON) {
-			coefMatrix.println("------------------ typeEqSys() coefMatrix");
-			System.out.println("------------------ typeEqSys() augmRank:" + augmRank);
-			System.out.println("------------------ typeEqSys() coefRank:" + coefRank);
-		}
+		trace(coefMatrix, "------------------ typeEqSys() coefMatrix");
+		trace("------------------ typeEqSys() augmRank:" + augmRank);
+		trace("------------------ typeEqSys() coefRank:" + coefRank);
 		
 		if (augmRank != coefRank) return INCONSISTENT;
 		//if (augmRank != coefRank || coefRank == 0) return INCONSISTENT;
@@ -3835,13 +4595,11 @@ public class MatrixComplex {
 		int colLen = this.cols();
 
 		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			this.println(HEADINFO + METH_NAME + ": " + "= = = = = = = = Original Matrix");
-		}
+		trace(METH_NAME + ": " + "= = = = = = = = Original Matrix");
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		if (rowLen+1 > colLen) {
-			System.out.println(HEADINFO + METH_NAME + ": " + "Not valid matrix: The matrix doesn't represent an equation system.");
+			trace(METH_NAME + ": " + "Not valid matrix: The matrix doesn't represent an equation system.");
 		}
 
 		MatrixComplex auxMatrix, coefMatrix, indMatrix;
@@ -3857,18 +4615,14 @@ public class MatrixComplex {
 		
 		// *************** INCONSISTENT ***************
 		if (typeEqSys == INCONSISTENT) {
-			if (DEBUG_ON) {
-				System.out.println(HEADINFO + METH_NAME + ": " + "This system is INCONSISTENT. It hasn't got any solution!!!!!!!!!!");
-			}
+			trace(METH_NAME + ": " + "This system is INCONSISTENT. It hasn't got any solution!!!!!!!!!!");
 			// This is required to mark the Inconsistent solution for later operations 
 			return solMatrix.divides(0).transpose();
 		}
 
 		// *************** DETERMINATE ***************
 		if (typeEqSys == DETERMINATE) {
-			if (DEBUG_ON) {
-				System.out.println(HEADINFO + METH_NAME + ": " + "This system is DETERMINATE. This is the unique solution!!!!!!!!!!");
-			}
+			trace(METH_NAME + ": " + "This system is DETERMINATE. This is the unique solution!!!!!!!!!!");
 			coefMatrix = this.coefMatrix();
 			indMatrix = this.indMatrix();
 			return coefMatrix.dividesleft(indMatrix).transpose();
@@ -3887,10 +4641,8 @@ public class MatrixComplex {
 		 */
 		auxMatrix = this.triangleUpPerfect();
 		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			this.println(HEADINFO + METH_NAME + ": " + "= = = = = = = = Original Matrix");
-			auxMatrix.println(HEADINFO + METH_NAME + ": " + "+ + + + + + auxMatrix Triangle Up Perfect");
-		}
+		trace(this, METH_NAME + ": " + "= = = = = = = = Original Matrix");
+		trace(auxMatrix, METH_NAME + ": " + "+ + + + + + auxMatrix Triangle Up Perfect");
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		indMatrix = auxMatrix.indMatrix();
@@ -3972,9 +4724,7 @@ public class MatrixComplex {
 		}
 		
 		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			solMatrix.println(HEADINFO + METH_NAME + ": " + "solMatrix");
-		}
+		trace(solMatrix, METH_NAME + ": " + "solMatrix");
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		/* Check sols for INDETERMINATE Systems */
@@ -3983,9 +4733,7 @@ public class MatrixComplex {
 			if (this.checkSingleSol(solMatrix.getRow(solIdx))) continue;
 			else {
 				/* ----------  START DEBUGGING BLOCK   ----------- */
-				if (DEBUG_ON) {
-					solMatrix.getRow(solIdx).println(HEADINFO + METH_NAME + ": " + "Solution FAILED!!! ");
-				}
+				trace(solMatrix.getRow(solIdx), METH_NAME + ": " + "Solution FAILED!!! ");
 				/* ------------- END DEBUGGING BLOCK ------------- */
 				solMatrix.complexMatrix[solIdx] = nullRow.complexMatrix[0].clone();
 			}
@@ -4013,11 +4761,11 @@ public class MatrixComplex {
 		MatrixComplex solMatrix = new MatrixComplex(rowLen, 1);
 
 		if (this.typeEqSys() != DETERMINATE) {
-			System.out.println(HEADINFO + "solveCramer ERROR: " + "The system is not determined, so there is no Cramer solution.");
+			trace("solveCramer ERROR: " + "The system is not determined, so there is no Cramer solution.");
 			return solMatrix.transpose().divides(0);			
 		}
 		//coefMatrix.copyCol(this, colLen);
-		System.out.println(HEADINFO + "SOLVED by KRAMER's method ");
+		trace("SOLVED by KRAMER's method ");
 		coefMatrix = this.unkMatrix();
 		cCoef = coefMatrix.determinant();
 		for (row = 0; row < rowLen; ++row) {
@@ -4245,10 +4993,8 @@ public class MatrixComplex {
 					int[] colsi = new int[cols[col].length];
 					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
 					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
-					if (DEBUG_ON) {
-						incrMatrix.println("**************** incrMatrix");
-						System.out.println("**************** Determinant incrMatrix:" + incrMatrix.determinant());
-					}
+					trace(incrMatrix, "**************** incrMatrix");
+					trace("**************** Determinant incrMatrix:" + incrMatrix.determinant());
 					if (!incrMatrix.determinant().equals(Complex.ZERO)) {
 						++rank;
 						rankfound = true;
@@ -4259,6 +5005,55 @@ public class MatrixComplex {
 			}
 		}
 		return rank;
+	}
+
+	/**
+	 * Major Independent Lineal submatrix. Traverse the different minors of the matrix untils the first not dependent linear minor
+	 * @return The major independet lineal minor
+	 */
+	public MatrixComplex majorIL() {
+		final boolean DEBUG_ON = false;
+		int maxRank = this.rows();
+		boolean transposed = false;
+		MatrixComplex tempMatrix = this.copy();
+		MatrixComplex incrMatrix = new MatrixComplex();
+		MatrixComplex majorIL= new MatrixComplex();
+		CombinationNoReps combinat = new CombinationNoReps();
+		
+		if (this.isNull()) return this;
+
+		if (this.rows() > this.cols()) {
+			tempMatrix = this.transpose();
+			maxRank = this.cols();
+			transposed = true;
+		}
+		
+		long[][] rows, cols;
+		boolean rankfound;
+		for (int order = 1; order <= maxRank; ++order) {
+			rankfound = false;
+			rows = combinat.getCollection(tempMatrix.rows(), order);
+			cols = combinat.getCollection(tempMatrix.cols(), order);
+			for (int row = 0; row < rows.length; ++row) {
+				int[] rowsi = new int[rows[row].length];
+				for (int idx = 0; idx < rowsi.length; ++idx ) rowsi[idx] = (int)rows[row][idx];
+				for (int col = 0; col < cols.length; ++col) {
+					int[] colsi = new int[cols[col].length];
+					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
+					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
+					trace(incrMatrix, "**************** incrMatrix");
+					trace("**************** Determinant incrMatrix:" + incrMatrix.determinant());
+					if (!incrMatrix.determinant().equals(Complex.ZERO, Complex.significative())) {
+						rankfound = true;
+						majorIL = incrMatrix.copy();
+						break;
+					}
+				}
+				if (rankfound) break;
+			}
+		}
+		if (transposed) majorIL = majorIL.transpose();
+		return majorIL;
 	}
 
 	/**
@@ -4489,10 +5284,8 @@ public class MatrixComplex {
 		Complex cCoef = new Complex();
 		MatrixComplex auxMatrix = this.clone();
 
-		/* -------------   DEBUGGING BLOCK   ------------- */
-		if (DEBUG_ON) {
-			auxMatrix.println(HEADINFO + METH_NAME + ": auxMatrix:");
-		}
+		/* -------------   DEBUGGING BLOCK   ------------- * /
+		trace(auxMatrix, METH_NAME + ": auxMatrix:");
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		if (this.isTriangleUp()) return auxMatrix;
@@ -4506,11 +5299,9 @@ public class MatrixComplex {
 				if (rowSwap != k) auxMatrix.swapRows(k, rowSwap);
 			}
 			for (int row = k+1; row < rowLen; ++row) {
-				/* -------------   DEBUGGING BLOCK   ------------- */
-				if (DEBUG_ON) {
-					System.out.printf(HEADINFO + METH_NAME + ": auxMatrix.getItem(row, k) = %s\n", auxMatrix.getItem(row, k).toString());
-					System.out.printf(HEADINFO + METH_NAME + ": auxMatrix.getItem(k,k) = %s\n", auxMatrix.getItem(k,k).toString());
-				}
+				/* -------------   DEBUGGING BLOCK   ------------- * /
+				trace(METH_NAME + ": auxMatrix.getItem(row, k) =" + auxMatrix.getItem(row, k).toString());
+				trace(METH_NAME + ": auxMatrix.getItem(k,k) = " + auxMatrix.getItem(k,k).toString());
 				/* ------------- END DEBUGGING BLOCK ------------- */
 
 				if (auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
@@ -4531,11 +5322,9 @@ public class MatrixComplex {
 		String METH_NAME = "triangleUpPerfect()";
 		
 		MatrixComplex triUpMatrix = this.triangleUp().heap();
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			triUpMatrix.println(HEADINFO + METH_NAME + ": triUpMatrix Start");
-			System.out.println(HEADINFO + METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
-		}
+		/* ----------  START DEBUGGING BLOCK   ----------- * /
+		trace(triUpMatrix, METH_NAME + ": triUpMatrix Start");
+		trace(METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		// Clean up linear combinations rows
@@ -4592,11 +5381,9 @@ public class MatrixComplex {
 			triUpMatrix.swapRows(matIndex[row][0], matIndex[row][1]);			
 		}
 		
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			triUpMatrix.println(HEADINFO + METH_NAME + ": triUpMatrix End");
-			System.out.println(HEADINFO + METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
-		}
+		/* ----------  START DEBUGGING BLOCK   ----------- * /
+		trace(triUpMatrix, METH_NAME + ": triUpMatrix End");
+		trace(METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		return triUpMatrix;
@@ -4608,11 +5395,9 @@ public class MatrixComplex {
 		String METH_NAME = "triangleUpPerfect()";
 		
 		MatrixComplex triUpMatrix = this.triangleUp().heap();
-		/* ----------  START DEBUGGING BLOCK   ----------- */
-		if (DEBUG_ON) {
-			triUpMatrix.println(HEADINFO + METH_NAME + ": triUpMatrix");
-			System.out.println(HEADINFO + METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
-		}
+		/* ----------  START DEBUGGING BLOCK   ----------- * /
+		trace(triUpMatrix, METH_NAME + ": triUpMatrix");
+		trace(METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		// Clean up linear combinations rows
@@ -4742,9 +5527,7 @@ public class MatrixComplex {
 		augmentedMatrix = augmentedMatrix.augment(this);
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
-		if (DEBUG_ON) {
-			augmentedMatrix.println(HEADINFO + "augmentedMatrix");
-		}
+		trace(augmentedMatrix, "augmentedMatrix");
 		/* ------------- END DEBUGGING BLOCK ------------- */
 		
 		augmentedMatrix = augmentedMatrix.triangle();
@@ -4811,7 +5594,7 @@ public class MatrixComplex {
 
 		for (int i = 0; i < colLen; ++i) {
 			if (i < colLen) x.copyCol(0, thsiTansposed, i);
-			else x.initMatrixRandomInteger(9);
+			else x.initMatrixRandomInt(9);
 			g = x;
 			for (int j = i-1; j >= 0; --j) {
 				v.copyCol(0, gramschmidtF, j);
@@ -4843,7 +5626,7 @@ public class MatrixComplex {
 		gramschmidtF = thsiTansposed.copy();
 		for (int i = 0; i < colLen; ++i) {
 			if (i < colLen) x.copyCol(0, gramschmidtF, i);
-			else x.initMatrixRandomInteger(9);
+			else x.initMatrixRandomInt(9);
 			g = x;
 			for (int j = i-1; j >= 0; --j) {
 				v.copyCol(0, gramschmidtF, j);
@@ -4886,6 +5669,14 @@ public class MatrixComplex {
 	}
 
 	/**
+	 * Shortcut to the preferred orthogonalization method
+	 * @return The orthogonal Matrix
+	 */
+	public MatrixComplex orthogonalize() {
+		return this.gramSchmidt();
+	}
+	
+	/**
 	 * Shortcut to normalize method.
 	 * @return The normalized matrix.
 	 */
@@ -4894,36 +5685,48 @@ public class MatrixComplex {
 	}
 
 	/**
+	 * Shortcut to the preferred orthonormalization method
+	 * @return The orthonormal Matrix
+	 */
+	public MatrixComplex orthonormalize() {
+		return this.orthogonalize().normalizeByCols();
+	}
+	
+	/**
 	 * Normalizes the matrix by columns using the Euclidean norm.
 	 * @return The normalized matrix.
 	 */
 	public MatrixComplex normalizeByCols() {
 		int rowLen = this.rows();
 		int colLen = this.cols();
+		double v_euc_norm;
 		MatrixComplex norm = new MatrixComplex(rowLen, colLen);
 		MatrixComplex v = new MatrixComplex(rowLen, 1);
 
 		for (int col = 0; col < colLen; ++col) {
 			v.copyCol(0, this, col);
-			v = v.divides(v.euc_norm());
+			v_euc_norm = v.euc_norm();
+			if (v_euc_norm > Complex.zero_treshold()) v = v.divides(v.euc_norm());
 			norm.copyCol(col, v, 0);
 		}
 		return norm;
 	}
 
 	/**
-	 * Normalizes the matrix by columns using the Euclidean norm.
+	 * Normalizes the matrix by rows using the Euclidean norm.
 	 * @return The normalized matrix.
 	 */
 	public MatrixComplex normalizeByRows() {
 		int rowLen = this.rows();
 		int colLen = this.cols();
+		double v_euc_norm;
 		MatrixComplex norm = new MatrixComplex(rowLen, colLen);
 		MatrixComplex v = new MatrixComplex(1, colLen);
 
 		for (int row = 0; row < rowLen; ++row) {
 			v.copyRow(0, this, row);
-			v = v.divides(v.euc_norm());
+			v_euc_norm = v.euc_norm();
+			if (v_euc_norm > Complex.zero_treshold()) v = v.divides(v.euc_norm());
 			norm.copyRow(row, v, 0);
 		}
 		return norm;
@@ -4952,30 +5755,36 @@ public class MatrixComplex {
 		return cMatrix.adjoint().times(this).complexMatrix[0][0];
 	}
 
-	public MatrixComplex tensorprod(MatrixComplex matrix) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int rowLenC = matrix.rows();
-		int colLenC = matrix.cols();
-
-		if (rowLen != rowLenC) {
-			System.err.println(HEADINFO + "tensorialprod: " + "Tensors of different size");
-		}
-
-		return this.adjoint().times(matrix);
-	}
-
+	/**
+	 * We define here A ⊗ B, the Kronecker product of two square matrices A = (ai,j) and B of dimension nA and nB, 
+	 * respectively: A ⊗ B is the square matrix of dimension nA nB obtained from A by replacing every entry ai,j by ai,j B.
+	 * https://www.sciencedirect.com/topics/mathematics/kronecker-product
+	 * @param matrix
+	 * @return
+	 */
 	public MatrixComplex kroneckerprod(MatrixComplex matrix) {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		int rowLenC = matrix.rows();
 		int colLenC = matrix.cols();
 
-		if (colLen != colLenC) {
-			System.err.println(HEADINFO + "tensorialprod: " + "Tensors of different size");
+		MatrixComplex kronmat = new MatrixComplex(rowLen*rowLenC, colLen*colLenC);
+		int row = 0, col = 0;
+		for (int f1 = 0; f1 < rowLen; ++f1) {
+			for (int f2 = 0; f2 < rowLenC; ++f2) {
+				for (int c1 = 0; c1 < colLen; ++c1) {
+					for (int c2 = 0; c2 < colLenC; ++c2) {
+						// System.out.printf("(f1:%d,c1:%d)*(f2:%d,c2:%d) - ", f1,c1, f2,c2); 
+						kronmat.setItem(row, col, this.getItem(f1, c1).times(matrix.getItem(f2, c2)));
+						++col;
+					}
+				}
+				// System.out.println();
+				++row;
+				col = 0;
+			}
 		}
-
-		return matrix.adjoint().times(this);
+		return kronmat;
 	}
 	
 	/**
@@ -5339,10 +6148,10 @@ public class MatrixComplex {
 	private static boolean compare(Complex cVal1, Complex cVal2, int sort) {
 		//int signif = Complex.significative()-1;
 		switch (sort) {
-		//case DECREASING: return Complex.round(cVal1.cre(), signif) >= Complex.round(cVal2.cre(), signif);
-		//case INCREASING: return Complex.round(cVal1.cre(), signif) <= Complex.round(cVal2.cre(), signif);
-		case DECREASING: return cVal1.cre() >= cVal2.cre();
-		case INCREASING: return cVal1.cre() <= cVal2.cre();
+			//case DECREASING: return Complex.round(cVal1.cre(), signif) >= Complex.round(cVal2.cre(), signif);
+			//case INCREASING: return Complex.round(cVal1.cre(), signif) <= Complex.round(cVal2.cre(), signif);
+			case DECREASING: return cVal1.cre() >= cVal2.cre();
+			case INCREASING: return cVal1.cre() <= cVal2.cre();
 		}
 		return cVal1.cre() >= cVal2.cre();
 	}
@@ -5356,14 +6165,14 @@ public class MatrixComplex {
 	 */
 	private void quicksort(int col, int izq, int der, int order) {
 		int colLen = this.cols();
-		int i = izq; 									// i realiza la bÃºsqueda de izquierda a derecha
-		int j = der; 									// j realiza la bÃºsqueda de derecha a izquierda
+		int i = izq; 									// i realiza la búsqueda de izquierda a derecha
+		int j = der; 									// j realiza la búsqueda de derecha a izquierda
 
 		MatrixComplex aux = new MatrixComplex(1, colLen);
 		MatrixComplex pivote = new MatrixComplex(1, colLen);
 		pivote.complexMatrix[0] = this.complexMatrix[izq].clone();	// tomamos primer elemento como pivote
 
-		while (i < j) {            																		// mientras no se crucen las bÃºsquedas
+		while (i < j) {            																		// mientras no se crucen las búsquedas
 			while (i < j &&  compare(this.complexMatrix[i][col], pivote.complexMatrix[0][col], order)) ++i;	// busca elemento mayor que pivote
 			while (!compare(this.complexMatrix[j][col], pivote.complexMatrix[0][col], order)) --j;			// busca elemento menor que pivote
 			if (i < j) {                      									// si no se han cruzado                      
@@ -5372,7 +6181,7 @@ public class MatrixComplex {
 				this.complexMatrix[j] = aux.complexMatrix[0].clone();
 			}
 		}
-		this.complexMatrix[izq] = this.complexMatrix[j].clone(); 		// se coloca el pivote en su lugar de forma que tendremos
+		this.complexMatrix[izq] = this.complexMatrix[j].clone(); 	// se coloca el pivote en su lugar de forma que tendremos
 		this.complexMatrix[j] = pivote.complexMatrix[0].clone(); 	// los menores a su izquierda y los mayores a su derecha
 		if (izq < j-1)
 			this.quicksort(col, izq, j-1, order); // ordenamos submatrix izquierdo
@@ -5385,6 +6194,14 @@ public class MatrixComplex {
 	 * @param col Index of the column to order.
 	 */   
 	public void quicksort(int col) {
+		this.quicksort(col,0,this.rows()-1, DECREASING);
+	}
+
+	/**
+	 * Sorts from maximum to minimum using the quicksort method the rows of an array by the modulus of the item in the column "col".
+	 * @param col Index of the column to order.
+	 */   
+	public void quicksortdown(int col) {
 		this.quicksort(col,0,this.rows()-1, DECREASING);
 	}
 
@@ -5503,7 +6320,7 @@ public class MatrixComplex {
 	 */
 
 	/**
-	 * Transformation FSwapff(i,j) it swaps rows i and j of this matrix A âˆˆ C m Ã— n and returns the result into a new Matrix.
+	 * Transformation FSwapff(i,j) it swaps rows i and j of this matrix A ∈ C m × n and returns the result into a new Matrix.
 	 * @param rowi Index of row i.
 	 * @param rowj Index of row j.
 	 * @return The transformed matrix.
@@ -5522,7 +6339,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation FSwapf(i,j) it swaps rows i and j of this matrix A âˆˆ C m Ã— n.
+	 * Transformation FSwapf(i,j) it swaps rows i and j of this matrix A ∈ C m × n.
 	 * @param rowi Index of row i.
 	 * @param rowj Index of row j.
 	 */
@@ -5537,9 +6354,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransff(i,Î±) multiplies row i of this matrix A âˆˆ C m Ã— n by a number Î± and returns the result into a new Matrix.
+	 * Transformation Ftransff(i,α) multiplies row i of this matrix A ∈ C m × n by a number α and returns the result into a new Matrix.
 	 * @param row Index of row i.
-	 * @param cNum The complex number Î±.
+	 * @param cNum The complex number α.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int row, Complex cNum) {
@@ -5553,9 +6370,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransff(i,"Î±") Multiplies the row i of a matrix A âˆˆ C m Ã— n by a number Î± in text format and returns the result into a new Matrix.
+	 * Transformation Ftransff(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α in text format and returns the result into a new Matrix.
 	 * @param row The index of row i.
-	 * @param sNum The complex number Î± in text format.
+	 * @param sNum The complex number α in text format.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int row, String sNum) {
@@ -5564,9 +6381,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransff(i,"Î±") Multiplies the row i of a matrix A âˆˆ C m Ã— n by a number Î± and returns the result into a new Matrix.
+	 * Transformation Ftransff(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α and returns the result into a new Matrix.
 	 * @param row The index of row i.
-	 * @param dNum The number Î±.
+	 * @param dNum The number α.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int row, double dNum) {
@@ -5574,9 +6391,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,Î±) multiplies row i of this matrix A âˆˆ C m Ã— n by a number Î±.
+	 * Transformation Ftransf(i,α) multiplies row i of this matrix A ∈ C m × n by a number α.
 	 * @param row Index of row i.
-	 * @param cNum The complex number Î±.
+	 * @param cNum The complex number α.
 	 */
 	public void Ftransf(int row, Complex cNum) {
 		int colLen = this.cols();
@@ -5586,9 +6403,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,"Î±") Multiplies the row i of a matrix A âˆˆ C m Ã— n by a number Î± in text format.
+	 * Transformation Ftransf(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α in text format.
 	 * @param row The index of row i.
-	 * @param sNum The complex number Î± in text format.
+	 * @param sNum The complex number α in text format.
 	 */
 	public void Ftransf(int row, String sNum) {
 		Complex cNum = new Complex(sNum);
@@ -5596,19 +6413,19 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,"Î±") Multiplies the row i of a matrix A âˆˆ C m Ã— n by a number Î± in text format.
+	 * Transformation Ftransf(i,"α") Multiplies the row i of a matrix A ∈ C m × n by a number α in text format.
 	 * @param row The index of row i.
-	 * @param dNum The number Î±.
+	 * @param dNum The number α.
 	 */
 	public void Ftransf(int row, double dNum) {
 		Ftransf(row, new Complex(dNum,0));
 	}
 
 	/**
-	 * Transformation Ftransff(i,j,Î±) Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by the complex Î±.
+	 * Transformation Ftransff(i,j,α) Adds to row i of a matrix A ∈ C m × n its row j multiplied by the complex α.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param cNum The complex number Î±.
+	 * @param cNum The complex number α.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int rowi, int rowj, Complex cNum) {
@@ -5622,10 +6439,10 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransff(i,j,"Î±") Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by Î± != 0 in string format.
+	 * Transformation Ftransff(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α != 0 in string format.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param sNum The complex number Î± in text format.
+	 * @param sNum The complex number α in text format.
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int rowi, int rowj, String sNum) {
@@ -5634,10 +6451,10 @@ public class MatrixComplex {
 	}    
 
 	/**
-	 * Transformation Ftransff(i,j,"Î±") Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by Î±.
+	 * Transformation Ftransff(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param dNum The number Î±. 
+	 * @param dNum The number α. 
 	 * @return The transformed matrix.
 	 */
 	public MatrixComplex Ftransff(int rowi, int rowj, double dNum) {
@@ -5645,10 +6462,10 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,j,Î±) Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by the complex Î±.
+	 * Transformation Ftransf(i,j,α) Adds to row i of a matrix A ∈ C m × n its row j multiplied by the complex α.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param cNum The complex number Î±.
+	 * @param cNum The complex number α.
 	 */
 	public void Ftransf(int rowi, int rowj, Complex cNum) {
 		int colLen = this.cols();
@@ -5658,10 +6475,10 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Transformation Ftransf(i,j,"Î±") Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by Î± in string format.
+	 * Transformation Ftransf(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α in string format.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param sNum The complex number Î± in text format.
+	 * @param sNum The complex number α in text format.
 	 */
 	public void Ftransf(int rowi, int rowj, String sNum) {
 		Complex cNum = new Complex(sNum);    	
@@ -5669,15 +6486,15 @@ public class MatrixComplex {
 	}    
 
 	/**
-	 * Transformation F(i,j,"Î±") Adds to row i of a matrix A âˆˆ C m Ã— n its row j multiplied by Î±.
+	 * Transformation F(i,j,"α") Adds to row i of a matrix A ∈ C m × n its row j multiplied by α.
 	 * @param rowi The index of row i.
 	 * @param rowj The index of row j.
-	 * @param dNum The number Î±
+	 * @param dNum The number α
 	 */
 	public void Ftransf(int rowi, int rowj, double dNum) {
 		this.Ftransf(rowi, rowj, new Complex(dNum, 0));
 	}
-
+	
 	/*
 	 * ***********************************************
 	 * GENERAL PORPOUSE METHODS
@@ -5689,12 +6506,14 @@ public class MatrixComplex {
 	 * Used to bring more info at debug
 	 * @param dataTable the table to plot
 	 */
-	private void doPlot(String Title, double[][] dataTable) {
+	private void doPlot(String Title, double[][] dataTable, int dataLen) {
 		if (!__DOPLOT__) return;
 		//Plot the data
 		JavaPlot p = new JavaPlot();
 		p.setTitle(Title);
-		p.addPlot(dataTable);
+		double[][] fullDataTable = new double[dataLen][2];
+		for (int i = 0; i < dataLen; ++i) fullDataTable[i] = dataTable[i];
+		p.addPlot(fullDataTable);
 		p.set("zeroaxis", "");
 		p.set("style","data lines");
 		//p.set("style", setLineStyle(lineStyle));

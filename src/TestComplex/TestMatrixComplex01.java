@@ -34,9 +34,6 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.chronometer.Chronometer;
 
-import java.util.List;
-import java.util.ArrayList;
-
 public class TestMatrixComplex01 {
 	
     public static void main(String[] args) {
@@ -55,7 +52,8 @@ public class TestMatrixComplex01 {
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "MATRIX COMPLEX TEST"));
 
-    	Complex.setFixedON(8);
+    	Complex.setFixedON(4);
+		Complex.numpPadPLUS();
     	/*
     	fMatrix = new MatrixComplex("12,-51,4,-13;6,167,-68,23;-4,24,-41,-2;-1,1,0,45;2,0,3,7");
     	fMatrix = new MatrixComplex("0,1,-1;1,1,0;-1,0,1");
@@ -308,7 +306,7 @@ public class TestMatrixComplex01 {
 		
 		System.out.println(Complex.boxTextRandom(boxSize, "Trigonometrics Matrix chronos"));
     	aMatrix = new MatrixComplex(2);
-       	aMatrix.initMatrixRandomInteger(3);
+       	aMatrix.initMatrixRandomInt(3);
        	
     	aMatrix.println("aMatrix");
     	chrono.start();
@@ -331,5 +329,65 @@ public class TestMatrixComplex01 {
     	chrono.stop();
     	System.out.println("Hyperbolic Cos Euler: "+ chrono.toString());
     	
-    }
+		Complex.printBoxTitle(3, boxSize, "Kronecker Product");
+		aMatrix = new MatrixComplex("1,2;3,1");
+		bMatrix = new MatrixComplex("0,3;2,1");
+		cMatrix = aMatrix.kroneckerprod(bMatrix);
+		aMatrix.println("aMatrix");
+		bMatrix.println("bMatrix");
+		cMatrix.println("aMatrix.kroneckerprod(bMatrix)");
+		System.out.println();
+		aMatrix = new MatrixComplex("1,2;3,1;-2,5");
+		bMatrix = new MatrixComplex("0,3,-1;2,-1,4");
+		cMatrix = aMatrix.kroneckerprod(bMatrix);
+		aMatrix.println("aMatrix");
+		bMatrix.println("bMatrix");
+		cMatrix.println("aMatrix.kroneckerprod(bMatrix)");
+		System.out.println();
+		aMatrix = new MatrixComplex("1,2;3,1;-2,1");
+		bMatrix = new MatrixComplex("0,3,-1,1;-1,2,2,1");
+		cMatrix = aMatrix.kroneckerprod(bMatrix);
+		aMatrix.println("aMatrix");
+		bMatrix.println("bMatrix");
+		cMatrix.println("aMatrix.kroneckerprod(bMatrix)");
+
+		System.out.println(Complex.boxTextRandom(boxSize, "Lie"));
+		aMatrix = new MatrixComplex("+59.0,+71.0,-67.0,-80.0;+82.0,-86.0,+15.0,-82.0;+36.0,+76.0,+71.0,+67.0;+94.0,+68.0,+82.0,+82.0");
+		bMatrix = new MatrixComplex("+16.0,+9.0,+75.0,+67.0;+22.0,+25.0,-32.0,-78.0;-49.0,+77.0,+78.0,+30.0;-36.0,+74.0,+79.0,+65.0");
+		cMatrix = new MatrixComplex("+28.0,-61.0,-1.0,+59.0;+82.0,+1.0,-95.0,-31.0;+34.0,+99.0,+61.0,-6.0;-71.0,-79.0,+18.0,+41.0");
+		aMatrix.println("aMatrix");
+		bMatrix.println("bMatrix");
+		cMatrix.println("cMatrix");
+
+		MatrixComplex abMatrix = aMatrix.commutator(bMatrix);
+		MatrixComplex baMatrix = bMatrix.commutator(aMatrix);
+		MatrixComplex caMatrix = cMatrix.commutator(aMatrix);
+		MatrixComplex bcMatrix = bMatrix.commutator(cMatrix);
+
+		abMatrix.println("abMatrix = aMatrix.commutator(bMatrix)");
+		baMatrix.println("baMatrix = bMatrix.commutator(aMatrix)");
+		abMatrix.plus(baMatrix).println("abMatrix + baMatrix");
+		MatrixComplex abcMatrix = aMatrix.commutator(bcMatrix);
+		MatrixComplex bcaMatrix = bMatrix.commutator(caMatrix);
+		MatrixComplex cabMatrix = cMatrix.commutator(abMatrix);
+		abcMatrix.plus(bcaMatrix).plus(cabMatrix).println("Jacobi:abcMatrix + bcaMatrix + cabMatrix");
+
+		/* * /
+		aMatrix.times(bMatrix).println("aMatrix.times(bMatrix)");
+		bMatrix.times(aMatrix).println("bMatrix.times(aMatrix)");
+		cMatrix.println("aMatrix.commutator(bMatrix)");
+		dMatrix = aMatrix.divides(bMatrix);
+		dMatrix.determinant().println("Det(dMatrix) = ");
+		dMatrix.println("aMatrix.divides(bMatrix)");
+		dMatrix.log().println("log(dMatrix)");
+		eMatrix = bMatrix.divides(aMatrix);
+		eMatrix.println("bMatrix.divides(aMatrix)");
+		eMatrix.log().println("log(eMatrix)");
+		fMatrix = dMatrix.times(eMatrix);
+		fMatrix.println("dMatrix * eMatrix");
+		gMatrix = eMatrix.times(dMatrix);
+		gMatrix.println("eMatrix * dMatrix");
+		gMatrix.log().println("log(gMatrix)");
+		/ * */
+	}
 }

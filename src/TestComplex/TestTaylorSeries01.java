@@ -197,7 +197,7 @@ public class TestTaylorSeries01 {
     	System.out.println();
     	Complex.printBoxTitleRandom(boxSize, "log Matrix function");
     	aMatrix = new MatrixComplex(4);
-       	aMatrix.initMatrixRandomInteger(3);
+       	aMatrix.initMatrixRandomInt(3);
        	// aMatrix = aMatrix.triangle();
        	// aMatrix = aMatrix.divides(10000);
    		aMatrix = new MatrixComplex(""
@@ -215,7 +215,7 @@ public class TestTaylorSeries01 {
     	*/
    		
    		aMatrix = new MatrixComplex(2,2);
-   		aMatrix.initMatrixRandomInteger(3);
+   		aMatrix.initMatrixRandomInt(3);
     	aMatrix = aMatrix.hermitian();
     	aMatrix.abs();
     	aMatrix.println("aMatrix Hermitian");
@@ -242,7 +242,7 @@ public class TestTaylorSeries01 {
     	trigonometrix(aMatrix); 
 
     	aMatrix = new MatrixComplex(3);
-    	aMatrix.initMatrixRandomInteger(10); // Integer Numbers
+    	aMatrix.initMatrixRandomInt(10); // Integer Numbers
     	//aMatrix = aMatrix.hermitian();
     	//aMatrix.abs();		
     	trigonometrix(aMatrix); 

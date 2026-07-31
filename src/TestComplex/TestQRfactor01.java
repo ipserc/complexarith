@@ -152,7 +152,7 @@ public class TestQRfactor01 {
     	fMatrix.qrHouseholder();
     	showResults(fMatrix);
     	
-    	//fMatrix = new QRfactor(4);fMatrix.initMatrixRandomInteger(9);
+    	//fMatrix = new QRfactor(4);fMatrix.initMatrixRandomInt(9);
 		fMatrix = new QRfactor("1,2,3,0;1,2,0,0;1,0,0,1");
 		fMatrix.qrGramSchmidt();
     	showResults(fMatrix);
@@ -161,15 +161,15 @@ public class TestQRfactor01 {
 		fMatrix.qrGramSchmidtFull();
     	showResults(fMatrix);
     	
-		fMatrix = new QRfactor(4,6);fMatrix.initMatrixRandomInteger(9);
+		fMatrix = new QRfactor(4,6);fMatrix.initMatrixRandomInt(9);
 		fMatrix.qrHouseholder();
     	showResults(fMatrix);
     	
-    	fMatrix = new QRfactor(6,4);fMatrix.initMatrixRandomInteger(9);
+    	fMatrix = new QRfactor(6,4);fMatrix.initMatrixRandomInt(9);
     	fMatrix.qrHouseholder();
     	showResults(fMatrix);
 		
-    	fMatrix = new QRfactor(6,6);fMatrix.initMatrixRandomInteger(9);
+    	fMatrix = new QRfactor(6,6);fMatrix.initMatrixRandomInt(9);
     	fMatrix.qrHouseholder();
     	showResults(fMatrix);
 		
@@ -205,7 +205,7 @@ public class TestQRfactor01 {
     	showResults(fMatrix);
     	
     	fMatrix = new QRfactor(35);
-    	fMatrix.initMatrixRandomInteger(9);
+    	fMatrix.initMatrixRandomInt(9);
     	/*CHRONO*/ Chronometer QRChrono = new Chronometer();
 		fMatrix.qrHouseholder();
 		/*CHRONO*/ QRChrono.stop();

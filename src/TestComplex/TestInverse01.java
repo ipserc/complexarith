@@ -44,7 +44,7 @@ public class TestInverse01 {
 		aMatrix = new MatrixComplex("2,2,1;-4,-4,-2;1,1,-1");
 		showResults(aMatrix);
 
-		aMatrix = new MatrixComplex(40); aMatrix.initMatrixRandomInteger(9);
+		aMatrix = new MatrixComplex(40); aMatrix.initMatrixRandomInt(9);
 		showResults(aMatrix);
 
 		aMatrix = new MatrixComplex(6); aMatrix.initMatrixRandomRec(17);

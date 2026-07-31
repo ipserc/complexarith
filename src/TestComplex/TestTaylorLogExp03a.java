@@ -189,6 +189,7 @@ public class TestTaylorLogExp03a {
     	//Complex.setScientificON(8);;
     	Complex.setFormatON();
     	Complex.exact(true);
+		Complex.numpPadPLUS();
     	MatrixComplex.debugOFF();
     	Complex.digits(100000);
     	
@@ -203,14 +204,18 @@ public class TestTaylorLogExp03a {
     	boolean absolute = false;
     	contador = 0;
     	
-    	aMatrix = new MatrixComplex(2);
+    	aMatrix = new MatrixComplex(3);
     	if (complex) 
     		aMatrix.initMatrixRandomRecInt(9); // Complex Numbers
     	else
-    		aMatrix.initMatrixRandomInteger(99); // Integer Numbers
+    		aMatrix.initMatrixRandomInt(99); // Integer Numbers
     	if (hermitian) aMatrix = aMatrix.divides(10).hermitian();
     	if (absolute) aMatrix.abs();
-		
+
+		// Matriz notable
+		// aMatrix = new MatrixComplex("+1.0+1.0i,+5.0+1.0i,-2.0+5.0i,-5.0+1.0i;-6.0+8.0i,+1.0-9.0i,-3.0-7.0i,-3.0+9.0i;-3.0-1.0i,+9.0+2.0i,+9.0+3.0i,-2.0-8.0i;-9.0-3.0i,+3.0+8.0i,+6.0-6.0i,+8.0-4.0i");
+    	// aMatrix = new MatrixComplex("-30.0,-33.0,-10.0,+63.0;+58.0,+23.0,-44.0,-43.0;+51.0,+25.0,+51.0,-24.0;-96.0,-36.0,-84.0,+29.0");
+    	
     	Complex.printBoxText(1, boxSize, "Doing test with");
     	aMatrix.println("Matrix:");
     	System.out.println("aMatrix = " + aMatrix.toMatrixComplex());

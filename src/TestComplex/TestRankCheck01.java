@@ -55,7 +55,7 @@ public class TestRankCheck01 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "RANK TEST: " + numTests));
 		System.out.println("Testing with arrays of " +filas+"x"+columnas+" - seed:"+seed);
 		for(int i = 1; i <= numTests; ++i) {
-			aMatrix.initMatrixRandomInteger(seed);
+			aMatrix.initMatrixRandomInt(seed);
 			//aMatrix.abs();
 			//aMatrix.println("Matrix");
 			showResults(aMatrix, i );

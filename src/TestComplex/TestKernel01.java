@@ -45,7 +45,7 @@ public class TestKernel01 {
 		int nbrNullRows = nbrUnknowns-2;
 		
 		aMatrix = new MatrixComplex(nbrUnknowns);
-		aMatrix.initMatrixRandomInteger(7);
+		aMatrix.initMatrixRandomInt(7);
 		
 		//aMatrix.setItem(0, aMatrix.cols()-1, Complex.ZERO);
 		for (int row = 1; row < aMatrix.rows(); ++row) {

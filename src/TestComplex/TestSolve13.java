@@ -218,7 +218,7 @@ public class TestSolve13 {
 		fMatrix = new MatrixComplex("0.01,1,1;1,1,2");
 		showResults(fMatrix);
 		
-		fMatrix = new MatrixComplex(15,16); fMatrix.initMatrixRandomInteger(9);
+		fMatrix = new MatrixComplex(15,16); fMatrix.initMatrixRandomInt(9);
 		showResults(fMatrix);
 
 	}

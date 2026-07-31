@@ -106,7 +106,7 @@ public class TestRank01 {
 				" 1.00,-1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00");
 		showResults(aMatrix);
 
-		aMatrix = new MatrixComplex(8); aMatrix.initMatrixRandomInteger(1);
+		aMatrix = new MatrixComplex(8); aMatrix.initMatrixRandomInt(1);
 		showResults(aMatrix);
 
 		aMatrix = new MatrixComplex(

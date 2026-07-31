@@ -152,7 +152,7 @@ public class TestEigenV17 {
      	/* */
     	Diagfactor diagonal;
      	do {
-     		aMatrix = new MatrixComplex(size); aMatrix.initMatrixRandomInteger(wide); //aMatrix = aMatrix.plus(7);
+     		aMatrix = new MatrixComplex(size); aMatrix.initMatrixRandomInt(wide); //aMatrix = aMatrix.plus(7);
      		diagonal = new Diagfactor(aMatrix);
          	if (diagonal.factorized()) doEigenCalculations(aMatrix);
         	//System.out.print("-");

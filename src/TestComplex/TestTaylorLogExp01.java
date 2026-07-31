@@ -53,11 +53,18 @@ public class TestTaylorLogExp01 {
 		int boxSize = 65;
 		Chronometer chrono = new Chronometer();
 
-    	Complex.setScientificON(8);;
+		Complex.resetFormatStatus();
+		Complex.restorePrecisionFactorySettings();
     	Complex.setFormatON();
     	Complex.exact(true);
+    	MatrixComplex.debugOFF();
+    	MatrixComplex.doPlotON();
+    	Complex.digits(10000000);
+    	Complex.setScientificON(4);
+    	
     	Complex.showPrecision();
     	Complex.printFormatStatus();
+
 
     	Complex.printBoxTitleRandom(boxSize, "MATRIX COMPLEX NATURAL LOG EXP");
     	System.out.println();
@@ -241,15 +248,19 @@ public class TestTaylorLogExp01 {
     	bMatrix.exp().println("exp(b)");
 
 
-    	/** /
+    	/**/
 		Complex.printBoxTextRandom(boxSize, "Natural logarithm Matrix functions - 5 Random");
-    	aMatrix = new MatrixComplex(3,3);
-   		aMatrix.initMatrixRandomInteger(9);
+    	aMatrix = new MatrixComplex(4);
+   		aMatrix.initMatrixRandomInt(9);
+   		//aMatrix = aMatrix.divides(10);
     	//aMatrix = aMatrix.hermitian();
-    	aMatrix.abs();
+    	//aMatrix.abs();
+   		//aMatrix = new MatrixComplex("2.0000E+00,5.0000E+00,-6.0000E+00,9.0000E+00;-9.0000E+00,4.0000E+00,5.0000E+00,-9.0000E+00;6.0000E+00,5.0000E+00,6.0000E+00,-3.0000E+00;-8.0000E+00,6.0000E+00,-8.0000E+00,7.0000E+00");
+   		//aMatrix = new MatrixComplex("3.0000E+00,5.0000E+00,6.0000E+00,2.0000E+00;-8.0000E+00,9.0000E+00,-3.0000E+00,-2.0000E+00;-1.0000E+00,3.0000E+00,6.0000E+00,-1.0000E+00;-1.0000E+00,7.0000E+00,2.0000E+00,5.0000E+00");
+   		aMatrix = new MatrixComplex("6.0000E+00,9.0000E+00,-3.0000E+00,-4.0000E+00;-8.0000E+00,8.0000E+00,-9.0000E+00,1.0000E+00;5.0000E+00,6.0000E+00,4.0000E+00,-6.0000E+00;-6.0000E+00,-5.0000E+00,6.0000E+00,5.0000E+00");
     	aMatrix.println("aMatrix");
        	System.out.println("aMatrix = " + aMatrix.toMatrixComplex());
-    	aMatrix.determinant().println("Det=");   	
+    	aMatrix.determinant().println("A Det=");   	
         bMatrix = aMatrix.log(); 
     	bMatrix.println("b=log");
     	bMatrix.exp().println("exp(b)");

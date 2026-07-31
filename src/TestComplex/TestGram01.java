@@ -94,7 +94,7 @@ public class TestGram01 {
 		aMatrix = aMatrix.transpose();
 		showResults(aMatrix);
 		
-		aMatrix = new MatrixComplex(6,4);aMatrix.initMatrixRandomInteger(9);
+		aMatrix = new MatrixComplex(6,4);aMatrix.initMatrixRandomInt(9);
 		showResults(aMatrix);
 		aMatrix = aMatrix.transpose();
 		showResults(aMatrix);

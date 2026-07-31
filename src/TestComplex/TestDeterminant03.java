@@ -41,27 +41,27 @@ public class TestDeterminant03 {
     	Complex.setFixedON(3);
 
     	fMatrix = new MatrixComplex(2);
-		fMatrix.initMatrixRandomInteger(10);
+		fMatrix.initMatrixRandomInt(10);
     	showResults(fMatrix);
 
 		fMatrix = new MatrixComplex(5);
-       	fMatrix.initMatrixRandomInteger(10);
+       	fMatrix.initMatrixRandomInt(10);
     	showResults(fMatrix);
     	
 		fMatrix = new MatrixComplex(7);
-       	fMatrix.initMatrixRandomInteger(10);
+       	fMatrix.initMatrixRandomInt(10);
     	showResults(fMatrix);
 
 		fMatrix = new MatrixComplex(10);
-       	fMatrix.initMatrixRandomInteger(10);
+       	fMatrix.initMatrixRandomInt(10);
     	showResults(fMatrix);
 
 		fMatrix = new MatrixComplex(11);
-       	fMatrix.initMatrixRandomInteger(10);
+       	fMatrix.initMatrixRandomInt(10);
     	showResults(fMatrix);
 
 		fMatrix = new MatrixComplex(12);
-       	fMatrix.initMatrixRandomInteger(10);
+       	fMatrix.initMatrixRandomInt(10);
     	showResults(fMatrix);
     	
     	/* ------------------------------------------- */

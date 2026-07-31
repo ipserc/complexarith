@@ -70,7 +70,7 @@ public class TestDiag {
     	diagMatrix = new Diagfactor("1,3,-1;3,7,2;2,1,-1");
     	showResults(diagMatrix);
 
-    	diagMatrix = new Diagfactor(5); diagMatrix.initMatrixRandomInteger(9); diagMatrix.diagonalize();
+    	diagMatrix = new Diagfactor(5); diagMatrix.initMatrixRandomInt(9); diagMatrix.diagonalize();
     	showResults(diagMatrix);
 
     	diagMatrix = new Diagfactor(7); diagMatrix.initMatrixRandomRec(9); diagMatrix.diagonalize();

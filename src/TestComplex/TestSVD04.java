@@ -106,25 +106,27 @@ public class TestSVD04 {
 		svd = new SVDfactor(matrixSVD);
 	   	showResults(svd);
 
-	   	/* */
+	   	/* * /
     	for (int i = 1; i < 11; ++i) {
     		int rows = randomNbr.nextInt(7)+1;
     		int cols = randomNbr.nextInt(7)+1;
     		matrixSVD = new MatrixComplex(rows,cols);
-    		matrixSVD.initMatrixRandomInteger(5);
+    		matrixSVD.initMatrixRandomInt(5);
     		
     		svd = new SVDfactor(matrixSVD);
     	   	showResults(svd);
     	}
     	/* */
 
+		/* * /
     	for (int i = 1; i < 11; ++i) {
     		int rows = randomNbr.nextInt(7)+1;
     		matrixSVD = new MatrixComplex(rows);
-    		matrixSVD.initMatrixRandomInteger(5);
+    		matrixSVD.initMatrixRandomInt(5);
     		
     		svd = new SVDfactor(matrixSVD);
     	   	showResults(svd);
     	}
-}
+		/* */
+	}
 }

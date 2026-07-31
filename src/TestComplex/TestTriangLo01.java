@@ -22,7 +22,7 @@ public class TestTriangLo01 {
 		/*
 		aMatrix = new MatrixComplex("2,2,1;0,0,1;1,0,1"); showResults(aMatrix);
 		aMatrix = new MatrixComplex("2,2,1;1,-2,1;1,1,-1"); showResults(aMatrix);
-		aMatrix = new MatrixComplex(4); aMatrix.initMatrixRandomInteger(4); showResults(aMatrix);
+		aMatrix = new MatrixComplex(4); aMatrix.initMatrixRandomInt(4); showResults(aMatrix);
 		 */
     	aMatrix = new MatrixComplex("1,0,0;2,3,0;4,5,6"); showResults(aMatrix);
     	aMatrix = new MatrixComplex("2,3,0;4,5,6;1,0,0"); showResults(aMatrix);

@@ -13,8 +13,8 @@ public class Testproducts01 {
 		MatrixComplex bMat = new MatrixComplex(1,3);
 		MatrixComplex resultMat;
 		
-		aMat.initMatrixRandomInteger(4);
-		bMat.initMatrixRandomInteger(4);
+		aMat.initMatrixRandomInt(4);
+		bMat.initMatrixRandomInt(4);
 		resultMat = aMat.tensorprod(bMat);
 		resultMat.println("tensorprod");
 		resultMat = aMat.kroneckerprod(bMat);

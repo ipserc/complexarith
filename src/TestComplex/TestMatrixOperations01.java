@@ -115,7 +115,7 @@ public class TestMatrixOperations01 {
 				+ " 1, 2, 3;"
 				+ " 3, 4, 5;"
 				+ "-1, 0, 3");
-		bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomInteger(5);	
+		bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomInt(5);	
 		showDIVresults(aMatrix, bMatrix);
 		
 		aMatrix = new MatrixComplex(""
@@ -124,12 +124,12 @@ public class TestMatrixOperations01 {
 				+ " 1, 1, 1");		
 		showDIVresults(aMatrix, bMatrix);
 
-		aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomInteger(5);
-		bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomInteger(5);
+		aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomInt(5);
+		bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomInt(5);
 		showMULresults(aMatrix, bMatrix);
 
-		aMatrix = new MatrixComplex(3,1); aMatrix.initMatrixRandomInteger(5);
-		bMatrix = new MatrixComplex(1,3); bMatrix.initMatrixRandomInteger(5);
+		aMatrix = new MatrixComplex(3,1); aMatrix.initMatrixRandomInt(5);
+		bMatrix = new MatrixComplex(1,3); bMatrix.initMatrixRandomInt(5);
 		aMatrix.println("aMatix");
 		bMatrix.println("bMatix");
 		aMatrix.times(bMatrix).println("aMatrix.times(bMatrix)");
@@ -137,8 +137,8 @@ public class TestMatrixOperations01 {
 
 
 		
-		aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomInteger(5);
-		bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomInteger(5);
+		aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomInt(5);
+		bMatrix = new MatrixComplex(3); bMatrix.initMatrixRandomInt(5);
 		showPOWresults(aMatrix, bMatrix);
 		
 		System.out.println(Complex.boxTextRandom(boxSize, "kernel"));

@@ -313,41 +313,41 @@ public class TestComplex01 {
         
         System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX LOG IN BASES TEST"));
         a.setComplex("1-i");
-        System.out.println("log(1-i) in base -1 = "+(Complex.logb(a,-1)).toString());
-        System.out.println("log(1-i) in base -3 = "+(Complex.logb(a,-3)).toString());
-        System.out.println("log(1-i) in base +3 = "+(Complex.logb(a,3)).toString());
+        System.out.println("log(1-i) in base -1 = "+(Complex.logbase(a,-1)).toString());
+        System.out.println("log(1-i) in base -3 = "+(Complex.logbase(a,-3)).toString());
+        System.out.println("log(1-i) in base +3 = "+(Complex.logbase(a,3)).toString());
         b.setComplex("i");
-        System.out.println("log(1-i) in base +i = "+(Complex.logb(a,b)).toString());
+        System.out.println("log(1-i) in base +i = "+(Complex.logbase(a,b)).toString());
         b.setComplex("-i");
-        System.out.println("log(1-i) in base -i = "+(Complex.logb(a,b)).toString());
+        System.out.println("log(1-i) in base -i = "+(Complex.logbase(a,b)).toString());
         System.out.println("------------------------------------------------------------");
         
 	   a.setComplex("2");
-	   System.out.println("log("+a.toString()+") in base 2 = "+(Complex.logb(a,2)).toString());
-	   System.out.println("log("+a.toString()+") in base -2 = "+(Complex.logb(a,-2)).toString());
+	   System.out.println("log("+a.toString()+") in base 2 = "+(Complex.logbase(a,2)).toString());
+	   System.out.println("log("+a.toString()+") in base -2 = "+(Complex.logbase(a,-2)).toString());
 	   b.setComplex("i");
-	   System.out.println("log("+a.toString()+") in base +i = "+(Complex.logb(a,b)).toString());
+	   System.out.println("log("+a.toString()+") in base +i = "+(Complex.logbase(a,b)).toString());
 	   b.setComplex("-i");
-	   System.out.println("log("+a.toString()+") in base -i = "+(Complex.logb(a,b)).toString());
+	   System.out.println("log("+a.toString()+") in base -i = "+(Complex.logbase(a,b)).toString());
 	   System.out.println("------------------------------------------------------------");
 	
 	   a.setComplex("-2");
-	   System.out.println("log("+a.toString()+") in base 2 = "+(Complex.logb(a,2)).toString());
-	   System.out.println("log("+a.toString()+") in base -2 = "+(Complex.logb(a,-2)).toString());
+	   System.out.println("log("+a.toString()+") in base 2 = "+(Complex.logbase(a,2)).toString());
+	   System.out.println("log("+a.toString()+") in base -2 = "+(Complex.logbase(a,-2)).toString());
 	   b.setComplex("i");
-	   System.out.println("log("+a.toString()+") in base +i = "+(Complex.logb(a,b)).toString());
+	   System.out.println("log("+a.toString()+") in base +i = "+(Complex.logbase(a,b)).toString());
 	   b.setComplex("-i");
-	   System.out.println("log("+a.toString()+") in base -i = "+(Complex.logb(a,b)).toString());
+	   System.out.println("log("+a.toString()+") in base -i = "+(Complex.logbase(a,b)).toString());
 	   System.out.println("------------------------------------------------------------");
 	
 	   a.setComplex("-3+.5i");
-	   System.out.println("log("+a.toString()+") in base -1 = "+(Complex.logb(a,-1)).toString());
-	   System.out.println("log("+a.toString()+") in base -3 = "+(Complex.logb(a,-3)).toString());
-	   System.out.println("log("+a.toString()+") in base +3 = "+(Complex.logb(a,3)).toString());
+	   System.out.println("log("+a.toString()+") in base -1 = "+(Complex.logbase(a,-1)).toString());
+	   System.out.println("log("+a.toString()+") in base -3 = "+(Complex.logbase(a,-3)).toString());
+	   System.out.println("log("+a.toString()+") in base +3 = "+(Complex.logbase(a,3)).toString());
 	   b.setComplex("i");
-	   System.out.println("log("+a.toString()+") in base +i = "+(Complex.logb(a,b)).toString());
+	   System.out.println("log("+a.toString()+") in base +i = "+(Complex.logbase(a,b)).toString());
 	   b.setComplex("-i");
-	   System.out.println("log("+a.toString()+") in base -i = "+(Complex.logb(a,b)).toString());
+	   System.out.println("log("+a.toString()+") in base -i = "+(Complex.logbase(a,b)).toString());
 	  
        System.out.println(Complex.boxTextRandom(boxSize, "COMPLEX CALCULATIONS TEST"));
 	   a.setComplex("-1-3i");

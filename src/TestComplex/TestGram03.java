@@ -66,7 +66,7 @@ public class TestGram03 {
 		Complex.setFormatON();
 		Complex.setFixedON(3);
 		
-		aMatrix = new MatrixComplex(5); aMatrix.initMatrixRandomInteger(7);
+		aMatrix = new MatrixComplex(5); aMatrix.initMatrixRandomInt(7);
 		showResults(aMatrix);
 
 		aMatrix = new MatrixComplex(5); aMatrix.initMatrixRandomPol(7);

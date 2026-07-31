@@ -188,7 +188,7 @@ public class TestSolve00 {
 		fMatrix = new MatrixComplex("4,-3,-3,-6i;4i,-2,3,0;3,-4,-9,4i");
 		showResults(fMatrix);
 
-		fMatrix = new MatrixComplex(19,20); fMatrix.initMatrixRandomInteger(9);
+		fMatrix = new MatrixComplex(19,20); fMatrix.initMatrixRandomInt(9);
 		showResults(fMatrix);
 
 		fMatrix = new MatrixComplex("1,2,3;2,1,-1");

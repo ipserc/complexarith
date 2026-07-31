@@ -160,11 +160,11 @@ public class TestDeterminant01 {
     	showResults(fMatrix);
 
        	fMatrix = new MatrixComplex(10,10);
-       	fMatrix.initMatrixRandomInteger(10);
+       	fMatrix.initMatrixRandomInt(10);
     	showResults(fMatrix);
 
     	fMatrix = new MatrixComplex(11,11);
-       	fMatrix.initMatrixRandomInteger(10);
+       	fMatrix.initMatrixRandomInt(10);
     	showResults(fMatrix);
     }
 

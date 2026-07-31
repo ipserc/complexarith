@@ -47,7 +47,7 @@ public class TestRank02 {
 		System.out.println("Testing with arrays of " +filas+"x"+columnas);
 		for(int i = 1; i < 100; ++i) {
 			System.out.println(Complex.boxTextRandom(boxSize, "TEST #"+i));   	
-			aMatrix.initMatrixRandomInteger(1);
+			aMatrix.initMatrixRandomInt(1);
 			//aMatrix.abs();
 			//aMatrix.println("Matrix");
 			showResults(aMatrix);

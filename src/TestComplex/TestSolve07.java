@@ -107,7 +107,7 @@ public class TestSolve07 {
 		showResults(aMatrix);		
 		
 		aMatrix = new MatrixComplex(7,8);
-		aMatrix.initMatrixRandomInteger(7);
+		aMatrix.initMatrixRandomInt(7);
 		showResults(aMatrix);		
 		
 		aMatrix = new MatrixComplex(""+ 

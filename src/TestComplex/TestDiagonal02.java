@@ -48,7 +48,7 @@ public class TestDiagonal02 {
     	Complex.setFixedON(3);
   	
     	for (int i = 2; i < 10; ++i) {
-    		fMatrix = new MatrixComplex(i); fMatrix.initMatrixRandomInteger(5);
+    		fMatrix = new MatrixComplex(i); fMatrix.initMatrixRandomInt(5);
     		showResults(fMatrix);
     	}
 	}

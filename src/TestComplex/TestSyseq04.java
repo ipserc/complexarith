@@ -60,7 +60,7 @@ public class TestSyseq04 {
 			System.out.println(Complex.boxTitleRandom(boxSize, "LINEAR EQUATIONS SYSTEM TEST"));
 			System.out.println(Complex.boxTextRandom(boxSize, "TEST #"+i));   	
 	     	aMatrix = new Syseq(filas);
-			aMatrix.initMatrixRandomInteger(1);
+			aMatrix.initMatrixRandomInt(1);
 			aMatrix.println("Matrix");
 	    	System.out.println("MATRIX COMPLEX:"+aMatrix.toMatrixComplex());
 			solve(aMatrix);

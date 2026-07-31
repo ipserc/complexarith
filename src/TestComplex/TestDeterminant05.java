@@ -44,7 +44,7 @@ public class TestDeterminant05 {
 
     	for (int i = 2; i <= limSup; ++i) {
     		fMatrix = new MatrixComplex(i);
-         	fMatrix.initMatrixRandomInteger(10);
+         	fMatrix.initMatrixRandomInt(10);
         	showResults(fMatrix);
     	}
 

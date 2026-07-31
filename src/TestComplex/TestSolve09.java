@@ -139,8 +139,8 @@ public class TestSolve09 {
 		
 		aMatrix = new MatrixComplex(3);
 		MatrixComplex interms = new MatrixComplex(1,3); 
-		aMatrix.initMatrixRandomInteger(1); 
-		//interms.initMatrixRandomInteger(1); 
+		aMatrix.initMatrixRandomInt(1); 
+		//interms.initMatrixRandomInt(1); 
 		aMatrix = aMatrix.augment(interms.transpose()); 
 		showResults(aMatrix);
 	}

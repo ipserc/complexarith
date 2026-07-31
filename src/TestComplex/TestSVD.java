@@ -59,7 +59,7 @@ public class TestSVD {
     	Complex.setFixedON(3);
 
     	// ------ m = n ------
-    	//A = new SVDfactor(2); A.initMatrixRandomInteger(3);
+    	//A = new SVDfactor(2); A.initMatrixRandomInt(3);
        	//A = new SVDfactor(11); A.initMatrixRandomRecInt(9);
     	//A = new SVDfactor(" 6.0 , 0.0 , -1.0 , -4.0 , -2.0 ; 7.0 , 0.0 , -6.0 , 0.0 , -2.0 ; -4.0 , -1.0 , -1.0 , 1.0 , -7.0 ; -1.0 , 8.0 , 8.0 , 6.0 , -4.0 ; 1.0 , -4.0 , 6.0 , 7.0 , 2.0 ");    	
     	//A = new SVDfactor(5); A.initMatrixRandomRecInt(9);
@@ -71,7 +71,7 @@ public class TestSVD {
     	//A = new SVDfactor("-1+2i,3i,1;3+3i,-9-2i,-i;2+5i,1-7i,-5+7i");
 
     	// ------ m > n ------
-    	//A = new SVDfactor(7,3); A.initMatrixRandomInteger(9);
+    	//A = new SVDfactor(7,3); A.initMatrixRandomInt(9);
        	//A = new SVDfactor(10,5); A.initMatrixRandomRecInt(9);
     	//A = new SVDfactor("-1,2,1;3,4,7;5,6,11;8,9,17"); /*****/
     	//A = new SVDfactor("-1,2,1;3,-2,1;5,-2,3;6,2,-7");
@@ -84,7 +84,7 @@ public class TestSVD {
     	//A = new SVDfactor("-1,2;3,-2;5,-2");
 
     	// ------ m < n ------    	
-    	//A = new SVDfactor(3,7); A.initMatrixRandomInteger(9);
+    	//A = new SVDfactor(3,7); A.initMatrixRandomInt(9);
     	//A = new SVDfactor(5,10); A.initMatrixRandomRecInt(9);
     	//A = new SVDfactor(" -5.0 , 3.0 , -3.0 , -3.0 , 4.0 ; -1.0 , -6.0 , 0.0 , 0.0 , -7.0 ; -6.0 , -6.0 , -8.0 , -8.0 , 5.0 ");
     	//A = new SVDfactor(" -4.0 , 3.0 , -6.0 , 5.0 , 0.0 ; 0.0 , 5.0 , -1.0 , 6.0 , 6.0 ; -5.0 , -4.0 , -2.0 , 3.0 , 5.0 ");

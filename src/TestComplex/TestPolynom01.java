@@ -134,7 +134,7 @@ public class TestPolynom01 {
     	myPolynom = new Polynom(16); myPolynom.initMatrixRandomRecInt(1);	
     	showResults(myPolynom); 
     	
-    	myPolynom = new Polynom(8); myPolynom.initMatrixRandomInteger(9);	//initRandomInteger(9);
+    	myPolynom = new Polynom(8); myPolynom.initMatrixRandomInt(9);	//initRandomInteger(9);
     	showResults(myPolynom);
 
     	myPolynom = new Polynom("1,-2,3,-2");

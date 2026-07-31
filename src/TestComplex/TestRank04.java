@@ -49,7 +49,7 @@ public class TestRank04 {
 		System.out.println("Testing with arrays of " +filas+"x"+columnas);
 		chrono.start();
 		for(int i = 1; i < 10000; ++i) {
-			aMatrix.initMatrixRandomInteger(1);			
+			aMatrix.initMatrixRandomInt(1);			
 			rank1 = aMatrix.rank1();
 			rank2 = aMatrix.rank2();
 			if (rank1 != rank2) {				

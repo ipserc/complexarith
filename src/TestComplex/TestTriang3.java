@@ -63,10 +63,10 @@ public class TestTriang3 {
     	rows = 3;
     	cols = rows+1;
      	aMatrix = new MatrixComplex(rows,cols);
-     	aMatrix.initMatrixRandomInteger(2);
+     	aMatrix.initMatrixRandomInt(2);
      	
      	inTerms  = new MatrixComplex(rows, 1);
-     	inTerms.initMatrixRandomInteger(3);
+     	inTerms.initMatrixRandomInt(3);
     	
      	aMatrix.augment(inTerms);
      	

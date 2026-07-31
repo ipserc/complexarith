@@ -85,8 +85,8 @@ public class TestSolve03 {
 */
 /* * /		
 		aMatrix = new MatrixComplex(4);interms = new MatrixComplex(1,4); 
-		aMatrix.initMatrixRandomInteger(1); 
-		interms.initMatrixRandomInteger(1); 
+		aMatrix.initMatrixRandomInt(1); 
+		interms.initMatrixRandomInt(1); 
 		aMatrix = aMatrix.augment(interms.transpose()); 
 		showResults(aMatrix);
 / * */

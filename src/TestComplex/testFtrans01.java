@@ -18,7 +18,7 @@ public class testFtrans01 {
        	System.out.println("");
        	System.out.println(Complex.boxTitleRandom(boxSize, "FTRANS TEST"));
 		matrixA = new MatrixComplex(5);
-		matrixA.initMatrixRandomInteger(1);
+		matrixA.initMatrixRandomInt(1);
 
 		System.out.println(Complex.boxTextRandom(boxSize, "Ftansff"));
 		matrixA.println("matrixA");
@@ -33,7 +33,7 @@ public class testFtrans01 {
        	System.out.println(Complex.boxTitleRandom(boxSize, "FTRANS swap row1 row2"));
 
 		matrixA = new MatrixComplex(5);
-		matrixA.initMatrixRandomInteger(4);
+		matrixA.initMatrixRandomInt(4);
 
 		System.out.println(Complex.boxTextRandom(boxSize, "Ftansff"));
 		matrixA.println("matrixA");
@@ -49,7 +49,7 @@ public class testFtrans01 {
 		
        	System.out.println(Complex.boxTitleRandom(boxSize, "FTRANS add row time cNum"));
 		matrixA = new MatrixComplex(5);
-		matrixA.initMatrixRandomInteger(4);
+		matrixA.initMatrixRandomInt(4);
 
 		System.out.println(Complex.boxTextRandom(boxSize, "Ftansff"));
 		matrixA.println("matrixA");

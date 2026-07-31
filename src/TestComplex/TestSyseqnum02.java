@@ -124,7 +124,7 @@ public static void main(String[] args) {
 		//Syseq aMatrix = new Syseq("-4.000,-4.000,-3.000,0.000;4.000,4.000,3.000,0.000;-3.000,-3.000,-3.000,0.000");
 
 		Syseq aMatrix = new Syseq(3);
-		aMatrix.initMatrixRandomInteger(5);
+		aMatrix.initMatrixRandomInt(5);
 		/* MAKE IT SYMMETRIC */
 		aMatrix.complexMatrix = aMatrix.unkMatrix().hermitian().augment(aMatrix.indMatrix()).complexMatrix;
 		//aMatrix.complexMatrix = aMatrix.triangle().complexMatrix;

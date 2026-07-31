@@ -328,7 +328,7 @@ public class TestTaylorLogExp03b {
     	if (complex) 
     		aMatrix.initMatrixRandomRecInt(9); // Complex Numbers
     	else
-    		aMatrix.initMatrixRandomInteger(9); // Integer Numbers
+    		aMatrix.initMatrixRandomInt(9); // Integer Numbers
     	if (hermitian) aMatrix = aMatrix.hermitian();
     	if (positive) aMatrix.abs();
 

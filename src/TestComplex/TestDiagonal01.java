@@ -84,16 +84,16 @@ public class TestDiagonal01 {
 
 		/**/
 
-		fMatrix = new MatrixComplex(6); fMatrix.initMatrixRandomInteger(9);
+		fMatrix = new MatrixComplex(6); fMatrix.initMatrixRandomInt(9);
 		showResults(fMatrix);
 
-		fMatrix = new MatrixComplex(4); fMatrix.initMatrixRandomInteger(9);
+		fMatrix = new MatrixComplex(4); fMatrix.initMatrixRandomInt(9);
 		fMatrix.complexMatrix = fMatrix.hermitian().complexMatrix;
 		showResults(fMatrix);
 
 		//try { System.in.read(); } catch(java.io.IOException e) {}
 		
-		fMatrix = new MatrixComplex(4); fMatrix.initMatrixRandomInteger(10);
+		fMatrix = new MatrixComplex(4); fMatrix.initMatrixRandomInt(10);
 		fMatrix.complexMatrix = fMatrix.skewHermitian().complexMatrix;
 		showResults(fMatrix);
 
@@ -119,7 +119,7 @@ public class TestDiagonal01 {
 
 		/**/
 		
-		fMatrix = new MatrixComplex(10); fMatrix.initMatrixRandomInteger(5);
+		fMatrix = new MatrixComplex(10); fMatrix.initMatrixRandomInt(5);
 		showResults(fMatrix);		
 	}
 

@@ -53,7 +53,7 @@ public class TestCoef01 {
 		aMatrix = new MatrixComplex(5);aMatrix.initMatrixRandomRec(9);
 		showResults(aMatrix);
 
-    	aMatrix = new MatrixComplex(5);aMatrix.initMatrixRandomInteger(4);
+    	aMatrix = new MatrixComplex(5);aMatrix.initMatrixRandomInt(4);
 		showResults(aMatrix);
 		
     	//aMatrix = new MatrixComplex(8);

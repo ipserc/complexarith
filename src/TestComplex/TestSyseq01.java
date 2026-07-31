@@ -103,10 +103,10 @@ public class TestSyseq01 {
 		fMatrix = new Syseq(5); fMatrix.initMatrixRandomRecInt(10);
 		solve(fMatrix);
 		
-		fMatrix = new Syseq(3); fMatrix.initMatrixRandomInteger(1);
+		fMatrix = new Syseq(3); fMatrix.initMatrixRandomInt(1);
 		solve(fMatrix);
 		
-		fMatrix = new Syseq(7); fMatrix.initMatrixRandomInteger(10);
+		fMatrix = new Syseq(7); fMatrix.initMatrixRandomInt(10);
 		solve(fMatrix);
 			
 		fMatrix = new Syseq("2.000,-2.000,-4.000,0.000;-2.000,2.000,4.000,0.000;0.000,0.000,0.000-0.000i,0.000");

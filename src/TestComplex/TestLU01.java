@@ -149,7 +149,7 @@ public class TestLU01 {
     	luMatrix = new LUfactor("1,3,-1;3,7,2;2,1,-1");
     	showResults(luMatrix);
 
-    	luMatrix = new LUfactor(5); luMatrix.initMatrixRandomInteger(9); luMatrix.factorize();
+    	luMatrix = new LUfactor(5); luMatrix.initMatrixRandomInt(9); luMatrix.factorize();
     	showResults(luMatrix);
 
     	luMatrix = new LUfactor(7); luMatrix.initMatrixRandomRec(9); luMatrix.factorize();
@@ -167,7 +167,7 @@ public class TestLU01 {
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "HERMITIAN MATRIX"));
      	aMatrix = new MatrixComplex(4); 
-     	aMatrix.initMatrixRandomInteger(7);
+     	aMatrix.initMatrixRandomInt(7);
      	luMatrix = new LUfactor(aMatrix.hermitian(), LUfactor.LUmethod.CHOLESKY); 
     	showResults(luMatrix);
      	luMatrix = new LUfactor(aMatrix.hermitian()); 
@@ -175,7 +175,7 @@ public class TestLU01 {
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "SKEW-HERMITIAN MATRIX"));
      	aMatrix = new MatrixComplex(4); 
-     	aMatrix.initMatrixRandomInteger(7); 
+     	aMatrix.initMatrixRandomInt(7); 
      	luMatrix = new LUfactor(aMatrix.skewHermitian(), LUfactor.LUmethod.CHOLESKY); 
     	showResults(luMatrix);
      	luMatrix = new LUfactor(aMatrix.skewHermitian()); 

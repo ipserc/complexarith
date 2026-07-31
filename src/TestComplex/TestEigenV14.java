@@ -124,7 +124,7 @@ public class TestEigenV14 {
 
 
      	//aMatrix = new MatrixComplex(3);
-     	//aMatrix.initMatrixRandomInteger(6);
+     	//aMatrix.initMatrixRandomInt(6);
      	//aMatrix = new MatrixComplex("-6.000,-2.000,4.000;-5.000,3.000,4.000;-5.000,6.000,-2.000");
      	//aMatrix = new MatrixComplex("4.000,-6.000;5.000,-6.000");
     	// INCorrect EIGEN     	

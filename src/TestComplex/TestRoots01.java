@@ -37,7 +37,7 @@ public class TestRoots01 {
     	Polynom aPolynom;
     	
 		Complex.setFormatON();
-		Complex.setScientificON(8);
+		Complex.setScientificON(9);
 		Complex.exact(false);
 		Complex.precision(1E-18);
 		Complex.facts();
@@ -50,6 +50,15 @@ public class TestRoots01 {
     	aPolynom = new Polynom("1,0,-1,0,1");
     	showResults(aPolynom);
 
+    	aPolynom = new Polynom("1,3,-5,-7,2"); // x^4+3x^3-5x^2-7x+2
+    	showResults(aPolynom);
+
+    	aPolynom = new Polynom("-2.0i,1.0i,1.0i,-3.0i,-2.0i,2.0i,-2.0i,-2.0i,-1.0i,-2.0i,2.0i,1.0i,2.0i,-3.0i,0.0,0.0,0.0");
+       	aPolynom = new Polynom(17); 
+       	aPolynom.initMatrixRandomInt(9);
+       	//aPolynom.initMatrixRandomPol(3);
+       	System.out.println(aPolynom.toMatrixComplex());
+    	showResults(aPolynom);       	
     	/*    	
     	//-x²+2ix+1
     	aPolynom = new Polynom("-1,2i,1");

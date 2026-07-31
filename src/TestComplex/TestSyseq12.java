@@ -63,7 +63,7 @@ public class TestSyseq12 {
 		int nbrNullRows = nbrUnknowns-2;
 		
 		aMatrix = new Syseq(nbrUnknowns);
-		aMatrix.initMatrixRandomInteger(5);
+		aMatrix.initMatrixRandomInt(5);
 		
 		//aMatrix.setItem(0, aMatrix.cols()-1, Complex.ZERO);
 		for (int row = 1; row < aMatrix.rows(); ++row) {
