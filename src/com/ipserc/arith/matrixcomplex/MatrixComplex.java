@@ -18,8 +18,19 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.19 (2026_0731_2130)";
+	private final static String VERSION = "1.20 (2026_0731_2230)";
 	/* VERSION Release Note
+	 *
+	 * 1.20 (2026_0731_2230)
+	 * normalize2PI() eliminado (auditoria matematica, hallazgo 4): reducia la
+	 * matriz por su norma euclidea global antes de sin()/cos()/tan()/euler(),
+	 * invalido matematicamente -- la periodicidad de sin/cos es por autovalor,
+	 * no por la norma conjunta de la matriz. Corrompia silenciosamente sin()/
+	 * cos()/tan() para matrices no diagonalizables con norma grande. Quitada la
+	 * llamada de trigonTaylor()/sinEuler()/cosEuler()/euler()/euler(MatrixComplex);
+	 * sin()/cos() pasan a usar sinEuler()/cosEuler() (formula de Euler via exp(),
+	 * ya correcto) como fallback en vez de sinTaylor()/cosTaylor(), igual que ya
+	 * hacia tan()/tanEuler(). normalize2PI() eliminado del todo (sin llamadores).
 	 *
 	 * 1.19 (2026_0731_2130)
 	 * logTaylor()/logMercator()/logHat() (auditoria matematica, hallazgo 3): el
@@ -1882,18 +1893,6 @@ public class MatrixComplex {
 	 */
 
 	/**
-	 * Normalize the matrix to 0 < matrix <= 2pi
-	 * @return the matrix normalized between 0 < matrix <= 2pi
-	 */
-	public MatrixComplex normalize2PI() {
-		double norm = this.euc_norm();
-		double redux = norm/Complex.DOS_PI; 
-		redux = (redux-Math.floor(redux))*Complex.DOS_PI;
-		MatrixComplex normalThis = this.divides(norm).times(redux);
-		return normalThis;
-	}
-	
-	/**
 	 * Calculates the exponential of the matrix (e^this)
 	 * This calculation is achieved using the Taylor's series of the exponential extended for complex matrices
 	 * @return The value of e^this
@@ -1990,7 +1989,12 @@ public class MatrixComplex {
 			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
-		MatrixComplex normalThis = this.normalize2PI();
+		// normalize2PI() used to be applied here, but reducing the WHOLE matrix's norm modulo 2pi
+		// is only valid periodicity-wise for a scalar -- sin/cos periodicity (z+2pi*k) applies per
+		// eigenvalue, not to a matrix rescaled by a single norm-based factor. Removed; the raw
+		// Taylor series converges for any matrix (sin/cos are entire functions), just possibly
+		// slower for a matrix with a large norm.
+		MatrixComplex normalThis = this;
 		MatrixComplex trigonMatrix = new MatrixComplex(this.rows(), this.cols());
 		MatrixComplex trigonMatant;
 		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
@@ -2047,9 +2051,11 @@ public class MatrixComplex {
 	public MatrixComplex sinEuler() {
 		Complex plusj = new Complex(0,1);
 		Complex minusj = new Complex(0,-1);
-			
-		MatrixComplex normalThis = this.normalize2PI();
-		return (normalThis.times(plusj).exp().minus(normalThis.times(minusj).exp())).divides(Complex.i).divides(2);
+
+		// normalize2PI() removed: exp() already handles any matrix correctly (including scaling
+		// for large norms), so no periodicity reduction is needed -- and the previous reduction
+		// was mathematically invalid for non-scalar matrices (see trigonTaylor()).
+		return (this.times(plusj).exp().minus(this.times(minusj).exp())).divides(Complex.i).divides(2);
 	}
 
 	/**
@@ -2082,9 +2088,10 @@ public class MatrixComplex {
         	return dmat.P().times(Dmat).times(dmat.P().inverse());
     	}
 
-    	// Finally use the taylor Expansion
-		trace("Sin() using the Taylor expansion");
-		return this.sinTaylor();
+    	// Finally use Euler's formula (relies on exp(), already correct for any matrix including
+    	// scaling for large norms) -- same choice already made by tan()/tanEuler().
+		trace("Sin() using Euler's formula");
+		return this.sinEuler();
 	}
 
 	/**
@@ -2141,8 +2148,8 @@ public class MatrixComplex {
 		Complex plusj = new Complex(0,1);
 		Complex minusj = new Complex(0,-1);
 
-		MatrixComplex normalThis = this.normalize2PI();
-		return (normalThis.times(plusj).exp().plus(normalThis.times(minusj).exp())).divides(2);
+		// normalize2PI() removed, see sinEuler().
+		return (this.times(plusj).exp().plus(this.times(minusj).exp())).divides(2);
 	}
 
 	/**
@@ -2175,9 +2182,10 @@ public class MatrixComplex {
         	return dmat.P().times(Dmat).times(dmat.P().inverse());
     	}
 
-    	// Finally use the taylor Expansion
-		trace("Cos() using the Taylor expansion");
-		return this.cosTaylor();
+    	// Finally use Euler's formula (relies on exp(), already correct for any matrix including
+    	// scaling for large norms) -- same choice already made by tan()/tanEuler().
+		trace("Cos() using Euler's formula");
+		return this.cosEuler();
 	}
 
 	/**
@@ -2285,9 +2293,9 @@ public class MatrixComplex {
 	 * Euler's formula e^[+/-]x=cos(x)[+/-]i·sin(x)
 	 * @return Euler's formula e^x
 	 */
-	public MatrixComplex euler() {	
-		MatrixComplex normalThis = this.normalize2PI();
-		return exp(normalThis.times(Complex.i));
+	public MatrixComplex euler() {
+		// normalize2PI() removed, see sinEuler().
+		return exp(this.times(Complex.i));
 	}
 
 	/**
@@ -2296,8 +2304,8 @@ public class MatrixComplex {
 	 * @return Euler's formula e^x
 	 */
 	public static MatrixComplex euler(MatrixComplex matrix) {
-		MatrixComplex normalThis = matrix.normalize2PI();
-		return exp(normalThis.times(Complex.i));
+		// normalize2PI() removed, see sinEuler().
+		return exp(matrix.times(Complex.i));
 	}
 
 	/**
