@@ -142,7 +142,7 @@ public class TestSVD03 {
     	svd = new SVDfactor(""
     			+ " 4, 11, 14;"
     			+ " 8,  7, -2",
-    			SVDmethod.IMAGINARY);
+    			SVDmethod.SVD);
     	showResults(svd);
 		/* */
 
@@ -151,7 +151,7 @@ public class TestSVD03 {
     			+ " 1 , -1 ;"
     			+ "-2 ,  2; "
     			+ " 2 , -2 ",
-    			SVDmethod.IMAGINARY);
+    			SVDmethod.REDUCED);
     	showResults(svd);
 		/* */
 
