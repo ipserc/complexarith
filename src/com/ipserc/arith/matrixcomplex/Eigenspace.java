@@ -3,21 +3,29 @@
  */
 package com.ipserc.arith.matrixcomplex;
 
+
+
 /**
  * @author ipserc
  *
  */
 
 import com.ipserc.arith.complex.Complex;
+import com.ipserc.arith.factorization.Diagfactor;
 import com.ipserc.arith.polynom.Polynom;
 import com.ipserc.arith.syseq.Syseq;
-import com.ipserc.arith.vector.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 public class Eigenspace extends MatrixComplex {
 	
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.4 (2022_0123_0100)";
+	private final static String VERSION = "1.5 (2025_0319_2345)";
 	/* VERSION Release Note
+	 * 
+	 * 1.5 (2025_0319_2345)
+	 * 	public MatrixComplex eigenvector(int i) {
+	 *  public void check() {
+	 *  public void checkEigenvectors() {
 	 * 
 	 * 1.4 (2022_0123_0100)
 	 * toMaxima_eigenvalues(boolean expand)
@@ -41,6 +49,17 @@ public class Eigenspace extends MatrixComplex {
 	 * 
 	 */
 
+	 /**
+	  * Controls whether the eigenvectors are normalized or not
+	  * Only the eigenvectors, the solutions rest as they were calculated
+	  */
+	 private static boolean normalizeVectors = false;
+
+	 /**
+	  * Sets the order in which the roots and solutions of the Characteristic polynomila are stored
+	  */
+	 private static Order order = Order.DOWN;
+
 	/**
 	 * Enumeration that gives the value of the order in which the eigenvalues, and therefore, the eigenvectors are returned
 	 * DOWN: The eigenvalues are sorted from higher to lower
@@ -54,7 +73,8 @@ public class Eigenspace extends MatrixComplex {
 	private MatrixComplex eigenvectors; // The eigenvectors taken from vectors by removing the null and the linear combination ones
 	private Polynom charactPoly;
 	private Complex seed;
-	private Order order;
+	
+	
 
 	/*
 	 * ***********************************************
@@ -121,10 +141,48 @@ public class Eigenspace extends MatrixComplex {
 
 	/*
 	 * ***********************************************
-	 * GETTERS
+	 * SETTERS
 	 * ***********************************************
 	 */
 	
+	 /**
+	  * Sets the order in which the roots of the characteristic polynomial are found. DOWN means in decreasing order.
+	  * Eigenvalues ​​are sorted only ONCE. Subsequent changes to the order affect only the roots.
+	  */
+	public static void setOrderDOWN() {
+		order = Order.DOWN;
+	}
+
+	/**
+	  * Sets the order in which the roots of the characteristic polynomial are found. UP in increasing order.
+	  * Eigenvalues ​​are sorted only ONCE. Subsequent changes to the order affect only the roots.
+	 */
+	public static void setOrderUP() {
+		order = Order.UP;
+	}
+
+	/**
+	 * Sets whether the eigenvectors are normalized or not. It only affect to the eigenvectors, the roots remain as they were calculated.
+	 * @param val True normalize eigenvetors, false keep as they were calculated.
+	 */
+	public static void setNormalize(boolean val) {
+		normalizeVectors = val;
+	}
+
+	/*
+	 * ***********************************************
+	 * GETTERS
+	 * ***********************************************
+	 */
+
+	 /**
+	  * Retrieves the value of normalizeVectors which controls whether the eigenvectors are normalized or not. 
+	  * @return The value of normalizeVectors.
+	  */
+	 public static boolean getNormalice() {
+		return normalizeVectors;
+	 }
+
 	/**
 	 * Private Method. Calculates the Eigenspace components. Characteristic Polynomial, Eigenvalues and Eigenvetors
 	 */
@@ -164,14 +222,21 @@ public class Eigenspace extends MatrixComplex {
 	}
 	
 	/**
+	 * Returns the i-th eigenvector as a MatrixComplex one row
+	 * @param idx The i-th eigenvector to get
+	 * @return The i-th eigenvector
+	 */
+	public MatrixComplex eigenvector(int idx) {
+		return eigenvectors.getRow(idx).clone();
+	}
+	
+	/**
 	 * Returns the eigenvectors as a MatrixComplex with the vectors in the array rows
 	 * @return The eigenvectors
 	 */
-	public MatrixComplex base() {
+ 	public MatrixComplex base() {
 		return solutions;
 	}
-	
-	
 	
 	/**
 	 * Returns the root rootId index from the roots of the characteristic polynomial
@@ -230,9 +295,14 @@ public class Eigenspace extends MatrixComplex {
 	 * Gets the order in which the eigenvalues are sorted. The eigenvectors follow this order
 	 * @return the order in which the eigenvalues are stored
 	 */
-	public Order order() {
+	public static Order order() {
 		return order;
 	}
+	
+	public String getOrder() {
+		return order.toString();
+	}
+	
 	
 	/*
 	 * ***********************************************
@@ -361,9 +431,11 @@ public class Eigenspace extends MatrixComplex {
 		// eigenvalues.quicksortup(0); // DO NOT USE - SVD factorization doesn't allow this
 		// order = Order.UP;
 		// By default the order in which the eigenvalues are sorted is from Higher to Lower
-		order = Order.DOWN;
-		roots.quicksort(0);
-
+		switch (order) {
+			case UP: roots.quicksortup(0); break;
+			case DOWN: roots.quicksortdown(0); break;
+		}
+			
 		// calculates the number of different roots
 		int rootCount = 1;
 		prevRoot = roots.getItem(0, 0);		
@@ -396,17 +468,19 @@ public class Eigenspace extends MatrixComplex {
 	}
 
 	/**
-	 * Swaps the order of the roots and the solutions
+	 * Swaps the order of the roots and the solutions. Use 
 	 */
 	public void orderSwap() {
 		MatrixComplex rootsTmp = roots.clone();
 		MatrixComplex solutionsTmp = solutions.clone();
 		// swap eigenvalues
-		for (int row = 0; row < eigenvalues.rows(); ++row)
+		for (int row = 0; row < eigenvalues.rows(); ++row) {
 			roots.complexMatrix[eigenvalues.rows() - row - 1] = rootsTmp.complexMatrix[row];
+		}
 		// swap vectors
-		for (int row = 0; row < eigenvalues.rows(); ++row)
+		for (int row = 0; row < eigenvalues.rows(); ++row) {
 			solutions.complexMatrix[eigenvalues.rows() - row - 1] = solutionsTmp.complexMatrix[row];
+		}
 		order = order == Order.DOWN? Order.UP : Order.DOWN;
 	}
 	
@@ -491,21 +565,25 @@ public class Eigenspace extends MatrixComplex {
 			//rowEig += eigensolve.rows();
 			rowEig += this.arithmeticMultiplicity(eigenval);
 		}
-		eigenvectors = setEigenvectors();
-		/**/
+		/* ******************************************** */
 		// Normalize the eigenvectors if possible
-		if (!solutions.determinant().isZero())
-			eigenvectors = eigenvectors.normalizeByRows();
-		/**/
+		if (normalizeVectors)
+			solutions = solutions.normalizeByRows();
+		/* ******************************************** */
+
+		eigenvectors = setEigenvectors();
+		
+		// Call to the Garbage Collector
+		Runtime.getRuntime().gc();
 	}
 	
 	private MatrixComplex setEigenvectors() {
 		int eigenvRows = solutions.rank();
 		eigenvectors = new MatrixComplex(eigenvRows, this.cols());
-		//int rows = this.rows() < eigenvectors.rows() ? this.rows() : eigenvectors.rows();
-		
-		//for (int row = 0, i = 0; row < solutions.rows() && i < eigenvRows; ++row) {
-		for (int row = 0, i = 0; row < eigenvectors.rows(); ++row) {
+
+		// Recorremos TODAS las soluciones
+		for (int row = 0, i = 0; row < solutions.rows(); ++row) {
+			// Pero solo son autovectores las soluciones NO NULAS
 			if (solutions.isNullRow(row)) continue;
 			else {
 				eigenvectors.setRow(i++, solutions.getRow(row));
@@ -640,25 +718,133 @@ public class Eigenspace extends MatrixComplex {
 		printCharactEq(outputFormat.MATRIXCOMPLEX, false);
 	}
 
+	/*
+	 * ***********************************************
+	 * CHECKERS
+	 * ***********************************************
+	 */
+	
 	/**
 	 * Checks the eigenvectors calculated to prove that (AX-λI) = 0
 	 */
 	public void checkEigenvectors() {
 		int boxSize = 65;
-    	System.out.println(Complex.boxTextRandom(boxSize, "Check eigenvectors"));
+    	Complex.printBoxTextRandom(boxSize, "Check eigenvectors");
     	int colLen = cols(); 
     	MatrixComplex eigenVect = new MatrixComplex(1,colLen);
     	
     	for (int eigv = 0; eigv < roots().rows(); ++eigv) {
     		eigenVect.complexMatrix[0] = solutions().complexMatrix[eigv].clone();
     		if (eigenVect.isNull()) continue;
-    		eigenVect = eigenVect.normalizeByRows();
-    		Complex eigenVal = roots().complexMatrix[eigv][0];
+
+			/* ***************************************** */
+			if (normalizeVectors)
+				eigenVect = eigenVect.normalizeByRows();
+			/* ***************************************** */
+			/* */
+
+			Complex eigenVal = roots().complexMatrix[eigv][0];
 	    	eigenVect.println ("**************** eigenVect:");
 	    	System.out.println("                 eigenVal : "+ eigenVal.toString());
 	    	this.times(eigenVect.transpose()).transpose().println("aMatrix·eigenVect  "+eigv);
 	    	eigenVect.times(eigenVal).println("eigval["+eigv+"]·eigenVect"+eigv);
     	}
+	}
+	
+	public void check() {
+		MatrixComplex aMatrix = new MatrixComplex();
+		aMatrix.complexMatrix = this.complexMatrix.clone();
+
+     	int boxSize = 65;
+		int boxId = 5;
+
+    	System.out.println();
+       	Complex.printBoxTitle(boxId, boxSize, "EIGENVALUES & EIGENVECTORS CHECK");
+
+		Complex.showPrecision();
+		Eigenspace.version();
+
+		Complex.printBoxText(boxId, boxSize, "Matrix definition section");
+		aMatrix.println("aMatrix");
+       	System.out.println("MatrixComplex :"+aMatrix.toMatrixComplex());
+       	/* EigenVectors Expressions in other languages */
+    	Complex.printBoxText(boxId, boxSize, "EigenVectors Expressions in other languages");
+    	System.out.println("Maxima:"+this.toMaxima_eigenvalues(true));
+    	System.out.println("Maxima:"+this.toMaxima_eigenvectors(true));
+    	System.out.println("Maxima:"+this.toMaxima_charpoly(true));
+    	System.out.println("Octave:"+this.toOctave_eigenvectors());
+    	System.out.println("Wolfram:"+this.toWolfram_eigenvectors());
+    	System.out.println("Wolfram:"+this.toWolfram_eigensystem());
+
+    	Complex.printBoxText(boxId, boxSize, "Determinant, Triangle & Characteristic polynomial");
+    	aMatrix.determinant().println("Determinant:");
+    	aMatrix.triangle().heap().println("triangle:");
+    	this.getCharactPoly().println("Characteristic polynom:");
+
+    	/* EigenValues Calculated & Multiplicities */
+    	Complex.printBoxText(boxId, boxSize, "EigenValues Calculated  & Multiplicities");
+    	{
+	    	for (int i = 0; i < this.eigenvalues().rows(); ++i) {
+	    		Complex eVal = this.eigenvalues().getItem(i,0);
+				System.out.println("EigenValue: " + eVal.toString() + 
+						" - arith mult:" + this.arithmeticMultiplicity(eVal) + 
+						" - geom mult:" + this.geometricMultiplicity(eVal));    		
+	    	}
+    	}
+
+    	/* Characteristics Equations */
+    	Complex.printBoxText(boxId, boxSize, "Characteristics Equations");
+       	Complex.printBoxText(boxId, boxSize, "MATRIXCOMPLEX");
+    	this.printCharactEq(outputFormat.MATRIXCOMPLEX, true);
+       	Complex.printBoxText(boxId, boxSize, "MAXIMA");
+    	this.printCharactEq(outputFormat.MAXIMA, true);
+    	Complex.printBoxText(boxId, boxSize, "OCTAVE");
+    	this.printCharactEq(outputFormat.OCTAVE, true);
+    	Complex.printBoxText(boxId, boxSize, "WOLFRAM");
+    	this.printCharactEq(outputFormat.WOLFRAM, true);
+    	
+    	/* roots & solutions */
+    	Complex.printBoxText(boxId, boxSize, "Roots & Solutions ");
+    	for (int row = 0; row < this.solutions().rows(); ++row){
+    		System.out.println("root: " + this.root(row).getItem(0,0).toString() + " - solution: " + this.solution(row).getRow(0) + " - Is eigenvector: " + (this.solution(row).isNull() ? "No" : "Yes"));
+    	}
+    	
+    	/* EigenVectors Calculated */
+    	Complex.printBoxText(boxId, boxSize, "EigenVectors Calculated" + (Eigenspace.getNormalice() ? " Normalized" : ""));
+    	this.eigenvectors().println("EigenVectors:");
+    	if(!this.eigenvectors().isEmpty() && this.eigenvectors().isSquare()) System.out.println("EigenVectors - Determinant:"+this.eigenvectors().determinant());
+    	else System.out.println("EigenVectors - Determinant: dosen't exist.");
+   	
+    	/* Check Eigenvectors */
+    	this.checkEigenvectors();
+
+		Complex.printBoxText(boxId, boxSize, "EigenVectors Base, Orthogonality & Orthonormality");
+		System.out.println("Eigenvectors are a Base:" +VectorComplex.checkBase(this.solutions));
+		System.out.println("Eigenvectors are a Base orthogonal:" +VectorComplex.isOrthogonal(this.solutions));
+		System.out.println("Eigenvectors are a Base orthonormal:" +VectorComplex.isOrthonormal(this.solutions));
+		
+    	/* Diagonalize Section if possible */
+     	Diagfactor diagonal = new Diagfactor(aMatrix);
+    	if (diagonal.factorized()) {
+        	Complex.printBoxText(boxId, boxSize, "IS DIAGONALIZABLE");
+         	diagonal.D().println("Matriz Diagonal (D):");
+    	    diagonal.P().transpose().println("Matriz Valores Propios Traspuesta (Pŧ):");
+    	    diagonal.P().times(diagonal.D()).times(diagonal.P().inverse()).println("P·D·P⁻¹:");
+    	}
+    	else {
+        	Complex.printBoxText(boxId, boxSize, "IS NOT!!!!!!!!!!!!!! DIAGONALIZABLE");
+    	}
+    	
+     	/*
+    	System.out.print("press any key");
+    	try {
+			System.in.read();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		*/
+       	Complex.printBoxText(boxId, boxSize, "-- END EIGENVALUES & EIGENVECTORS TEST END --");
+    	System.out.println();
 	}
 
 }

@@ -9,6 +9,7 @@ public class TestEigenV11 {
 
 	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
+		//Eigenspace.setOrderNONE();
 		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);
      	int boxSize = 65;
 

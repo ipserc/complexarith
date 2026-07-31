@@ -1,6 +1,6 @@
 /*
  * 
- * clear;runJava.sh eclipse-workspace/complexarith/bin/TestComplex/TestEigenV18.class
+ * clear;runJava.sh eclipse-workspace/complexarith_github/bin/TestComplex/TestEigenV18.class
  * 
  * 
  */
@@ -12,7 +12,6 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex.outputFormat;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
-import com.ipserc.arith.factorization.SVDfactor;
 
 public class TestEigenV18 {
 
@@ -22,7 +21,7 @@ public class TestEigenV18 {
      	int boxSize = 65;
 
        	System.out.println("");
-       	System.out.println(Complex.boxTitleRandom(boxSize, "EIGENVALUES & EIGENVECTORS TEST"));
+       	System.out.println(Complex.boxTitleRandom(boxSize, "EIGENVALUES & EIGENVECTORS TEST ORDER:" + eigenSpace.getOrder()));
     	aMatrix.println("aMatrix");
        	System.out.println("MatrixComplex :"+aMatrix.toMatrixComplex());
 
@@ -49,7 +48,6 @@ public class TestEigenV18 {
 						" - arith mult:" + eigenSpace.arithmeticMultiplicity(eVal) + 
 						" - geom mult:" + eigenSpace.geometricMultiplicity(eVal));    		
 	    	}
-    		
     	}
     	
     	/* Characteristics Equations */
@@ -110,7 +108,6 @@ public class TestEigenV18 {
 	 */
 	public static void main(String[] args) {
     	MatrixComplex aMatrix = new MatrixComplex();
-     	int boxSize = 65;
 
     	Complex.exact(true);
     	Complex.setFormatON();
@@ -119,144 +116,14 @@ public class TestEigenV18 {
      	Complex.showPrecision();
      	Eigenspace.version();
 
-	    aMatrix = new MatrixComplex("-1.0,-1.0,1.0;1.0,-3.0,-1.0;-1.0,3.0,-1.0");
+	    //aMatrix = new MatrixComplex("-1.0, 2.0,-1.0;-1.0, 2.0,-1.0;-1.0, 1.0,-3.0");
+	    aMatrix = new MatrixComplex(" 3.0, 2.0,-1.0, 3.0;-3.0, 1.0, 2.0, 1.0;-1.0, 3.0,-2.0, 2.0; 1.0,-2.0,-1.0,-3.0");
+	    
+		Eigenspace.setOrderDOWN();
 	    doEigenCalculations(aMatrix);
 
-	    aMatrix = new MatrixComplex("-1.0,2.0,-1.0;-1.0,2.0,-1.0;-1.0,1.0,-3.0");
+		Eigenspace.setOrderUP();
 	    doEigenCalculations(aMatrix);
 	    
-	    aMatrix = new MatrixComplex("-3.0,-2.0,3.0;-3.0,-2.0,1.0;4.0,-4.0,2.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("8.0,-6.0,6.0;-7.0,-3.0,7.0;-9.0,2.0,2.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("-1.0,-2.0,2.0;4.0,5.0,-4.0;2.0,1.0,-1.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("2.0,3.0,4.0;4.0,4.0,2.0;-4.0,-4.0,-2.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("-1.0,8.0,8.0;14.0,0.0,1.0;-1.0,4.0,3.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("0.0,10.0,0.0;2.0,1.0,-2.0;10.0,1.0,14.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("-3.0,6.0,9.0,-5.0;5.0,9.0,-1.0,6.0;7.0,2.0,-3.0,5.0;7.0,-8.0,-1.0,1.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("3.0,2.0,-1.0,3.0;-3.0,1.0,2.0,1.0;-1.0,3.0,-2.0,2.0;1.0,-2.0,-1.0,-3.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("3.0,-2.0,3.0,3.0;2.0,3.0,3.0,2.0;-2.0,-3.0,3.0,-2.0;-2.0,2.0,-3.0,-2.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("-1.0,4.0,-4.0,2.0;-3.0,-3.0,-3.0,-3.0;1.0,-2.0,1.0,-2.0;-1.0,-2.0,2.0,-2.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("-5.0,-2.0,5.0,-5.0;3.0,3.0,-1.0,-2.0;2.0,-5.0,4.0,-5.0;3.0,-5.0,-1.0,2.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("4.0,5.0,2.0,1.0;-4.0,-3.0,-2.0,5.0;3.0,1.0,-1.0,-3.0;2.0,1.0,-3.0,2.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("5.0,3.0,-4.0,2.0;4.0,4.0,2.0,-4.0;1.0,3.0,-2.0,-5.0;-1.0,-1.0,1.0,4.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("3.0,-3.0,2.0,-5.0;-2.0,2.0,-3.0,-3.0;4.0,-4.0,-2.0,-2.0;4.0,-4.0,3.0,-1.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("-5.0,1.0,-5.0,-4.0;-1.0,-5.0,3.0,2.0;5.0,3.0,-2.0,2.0;-3.0,-2.0,-1.0,-5.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("-2.0,2.0,-1.0,1.0,-3.0;2.0,-2.0,-1.0,1.0,-3.0;3.0,3.0,1.0,-2.0,-2.0;2.0,3.0,2.0,-3.0,-1.0;-2.0,-1.0,3.0,-3.0,3.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("2.0,-3.0,-2.0,3.0,-1.0;1.0,2.0,1.0,-1.0,1.0;-1.0,1.0,1.0,1.0,-1.0;1.0,-3.0,-1.0,3.0,1.0;-2.0,2.0,1.0,-2.0,1.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("2.0,-1.0,-2.0,-3.0,-3.0;1.0,-3.0,-3.0,-1.0,-3.0;3.0,3.0,3.0,-3.0,3.0;1.0,1.0,-2.0,-2.0,-1.0;2.0,-3.0,1.0,-2.0,-3.0");
-	    doEigenCalculations(aMatrix);
-
-	    aMatrix = new MatrixComplex("10.0,5.0,4.0;8.0,3.0,6.0;8.0,5.0,4.0");
-	    doEigenCalculations(aMatrix);
-	    
-	    aMatrix = new MatrixComplex("9.0,8.0,5.0,9.0;9.0,4.0,4.0,6.0;6.0,9.0,9.0,9.0;6.0,5.0,8.0,6.0");
-	    doEigenCalculations(aMatrix);
-
-	    aMatrix = new MatrixComplex("-2.0,2.0,1.0,2.0;2.0,3.0,-3.0,-3.0;2.0,-1.0,1.0,-1.0;2.0,2.0,1.0,-2.0");
-	    doEigenCalculations(aMatrix);
-	    
-		aMatrix = new MatrixComplex("2.0,-6.0,10.0;3.0,5.0,11.0;9.0,-9.0,11.0");
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("1.0,-2.0,-3.0,-2.0,3.0;-3.0,3.0,2.0,3.0,-2.0;2.0,1.0,-3.0,-1.0,1.0;1.0,3.0,-1.0,-3.0,2.0;-2.0,3.0,1.0,-3.0,3.0");
-		doEigenCalculations(aMatrix);
-		
-		aMatrix = new MatrixComplex("-2.0,1.0,-1.0,-2.0,-1.0;1.0,1.0,-3.0,2.0,1.0;-1.0,-1.0,-2.0,-2.0,-1.0;3.0,2.0,-1.0,-1.0,2.0;-2.0,-2.0,1.0,2.0,-2.0");
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("2.0,-2.0,3.0,1.0,-1.0;-1.0,3.0,3.0,2.0,3.0;2.0,-1.0,-2.0,-1.0,-2.0;1.0,2.0,1.0,3.0,-1.0;-3.0,-1.0,1.0,-2.0,3.0");
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("-1.0,-2.0,-3.0,2.0,-1.0;2.0,-3.0,1.0,-3.0,-3.0;1.0,-3.0,2.0,-1.0,-2.0;1.0,-3.0,2.0,-2.0,-1.0;1.0,-3.0,-3.0,-1.0,3.0");
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("-2.0,-1.0,-2.0,-1.0,2.0;3.0,-2.0,-2.0,-2.0,2.0;-1.0,2.0,3.0,2.0,1.0;1.0,-1.0,-2.0,1.0,2.0;2.0,1.0,2.0,1.0,2.0");
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("-3.0,1.0,-3.0,-1.0,3.0;3.0,3.0,3.0,2.0,-1.0;3.0,2.0,-1.0,3.0,-1.0;1.0,2.0,3.0,-2.0,-3.0;1.0,1.0,-3.0,2.0,3.0");
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("-3.0,3.0,-1.0,1.0,-3.0;-1.0,-2.0,-1.0,-3.0,-2.0;3.0,-2.0,-2.0,1.0,-3.0;2.0,1.0,-3.0,2.0,2.0;-2.0,1.0,-2.0,-2.0,3.0");		
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("-1.0,2.0,3.0,-1.0,-3.0;1.0,-1.0,-3.0,-2.0,3.0;-3.0,-2.0,2.0,-3.0,-2.0;-2.0,-2.0,-1.0,-2.0,1.0;-2.0,-2.0,2.0,-2.0,-2.0");
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("-4.0,1.0,-4.0;-1.0,5.0,-3.0;4.0,-3.0,-5.0");
-		doEigenCalculations(aMatrix);
-		
-		aMatrix = new MatrixComplex("1.0,-8.0,5.0,4.0;5.0,2.0,8.0,6.0;10.0,10.0,-8.0,10.0;-5.0,7.0,9.0,-9.0");
-		doEigenCalculations(aMatrix);
-		
-		new MatrixComplex("-4.0,-7.0,3.0;2.0,6.0,-7.0;-1.0,7.0,-7.0");
-		new MatrixComplex("2.0,14.0,5.0;12.0,-3.0,7.0;-8.0,-11.0,-12.0");
-		new MatrixComplex("-12.0,4.0,4.0;13.0,5.0,-12.0;-2.0,-9.0,-13.0");
-		new MatrixComplex("1.0,1.0,1.0,-2.0;3.0,4.0,-3.0,-2.0;-2.0,-3.0,4.0,2.0;1.0,2.0,2.0,-1.0");
-		new MatrixComplex("3.0,-1.0,-3.0,-1.0;-2.0,-4.0,2.0,-3.0;2.0,-1.0,-2.0,-1.0;3.0,2.0,-1.0,1.0");
-		
-		
-		
-		/* ***********************************************
-		 *                 APROXIMATED
-		 *********************************************** */
-    	Complex.exact(false);
-       	System.out.println("");
-       	System.out.println(Complex.boxTitleRandom(boxSize, "APROXIMATED"));
-    	Complex.showPrecision();
-
-		aMatrix = new MatrixComplex("-4.0,1.0,-4.0;-1.0,5.0,-3.0;4.0,-3.0,-5.0");
-		doEigenCalculations(aMatrix);
-
-		aMatrix = new MatrixComplex("2.0,2.0,3.0,3.0,-1.0;3.0,-3.0,1.0,1.0,-1.0;1.0,-1.0,-2.0,-2.0,-3.0;1.0,-3.0,-3.0,2.0,-3.0;2.0,-1.0,-2.0,2.0,-1.0");
-       	doEigenCalculations(aMatrix);
-
-       	aMatrix = new MatrixComplex("1.0,1.0,-2.0,2.0,-2.0,-2.0,3.0,-3.0;-3.0,1.0,3.0,3.0,3.0,-1.0,-2.0,-2.0;2.0,-3.0,-2.0,-3.0,-1.0,1.0,3.0,-3.0;-1.0,-1.0,-2.0,-3.0,-3.0,-3.0,1.0,-2.0;-1.0,2.0,-2.0,-3.0,-2.0,-1.0,3.0,1.0;3.0,-3.0,-2.0,2.0,-2.0,1.0,1.0,2.0;1.0,1.0,1.0,2.0,-3.0,-2.0,-2.0,2.0;-3.0,-1.0,1.0,3.0,3.0,-1.0,-3.0,-1.0");
-       	doEigenCalculations(aMatrix);
-	   
-       	aMatrix = new MatrixComplex("6.0,9.0,6.0,5.0,6.0,4.0,4.0,8.0;9.0,9.0,4.0,5.0,6.0,9.0,5.0,6.0;6.0,5.0,4.0,8.0,6.0,9.0,9.0,9.0;9.0,4.0,9.0,6.0,9.0,6.0,6.0,6.0;10.0,9.0,10.0,6.0,9.0,4.0,9.0,5.0;5.0,6.0,10.0,10.0,9.0,8.0,6.0,10.0;5.0,10.0,9.0,9.0,10.0,8.0,5.0,10.0;9.0,6.0,4.0,9.0,8.0,6.0,9.0,8.0");
-		doEigenCalculations(aMatrix);
-		
-		aMatrix = new MatrixComplex("4.0,4.0,5.0,8.0,10.0,5.0,8.0,10.0,6.0,6.0,5.0;9.0,8.0,8.0,6.0,8.0,8.0,5.0,9.0,6.0,8.0,4.0;5.0,5.0,8.0,6.0,6.0,9.0,6.0,10.0,9.0,8.0,10.0;9.0,10.0,10.0,10.0,4.0,6.0,6.0,10.0,6.0,5.0,10.0;4.0,9.0,4.0,4.0,8.0,10.0,8.0,6.0,10.0,6.0,5.0;10.0,8.0,6.0,9.0,5.0,9.0,8.0,8.0,5.0,8.0,6.0;9.0,4.0,5.0,8.0,9.0,6.0,10.0,9.0,5.0,6.0,10.0;5.0,9.0,10.0,5.0,10.0,9.0,10.0,10.0,6.0,6.0,10.0;9.0,4.0,4.0,8.0,6.0,5.0,10.0,8.0,4.0,6.0,6.0;5.0,6.0,5.0,8.0,4.0,8.0,6.0,6.0,9.0,6.0,8.0;8.0,10.0,5.0,5.0,4.0,9.0,10.0,8.0,6.0,10.0,10.0");
-		doEigenCalculations(aMatrix);
-		
-		aMatrix = new MatrixComplex("-2.0,10.0,5.0,2.0,-10.0,5.0,8.0,-5.0,9.0;-5.0,-10.0,-7.0,7.0,2.0,-11.0,2.0,-3.0,10.0;9.0,-8.0,-7.0,10.0,7.0,-3.0,1.0,7.0,-6.0;-9.0,-2.0,4.0,11.0,9.0,-3.0,10.0,11.0,9.0;8.0,3.0,10.0,7.0,6.0,5.0,-1.0,2.0,-6.0;-1.0,-10.0,9.0,1.0,-10.0,-2.0,-4.0,-11.0,-1.0;-10.0,-2.0,-8.0,-9.0,8.0,-4.0,9.0,3.0,1.0;9.0,8.0,6.0,-4.0,-11.0,11.0,-6.0,1.0,6.0;5.0,-9.0,-5.0,-8.0,8.0,2.0,-4.0,-10.0,-4.0");
-		doEigenCalculations(aMatrix);
-	 
-		aMatrix = new MatrixComplex("-2.0,2.0,3.0,8.0,7.0,-6.0,-9.0,8.0,10.0;-9.0,-7.0,-3.0,11.0,-2.0,-9.0,-4.0,-6.0,9.0;-8.0,-9.0,-10.0,8.0,-7.0,1.0,-5.0,3.0,-3.0;6.0,-4.0,-3.0,7.0,-11.0,5.0,3.0,4.0,-6.0;-5.0,-7.0,5.0,7.0,11.0,2.0,3.0,1.0,4.0;-8.0,-7.0,-1.0,3.0,10.0,-6.0,6.0,-4.0,1.0;-1.0,3.0,-11.0,8.0,3.0,5.0,10.0,5.0,-6.0;-10.0,3.0,4.0,9.0,-8.0,-11.0,-4.0,-1.0,-10.0;-2.0,11.0,-8.0,-1.0,8.0,11.0,6.0,-11.0,4.0");
-		doEigenCalculations(aMatrix);
-
 	}
 }
