@@ -39,8 +39,14 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.2 (2024_0418_2000)";
+	private final static String VERSION = "1.3 (2026_0731_1930)";
 	/* VERSION Release Note
+	 * 1.3 (2026_0731_1930)
+	 * diagonalize(): System.exit(-1) sobre matriz no cuadrada sustituido por
+	 * IllegalArgumentException (auditoria matematica de MatrixComplex, paso 3) --
+	 * era el System.exit que impedia que sin()/cos()/tan()/sinh()/cosh()/tanh()
+	 * de MatrixComplex se recuperaran de una entrada no cuadrada.
+	 *
 	 * 1.2 (2024_0418_2000)
 	 * public boolean isSimilar() {
 	 * public boolean isSimilar()
@@ -228,8 +234,7 @@ public class Diagfactor extends MatrixComplex {
 		int rowLen = this.complexMatrix.length; 
 		int colLen= this.complexMatrix[0].length;
 		if (colLen != rowLen) {
-			System.out.println(HEADINFO + "The Matrix MUST be square to be factorized as a Diagonal Matrix");
-			System.exit(-1);
+			throw new IllegalArgumentException(HEADINFO + "The Matrix MUST be square to be factorized as a Diagonal Matrix");
 		}
 		Eigenspace eigenspace = new Eigenspace(this);
 	
