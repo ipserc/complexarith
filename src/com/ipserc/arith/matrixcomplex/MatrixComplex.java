@@ -18,8 +18,25 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.22 (2026_0731_2400)";
+	private final static String VERSION = "1.23 (2026_0801_0100)";
 	/* VERSION Release Note
+	 *
+	 * 1.23 (2026_0801_0100)
+	 * trigonTaylor(): trampa explicita de NaN/Infinity (hallazgo colateral del
+	 * hallazgo 6, descubierto al investigar el cuelgue de sinTaylor() con Jordan
+	 * [[80,1],[0,80]]): para autovalores grandes, powMatrix desborda el rango de
+	 * double antes de que la serie converja o dispare cualquiera de los 2 detectores
+	 * ya existentes (divergencia del hallazgo 5, cancelacion del hallazgo 6) -- y una
+	 * vez aparece NaN, AMBOS quedan ciegos, porque toda comparacion numerica contra
+	 * NaN es falsa en IEEE754 (deviation>1 falso, finalNorm<noiseFloor falso). Antes:
+	 * sinTaylor() en ese Jordan tardaba 83s en agotar ~10^7 iteraciones y devolvia
+	 * NaN+NaNi sin avisar. Ahora: excepcion inmediata en 13ms, en el momento exacto
+	 * en que el NaN/Infinity aparece por primera vez (confirmado: powMatrix.norm()
+	 * ya es NaN en k=163, antes de que fact desborde en k=171). Confirmado con
+	 * barrido de autovalores 1..100: sin excepcion hasta ~20, cancelacion catastrofica
+	 * 35-60, desbordamiento a partir de ~80, sin cuelgues en todo el rango. sin()/
+	 * cos() publicos (via Euler/exp(), que si escala) dan el resultado exacto en el
+	 * mismo Jordan sin tocar este codigo -- no estan expuestos, igual que el hallazgo 6.
 	 *
 	 * 1.22 (2026_0731_2400)
 	 * Cancelacion numerica catastrofica detectada en trigonTaylor() (auditoria
@@ -2072,7 +2089,20 @@ public class MatrixComplex {
 			powMatrix = powMatrix.times(normalThis);
 			trigonMatrix = trigonMatrix.plus(powMatrix.divides(fact).times(sign));
 			sign *= -1;
-			if (trigonMatrix.norm() > maxPartialNorm) maxPartialNorm = trigonMatrix.norm();
+			// NaN/Infinity trap: for large eigenvalues (e.g. Jordan [[80,1],[0,80]]) the unscaled
+			// power powMatrix can overflow double's range well before the series would otherwise
+			// converge or trip the divergence/cancellation safety nets below -- and once NaN
+			// appears, BOTH of those nets go blind, since every numeric comparison against NaN is
+			// false in IEEE754 (deviation>1 is false, finalNorm<noiseFloor is false), letting NaN
+			// propagate silently all the way to the return value (verified: sinTaylor() on that
+			// Jordan returns NaN+NaNi with no exception, taking 80s to grind through ~10^7
+			// iterations first). Catch it here, immediately, instead of relying on those checks.
+			double curNorm = trigonMatrix.norm();
+			if (Double.isNaN(curNorm) || Double.isInfinite(curNorm)) {
+				throw new IllegalArgumentException((SIN ? "sinTaylor" : "cosTaylor") + ": the unscaled Taylor series overflowed double's range at iteration " + k
+						+ " for this matrix (norm too large?); use sin()/cos() instead, which fall back to Euler's formula and scale correctly.");
+			}
+			if (curNorm > maxPartialNorm) maxPartialNorm = curNorm;
 			errMatrix = trigonMatant.minus(trigonMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) break;
