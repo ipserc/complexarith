@@ -18,8 +18,22 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.21 (2026_0731_2330)";
+	private final static String VERSION = "1.22 (2026_0731_2400)";
 	/* VERSION Release Note
+	 *
+	 * 1.22 (2026_0731_2400)
+	 * Cancelacion numerica catastrofica detectada en trigonTaylor() (auditoria
+	 * matematica, hallazgo 6): sinTaylor()/cosTaylor() lanzan IllegalArgumentException
+	 * si las sumas parciales de la serie alternante superaron el resultado final por
+	 * encima del suelo de ruido de double precision (maxPartialNorm*k*eps*10, con
+	 * cushion de 10x), en vez de devolver basura numerica en silencio -- mismo
+	 * espiritu que los hallazgos 3 y 5. Confirmado con Jordan [[50,1],[0,50]]:
+	 * sinTaylor() pasaba de -31194.8 (exacto: -0.2624) a lanzar excepcion; el propio
+	 * test preexistente TestTaylorSeries02/03/04.java confirma el bug en produccion,
+	 * sin relacion con mi caso sintetico (aMatrix=[32.0] escalar: Sin Taylor=0.552733
+	 * frente a Sin Euler=0.551427, exacto, con Sin^2+Cos^2=1.0036 en vez de 1.0). La
+	 * API publica sin()/cos() no esta expuesta (usan sinEuler()/cosEuler() desde el
+	 * hallazgo 4); sinh()/cosh() tampoco (sin cancelacion, terminos de un solo signo).
 	 *
 	 * 1.21 (2026_0731_2330)
 	 * Detectores de divergencia en trigonTaylor()/trigonHyperbolycTaylor()/exp_()
@@ -2035,6 +2049,15 @@ public class MatrixComplex {
 		int k = 1;
 		double fact = 1;
 		double accumulator = 0.0;
+		// Catastrophic cancellation watchdog: the alternating sin/cos series can swing through
+		// partial sums many orders of magnitude larger than the converged result (verified: Jordan
+		// [[50,1],[0,50]] makes sinTaylor() peak around 1e21 before "converging" to -31194.8, when
+		// the true value is -0.2624 -- the divergence safety net above does NOT catch this, since
+		// the iteration-to-iteration error keeps shrinking normally throughout, it just shrinks
+		// towards the wrong number). Track the largest partial-sum norm seen; if it dwarfs the
+		// final norm by more than a double can represent (~2^52, about 4.5e15), every bit of the
+		// final result is rounding noise from the cancellation, not signal.
+		double maxPartialNorm = trigonMatrix.norm();
 		do {
 			fact *= k;
 			if (SIN && k%2 == 0) {
@@ -2049,6 +2072,7 @@ public class MatrixComplex {
 			powMatrix = powMatrix.times(normalThis);
 			trigonMatrix = trigonMatrix.plus(powMatrix.divides(fact).times(sign));
 			sign *= -1;
+			if (trigonMatrix.norm() > maxPartialNorm) maxPartialNorm = trigonMatrix.norm();
 			errMatrix = trigonMatant.minus(trigonMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) break;
@@ -2068,6 +2092,22 @@ public class MatrixComplex {
 		} while(++k < maxIter);
 
 		trace("Iterations to converge:" + k);
+
+		// Noise-floor test: each of the k additions carries a relative rounding error of about one
+		// ULP, so a running sum that peaked at maxPartialNorm accumulates an absolute error floor
+		// of roughly maxPartialNorm * k * eps (a 10x cushion is applied since this is an estimate,
+		// not an exact bound). A single fixed peak/final ratio threshold is not enough on its own:
+		// verified with the same catastrophic Jordan that cosTaylor() converges in fewer terms with
+		// a smaller peak/final ratio (2.45e15) than sinTaylor() (5.66e15) despite being equally
+		// wrong (1929.6 vs the exact 0.965) -- accounting for k separates both from the
+		// well-conditioned case (ratio 1.2, k=15) correctly.
+		double finalNorm = trigonMatrix.norm();
+		double noiseFloor = maxPartialNorm * k * Math.ulp(1.0) * 10;
+		if (maxPartialNorm > 0 && finalNorm < noiseFloor) {
+			throw new IllegalArgumentException((SIN ? "sinTaylor" : "cosTaylor") + ": catastrophic cancellation destroyed all precision for this matrix (partial sums reached "
+					+ maxPartialNorm + " over " + k + " terms before cancelling down to " + finalNorm + ", below the double-precision noise floor of " + noiseFloor
+					+ "; norm too large for a direct Taylor series -- use sin()/cos() instead, which fall back to Euler's formula).");
+		}
 
 		return trigonMatrix;
 	}
