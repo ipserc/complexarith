@@ -101,6 +101,7 @@ public class TestSyseq13 {
 		Syseq aMatrix;
 		Complex.setFormatON();
 		Complex.setFixedON(3);
+		Complex.numpPadBLANK();
 		Syseq.version();
 
 		System.out.println(Complex.boxTitleRandom(boxSize , "PROOF OF CONCEPT FOR COMPLEX LINEAR EQUATION SYSTEMS INDETERMINATE WITH MORE THAN ONE SOLUTION"));

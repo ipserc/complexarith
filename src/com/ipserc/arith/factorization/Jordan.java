@@ -106,7 +106,7 @@ public class Jordan extends Eigenspace {
 		for (order = arithMult; order > 1; --order) {
 			cMatrix = ((this.minus(I.times(eigenval))).power(order)).augment(); //.heap();
 			cMatrix.println("------------------[f-I]^" + order);
-			sols = cMatrix.solve(true);
+			sols = cMatrix.solve();
 			eigenVect.appendRows(sols.getRow(0));
 		}
 		cMatrix = ((this.minus(I.times(eigenval))).power(order)).augment(); //.heap();
@@ -119,7 +119,7 @@ public class Jordan extends Eigenspace {
 		else {
 			cMatrix = (this.minus(I.times(eigenval))).augment(); //.heap();
 			cMatrix.println("------------------[f-I]^" + order);
-			sols = cMatrix.solve(true);
+			sols = cMatrix.solve();
 			eigenVect.appendRows(sols);
 		}
 		return eigenVect;

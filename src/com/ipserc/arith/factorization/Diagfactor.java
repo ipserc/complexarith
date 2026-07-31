@@ -28,7 +28,6 @@ package com.ipserc.arith.factorization;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.Eigenspace;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.polynom.Polynom;
 
 /**
  * @author ipserc
@@ -73,7 +72,7 @@ public class Diagfactor extends MatrixComplex {
 
 	/**
 	 * Instantiates a complex array of dimension.
-	 * @param dimension The dimension of the saquare matrix.
+	 * @param dimension The dimension of the square matrix.
 	 */
 	public Diagfactor(int dimension) {
 		super(dimension);

@@ -82,7 +82,7 @@ public class TestInterpolation04 {
 			Complex v1 = (lolimit.minus(uplimit)).divides(2);
 			Complex v2 = (lolimit.plus(uplimit)).divides(2);
 			Complex xhat = new Complex();
-			double factor = Complex.PI/(2*(numPoints));
+			double factor = Math.PI/(2*(numPoints));
 			points.setItem(0, 0, lolimit);
 			points.setItem(0, 1, func.apply(lolimit));
 			for(int i = 1; i < numPoints-1; ++i) {

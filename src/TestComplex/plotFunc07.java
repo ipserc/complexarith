@@ -3,7 +3,6 @@ package TestComplex;
 import java.util.function.Function;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.polynom.Polynom;
 import com.panayotis.gnuplot.JavaPlot;
 
 public class plotFunc07 {

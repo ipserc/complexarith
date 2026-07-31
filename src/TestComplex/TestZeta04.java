@@ -168,7 +168,7 @@ public class TestZeta04 {
 	    		pointsIm[i][j][2] = coordPlot[i][j][Z].imp();
 	    	}
 
-	    FileWriter fileWriteHdlr = newFileWriter("/home/ipserc/eclipse-workspace/complexarith/data/Zeta.dat");
+	    FileWriter fileWriteHdlr = newFileWriter("/home/ipserc/eclipse-workspace/complexarith_github/data/Zeta.dat");
 	    
 	    int row = 0, col;
 	    String dataLine;
@@ -179,7 +179,7 @@ public class TestZeta04 {
 		    // 1st item
 		    dataLine += (sampleBase+1) + " ";
 		    for (col = 0; col < sampleBase; ++col) {
-		    	// set de x values
+		    	// set the x values
 		    	dataLine += pointsRe[row][col][1] + " ";
 		    }
 		    

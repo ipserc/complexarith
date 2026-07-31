@@ -78,6 +78,7 @@ public class TestGram05 {
 			System.out.println(Complex.boxTextRandom(boxSize, "Gram-Schmidt Gauss"));
 			gMatrix = aMatrix.gramSchmidtGauss();
 			gMatrix.println("Gram-Schmidt Gauss Matrix");
+
 			gnMatrix = gMatrix.normalize();
 			gnMatrix.println("G Normalized");
 			{

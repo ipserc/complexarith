@@ -15,6 +15,7 @@ public class TestEigenV15 {
        	System.out.println("");
        	System.out.println(Complex.boxTitleRandom(boxSize, "EIGENVALUES & EIGENVECTORS TEST"));
     	aMatrix.println("aMatrix");
+    	aMatrix.determinant().println("determinant: ");
        	System.out.println("MatrixComplex :"+aMatrix.toMatrixComplex());
 
        	/* EigenVectors Expressions in other languages */

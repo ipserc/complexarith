@@ -1,4 +1,5 @@
 /******************************************************************************
+
  *  Compilation:  javac TestComplex.java
  *  Execution:    java TestComplex
  *	clear;runJava.sh eclipse-workspace/complexarith/bin/TestComplex/TestTaylorLogExp03b.class
@@ -176,13 +177,16 @@ public class TestTaylorLogExp06 {
     	System.out.println();
    		   		
    	
-    	aMatrix = new MatrixComplex("32.0,25.0,30.0;13.0,20.0,-21.0;-2.0,-1.0,31.0");
+    	//aMatrix = new MatrixComplex("32.0,25.0,30.0;13.0,20.0,-21.0;-2.0,-1.0,31.0");
+		aMatrix = new MatrixComplex("+59.0,-71.0,+67.0,+80.0;+82.0,+86.0,-15.0,+82.0;-36.0,+76.0,+71.0,-67.0;-94.0,-68.0,-82.0,-82.0");
     	calcLogs(aMatrix);
-        		
+        
+		/*
     	bMatrix = new MatrixComplex("1.50515, 1.39794, 1.47712; 1.11394, 1.30103, 1.32222 + 1.36438i; 0.30103 + 1.36438i, 0.0 + 1.36438i, 1.49136");
      	System.out.println("bMatrix W = " + bMatrix.toWolfram());
      	System.out.println("bMatrix M = " + bMatrix.toMaxima());
     	System.out.println("bMatrix W = " + bMatrix.toMatrixComplex());   	
     	MatrixComplex.power(10, bMatrix).println("10^b W");
+		*/
     }
 }

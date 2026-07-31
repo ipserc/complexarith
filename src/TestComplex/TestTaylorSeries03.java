@@ -5,14 +5,14 @@
  *  Tests for arith.Complex.
  *	
  *  Este programa chequea la validez de las diferentes implementaciones de las 
- *  funciones trigonométricas y trigonométricas hiperbólicas entre  matrices 
+ *  funciones trigonomï¿½tricas y trigonomï¿½tricas hiperbï¿½licas entre  matrices 
  *  para valores enteros, reales y complejos.
  *  
- *  El método de chequeo consiste comprobar las siguientes propiedades:
- *  1. Fórmula de euler exp(i*A) = cos(A)+i*sin(A)
+ *  El mï¿½todo de chequeo consiste comprobar las siguientes propiedades:
+ *  1. Fï¿½rmula de euler exp(i*A) = cos(A)+i*sin(A)
  *  2. cos^2(A)+sin^2(A) = I
  *  3. cosh^2(A)-sinh^2(A) = I
- *  Dónde I es la matriz Identidad o matriz Unitaria
+ *  Dï¿½nde I es la matriz Identidad o matriz Unitaria
  *  
  *  This program checks the validity of the different implementations of the 
  *  trigonometric and hyperbolic trigonometric functions between matrices 
@@ -68,7 +68,7 @@ public class TestTaylorSeries03 {
     	dMatrix = aMatrix.tanhTaylor(); dMatrix.println("d=Tan Hyp Taylor");
     	dMatrix = aMatrix.tanhEuler(); dMatrix.println("d=Tan Hyp Euler");
     	eMatrix = cMatrix.power(2).minus(bMatrix.power(2));
-    	eMatrix.println("c²-b²:");
+    	eMatrix.println("cï¿½-bï¿½:");
 
 
 	}

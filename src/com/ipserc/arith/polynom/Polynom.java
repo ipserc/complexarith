@@ -9,7 +9,6 @@ package com.ipserc.arith.polynom;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.syseq.Syseq;
-import com.ipserc.geom.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.panayotis.gnuplot.JavaPlot;

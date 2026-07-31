@@ -12,7 +12,7 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.signal.Fourier.e_domain;
 import com.ipserc.arith.signal.Fourier.e_lineStyle;
 import com.ipserc.arith.signal.Fourier.e_operator;
-import com.ipserc.duration.*;
+import com.ipserc.chronometer.*;
 import com.panayotis.gnuplot.JavaPlot;
 
 public class Laplace extends MatrixComplex  {
@@ -594,7 +594,8 @@ public class Laplace extends MatrixComplex  {
 
 		this.transform = new MatrixComplex(2, N);
 
-		/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer chrono = new Chronometer();
+		/*CHRONO*/ chrono.start();
 
 		for (int n = 0; n < N ; ++n) {
 			Complex cn = samples.getItem(0, n).opposite(); //new Complex(-n, 0);
@@ -604,9 +605,8 @@ public class Laplace extends MatrixComplex  {
 			transform.setItem(1, n, coef);
 		}
 		
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ Duration CLTDuration = new Duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time CLT:" + CLTDuration.toString());
+		/*CHRONO*/ chrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time CLT:" + chrono.toString());
 		
 		isTransformed = true;
 		//setOffset();
@@ -694,7 +694,8 @@ public class Laplace extends MatrixComplex  {
 		
 		transform = new MatrixComplex(2,N);
 
-		/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer chrono = new Chronometer();
+		/*CHRONO*/ chrono.start();
 		
 		for (int k = 0; k < N; ++k) { // freq index
 			Complex Ak = new Complex();
@@ -707,9 +708,8 @@ public class Laplace extends MatrixComplex  {
 			//transform.setItem(1, k, Ak.divides(N));
 		}
 		
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ Duration FTDuration = new Duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time DLT:" + FTDuration.toString());
+		/*CHRONO*/ chrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time DLT:" + chrono.toString());
 		
 		isTransformed = true;
 	}
@@ -740,7 +740,8 @@ public class Laplace extends MatrixComplex  {
     	Complex incr = upLimit.minus(loLimit).divides(N);
 		Complex Tk = new Complex();
 
-    	/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer chrono = new Chronometer();
+		/*CHRONO*/ chrono.start();
 
 		for (int k = 0; k < N; ++k) { // time index
 			Tk.setComplexRec(0,0);
@@ -752,9 +753,9 @@ public class Laplace extends MatrixComplex  {
 			samples.setItem(1, k, Tk.divides(N));
 			point = point.plus(incr);
 		}
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ Duration IDLTDuration = new Duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time IDLT:" + IDLTDuration.toString());
+
+		/*CHRONO*/ chrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time IDLT:" + chrono.toString());
 		isSampled = true;
 	}
 
