@@ -18,8 +18,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.20 (2026_0731_2230)";
+	private final static String VERSION = "1.21 (2026_0731_2330)";
 	/* VERSION Release Note
+	 *
+	 * 1.21 (2026_0731_2330)
+	 * Detectores de divergencia en trigonTaylor()/trigonHyperbolycTaylor()/exp_()
+	 * (auditoria matematica, hallazgo 5): mismo patron ya usado en logTaylor/
+	 * logMercator/logHat (accumulator>500 tras k>100 -> IllegalArgumentException)
+	 * en vez de iterar en silencio hasta maxIter (~10^8). exp_() ademas convierte
+	 * el "if (errMatrix.isNaN()) break;" ya existente (silencioso) en excepcion.
+	 * Verificado sin cambio de comportamiento en casos bien condicionados.
 	 *
 	 * 1.20 (2026_0731_2230)
 	 * normalize2PI() eliminado (auditoria matematica, hallazgo 4): reducia la
@@ -1942,17 +1950,19 @@ public class MatrixComplex {
 		MatrixComplex expMatant;
 		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
 		MatrixComplex errMatrix;
-		
+		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
+
 		int cNorma = (int)Math.ceil(this.euc_norm())*10;
 		MatrixComplex thisNorma = this.divides(cNorma);
 
 		expMatrix.initMatrixDiag(1, 0);
 		powMatrix.initMatrixDiag(1, 0);
-		
+
 		// precision can be changed with Complex.digits(long_value)
 		long maxIter = Complex.digits();
 		long k = 1;
 		double fact = 1;
+		double accumulator = 0.0;
 		do {
 			expMatant = expMatrix.copy();
 			powMatrix = powMatrix.times(thisNorma);
@@ -1961,10 +1971,23 @@ public class MatrixComplex {
 			errMatrix = expMatant.minus(expMatrix);
 			errMatrix.abs();
 			trace(errMatrix, "public MatrixComplex exp() - errmatrix:");
-			if (errMatrix.isNaN()) break;
+			// thisNorma is already scaled to a small norm (~1/10), so this series converges very
+			// fast in practice; still, fail loudly instead of silently returning a NaN-poisoned
+			// result if something pathological happens (e.g. the scaling itself overflowed).
+			if (errMatrix.isNaN()) {
+				throw new IllegalArgumentException("exp_: the Taylor series produced a non-finite result for this matrix.");
+			}
 			if (errMatrix.isNullC()) break;
+			if (k > 100) {
+				double deviation = errMatrix.norm()/errAntMat.norm();
+				accumulator += deviation > 1 ? deviation : 0.0;
+				if (accumulator > 500) {
+					throw new IllegalArgumentException("exp_: the Taylor series is not converging cleanly for this matrix.");
+				}
+			}
+			errAntMat = errMatrix.copy();
 		} while(k < maxIter);
-		
+
 		trace("Iterations to converge:" + k);
 
 		return expMatrix.power(cNorma);
@@ -1999,17 +2022,19 @@ public class MatrixComplex {
 		MatrixComplex trigonMatant;
 		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
 		MatrixComplex errMatrix;
-		
+		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
+
 		boolean SIN = sign == 1 ? true : false;
 		boolean COS = !SIN;
-		
+
 		trigonMatrix.initMatrixDiag(SIN ? 0 : 1, 0);
 		powMatrix.initMatrixDiag(1, 0);
-		
+
 		// precision can be changed with Complex.digits(long_value)
 		long maxIter = Complex.digits();
 		int k = 1;
 		double fact = 1;
+		double accumulator = 0.0;
 		do {
 			fact *= k;
 			if (SIN && k%2 == 0) {
@@ -2027,10 +2052,23 @@ public class MatrixComplex {
 			errMatrix = trigonMatant.minus(trigonMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) break;
+
+			// Divergence safety net: sin/cos are entire functions (the series converges for any
+			// matrix), but without any argument reduction a large-norm matrix can need many terms
+			// and suffer growing intermediate cancellation before the terms start shrinking. Fail
+			// loudly instead of silently iterating up to maxIter (~10^8 by default).
+			if (k > 100) {
+				double deviation = errMatrix.norm()/errAntMat.norm();
+				accumulator += deviation > 1 ? deviation : 0.0;
+				if (accumulator > 500) {
+					throw new IllegalArgumentException((SIN ? "sinTaylor" : "cosTaylor") + ": the Taylor series is not converging cleanly for this matrix (norm too large?).");
+				}
+			}
+			errAntMat = errMatrix.copy();
 		} while(++k < maxIter);
-		
+
 		trace("Iterations to converge:" + k);
-		
+
 		return trigonMatrix;
 	}
 
@@ -2323,14 +2361,16 @@ public class MatrixComplex {
 		MatrixComplex trigHypMatant;
 		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
 		MatrixComplex errMatrix;
-		
-		trigHypMatrix.initMatrixDiag(hypFunc == hyptrigon.SINH ? 0 : 1, 0); 
+		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
+
+		trigHypMatrix.initMatrixDiag(hypFunc == hyptrigon.SINH ? 0 : 1, 0);
 		powMatrix.initMatrixDiag(1, 0);
-		
+
 		// precision can be changed with Complex.digits(long_value)
 		long maxIter = Complex.digits();
 		int k = 1;
 		double fact = 1;
+		double accumulator = 0.0;
 		do {
 			fact *= k;
 			if ((hypFunc == hyptrigon.SINH && k%2 == 0) || (hypFunc == hyptrigon.COSH && k%2 != 0)) {
@@ -2343,9 +2383,19 @@ public class MatrixComplex {
 			errMatrix = trigHypMatant.minus(trigHypMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) break;
+
+			// Divergence safety net, same rationale as trigonTaylor().
+			if (k > 100) {
+				double deviation = errMatrix.norm()/errAntMat.norm();
+				accumulator += deviation > 1 ? deviation : 0.0;
+				if (accumulator > 500) {
+					throw new IllegalArgumentException((hypFunc == hyptrigon.SINH ? "sinhTaylor" : "coshTaylor") + ": the Taylor series is not converging cleanly for this matrix (norm too large?).");
+				}
+			}
+			errAntMat = errMatrix.copy();
 		} while(++k < maxIter);
-		
-		trace("Iterations to converge:" + k);	
+
+		trace("Iterations to converge:" + k);
 		return trigHypMatrix;
 	}
 
