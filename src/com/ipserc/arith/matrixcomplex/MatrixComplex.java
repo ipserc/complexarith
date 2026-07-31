@@ -18,9 +18,17 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.16 (2025_0131_2358)";
+	private final static String VERSION = "1.17 (2026_0731_1900)";
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.17 (2026_0731_1900)
+	 * Los 25 System.exit(1) del fichero sustituidos por IllegalArgumentException
+	 * (auditoria matematica, paso 3): plus/minus (dimensiones), power(MatrixComplex),
+	 * exp/trigonTaylor/trigonHyperbolycTaylor/logTaylor/logMercator/logHat (no cuadrada),
+	 * p_norm (orden<=0), trace/cotrace (no cuadrada), minor/cofactors (indice de pivote),
+	 * determinantGauss/determinant3/determinantAdj (no cuadrada), subMatrix/subMatrixAug
+	 * (rango fuera de la matriz), charactPoly/cofactor (no cuadrada).
+	 *
 	 * 1.16 (2025_0131_2358)
 	 * 	private static double __log10__ = 2.30258509299405;
 	 * 	public static MatrixComplex log(MatrixComplex matrix)
@@ -1313,8 +1321,7 @@ public class MatrixComplex {
 		int colLenA2 = cMatrix.cols();
 
 		if (rowLenA1 != rowLenA2 || colLenA1 != colLenA2) {
-			System.err.println("Not valid sum: The rows/cols of matrix1 has to be equal to the rows/cols of matrix2.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid sum: The rows/cols of matrix1 has to be equal to the rows/cols of matrix2.");
 		}
 
 		MatrixComplex resultMatrix = new MatrixComplex(rowLenA1, colLenA2);
@@ -1422,8 +1429,7 @@ public class MatrixComplex {
 		int colLenA2 = cMatrix.cols();
 
 		if (rowLenA1 != rowLenA2 || colLenA1 != colLenA2) {
-			System.err.println("Not valid substraction: The rows/cols of matrix1 has to be equal to the rows/cols of matrix2.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid substraction: The rows/cols of matrix1 has to be equal to the rows/cols of matrix2.");
 		}
 
 		MatrixComplex resultMatrix = new MatrixComplex(rowLenA1, colLenA2);
@@ -1826,8 +1832,7 @@ public class MatrixComplex {
 	 */
 	public MatrixComplex power(MatrixComplex mcExpo) {
 		if (this.dim() != mcExpo.dim() || !this.isSquare() || !mcExpo.isSquare()) {
-			System.err.println("Not valid matrices: Both matrices has to be square and of the same dimension.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrices: Both matrices has to be square and of the same dimension.");
 		}
 
 		return MatrixComplex.exp((this.log()).times(mcExpo));
@@ -1860,8 +1865,7 @@ public class MatrixComplex {
 		trace("------------ exp() ------------ ");
 		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
 		if (this.rows() != this.cols()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 		// Take advantage from diagonal matrices
 		if (this.isDiagonal()) {
@@ -1946,8 +1950,7 @@ public class MatrixComplex {
 	 */
 	private MatrixComplex trigonTaylor(int sign) {
 		if (this.rows() != this.cols()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
 		MatrixComplex normalThis = this.normalize2PI();
@@ -2268,8 +2271,7 @@ public class MatrixComplex {
 	private enum hyptrigon {SINH, COSH};
 	private MatrixComplex trigonHyperbolycTaylor(hyptrigon hypFunc) {
 		if (!this.isSquare()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
 		MatrixComplex trigHypMatrix = new MatrixComplex(this.rows(), this.cols());
@@ -2580,8 +2582,7 @@ public class MatrixComplex {
 		trace("------------ logtaylor() ------------ ");
 		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
 		if (!this.isSquare()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
 		MatrixComplex yMatrix = this.copy();
@@ -2714,8 +2715,7 @@ public class MatrixComplex {
 		trace("------------ logMercator() ------------ ");
 		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
 		if (!this.isSquare()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
 		MatrixComplex yMatrix = this.copy();
@@ -2813,8 +2813,7 @@ public class MatrixComplex {
 		trace("------------ loghat() ------------ ");
 		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
 		if (this.rows() != this.cols()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 		
 		MatrixComplex terMat = (this.power(2).minusMat(1,0)).divides(this.power(2).plusMat(1,0));
@@ -3229,8 +3228,7 @@ public class MatrixComplex {
 		int colLen = this.cols();
 
 		if ( p <= 0 ) {
-			System.err.println("Not valid order. The order of the norm must be greater than zero.");
-			System.exit(1);			
+			throw new IllegalArgumentException("Not valid order. The order of the norm must be greater than zero.");
 		}
 
 		double[] norm = new double[rowLen];
@@ -3506,8 +3504,7 @@ public class MatrixComplex {
 	 */
 	public Complex trace() {
 		if (!this.isSquare()) {
-			System.err.println("Not valid trace: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid trace: The matrix has to be square.");
 		}
 		int rowLen = this.rows();
 		Complex trace = new Complex();
@@ -3523,8 +3520,7 @@ public class MatrixComplex {
 	 */
 	public Complex cotrace() {
 		if (!this.isSquare()) {
-			System.err.println("Not valid cotrace: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid cotrace: The matrix has to be square.");
 		}
 		int rowLen = this.rows();
 		Complex cotrace = new Complex();
@@ -3614,13 +3610,11 @@ public class MatrixComplex {
 		int colLen = this.cols();
 
 		if (rowPivot < 0 || rowPivot > rowLen) {
-			System.err.println("Not valid minor: The row to pivot is incorrect.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid minor: The row to pivot is incorrect.");
 		}
 
 		if (colPivot < 0 || colPivot > colLen) {
-			System.err.println("Not valid minor: The col to pivot is incorrect.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid minor: The col to pivot is incorrect.");
 		}
 
 		MatrixComplex resultMatrix = new MatrixComplex(rowLen-1, colLen-1);
@@ -3650,13 +3644,11 @@ public class MatrixComplex {
 		int colLen = this.cols();
 
 		if (rowPivot < 0 || rowPivot > rowLen) {
-			System.err.println("Not valid cofactor: The row to pivot is incorrect.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid cofactor: The row to pivot is incorrect.");
 		}
 
 		if (colPivot < 0 || colPivot > colLen) {
-			System.err.println("Not valid cofactor: The col to pivot is incorrect.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid cofactor: The col to pivot is incorrect.");
 		}
 
 		MatrixComplex resultMatrix = new MatrixComplex(rowLen-1, colLen-1);
@@ -3875,8 +3867,7 @@ public class MatrixComplex {
 		int rowLen = this.rows();
 
 		if (rowLen != this.cols()) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
 		Complex cResult = new Complex(1, 0);
@@ -3899,8 +3890,7 @@ public class MatrixComplex {
 		Complex determinant = new Complex();
 
 		if (rowLen != colLen) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
 		for (int row = 0; row < rowLen; ++row) {
@@ -3937,11 +3927,10 @@ public class MatrixComplex {
 		int colLen = this.cols();
 
 		if (rowLen != colLen) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
-		if (rowLen == 2) 
+		if (rowLen == 2)
 			return (this.complexMatrix[0][0].times(this.complexMatrix[1][1])).
 					minus (this.complexMatrix[0][1].times(this.complexMatrix[1][0]));
 
@@ -4817,12 +4806,10 @@ public class MatrixComplex {
 		int colEnd = col + order + 1;
 
 		if (rowEnd > rowLen) {
-			System.err.println("Not valid submatrix: The row length surpass the matrix length.");
-			System.exit(1);   		
+			throw new IllegalArgumentException("Not valid submatrix: The row length surpass the matrix length.");
 		}
 		if (colEnd > colLen) {
-			System.err.println("Not valid submatrix: The col length surpass the matrix length.");
-			System.exit(1);   		
+			throw new IllegalArgumentException("Not valid submatrix: The col length surpass the matrix length.");
 		}
 
 		for (int i = row, rrow = 0; i < rowEnd; ++i, ++rrow) {
@@ -4848,12 +4835,10 @@ public class MatrixComplex {
 		int colEnd = col + order;
 
 		if (rowEnd > rowLen) {
-			System.err.println("Not valid submatrix: The row length surpass the matrix length.");
-			System.exit(1);   		
+			throw new IllegalArgumentException("Not valid submatrix: The row length surpass the matrix length.");
 		}
 		if (colEnd > colLen) {
-			System.err.println("Not valid submatrix: The col length surpass the matrix length.");
-			System.exit(1);   		
+			throw new IllegalArgumentException("Not valid submatrix: The col length surpass the matrix length.");
 		}
 
 		for (int i = row, rrow = 0; i < rowEnd; ++i, ++rrow) {
@@ -5844,8 +5829,7 @@ public class MatrixComplex {
 		Polynom charactPoly = new Polynom(colLen);
 
 		if (rowLen != colLen) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 
 		for (int order = 0; order <= colLen; ++order) {
@@ -6003,10 +5987,9 @@ public class MatrixComplex {
 		int colLen = this.cols();
 		int row, col;
 		MatrixComplex cofactor = new MatrixComplex(rowLen);
-		
+
 		if (rowLen != colLen) {
-			System.err.println("Not valid matrix: The matrix has to be square.");
-			System.exit(1);
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
 		
 		for (row = 0; row < rowLen; ++row)
