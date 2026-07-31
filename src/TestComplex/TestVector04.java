@@ -32,7 +32,7 @@ package TestComplex;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
-import com.ipserc.arith.vector.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 public class TestVector04 {
 
@@ -42,15 +42,15 @@ public class TestVector04 {
 	
 
 
-	public static void productsResults(Vector[] v) {
+	public static void productsResults(VectorComplex[] v) {
 		int boxSize = 65;
 		int dim = v[0].dim();
-		Vector u, t;
+		VectorComplex u, t;
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTORIAL PRODUCTS - DIMENSION:" + dim));
 		System.out.println(Complex.boxText1(boxSize, "Jacobi Identity v[0]^v[1]^v[2]^...[n] + ... + v[n]^v[0]^v[1]^...[n-1] = 0"));
 
-		t = new Vector(dim);
+		t = new VectorComplex(dim);
 		for(int i = 0; i < dim; ++i ) {
 			u = v[i].clone();
 			for(int j = i; j < i + dim; ++j) {
@@ -64,14 +64,14 @@ public class TestVector04 {
 	
 	public static void main(String[] args) {
        	int dim = 6;
-    	Vector v[] = new Vector[dim];
+    	VectorComplex v[] = new VectorComplex[dim];
 		int boxSize = 65;
 
     	Complex.setFixedON(3);
     	Complex.setFormatON();
        	for(int i = 0; i < dim; ++i) {
-       		v[i] = new Vector(dim);
-       		v[i].initMatrixRandomInteger(12);
+       		v[i] = new VectorComplex(dim);
+       		v[i].initMatrixRandomInt(12);
        		v[i].println("v["+i+"]:");
        	}
       	productsResults(v);

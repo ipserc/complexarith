@@ -32,7 +32,7 @@ package TestComplex;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
-import com.ipserc.arith.vector.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 public class TestVector03 {
 
@@ -40,7 +40,7 @@ public class TestVector03 {
 	 * @param args
 	 */
 	
-	public static void calcNorms(Vector fVector) {
+	public static void calcNorms(VectorComplex fVector) {
 		int p;
 		int boxSize = 65;
 
@@ -57,9 +57,9 @@ public class TestVector03 {
        	System.out.println("Frobenius Norm = " + fVector.f_norm());
  	}
 	
-	public static void vectorOperate(Vector u, Vector v) {
+	public static void vectorOperate(VectorComplex u, VectorComplex v) {
     	Complex result = new Complex();
-    	Vector cVector;
+    	VectorComplex cVector;
     	MatrixComplex matrix = new MatrixComplex();
 		int boxSize = 65;
 
@@ -85,8 +85,8 @@ public class TestVector03 {
        	cVector.println("cVector (a-b)");
 	}
 
-	public static void cambioBase(Vector u, MatrixComplex base) {
-		Vector cVector = new Vector();
+	public static void cambioBase(VectorComplex u, MatrixComplex base) {
+		VectorComplex cVector = new VectorComplex();
 		int boxSize = 65;
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTOR CHANGING BASE TEST"));
@@ -100,13 +100,13 @@ public class TestVector03 {
 
 	}
 	
-	public static void crossProdProperties(Vector u, Vector v, Vector u2, Vector v2, Vector w) {
+	public static void crossProdProperties(VectorComplex u, VectorComplex v, VectorComplex u2, VectorComplex v2, VectorComplex w) {
 		int boxSize = 65;
 		Complex uu = u.dotprod(u);
 		Complex vv = v.dotprod(v);
 		Complex uv = u.dotprod(v);
-		Vector uXv = u.crossprod(v);
-		Vector vXw = v.crossprod(w);
+		VectorComplex uXv = u.crossprod(v);
+		VectorComplex vXw = v.crossprod(w);
 
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "CROSS PROD PROPERTIES"));
@@ -147,15 +147,15 @@ public class TestVector03 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTOR LEMA1 PROPERTIES"));
     	u.println("Vector u");
     	v.println("Vector v");
-		Vector vXu = v.crossprod(u);
+		VectorComplex vXu = v.crossprod(u);
     	w.println("Vector w");
-		Vector wXv = w.crossprod(v);
+		VectorComplex wXv = w.crossprod(v);
 		Complex wv = w.dotprod(v);
 		Complex wu = w.dotprod(u);
 		System.out.println(Complex.boxText1(boxSize, "Jacobi Identity u×(v×w) + v×(w×u) + w×(u×v) = 0"));
-		Vector uXvXw = u.crossprod((v.crossprod(w)));
-		Vector vXwXu = v.crossprod((w.crossprod(u)));
-		Vector wXuXv = w.crossprod((u.crossprod(v)));
+		VectorComplex uXvXw = u.crossprod((v.crossprod(w)));
+		VectorComplex vXwXu = v.crossprod((w.crossprod(u)));
+		VectorComplex wXuXv = w.crossprod((u.crossprod(v)));
 		uXvXw.plus(vXwXu).plus(wXuXv).println("u×(v×w) + v×(w×u) + w×(u×v) =" );
 		System.out.println(Complex.boxText1(boxSize, "Propiedad (1c) w·(u×v) = −u·(w×v)"));
        	w.dotprod(uXv).println("w·(u×v) = ");
@@ -178,10 +178,11 @@ public class TestVector03 {
        	
        	System.out.println(Complex.boxText1(boxSize, "Vectores Ortonormales"));
        	u.println("Vector u:");
-       	Vector uNorm = u.normalize();
-       	Vector uOrth1 = uNorm.orthogonal(0);
-       	Vector uOrth2 = uNorm.orthogonal(1);
-       	Vector uOrth3 = uNorm.orthogonal(2);
+       	VectorComplex uNorm = u.normalize();
+       	MatrixComplex baseNorm = u.base().gramSchmidt().normalize();
+       	VectorComplex uOrth1 = new VectorComplex(baseNorm.getRow(0));
+       	VectorComplex uOrth2 = new VectorComplex(baseNorm.getRow(1));
+       	VectorComplex uOrth3 = new VectorComplex(baseNorm.getRow(2));
        	uNorm.println("Vector u norm:");
        	uOrth1.println("Vector u orth1:");
        	System.out.println("uNorm·uOrth1:" + uNorm.dotprod(uOrth1));
@@ -193,31 +194,35 @@ public class TestVector03 {
        	System.out.println("uNorm·uOrth3:" + uNorm.dotprod(uOrth3));
        	System.out.println("uOrth1·uOrth3:" + uOrth1.dotprod(uOrth3));
        	System.out.println("uOrth2·uOrth3:" + uOrth2.dotprod(uOrth3));       	
-       	Vector uo1Xuo2 = uOrth1.crossprod(uOrth2);
+       	VectorComplex uo1Xuo2 = uOrth1.crossprod(uOrth2);
        	uo1Xuo2.println("uOrth1×uOrth2");
-       	Vector uo2Xuo3 = uOrth2.crossprod(uOrth3);
+       	VectorComplex uo2Xuo3 = uOrth2.crossprod(uOrth3);
        	uo2Xuo3.println("uOrth2×uOrth3");
-       	Vector uo1Xuo3 = uOrth1.crossprod(uOrth3);
+       	VectorComplex uo1Xuo3 = uOrth1.crossprod(uOrth3);
        	uo1Xuo3.println("uOrth1×uOrth3");
        	
        	u.crossprod(uo1Xuo3).println("u×(uOrth1×uOrth3) =");
 
        	System.out.println(Complex.boxText1(boxSize, "Base"));
-       	Vector base1[] = u.baseV();
+       	MatrixComplex base1 = u.base().gramSchmidt().normalize();
        	for(int i = 0; i < u.dim(); ++i)
-       		base1[i].println("base1"+i+":");
-      	for(int i = 0; i < u.dim(); ++i)
-      		for(int j = i+1; j < u.dim(); ++j)
-      			System.out.println(i+"·"+j+": " + base1[i].dotprod(base1[j]));
+       		base1.getRow(i).println("base1"+i+":");
+      	for(int i = 0; i < u.dim(); ++i) {
+      		VectorComplex vectorI = new VectorComplex(base1.getRow(i));
+      		for(int j = i+1; j < u.dim(); ++j) {
+          		VectorComplex vectorJ = new VectorComplex(base1.getRow(j));
+      			System.out.println(i+"·"+j+": " + vectorI.dotprod(vectorJ));
+      		}
+      	}
 	}
 	
-	public static void vectorProdProperties(Vector u, Vector v, Vector u2, Vector v2, Vector w) {
+	public static void vectorProdProperties(VectorComplex u, VectorComplex v, VectorComplex u2, VectorComplex v2, VectorComplex w) {
 		int boxSize = 65;
 		Complex uu = u.dotprod(u);
 		Complex vv = v.dotprod(v);
 		Complex uv = u.dotprod(v);
-		Vector uXv = u.vectorprod(v);
-		Vector vXw = v.vectorprod(w);
+		VectorComplex uXv = u.vectorprod(v);
+		VectorComplex vXw = v.vectorprod(w);
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTOR PROD PROPERTIES"));
     	u.println("Vector u");
@@ -257,15 +262,15 @@ public class TestVector03 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTOR LEMA1 PROPERTIES"));
     	u.println("Vector u");
     	v.println("Vector v");
-		Vector vXu = v.vectorprod(u);
+		VectorComplex vXu = v.vectorprod(u);
     	w.println("Vector w");
-		Vector wXv = w.vectorprod(v);
+		VectorComplex wXv = w.vectorprod(v);
 		Complex wv = w.dotprod(v);
 		Complex wu = w.dotprod(u);
 		System.out.println(Complex.boxText1(boxSize, "Jacobi Identity u^(v^w) + v^(w^u) + w^(u^v) = 0"));
-		Vector uXvXw = u.vectorprod((v.vectorprod(w)));
-		Vector vXwXu = v.vectorprod((w.vectorprod(u)));
-		Vector wXuXv = w.vectorprod((u.vectorprod(v)));
+		VectorComplex uXvXw = u.vectorprod((v.vectorprod(w)));
+		VectorComplex vXwXu = v.vectorprod((w.vectorprod(u)));
+		VectorComplex wXuXv = w.vectorprod((u.vectorprod(v)));
 		uXvXw.plus(vXwXu).plus(wXuXv).println("u^(v^w) + v^(w^u) + w^(u^v) =" );
 		System.out.println(Complex.boxText1(boxSize, "Propiedad (1v) w·(u^v) = −u·(w^v)"));
        	w.dotprod(uXv).println("w·(u^v) = ");
@@ -288,10 +293,11 @@ public class TestVector03 {
        	
        	System.out.println(Complex.boxText1(boxSize, "Vectores Ortonormales"));
        	u.println("Vector u:");
-       	Vector uNorm = u.normalize();
-       	Vector uOrth1 = uNorm.orthogonal(0);
-       	Vector uOrth2 = uNorm.orthogonal(1);
-       	Vector uOrth3 = uNorm.orthogonal(2);
+       	VectorComplex uNorm = u.normalize();
+       	MatrixComplex baseNorm = u.base().gramSchmidt().normalize();
+       	VectorComplex uOrth1 = new VectorComplex(baseNorm.getRow(0));
+       	VectorComplex uOrth2 = new VectorComplex(baseNorm.getRow(1));
+       	VectorComplex uOrth3 = new VectorComplex(baseNorm.getRow(2));
        	uNorm.println("Vector u norm:");
        	uOrth1.println("Vector u orth1:");
        	System.out.println("uNorm·uOrth1:" + uNorm.dotprod(uOrth1));
@@ -303,27 +309,31 @@ public class TestVector03 {
        	System.out.println("uNorm·uOrth3:" + uNorm.dotprod(uOrth3));
        	System.out.println("uOrth1·uOrth3:" + uOrth1.dotprod(uOrth3));
        	System.out.println("uOrth2·uOrth3:" + uOrth2.dotprod(uOrth3));       	
-       	Vector uo1Xuo2 = uOrth1.vectorprod(uOrth2);
+       	VectorComplex uo1Xuo2 = uOrth1.vectorprod(uOrth2);
        	uo1Xuo2.println("uOrth1^uOrth2");
-       	Vector uo2Xuo3 = uOrth2.vectorprod(uOrth3);
+       	VectorComplex uo2Xuo3 = uOrth2.vectorprod(uOrth3);
        	uo2Xuo3.println("uOrth2^uOrth3");
-       	Vector uo1Xuo3 = uOrth1.vectorprod(uOrth3);
+       	VectorComplex uo1Xuo3 = uOrth1.vectorprod(uOrth3);
        	uo1Xuo3.println("uOrth1^uOrth3");
        	
        	u.vectorprod(uo1Xuo3).println("u^(uOrth1^uOrth3) =");
 
        	System.out.println(Complex.boxText1(boxSize, "Base"));
-       	Vector base1[] = u.baseV();
+       	MatrixComplex base1 = u.base().gramSchmidt();
        	for(int i = 0; i < u.dim(); ++i)
-       		base1[i].println("base1"+i+":");
-      	for(int i = 0; i < u.dim(); ++i)
-      		for(int j = i+1; j < u.dim(); ++j)
-      			System.out.println(i+"·"+j+": " + base1[i].dotprod(base1[j]));
+       		base1.getRow(i).println("base1"+i+":");
+      	for(int i = 0; i < u.dim(); ++i) {
+      		VectorComplex vectorI = new VectorComplex(base1.getRow(i));
+      		for(int j = i+1; j < u.dim(); ++j) {
+          		VectorComplex vectorJ = new VectorComplex(base1.getRow(j));
+      			System.out.println(i+"·"+j+": " + vectorI.dotprod(vectorJ));
+      		}
+      	}
 	}
 
-	public static void productsResults(Vector u, Vector v, Vector u2, Vector v2, Vector w) {
-		Vector cVector, dVector;
-		Vector eVector, fVector;
+	public static void productsResults(VectorComplex u, VectorComplex v, VectorComplex u2, VectorComplex v2, VectorComplex w) {
+		VectorComplex cVector, dVector;
+		VectorComplex eVector, fVector;
 		int boxSize = 65;
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "CROSS PRODUCTS - DIMENSION:" + u.dim()));
@@ -356,7 +366,7 @@ public class TestVector03 {
 	}
 	
 	public static void main(String[] args) {
-    	Vector u ,v, u2, v2, w;
+    	VectorComplex u ,v, u2, v2, w;
     	int dim;
 		int boxSize = 65;
 
@@ -364,42 +374,42 @@ public class TestVector03 {
     	Complex.setFormatON();
     	
        	dim = 3;
-       	u = new Vector(dim);
-       	v = new Vector(dim);
-       	u2 = new Vector(dim);
-       	v2 = new Vector(dim);
-       	w = new Vector(dim);
-       	u.initMatrixRandomInteger(3);
-       	v.initMatrixRandomInteger(3);
-       	u2.initMatrixRandomInteger(3);
-    	v2.initMatrixRandomInteger(3);
-    	w.initMatrixRandomInteger(3);
+       	u = new VectorComplex(dim);
+       	v = new VectorComplex(dim);
+       	u2 = new VectorComplex(dim);
+       	v2 = new VectorComplex(dim);
+       	w = new VectorComplex(dim);
+       	u.initMatrixRandomInt(3);
+       	v.initMatrixRandomInt(3);
+       	u2.initMatrixRandomInt(3);
+    	v2.initMatrixRandomInt(3);
+    	w.initMatrixRandomInt(3);
        	productsResults(u, v, u2, v2, w);
        	
        	dim = 5;
-       	u = new Vector(dim);
-       	v = new Vector(dim);
-       	u2 = new Vector(dim);
-       	v2 = new Vector(dim);
-       	w = new Vector(dim);
-       	u.initMatrixRandomInteger(3);
-       	v.initMatrixRandomInteger(3);
-       	u2.initMatrixRandomInteger(3);
-    	v2.initMatrixRandomInteger(3);
-    	w.initMatrixRandomInteger(3);
+       	u = new VectorComplex(dim);
+       	v = new VectorComplex(dim);
+       	u2 = new VectorComplex(dim);
+       	v2 = new VectorComplex(dim);
+       	w = new VectorComplex(dim);
+       	u.initMatrixRandomInt(3);
+       	v.initMatrixRandomInt(3);
+       	u2.initMatrixRandomInt(3);
+    	v2.initMatrixRandomInt(3);
+    	w.initMatrixRandomInt(3);
       	productsResults(u, v, u2, v2, w);
 
        	dim = 7;
-       	u = new Vector(dim);
-       	v = new Vector(dim);
-       	u2 = new Vector(dim);
-       	v2 = new Vector(dim);
-       	w = new Vector(dim);
-       	u.initMatrixRandomInteger(3);
-       	v.initMatrixRandomInteger(3);
-       	u2.initMatrixRandomInteger(3);
-    	v2.initMatrixRandomInteger(3);
-    	w.initMatrixRandomInteger(3);
+       	u = new VectorComplex(dim);
+       	v = new VectorComplex(dim);
+       	u2 = new VectorComplex(dim);
+       	v2 = new VectorComplex(dim);
+       	w = new VectorComplex(dim);
+       	u.initMatrixRandomInt(3);
+       	v.initMatrixRandomInt(3);
+       	u2.initMatrixRandomInt(3);
+    	v2.initMatrixRandomInt(3);
+    	w.initMatrixRandomInt(3);
       	productsResults(u, v, u2, v2, w);
 
 	}

@@ -3,7 +3,7 @@ package TestComplex;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.factorization.Diagfactor;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.vector.Vector;
+import com.ipserc.arith.vectorcomplex.VectorComplex;
 
 
 public class matesJosete {
@@ -39,13 +39,13 @@ public class matesJosete {
 		MatrixComplex base = new MatrixComplex();
 		base.base("1,1,0;0,2,1;1,0,1");
 		base.println("Base");
-		Vector vector = new Vector("2,-3,1");
+		VectorComplex vector = new VectorComplex("2,-3,1");
 		vector.println("vector");
 		vector.baseChg(base).println("Vector en base");
 		System.out.println("------------------------ EJERCICIO 2 ------------------------");
 		base.base("2,0,2,9;1,2,1,3;1,0,1,3;2,4,2,6");
 		base.println("Base");
-		vector = new Vector("2,-3,1,-1");
+		vector = new VectorComplex("2,-3,1,-1");
 		vector.println("vector");
 		vector.baseChg(base).println("Vector en base");
 		int rank = base.rank();
@@ -67,9 +67,9 @@ public class matesJosete {
 		subEspacio.println("Subespacio");
 		int rank = subEspacio.rank();
 		System.out.printf("Rank(subEspacio)=%d\n", rank);
-		Vector subVectorA = new Vector(); 
+		VectorComplex subVectorA = new VectorComplex(); 
 		subVectorA.complexMatrix = subEspacio.subMatrix("0", "0,1,2").complexMatrix.clone();
-		Vector subVectorB = new Vector();
+		VectorComplex subVectorB = new VectorComplex();
 		subVectorB.complexMatrix = subEspacio.subMatrix("1", "0,1,2").complexMatrix.clone();
 		MatrixComplex vectorA = subVectorA.crossprod(subVectorB);
 		vectorA.println("Coeficientes x, y, z");
@@ -81,10 +81,10 @@ public class matesJosete {
 		MatrixComplex base = new MatrixComplex();
 		base.base("1,1,0;1,0,1;0,1,1");
 		base.println("Base");
-		Vector vector = new Vector("2,0,0");
+		VectorComplex vector = new VectorComplex("2,0,0");
 		vector.println("vector");
 		vector.baseChg(base).println("Vector en base");
-		vector = new Vector("0,2,0");
+		vector = new VectorComplex("0,2,0");
 		vector.println("vector");
 		vector.baseChg(base).println("Vector en base");
 	}
@@ -93,10 +93,10 @@ public class matesJosete {
 		System.out.println("------------------------ 2018/10/09  ------------------------");
 		System.out.println("------------------------ EJERCICIO 1 ------------------------");
 		MatrixComplex base = new MatrixComplex();
-		Vector vector = new Vector();
+		VectorComplex vector = new VectorComplex();
 		base.base("1,1;1,-1");
 		base.println("Base");
-		vector = new Vector("5,3");
+		vector = new VectorComplex("5,3");
 		vector.println("vector");
 		vector.baseChg(base).println("Vector en base");
 		System.out.println("------------------------ EJERCICIO 2 ------------------------");

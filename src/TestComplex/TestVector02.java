@@ -32,7 +32,7 @@ package TestComplex;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
-import com.ipserc.arith.vector.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 public class TestVector02 {
 
@@ -40,7 +40,7 @@ public class TestVector02 {
 	 * @param args
 	 */
 	
-	public static void calcNorms(Vector fVector) {
+	public static void calcNorms(VectorComplex fVector) {
 		int p;
 		int boxSize = 65;
 
@@ -57,9 +57,9 @@ public class TestVector02 {
        	System.out.println("Frobenius Norm = " + fVector.f_norm());
  	}
 	
-	public static void vectorOperate(Vector aVector, Vector bVector) {
+	public static void vectorOperate(VectorComplex aVector, VectorComplex bVector) {
     	Complex result = new Complex();
-    	Vector cVector;
+    	VectorComplex cVector;
     	MatrixComplex matrix = new MatrixComplex();
 		int boxSize = 65;
 
@@ -85,8 +85,8 @@ public class TestVector02 {
        	cVector.println("cVector (a-b)");
 	}
 
-	public static void cambioBase(Vector aVector, MatrixComplex base) {
-		Vector cVector = new Vector();
+	public static void cambioBase(VectorComplex aVector, MatrixComplex base) {
+		VectorComplex cVector = new VectorComplex();
 		int boxSize = 65;
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTOR CHANGING BASE TEST"));
@@ -100,12 +100,12 @@ public class TestVector02 {
 
 	}
 	
-	public static void vectorProperties(Vector u, Vector v) {
+	public static void vectorProperties(VectorComplex u, VectorComplex v) {
 		int boxSize = 65;
 		Complex uu = u.dotprod(u);
 		Complex vv = v.dotprod(v);
 		Complex uv = u.dotprod(v);
-		Vector uXv = u.crossprod(v);
+		VectorComplex uXv = u.crossprod(v);
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTOR PROPERTIES"));
     	u.println("Vector u");
@@ -132,8 +132,8 @@ public class TestVector02 {
     	System.out.println("(u·u)(v·v)-(u·v)² = " + uu.times(vv).minus(uv.power(2)));
        	
 		System.out.println(Complex.boxText1(boxSize, "Propiedad (5) ((au1+bu2)×(cv1+dv2)) = ac(u1×v1)+ad(u1×v2)+bc(u2×v1)+bd(u2×v2))"));
-    	Vector u2 = new Vector(u.dim()); u2.initMatrixRandomInteger(3);
-    	Vector v2 = new Vector(v.dim()); v2.initMatrixRandomInteger(3);
+    	VectorComplex u2 = new VectorComplex(u.dim()); u2.initMatrixRandomInt(3);
+    	VectorComplex v2 = new VectorComplex(v.dim()); v2.initMatrixRandomInt(3);
     	u.print("u1:"); u2.println(" - u2:");
     	v.print("v1:"); v2.println(" - v2:");
     	double a = 2, b = 3, c = -1, d = 4;
@@ -147,10 +147,10 @@ public class TestVector02 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTOR LEMA1 PROPERTIES"));
     	u.println("Vector u");
     	v.println("Vector v");
-		Vector vXu = v.crossprod(u);
-    	Vector w = new Vector(u.dim()); w.initMatrixRandomInteger(3);
+		VectorComplex vXu = v.crossprod(u);
+    	VectorComplex w = new VectorComplex(u.dim()); w.initMatrixRandomInt(3);
     	w.println("Vector w");
-		Vector wXv = w.crossprod(v);
+		VectorComplex wXv = w.crossprod(v);
 		Complex wv = w.dotprod(v);
 		Complex wu = w.dotprod(u);
 		System.out.println(Complex.boxText1(boxSize, "Propiedad (1) w·(u × v) = −u·(w × v)"));
@@ -171,10 +171,11 @@ public class TestVector02 {
        	
        	System.out.println(Complex.boxText1(boxSize, "Vecctores Ortonormales"));
        	u.println("Vector u:");
-       	Vector uNorm = u.normalize();
-       	Vector uOrth1 = uNorm.orthogonal(0);
-       	Vector uOrth2 = uNorm.orthogonal(1);
-       	Vector uOrth3 = uNorm.orthogonal(2);
+       	VectorComplex uNorm = u.normalize();
+		MatrixComplex uOrth = u.orthogonal();
+       	VectorComplex uOrth1 = new VectorComplex(uOrth.getRow(0));
+       	VectorComplex uOrth2 = new VectorComplex(uOrth.getRow(1));
+       	VectorComplex uOrth3 = new VectorComplex(uOrth.getRow(2));
        	uNorm.println("Vector u norm:");
        	uOrth1.println("Vector u orth1:");
        	System.out.println("uNorm·uOrth1:" + uNorm.dotprod(uOrth1));
@@ -186,42 +187,31 @@ public class TestVector02 {
        	System.out.println("uNorm·uOrth3:" + uNorm.dotprod(uOrth3));
        	System.out.println("uOrth1·uOrth3:" + uOrth1.dotprod(uOrth3));
        	System.out.println("uOrth2·uOrth3:" + uOrth2.dotprod(uOrth3));       	
-       	Vector uo1Xuo2 = uOrth1.crossprod(uOrth2);
+       	VectorComplex uo1Xuo2 = uOrth1.crossprod(uOrth2);
        	uo1Xuo2.println("uOrth1 × uOrth2");
-       	Vector uo2Xuo3 = uOrth2.crossprod(uOrth3);
+       	VectorComplex uo2Xuo3 = uOrth2.crossprod(uOrth3);
        	uo2Xuo3.println("uOrth2 × uOrth3");
-       	Vector uo1Xuo3 = uOrth1.crossprod(uOrth3);
+       	VectorComplex uo1Xuo3 = uOrth1.crossprod(uOrth3);
        	uo1Xuo3.println("uOrth1 × uOrth3");
        	
        	u.crossprod(uo1Xuo3).println("u × (uOrth1 × uOrth3) =");
-
-       	System.out.println(Complex.boxText1(boxSize, "Base"));
-       	Vector base1[] = u.baseV();
-       	for(int i = 0; i < u.dim(); ++i)
-       		base1[i].println("base1"+i+":");
-      	for(int i = 0; i < 3; ++i)
-      		for(int j = i+1; j < 3; ++j)
-      			System.out.println(i+"·"+j+": " + base1[i].dotprod(base1[j]));
-		
-
 	}
 	
 	public static void main(String[] args) {
-    	Vector aVector;
-    	Vector bVector;
-		int boxSize = 65;
+    	VectorComplex aVector;
+    	VectorComplex bVector;
 
     	Complex.setFixedON(3);
     	Complex.setFormatON();
     	
-       	aVector = new Vector();
-       	bVector = new Vector();
+       	aVector = new VectorComplex();
+       	bVector = new VectorComplex();
        	
-       	aVector = new Vector(3);
-       	bVector = new Vector(3);
+       	aVector = new VectorComplex(3);
+       	bVector = new VectorComplex(3);
 
-       	aVector.initMatrixRandomInteger(3); aVector.abs();
-       	bVector.initMatrixRandomInteger(3); bVector.abs();
+       	aVector.initMatrixRandomInt(3); aVector.abs();
+       	bVector.initMatrixRandomInt(3); bVector.abs();
        	aVector.println("a: ");
        	System.out.println("Euclidean Norm a = " + aVector.euc_norm());
        	bVector.println("b: ");
@@ -244,37 +234,8 @@ public class TestVector02 {
       	
       	vectorProperties(aVector, bVector);
 
-      	aVector = new Vector("0,.34567,0");
+      	aVector = new VectorComplex("0,.34567,0");
       	vectorProperties(aVector, bVector);
-
-      	Vector w = new Vector("1,-2,-1,0,3,4,-2");
-      	w.initMatrixRandomInteger(3); aVector.abs();
-       	System.out.println(Complex.boxText1(boxSize, "Base"));
-      	Vector[] base7 = w.baseV();
-      	for(int i = 0; i < 7; ++i)
-      		base7[i].println("base7["+i+"]:");
-      	for(int i = 0; i < 7; ++i)
-      		for(int j = i+1; j < 7; ++j)
-      			System.out.println(i+"·"+j+": " + base7[i].dotprod(base7[j]));
-      	
-      	for(int i = 0; i < 7; ++i)
-      		for(int j = i+1; j < 7; ++j)
-      			base7[i].crossprod(base7[j]).println(i+" × "+j+": ");
-       	
-      	w = new Vector(5);
-      	w.initMatrixRandomInteger(3); aVector.abs();
-       	System.out.println(Complex.boxText1(boxSize, "Base"));
-      	Vector[] base5 = w.baseV();
-      	for(int i = 0; i < 5; ++i)
-      		base5[i].println("base5["+i+"]:");
-      	for(int i = 0; i < 5; ++i)
-      		for(int j = i+1; j < 5; ++j)
-      			System.out.println(i+"·"+j+": " + base5[i].dotprod(base5[j]));
-      	
-      	for(int i = 0; i < 5; ++i)
-      		for(int j = i+1; j < 5; ++j)
-      			base5[i].crossprod(base5[j]).println(i+" × "+j+": ");
-
 	}
 
 }

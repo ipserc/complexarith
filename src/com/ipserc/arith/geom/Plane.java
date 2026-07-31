@@ -3,16 +3,16 @@
  */
 package com.ipserc.arith.geom;
 
-import com.ipserc.arith.vector.*;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 /**
  * @author ipserc
  *
  */
 public class Plane {
-	private Vector normal;
+	private VectorComplex normal;
 	private Point point;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
@@ -46,7 +46,7 @@ public class Plane {
 	 * Instantiates an empty plane
 	 */
 	public Plane() {
-		this.normal = new Vector();
+		this.normal = new VectorComplex();
 		this.point = new Point();
 	}
 
@@ -55,7 +55,7 @@ public class Plane {
 	 * @param dim The dimension of the space
 	 */
 	public Plane(int dim) {
-		this.normal = new Vector(dim);
+		this.normal = new VectorComplex(dim);
 		this.point = new Point(dim);
 	}
 
@@ -64,11 +64,11 @@ public class Plane {
 	 * @param normal The normal vector of the plane as Vector
 	 * @param point A point of the plane as Point
 	 */
-	public Plane(Vector normal, Point point) {
+	public Plane(VectorComplex normal, Point point) {
 		this.normal = normal;
 		this.point = point;
 		if (this.normal.dim() != point.dim()) {
-			this.normal = new Vector(0);
+			this.normal = new VectorComplex(0);
 			this.point = new Point(0);
 			System.err.println(HEADINFO + "Normal vector and point must have the same dimension.");
 			return;
@@ -81,10 +81,10 @@ public class Plane {
 	 * @param sPoint A point of the plane as a String point
 	 */
 	public Plane(String sNormal, String sPoint) {
-		this.normal = new Vector(sNormal);
+		this.normal = new VectorComplex(sNormal);
 		this.point = new Point(sPoint);		
 		if (normal.dim() != point.dim()) {
-			this.normal = new Vector(0);
+			this.normal = new VectorComplex(0);
 			this.point = new Point(0);
 			System.err.println(HEADINFO + "Normal vector and point must have the same dimension.");
 			return;
@@ -97,9 +97,9 @@ public class Plane {
 	 * @param v2 The second coplanar vector as Vector
 	 * @param point A point of the plane as Point
 	 */
-	public Plane(Vector v1, Vector v2, Point point) {
+	public Plane(VectorComplex v1, VectorComplex v2, Point point) {
 		if ((v1.dim() != v2.dim()) || (v1.dim() != point.dim()) || (v2.dim() != point.dim())) {
-			this.normal = new Vector(0);
+			this.normal = new VectorComplex(0);
 			this.point = new Point(0);
 			System.err.println(HEADINFO + "Both vectors and point must have the same dimension.");
 			return;
@@ -119,11 +119,11 @@ public class Plane {
 	 * @param sPoint A point of the plane as String
 	 */
 	public Plane(String sV1, String sV2, String sPoint) {
-		Vector v1 = new Vector(sV1);
-		Vector v2 = new Vector(sV2);
+		VectorComplex v1 = new VectorComplex(sV1);
+		VectorComplex v2 = new VectorComplex(sV2);
 		Point point = new Point(sPoint);
 		if ((v1.dim() != v2.dim()) || (v1.dim() != point.dim()) || (v2.dim() != point.dim())) {
-			this.normal = new Vector(0);
+			this.normal = new VectorComplex(0);
 			this.point = new Point(0);
 			System.err.println(HEADINFO + "Both vectors and point must have the same dimension.");
 			return;
@@ -145,7 +145,7 @@ public class Plane {
 	 * returns the normal vector of the plane
 	 * @return The normal vector as Vector
 	 */
-	public Vector normal() {
+	public VectorComplex normal() {
 		return this.normal;
 	}
 
@@ -193,8 +193,8 @@ public class Plane {
 	 * @param vector The vector to project as Vector
 	 * @return The projection vector
 	 */
-	public Vector projection(Vector vector) {
-		Vector projNormal = vector.projection(this.normal);
+	public VectorComplex projection(VectorComplex vector) {
+		VectorComplex projNormal = vector.projection(this.normal);
 		return projNormal.minus(vector);
 	}
 	
@@ -203,8 +203,8 @@ public class Plane {
 	 * @param sVector The vector to project as String
 	 * @return The projection vector
 	 */
-	public Vector projectionVector(String sVector) {
-		Vector vector = new Vector(sVector);
+	public VectorComplex projectionVector(String sVector) {
+		VectorComplex vector = new VectorComplex(sVector);
 		return this.projection(vector);
 	}
 	
@@ -260,7 +260,7 @@ public class Plane {
 	 */
 	public double distance(Point point) {
 		if (this.normal.dim() != point.dim()) {
-			this.normal = new Vector(0);
+			this.normal = new VectorComplex(0);
 			this.point = new Point(0);
 			System.err.println(HEADINFO + "Plane and point must have the same dimension.");
 			System.exit(0);
@@ -302,7 +302,7 @@ public class Plane {
 	 * @param vector The given vector as Vector
 	 * @return The angle in radians
 	 */
-	public double angle(Vector vector) {
+	public double angle(VectorComplex vector) {
 		return Math.PI/2 - this.normal.angle(vector);
 	}
 
@@ -359,8 +359,8 @@ public class Plane {
 	 * @param point The point as Point
 	 * @return The vector
 	 */
-	private Vector toVector(Point point) {
-		Vector vector = new Vector();
+	private VectorComplex toVector(Point point) {
+		VectorComplex vector = new VectorComplex();
 		vector.complexMatrix = point.complexMatrix.clone();
 		return vector;
 	}
@@ -373,7 +373,7 @@ public class Plane {
 	public Line intersection(Plane plane) {
 		double angle = this.angle(plane);
 		if (Math.cos(angle) != 0.0) {
-			Vector direction = new Vector();
+			VectorComplex direction = new VectorComplex();
 			direction = this.normal().crossprod(plane.normal());
 			MatrixComplex aMatrix = new MatrixComplex(this.normal.dim(),this.normal.dim()+1);
 			int i;
@@ -408,7 +408,7 @@ public class Plane {
 		for (int i = 0; i < this.normal.dim(); ++i) {
 			generalEq.complexMatrix[0][i] = this.normal.complexMatrix[0][i].copy();
 		}
-		Vector pointVect = new Vector(this.point.dim());
+		VectorComplex pointVect = new VectorComplex(this.point.dim());
 		pointVect.complexMatrix = this.point.complexMatrix.clone();
 		generalEq.complexMatrix[0][this.normal.dim()] = this.normal.dotprod(pointVect).opposite();
 		return generalEq;
@@ -422,8 +422,8 @@ public class Plane {
 	public Point intersection(Line line) {
 		// **** if (this.normal.dotprod(line.direction()).equalsred(0,0)) return new Point(0);
 		if (this.normal.dotprod(line.direction()).equals(0,0)) return new Point(0);
-		Vector vectorP1 = new Vector();
-		Vector vectorP2 = new Vector();
+		VectorComplex vectorP1 = new VectorComplex();
+		VectorComplex vectorP2 = new VectorComplex();
 		vectorP1.complexMatrix = this.point.complexMatrix;
 		vectorP2.complexMatrix = line.point().complexMatrix;
 

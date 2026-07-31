@@ -2,7 +2,7 @@ package TestComplex;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
-import com.ipserc.arith.vector.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 public class TestNorm01 {
 
@@ -25,7 +25,7 @@ public class TestNorm01 {
 	}
 	public static void main(String[] args) {
     	MatrixComplex fMatrix;
-    	Vector fVector;
+    	VectorComplex fVector;
 		int boxSize = 65;
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "MATRIX NORMS TEST"));
@@ -85,15 +85,15 @@ public class TestNorm01 {
 
 		System.out.println(Complex.boxTitleRandom(boxSize, "VECTOR NORMS TEST"));
 
-		fVector = new Vector("2,-4,1");
+		fVector = new VectorComplex("2,-4,1");
        	//fVector.println("fVector");
        	calcNorms(fVector);
 
-       	fVector = new Vector("1,2,3,4");
+       	fVector = new VectorComplex("1,2,3,4");
        	//fVector.println("fVector");
        	calcNorms(fVector);
 
-       	fVector = new Vector("1,i,1,1-i");
+       	fVector = new VectorComplex("1,i,1,1-i");
        	//fVector.println("fVector");
        	calcNorms(fVector);
        	

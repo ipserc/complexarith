@@ -3,7 +3,7 @@ package Examenes;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.syseq.Syseq;
-import com.ipserc.arith.vector.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 public class FR_2014_0629_espacio_vectorial_cociente {
 
@@ -73,8 +73,8 @@ public class FR_2014_0629_espacio_vectorial_cociente {
 		 * 3) Hallar las coordenadas del vector (1,-3,2,6)+F en la base hallada en el apartado anterior.
 		 ************************************************ */
 	   	Complex.printBoxText(2, boxSize, "3) Las coordenadas del vector (1,-3,2,6)+F en la base hallada en el apartado anterior.");
-		Vector vector = new Vector("1,-3,2,6");
-		Vector vector2 = vector.clone();
+		VectorComplex vector = new VectorComplex("1,-3,2,6");
+		VectorComplex vector2 = vector.clone();
 		
 		vector.println("Vector");
 		baseR4F.println("Base");

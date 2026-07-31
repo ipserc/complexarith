@@ -1,10 +1,10 @@
 package com.ipserc.arith.geom;
 
 import com.ipserc.arith.complex.Complex;
-import com.ipserc.arith.vector.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 public class Line {
-	private Vector direction;
+	private VectorComplex direction;
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
@@ -38,7 +38,7 @@ public class Line {
 	 * Instantiates an empty line
 	 */
 	public Line() {
-		this.direction = new Vector();
+		this.direction = new VectorComplex();
 		this.point = new Point();
 	}
 	
@@ -47,7 +47,7 @@ public class Line {
 	 * @param dim The dimension
 	 */
 	public Line(int dim) {
-		this.direction = new Vector(dim);
+		this.direction = new VectorComplex(dim);
 		this.point = new Point(dim);
 	}
 
@@ -56,11 +56,11 @@ public class Line {
 	 * @param direction Vector The director vector
 	 * @param point Point The point
 	 */
-	public Line(Vector direction, Point point) {
+	public Line(VectorComplex direction, Point point) {
 		this.direction = direction;
 		this.point = point;
 		if (direction.dim() != point.dim()) {
-			this.direction = new Vector(0);
+			this.direction = new VectorComplex(0);
 			this.point = new Point(0);
 			System.err.println(HEADINFO + "Direction vector and point must have the same dimension.");
 			return;
@@ -73,10 +73,10 @@ public class Line {
 	 * @param sPoint The string representation of the point
 	 */
 	public Line(String sDirection, String sPoint) {
-		this.direction = new Vector(sDirection);
+		this.direction = new VectorComplex(sDirection);
 		this.point = new Point(sPoint);
 		if (direction.dim() != point.dim()) {
-			this.direction = new Vector(0);
+			this.direction = new VectorComplex(0);
 			this.point = new Point(0);
 			System.err.println(HEADINFO + "Direction vector and point must have the same dimension.");
 			return;
@@ -95,7 +95,7 @@ public class Line {
 			this.point = pointA;
 		}
 		else {
-			this.direction = new Vector(0);
+			this.direction = new VectorComplex(0);
 			this.point = new Point(0);
 			System.err.println(HEADINFO + "Both points must have the same dimension.");
 		}
@@ -132,7 +132,7 @@ public class Line {
 	 * Gets the director vector of the line
 	 * @return
 	 */
-	public Vector direction() {
+	public VectorComplex direction() {
 		return this.direction;
 	}
 	
@@ -153,7 +153,7 @@ public class Line {
 	/**
 	 * Sets the director vector of the line
 	 */
-	public void direction(Vector vector) {
+	public void direction(VectorComplex vector) {
 		this.direction = vector;
 	}
 	
@@ -225,7 +225,7 @@ public class Line {
 	 * @return The distance
 	 */
 	public double distance(Point point) {
-		Vector PaPp = this.point.minus(point);
+		VectorComplex PaPp = this.point.minus(point);
 		return PaPp.crossprod(this.direction).norm()/this.direction.norm();
 	}
 

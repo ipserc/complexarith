@@ -1,7 +1,7 @@
 package com.ipserc.arith.geom;
 
 import com.ipserc.arith.matrixcomplex.*;
-import com.ipserc.arith.vector.*;
+import com.ipserc.arith.vectorcomplex.*;
 
 public class Point extends MatrixComplex {
 
@@ -97,8 +97,8 @@ public class Point extends MatrixComplex {
 	 * @param point The other point
 	 * @return The vector that points the sum point
 	 */
-	public Vector plus(Point point) {
-		Vector vector = new Vector(this.dim());
+	public VectorComplex plus(Point point) {
+		VectorComplex vector = new VectorComplex(this.dim());
 		for (int i = 0; i < this.dim(); ++i) {
 			vector.complexMatrix[0][i] = this.complexMatrix[0][i].plus(point.complexMatrix[0][i]);
 		}
@@ -110,8 +110,8 @@ public class Point extends MatrixComplex {
 	 * @param point The other point
 	 * @return The vector that points the difference point
 	 */
-	public Vector minus(Point point) {
-		Vector vector = new Vector(this.dim());
+	public VectorComplex minus(Point point) {
+		VectorComplex vector = new VectorComplex(this.dim());
 		for (int i = 0; i < this.dim(); ++i) {
 			vector.complexMatrix[0][i] = this.complexMatrix[0][i].minus(point.complexMatrix[0][i]);
 		}
