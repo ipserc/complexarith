@@ -18,8 +18,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.17 (2026_0731_1900)";
+	private final static String VERSION = "1.18 (2026_0731_2030)";
 	/* VERSION Release Note
+	 *
+	 * 1.18 (2026_0731_2030)
+	 * Pivoteo parcial proactivo en inverse()/triangleUp()/triangleLo() (auditoria
+	 * matematica, paso 3, hallazgo 2): antes solo se pivotaba si el pivote actual
+	 * era EXACTAMENTE cero; ahora siempre se pivota a la fila de mayor modulo de
+	 * la columna, evitando amplificacion de error de redondeo con pivotes pequeños
+	 * pero no nulos. Nuevo helper privado partialPivotUp(int) (espejo de
+	 * partialPivot(int), para triangleLo()).
 	 *
 	 * 1.17 (2026_0731_1900)
 	 * Los 25 System.exit(1) del fichero sustituidos por IllegalArgumentException
@@ -1147,7 +1155,28 @@ public class MatrixComplex {
 				rowMax = row;
 			}
 		}
-		if (cMax.equals(0,0)) 
+		if (cMax.equals(0,0))
+			return -1;
+		return rowMax;
+	}
+
+	/**
+	 * Returns the row from 0 to "rowEnd" whose column "rowEnd" has the maximum value in module. Mirror of partialPivot(int),
+	 * searching upwards from "rowEnd" to row 0 instead of downwards, for triangularizations that eliminate towards row 0 (e.g. triangleLo()).
+	 * @param rowEnd Row and column from which the maximum search ends (search goes from row 0 to rowEnd, inclusive).
+	 * @return The index of the row with the value in maximum nonzero module or -1 if the value was not found.
+	 */
+	private int partialPivotUp(int rowEnd) {
+		int colP = rowEnd;
+		int rowMax = rowEnd;
+		Complex cMax = new Complex(this.complexMatrix[rowEnd][rowEnd].rep(), this.complexMatrix[rowEnd][rowEnd].imp());
+		for (int row = rowEnd; row >= 0; --row) {
+			if (this.complexMatrix[row][colP].mod() > cMax.mod())  {
+				cMax = this.complexMatrix[row][colP];
+				rowMax = row;
+			}
+		}
+		if (cMax.equals(0,0))
 			return -1;
 		return rowMax;
 	}
@@ -3777,15 +3806,15 @@ public class MatrixComplex {
 		MatrixComplex unitMatrix = new MatrixComplex(rowLen); unitMatrix.initMatrixDiag(1,0);
 
 		for (int k = 0; k < rowLen-1; ++k) {
-			if (auxMatrix.complexMatrix[k][k].equals(0,0)) {
-				int rowSwap = auxMatrix.partialPivot(k);
-				//int rowSwap = auxMatrix.locateSwapRowUp(k);
-				if (rowSwap == -1) 
-					return auxMatrix.divides(0);
-				if (rowSwap != k) {
-					auxMatrix.swapRows(k, rowSwap);
-					unitMatrix.swapRows(k, rowSwap);
-				}
+			// Proactive partial pivoting: always swap to the row with the maximum modulus in this
+			// column, not only when the current pivot is exactly zero -- a pivot that is merely
+			// small (but nonzero within Complex.equals() tolerance) still amplifies rounding error.
+			int rowSwap = auxMatrix.partialPivot(k);
+			if (rowSwap == -1)
+				return auxMatrix.divides(0);
+			if (rowSwap != k) {
+				auxMatrix.swapRows(k, rowSwap);
+				unitMatrix.swapRows(k, rowSwap);
 			}
 			for (row = k+1; row < rowLen; ++row) {
 				cCoef = auxMatrix.complexMatrix[row][k].divides(auxMatrix.complexMatrix[k][k]);
@@ -5276,13 +5305,12 @@ public class MatrixComplex {
 		if (this.isTriangleUp()) return auxMatrix;
 
 		for (int k = 0; k < rowLen-1; ++k) {
-			if (auxMatrix.getItem(k,k).equals(0,0)) {
-				int rowSwap = auxMatrix.locateSwapRowUp(k);
-				if (rowSwap == -1) {
-					continue;
-				}
-				if (rowSwap != k) auxMatrix.swapRows(k, rowSwap);
-			}
+			// Proactive partial pivoting: always swap to the row with the maximum modulus in this
+			// column (not only when the current pivot is exactly zero), and pick that maximum
+			// (partialPivot) rather than just the first nonzero row (locateSwapRowUp) -- a pivot
+			// that is merely small still amplifies rounding error.
+			int rowSwap = auxMatrix.partialPivot(k);
+			if (rowSwap != -1 && rowSwap != k) auxMatrix.swapRows(k, rowSwap);
 			for (int row = k+1; row < rowLen; ++row) {
 				/* -------------   DEBUGGING BLOCK   ------------- * /
 				trace(METH_NAME + ": auxMatrix.getItem(row, k) =" + auxMatrix.getItem(row, k).toString());
@@ -5445,14 +5473,15 @@ public class MatrixComplex {
 		int upLimit = rowLen < colLen ? colLen : rowLen;
 		int loLimit = rowLen > colLen ? colLen : rowLen;
 		for (int k = upLimit-1; k >= 0 ; --k) {
-			if (k < rowLen && k < colLen && auxMatrix.getItem(k,k).equals(0,0)) {
-				int rowSwap = auxMatrix.locateSwapRowDown(k);
-				if (rowSwap == -1) {
-					continue;
-				}
-				if (rowSwap != k) auxMatrix.swapRows(k, rowSwap);
+			// Proactive partial pivoting: always swap to the row with the maximum modulus in this
+			// column (not only when the current pivot is exactly zero), and pick that maximum
+			// (partialPivotUp) rather than just the first nonzero row (locateSwapRowDown) -- a pivot
+			// that is merely small still amplifies rounding error.
+			if (k < rowLen && k < colLen) {
+				int rowSwap = auxMatrix.partialPivotUp(k);
+				if (rowSwap != -1 && rowSwap != k) auxMatrix.swapRows(k, rowSwap);
 			}
-			
+
 			for (int row = k-1; row >= 0; --row) {
 				if (k >= loLimit || auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
 				cCoef = auxMatrix.getItem(row,k).divides(auxMatrix.getItem(k,k)).opposite();
