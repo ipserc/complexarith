@@ -37,6 +37,16 @@ Actúa como un **Principal Java Performance Engineer**, **Doctor en Matemáticas
 
 ---
 
+# MODO DE TRABAJO
+Para cada módulo se reliza lo siguiente:
+1. Como **Principal Java Performance Engineer** análisis y reestructuración de la clase corrugiendo defectos y errores.
+2. Refactorización para reestructurar, organizar y simplificar el mantenimiento de la clase de aucerdo con las directrices de INSTRUCCIONES DE REVISIÓN Y REFRACTORIZACIÓN.
+3. Cómo **Doctor en Matemáticas Aplicadas** análisis de los modelos matemáticos utilizados para implementar los métodos de la clase.
+4. Mejora de los modelos de acuerdo con las ditectrices de INSTRUCCIONES DE REVISIÓN Y REFRACTORIZACIÓN.
+5. Cómo **Doctor en Ciencias Físicas y Mecánica Cuántica** revisión de los métodos y funciones implementados y propuesta de de nuevos métodos enfocados en el análisis de la Mecánica Cuántica.
+
+---
+
 # ESTADO DE LA SESIÓN Y CONTINUACIÓN (leer esto primero al retomar)
 
 > Este bloque es un documento vivo de continuidad. Está escrito para que, si se retoma el trabajo en una sesión nueva sin memoria de esta conversación, se pueda reconstruir todo el contexto, las reglas acordadas y el estado exacto en el que se dejó el trabajo, sin tener que releer todo el historial de git ni redescubrir los mismos bugs.
@@ -628,4 +638,48 @@ El 19º, **`.gitignore`** (comentaba `*.class`), se descartó con `git checkout 
 
 ---
 
-*Última actualización de este bloque: sesión del 30-31 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`; sección "Quinta sesión de revisión" añadida tras el commit `dccaf1f`; sección "Sexta sesión de revisión" (paso 1 + paso 2 + auditoría matemática) cerrada tras el commit `687b26a` — ver "CIERRE DE LA SEXTA SESIÓN" para el resumen completo. Sección "SÉPTIMA SESIÓN" (paso 3: migración Vector→VectorComplex + 4 features de propina + 18 arreglos sueltos preexistentes) **cerrada** tras los commits `15af1f2`..`1499cc2` (más el descarte de `.gitignore`) — árbol trackeado limpio, solo queda pendiente la pila de contenido sin trackear, explícitamente fuera de alcance.*
+# OCTAVA SESIÓN — AUDITORÍA MATEMÁTICA DE `MatrixComplex.java` (31 julio 2026), EN CURSO
+
+> Arranca el "paso 3" propiamente dicho: la revisión matemática rigurosa (no solo migración/features) que todas las sesiones anteriores dejaron pendiente para `MatrixComplex.java`/`VectorComplex.java`. Mismo proceso que en las fases grandes de `Complex.java`: fork de exploración primero (para priorizar con datos reales), luego decidir el orden con el usuario, ejecutar hallazgo a hallazgo con el workflow ligero (resumen→confirmación implícita al elegir el hallazgo→`Edit`→compilar→verificar contra build de referencia→batería de regresión→bump `VERSION`→commit de un único fichero→reportar).
+
+## Exploración inicial (fork en segundo plano, antes de tocar nada)
+
+Mapeó `MatrixComplex.java` (6526 líneas) en bloques temáticos (constructores/inicializadores en 1-745, aritmética 1298-1836, funciones matriciales por Taylor 1836-3129 —el bloque más grande, incluye las funciones nuevas de la Séptima sesión, sin cubrir en detalle en esta pasada—, normas/orden 3129-3296, operadores unarios/determinante/inversa 3296-4172, sistemas de ecuaciones 4172-4616, rango/`majorIL` 4616-5830, polinomio característico 5830-6254, transformaciones elementales/Gram-Schmidt 6254-6498) y priorizó hallazgos:
+
+- **Alto valor, confirmado**: 25 puntos con `System.err.println(...); System.exit(1);` — mismo antipatrón que `Complex.java` (Cuarta sesión, `bd1b3fd`), con 60 call-sites externos expuestos (`Eigenspace`, `SVDfactor`, `Diagfactor`, `Jordan`, `VectorComplex`, ~30 tests).
+- **Alto valor, reproducido**: `rank2()` puede matar la JVM vía `Polynom.solve()` (`NaN` en Durand-Kerner → `System.exit(10)` en `Polynom.java`) — fix real fuera de este fichero, `rank2()` no es el default.
+- **Riesgo medio**: pivoteo parcial en `inverse()`/`triangleUp/Lo` solo se activa si el pivote es EXACTAMENTE cero, no si es simplemente pequeño — probable causa raíz de la imprecisión ya reconocida por el propio código en matrices mal condicionadas (`TestIllConditioned01.java`).
+- **Verificado y descartado**: el bloque `base(String)`/`base()` "código muerto" es el mismo patrón de falso positivo que `zeta()` en `Complex.java` (Sexta sesión, `1474c56`) — un Javadoc mal cerrado, intencionadamente inerte, no un bug. Sin aliasing peligroso de arrays (a diferencia del bug más grave de `Complex.java`). `determinant()` ya usa Gauss O(n³), no cofactores. El comentario "TEST FAILED" en `rank1()` es un log histórico ya resuelto.
+- **Sin cubrir en esta pasada**: el bloque TAYLOR'S SERIES completo y EQUATION SYSTEMS/CHARACTERISTIC POLYNOMIAL en detalle línea a línea — candidatos para la siguiente pasada.
+
+El usuario eligió empezar por el hallazgo de `System.exit()`.
+
+## Hallazgo 1 — `System.exit()` → `IllegalArgumentException` en `MatrixComplex.java` (commit `cd49ced`)
+
+Los 25 puntos (`plus`/`minus` con dimensiones incompatibles, `power(MatrixComplex)` no cuadrada/distinta dimensión, `exp`/`trigonTaylor`/`trigonHyperbolycTaylor`/`logTaylor`/`logMercator`/`logHat` sobre matriz no cuadrada, `p_norm` con orden≤0, `trace`/`cotrace` no cuadrada, `minor`/`cofactors` con índice de pivote fuera de rango —2 sitios cada uno—, `determinantGauss`/`determinant3`/`determinantAdj` no cuadrada, `subMatrix`/`subMatrixAug` con rango fuera de la matriz —2 sitios cada uno—, `charactPoly`/`cofactor` no cuadrada) sustituidos por `throw new IllegalArgumentException(msg)`, eliminando el `System.err.println` redundante. Mismo cambio de contrato que `Complex.setComplex()` (Cuarta sesión): antes mataba el proceso, ahora lanza una excepción capturable.
+
+Verificado: camino válido (los 12 métodos con caso normal) idéntico byte a byte contra un build de referencia (`HEAD`, antes del fix). Camino inválido: 22 casos probados (cubren los 25 puntos), los 22 lanzan `IllegalArgumentException` con el mensaje esperado, proceso vivo después. Batería de regresión (`TestComplex01/07`, `TestGamma01`, `TestZeta01`, `TestMatrixComplex01`, `TestMatrixOperations01`, `TestVector02/03/05/06/07`, `TestEigenV18`, `TestSVD03`) exit 0 en las 13.
+
+**Hallazgo adicional durante la verificación** (hablado con el usuario antes de tocar código): al probar `sin()`/`cos()` sobre matriz no cuadrada, el proceso moría igual — no por `MatrixComplex`, sino porque esos métodos (y `tan`/`sinh`/`cosh`/`tanh`) intentan diagonalizar primero vía `new Diagfactor(this)`, y `Diagfactor.diagonalize()` tenía su propio `System.exit(-1)` que se dispara ANTES de llegar al guard ya arreglado de `trigonTaylor`/`trigonHyperbolycTaylor` (que sí es alcanzable, y ya funciona, llamando directamente a `sinTaylor()`/`sinhTaylor()`). Mismo patrón confirmado con grep, sin tocar, en `Jordan.java` (3 sitios), `Polynom.java` (el de `rank2()`), `geom/Plane.java` y `VectorComplex.java`.
+
+Bump `VERSION` de `MatrixComplex.java` a `1.17 (2026_0731_1900)`.
+
+## Hallazgo 1 (continuación) — `Diagfactor.diagonalize()` → `IllegalArgumentException` (commit `83e396d`)
+
+El usuario confirmó ampliar el alcance solo a este fichero (el que bloqueaba `sin()`/`cos()`), dejando `Jordan.java`/`Polynom.java`/`geom/Plane.java`/`VectorComplex.java` fuera por ahora. Mismo fix: `System.out.println(...); System.exit(-1);` → `throw new IllegalArgumentException(...)`. Como `diagonalize()` se llama también desde 2 de los 3 constructores, la excepción se propaga con normalidad fuera del constructor (sin problema de construcción parcial, `complexMatrix` ya estaba asignado antes de la llamada).
+
+Verificado: `Diagfactor(nonSquare)` y `nonSquare.sin()`/`cos()` (las 2 entradas públicas afectadas) lanzan ahora la excepción, capturable, proceso vivo después en los 3 casos. Camino válido (factorización de una matriz diagonalizable 2×2 + `sin()`/`cos()` sobre ella) idéntico byte a byte contra build de referencia. Batería de regresión (`TestComplex01/07`, `TestGamma01`, `TestZeta01`, `TestMatrixComplex01`, `TestEigenV18`) exit 0 en las 5; `TestDiag`/`TestDiag01` exit 10 en **ambos** builds (el `System.exit(10)` preexistente de `Polynom.java`, ya documentado arriba, sin relación — no es una regresión).
+
+Bump `VERSION` de `Diagfactor.java` a `1.3 (2026_0731_1930)`.
+
+## Pendiente al seguir con esta sesión
+
+- **Hallazgo 2** (riesgo medio, sin empezar): pivoteo parcial no proactivo en `inverse()`/`triangleUp/Lo` — requiere hablar con el usuario el alcance antes de tocar el algoritmo (cambiar el criterio de cuándo pivotar es una decisión de diseño numérico, no un bug puntual acotado).
+- `rank2()`/`Polynom.solve()` (`System.exit(10)`) — fix real vive en `Polynom.java`, fuera del fichero de esta auditoría; decidir si se amplía el alcance cuando se llegue a él.
+- El bloque TAYLOR'S SERIES (funciones matriciales, el más grande y el menos probado, incluye las adiciones de la Séptima sesión) y EQUATION SYSTEMS/CHARACTERISTIC POLYNOMIAL — sin explorar en detalle todavía, candidatos para la siguiente pasada de exploración.
+- `Jordan.java`/`Polynom.java`/`geom/Plane.java`/`VectorComplex.java` — mismo patrón `System.exit`, confirmado con grep, sin tocar, fuera de alcance por ahora.
+- `VectorComplex.java` en sí (más allá del `System.exit` puntual) no ha pasado por ninguna auditoría matemática todavía — la migración/fix de la Séptima sesión fue estructural (completar código roto), no una revisión de corrección matemática.
+
+---
+
+*Última actualización de este bloque: sesión del 30-31 julio 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`; sección "Quinta sesión de revisión" añadida tras el commit `dccaf1f`; sección "Sexta sesión de revisión" (paso 1 + paso 2 + auditoría matemática) cerrada tras el commit `687b26a` — ver "CIERRE DE LA SEXTA SESIÓN" para el resumen completo. Sección "SÉPTIMA SESIÓN" (paso 3: migración Vector→VectorComplex + 4 features de propina + 18 arreglos sueltos preexistentes) cerrada tras los commits `15af1f2`..`1499cc2` (más el descarte de `.gitignore`). Sección "OCTAVA SESIÓN" (auditoría matemática de `MatrixComplex.java`, el "paso 3" propiamente dicho) **en curso**, iniciada el 31 julio 2026 tras los commits `cd49ced` y `83e396d` — ver el bloque de arriba para el estado exacto y los hallazgos pendientes.*
