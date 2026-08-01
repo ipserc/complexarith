@@ -8,8 +8,15 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.5 (2026_0801_0830)";
+	private final static String VERSION = "1.6 (2026_0801_0835)";
 	/* VERSION Release Note
+	 * 1.6 (2026_0801_0835)
+	 * System.exit(1)/silent-null/warn-and-continue -> IllegalArgumentException, same pattern
+	 * already applied to MatrixComplex.java: plus()/minus() (were System.exit(1)); constructors
+	 * VectorComplex(int)/VectorComplex(String)/VectorComplex(MatrixComplex) (left
+	 * complexMatrix=null in silence); innerprod()/dotprod()/crossprod() (warned on stderr but
+	 * kept going with mismatched sizes).
+	 *
 	 * 1.5 (2026_0801_0830)
 	 * Fix: VectorComplex(MatrixComplex row) only cloned the outer (row) array, leaving
 	 * this.complexMatrix[0] aliased to row.complexMatrix[0] -- a later cell reassignment
@@ -81,8 +88,7 @@ public class VectorComplex extends MatrixComplex {
 	public VectorComplex(int dim) {
 		super(1, dim);
 		if (dim < 1) {
-			System.err.println(HEADINFO + "Not valid dimension: vector set to null vector.");
-			this.complexMatrix = null;
+			throw new IllegalArgumentException(HEADINFO + "Not valid dimension: " + dim);
 		}
 	}
 
@@ -95,8 +101,7 @@ public class VectorComplex extends MatrixComplex {
 		super(cadena);
 		int rowLen = this.rows();
 		if (rowLen > 1) {
-			System.err.println(HEADINFO + "Not valid vector: vector set to null vector.");
-			this.complexMatrix = null;
+			throw new IllegalArgumentException(HEADINFO + "Not valid vector, more than one row: " + cadena);
 		}
 	}
 	
@@ -108,8 +113,7 @@ public class VectorComplex extends MatrixComplex {
 	public VectorComplex(MatrixComplex row) {
 		super(1, row.cols());
 		if (row.rows() > 1) {
-			System.err.println(HEADINFO + "Not valid vector: vector set to null vector.");
-			this.complexMatrix = null;
+			throw new IllegalArgumentException(HEADINFO + "Not valid vector, more than one row: " + row.rows());
 		}
 		else {
 			// row.complexMatrix.clone() alone only clones the outer (row) array; since row has
@@ -384,8 +388,7 @@ public class VectorComplex extends MatrixComplex {
 		int dimA2 = vector.cols();
 
 		if (dimA1 != dimA2 ) {
-			System.err.println(HEADINFO + "Not valid sum: vectors of different size.");
-			System.exit(1);
+			throw new IllegalArgumentException(HEADINFO + "Not valid sum: vectors of different size, " + dimA1 + " != " + dimA2);
 		}
 
 		VectorComplex result = new VectorComplex(dimA1);
@@ -406,8 +409,7 @@ public class VectorComplex extends MatrixComplex {
 		int dimA2 = vector.cols();
 
 		if (dimA1 != dimA2 ) {
-			System.err.println(HEADINFO + "Not valid differentation: vectors of different size.");
-			System.exit(1);
+			throw new IllegalArgumentException(HEADINFO + "Not valid differentiation: vectors of different size, " + dimA1 + " != " + dimA2);
 		}
 
 		VectorComplex result = new VectorComplex(dimA1);
@@ -463,11 +465,11 @@ public class VectorComplex extends MatrixComplex {
 		int colLenC = vector.cols();
 
 		if (rowLen != 1 || rowLenC != 1) {
-			System.err.println(HEADINFO + "dotprod/innerprod: " + "One of the componentes isn't a vector");
+			throw new IllegalArgumentException(HEADINFO + "dotprod/innerprod: " + "One of the components isn't a vector");
 		}
 
 		if (colLen != colLenC) {
-			System.err.println(HEADINFO + "dotprod/innerprod: " + "Vectors of different size");
+			throw new IllegalArgumentException(HEADINFO + "dotprod/innerprod: " + "Vectors of different size, " + colLen + " != " + colLenC);
 		}
 
 		return this.times(vector.adjoint()).complexMatrix[0][0];
@@ -671,11 +673,11 @@ public class VectorComplex extends MatrixComplex {
 		VectorComplex result = new VectorComplex();
 
 		if (rowLen != 1 || rowLenC != 1) {
-			System.err.println(HEADINFO + "crossprod: " + "One of the componentes isn't a vector");
+			throw new IllegalArgumentException(HEADINFO + "crossprod: " + "One of the components isn't a vector");
 		}
 
 		if (colLen != colLenC) {
-			System.err.println(HEADINFO + "crossprod: " + "Vectors of different size");
+			throw new IllegalArgumentException(HEADINFO + "crossprod: " + "Vectors of different size, " + colLen + " != " + colLenC);
 		}
 
 		switch (colLen) {
