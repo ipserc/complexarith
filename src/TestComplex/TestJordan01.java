@@ -10,7 +10,7 @@ public class TestJordan01 {
 		jordan.println("---------------- MATRIZ ORIGINAL");
 		jordan.factorize();
 		
-		jordan.P().inverse().times(jordan.J().times(jordan.P())).println("PROOF");
+		jordan.P().times(jordan.J().times(jordan.P().inverse())).println("PROOF");
 		
 	}
 	
