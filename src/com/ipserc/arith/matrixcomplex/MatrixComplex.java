@@ -5,6 +5,7 @@ import java.lang.Math;
 import com.ipserc.arith.combinatoric.*;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
+import com.ipserc.arith.factorization.Schurfactor;
 import com.ipserc.arith.polynom.*;
 import com.ipserc.arith.syseq.Syseq;
 import com.panayotis.gnuplot.JavaPlot;
@@ -18,10 +19,32 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.31 (2026_0801_2309)";
+	private final static String VERSION = "1.32 (2026_0801_2318)";
 	/* VERSION Release Note
 	 *
-	 * 1.31 (2026_0801_2309)
+	 * 1.32 (2026_0801_2318)
+	 * New public logm(): natural logarithm of a defective (non-diagonalizable) matrix via Schur
+	 * factorization + inverse scaling-and-squaring (MATLAB logm/Higham) -- fills the gap log()
+	 * falls back to logTaylor() for, which only converges for a narrow dominant-eigenvalue
+	 * orientation. Uses sqrtTriangular() (VERSION 1.31) plus logMercator()'s convergence-loop body
+	 * reused without its own norm-reduction preprocessing. Verified against 14 cases: a closed-form
+	 * oracle for single Jordan blocks (log(λI+N)=log(λ)I+Σ(-1)^(k+1)(N/λ)^k/k, finite since N is
+	 * nilpotent) across real/negative-real/complex/small/large eigenvalues; regression against
+	 * log() on diagonal/diagonalizable matrices; exp(logm(A))~=A self-consistency for multi-block
+	 * synthetic defective matrices; a genuinely singular (nilpotent) matrix failing cleanly instead
+	 * of hanging. NOT yet wired into log()'s dispatcher -- deliberate scope decision, see the
+	 * Novena sesion plan.
+	 * Newly characterized while verifying (not caused by this change, pre-existing): Schurfactor's
+	 * internal Eigenspace.eigenvectors3() hits the same "imprecise Durand-Kerner eigenvalue keeps
+	 * (A-eigenval*I) from being quite singular, homogeneous solve collapses to the trivial all-zero
+	 * vector" failure mode already diagnosed in Jordan.java this session, for REPEATED eigenvalues
+	 * at larger block sizes (confirmed with a sweep: e.g. n=4 fails for lambda=3/-3/-1/50/-50, only
+	 * lambda=1 works; n=3 fails only for lambda=50). Distinct eigenvalues (diagonalizable case) are
+	 * unaffected at any size tested. logm() detects this correctly via Schurfactor.factorized()
+	 * and throws, doesn't produce garbage -- but it does mean logm()'s practical domain for
+	 * genuinely defective matrices is narrower than hoped until Eigenspace's generic eigenvector
+	 * solver gets the same kind of fix Jordan.java got this session. Documented, not fixed here --
+	 * separate, larger-scope decision.
 	 * New private sqrtTriangular(MatrixComplex): principal square root of an upper triangular
 	 * matrix via the Parlett recurrence (Björck-Hammarling), the standard building block for
 	 * scaling-and-squaring logm() -- see the pending Novena sesion plan. Diagonal via
@@ -3156,6 +3179,148 @@ public class MatrixComplex {
 			}
 		}
 		return sMat;
+	}
+
+	/**
+	 * Returns true if every diagonal entry of tMat is within threshold of 1 (in modulus).
+	 * Private helper for {@link #logm()}'s scaling loop -- since tMat is triangular by
+	 * construction there, its diagonal entries ARE its eigenvalues, no recomputation needed.
+	 */
+	private boolean isNearIdentityDiagonal(MatrixComplex tMat, double threshold) {
+		for (int i = 0; i < tMat.rows(); ++i) {
+			if (tMat.getItem(i, i).minus(Complex.ONE).mod() >= threshold) return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Calculates the principal natural logarithm of a (possibly defective, non-diagonalizable)
+	 * matrix via Schur factorization plus inverse scaling-and-squaring -- the standard method
+	 * (MATLAB {@code logm}, Higham): {@code A=U·T·U*} (Schur, {@code T} upper triangular);
+	 * repeatedly take the principal square root of {@code T} ({@link
+	 * #sqrtTriangular(MatrixComplex)}) until its diagonal is close enough to {@code 1} that
+	 * Mercator's series {@code log(I+x)} converges quickly and safely (the same series already
+	 * used by {@link #logMercator()}, reused here WITHOUT its own {@code euc_norm()}-based
+	 * reduction/compensation -- {@code x} is already small by construction from the scaling);
+	 * then undo the scaling ({@code log(T)=2^s·log(S)}) and the Schur similarity
+	 * ({@code log(A)=U·log(T)·U*}, using {@link #adjoint()} rather than {@link #inverse()} since
+	 * {@code U} is unitary -- the same pattern {@link Schurfactor#factorize()} itself already
+	 * uses, exact and free of Gaussian-elimination noise).
+	 * <p>
+	 * Unlike {@link #log()} -- which already handles the diagonal and diagonalizable cases
+	 * correctly, falling back to {@link #logTaylor()} only for the remaining defective case, where
+	 * it only converges for a narrow range of dominant-eigenvalue orientations (close to
+	 * {@code +‖A‖}) -- this method targets exactly the gap: genuinely defective matrices (at least
+	 * one nontrivial Jordan block), for any eigenvalue orientation.
+	 * <p>
+	 * <b>Not yet wired into {@link #log()}'s dispatcher</b> -- deliberate scope decision (Novena
+	 * sesion plan, documented in {@code Claude/ComplexArithRev.md}): connecting it there changes
+	 * the default behavior of a widely-used public method and is left for a separate decision once
+	 * this method has been verified solid on its own.
+	 * <p>
+	 * Inherits the same numerical-precision caveat already characterized this session while fixing
+	 * {@code Jordan.java}/{@code TestJordanAudit01}: {@link Schurfactor} recomputes {@link
+	 * Eigenspace}/Durand-Kerner at every step of its own recursion, so {@code T}'s diagonal
+	 * entries carry whatever residual imprecision that root-finder leaves on them -- for a
+	 * defective eigenvalue this CAN be amplified through this method's own near-singular Parlett
+	 * divisions, same mechanism as diagnosed there.
+	 * @return The principal natural logarithm of this matrix.
+	 * @throws IllegalArgumentException if this matrix is not square, if a Schur factorization
+	 * could not be found, if the scaling loop doesn't reach a near-identity diagonal within a
+	 * generous safety cap, or if the Mercator series fails to converge even after scaling (would
+	 * indicate a deeper problem, since scaling is specifically meant to guarantee convergence).
+	 */
+	public MatrixComplex logm() {
+		trace("------------ logm() ------------ ");
+		if (this.isNaN() || this.isNull() || this.isInfinite()) return this;
+		if (!this.isSquare()) {
+			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
+		}
+
+		Schurfactor schur = new Schurfactor(this);
+		if (!schur.factorized()) {
+			throw new IllegalArgumentException("logm: could not compute a Schur factorization for this matrix.");
+		}
+		MatrixComplex uMat = schur.getU();
+		MatrixComplex tMat = schur.getSchur();
+
+		/* ***************************************
+		 * Inverse scaling: repeated principal square roots until T's diagonal is close enough to
+		 * 1 for Mercator's series to converge quickly, safely inside its |x|<1 radius with margin.
+		 * *************************************** */
+		final double NEAR_IDENTITY_THRESHOLD = 0.5;
+		final int MAX_SQRT_ITER = 100;
+		int s = 0;
+		while (!isNearIdentityDiagonal(tMat, NEAR_IDENTITY_THRESHOLD)) {
+			if (s >= MAX_SQRT_ITER) {
+				throw new IllegalArgumentException("logm: scaling did not reach a near-identity diagonal after "
+					+ MAX_SQRT_ITER + " square roots -- matrix may be singular or otherwise pathological.");
+			}
+			tMat = sqrtTriangular(tMat);
+			++s;
+		}
+		trace("logm(): scaling steps s=" + s);
+
+		/* *************************************************
+		 * Mercator's Extension log(1 + x), reused from logMercator()'s convergence loop verbatim
+		 * -- but WITHOUT its euc_norm() reduction/compensation, since x is already small here.
+		 * (I + xMat) = tMat -> xMat = tMat - I
+		 * *************************************************/
+		MatrixComplex xMat = tMat.minusMat(1, 0);
+
+		MatrixComplex logMatrix = xMat.copy();
+		MatrixComplex powMatrix = xMat.copy();
+		MatrixComplex errMatrix;
+		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
+		MatrixComplex logMatant;
+
+		long maxIter = Complex.digits();
+		long k = 2;
+
+		int maxPoints = 99999;
+		double[][] dataTable = new double[maxPoints][2];
+		int c = 0;
+		double accumulator = 0.0;
+		double deviation;
+
+		do {
+			logMatant = logMatrix.copy();
+			powMatrix = powMatrix.times(xMat);
+			logMatrix = logMatrix.plus(powMatrix.divides(k * (k % 2 == 0 ? -1 : 1)));
+			errMatrix = logMatant.minus(logMatrix);
+			errMatrix.abs();
+			if (errMatrix.isNullC()) break;
+
+			if (k > 100) {
+				deviation = errMatrix.norm() / errAntMat.norm();
+				accumulator += deviation > 1 ? deviation : 0.0;
+				if (c < maxPoints) {
+					dataTable[c][0] = k;
+					dataTable[c++][1] = deviation;
+				}
+				if (accumulator > 500) {
+					if (__DEBUG__) {
+						trace("logm(): Mercator series iteration:" + k + " - unexpectedly divergent after scaling");
+						trace("accumulator:" + accumulator);
+						doPlot("-- DEVIATION --", dataTable, --c);
+					}
+					throw new IllegalArgumentException(
+						"logm: the Mercator series failed to converge even after scaling close to identity.");
+				}
+			}
+			errAntMat = errMatrix.copy();
+		} while (k++ < maxIter);
+		if (__DEBUG__) {
+			trace("logm(): Mercator iterations to converge:" + k);
+			trace("accumulator:" + accumulator);
+			doPlot("-- DEVIATION --", dataTable, --c);
+		}
+
+		/* undo the scaling: log(T) = 2^s * log(S) */
+		MatrixComplex logT = logMatrix.times(Math.pow(2, s));
+
+		/* undo the Schur similarity: log(A) = U * log(T) * U* (U unitary: adjoint()==inverse() exactly) */
+		return uMat.times(logT).times(uMat.adjoint());
 	}
 
 	/**
