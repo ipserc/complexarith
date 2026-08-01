@@ -4,8 +4,9 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
 /**
  * Regression test for the EQUATION SYSTEMS audit fixes in MatrixComplex.java (Octava sesion,
- * 1 agosto 2026). Covers, in order, Hallazgo 1 (rectangular systems).
- * Other hallazgos are appended as they land.
+ * 1 agosto 2026). Covers, in order, Hallazgo 1 (rectangular systems), Hallazgo 2
+ * (solveCramer()/solveGauss() throwing on invalid shapes). Other hallazgos are appended as
+ * they land.
  */
 public class TestEqSysAudit01 {
 
@@ -18,6 +19,31 @@ public class TestEqSysAudit01 {
 			++pass;
 		} else {
 			System.out.println("FAIL " + label + " -- " + detail);
+			++fail;
+		}
+	}
+
+	private static void expectException(String label, Runnable action) {
+		try {
+			action.run();
+			System.out.println("FAIL (no exception): " + label);
+			++fail;
+		} catch (IllegalArgumentException e) {
+			System.out.println("OK   (" + e.getMessage() + "): " + label);
+			++pass;
+		} catch (Exception e) {
+			System.out.println("FAIL (wrong exception type " + e.getClass().getSimpleName() + "): " + label);
+			++fail;
+		}
+	}
+
+	private static void expectNoException(String label, Runnable action) {
+		try {
+			action.run();
+			System.out.println("OK   (no exception): " + label);
+			++pass;
+		} catch (Exception e) {
+			System.out.println("FAIL (unexpected " + e.getClass().getSimpleName() + " " + e.getMessage() + "): " + label);
 			++fail;
 		}
 	}
@@ -51,15 +77,23 @@ public class TestEqSysAudit01 {
 			System.out.println("     square solve() result: " + solSquare.toString());
 		}
 
-		// over-determined system must be unaffected (not completed/truncated by this fix)
-		// x=1, y=2, x+y=3 (consistent, redundant 3rd equation)
+		// ---- Hallazgo 2: solveGauss()/solveCramer() now throw instead of continuing with a
+		// mismatched shape. x=1, y=2, x+y=3 (consistent, redundant 3rd equation) -- Gaussian
+		// elimination in this class doesn't drop/detect the redundant row, so it's treated as
+		// an unsupported shape, same as before this fix but now with a clear diagnosis instead
+		// of falling through into non-square inverse()/times() and returning garbage.
 		MatrixComplex over = new MatrixComplex("1,0,1;0,1,2;1,1,3");
-		int overRows = over.rows();
-		int overCols = over.cols();
-		MatrixComplex overSolve = over.solve();
-		System.out.println("     over-determined solve() result (informational, not asserted): rows=" + overSolve.rows());
-		check("over-determined system dims unchanged by this fix (sanity)",
-				overRows == 3 && overCols == 3, "rows=" + overRows + " cols=" + overCols);
+		expectException("over-determined solveGauss(ONE)", () -> over.solveGauss(com.ipserc.arith.complex.Complex.ONE));
+		expectException("over-determined solve()", () -> over.solve());
+		expectException("over-determined solveCramer()", () -> over.solveCramer());
+
+		// square, DETERMINATE system: solveCramer() must still work
+		expectNoException("square solveCramer() \"1,0,3;0,1,4\"", () -> square.solveCramer());
+
+		// under-determined system: solveCramer() has no valid generalization (Cramer's rule
+		// requires a square coefficient matrix), so it must still throw -- unlike solveGauss(),
+		// which Hallazgo 1 already taught to complete and solve it via free parameters.
+		expectException("under-determined solveCramer() \"1,1,0\"", () -> rect.solveCramer());
 
 		System.out.println();
 		System.out.println("TOTAL pass=" + pass + " fail=" + fail);

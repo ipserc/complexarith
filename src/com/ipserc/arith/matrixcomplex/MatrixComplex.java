@@ -18,8 +18,14 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.24 (2026_0801_0854)";
+	private final static String VERSION = "1.25 (2026_0801_0858)";
 	/* VERSION Release Note
+	 *
+	 * 1.25 (2026_0801_0858)
+	 * solveGauss()/solveCramer() throw IllegalArgumentException on a shape they can't handle
+	 * instead of continuing in silence: solveGauss() for an over-determined system (more
+	 * equations than unknowns -- the trace()-only guard was a no-op by default, __DEBUG__=false);
+	 * solveCramer() for any non-square coefficient shape (println without return/throw before).
 	 *
 	 * 1.24 (2026_0801_0854)
 	 * solveGauss()/nbrOfSolutions() completed a genuinely rectangular system (fewer equations
@@ -4773,7 +4779,11 @@ public class MatrixComplex {
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		if (rowLen+1 > colLen) {
-			trace(METH_NAME + ": " + "Not valid matrix: The matrix doesn't represent an equation system.");
+			// This trace()-only guard used to be a no-op in normal use (trace() is gated
+			// behind __DEBUG__, false by default) -- an over-determined system silently fell
+			// through into typeEqSys()/coefMatrix()/etc. with mismatched dimensions, ending up
+			// with garbage ([NaN+NaNi]) further down instead of a diagnosable error.
+			throw new IllegalArgumentException(HEADINFO + METH_NAME + ": Not valid matrix: The matrix doesn't represent an equation system (more equations than unknowns): " + rowLen + " rows, " + colLen + " cols.");
 		}
 
 		MatrixComplex auxMatrix, coefMatrix, indMatrix;
@@ -4927,7 +4937,7 @@ public class MatrixComplex {
 		int row;
 
 		if (rowLen+1 != colLen) {
-			System.err.println(HEADINFO + "solveCramer: " + "Not valid matrix: The matrix doesn't represent an equation system.");
+			throw new IllegalArgumentException(HEADINFO + "solveCramer: Not valid matrix: The matrix doesn't represent an equation system: " + rowLen + " rows, " + colLen + " cols.");
 		}
 
 		MatrixComplex coefMatrix = new MatrixComplex(rowLen, rowLen);
