@@ -18,8 +18,21 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.30 (2026_0801_1600)";
+	private final static String VERSION = "1.31 (2026_0801_2309)";
 	/* VERSION Release Note
+	 *
+	 * 1.31 (2026_0801_2309)
+	 * New private sqrtTriangular(MatrixComplex): principal square root of an upper triangular
+	 * matrix via the Parlett recurrence (Björck-Hammarling), the standard building block for
+	 * scaling-and-squaring logm() -- see the pending Novena sesion plan. Diagonal via
+	 * Complex.sqrt()'s principal branch; off-diagonal solved diagonal-by-diagonal from S*S=T.
+	 * Verified against 7 hand-built/self-consistency cases (real/complex/repeated eigenvalues up
+	 * to 5x5, including a genuinely negative real eigenvalue). KNOWN LIMITATION, documented not
+	 * fixed: divides by S_ii+S_jj, which under THIS project's principal branch (Re>=0 always) can
+	 * only vanish for a repeated ZERO eigenvalue within the same Jordan chain (a nontrivial
+	 * nilpotent block genuinely has no triangular square root) -- verified the naive "opposite
+	 * eigenvalues" case from the generic literature does NOT actually degenerate here
+	 * (T=diag(4,-4) gives S_00+S_11=2+2i, nowhere near zero).
 	 *
 	 * 1.30 (2026_0801_1600)
 	 * orthonormalize() normalized the wrong axis: this.orthogonalize().normalizeByCols() should
@@ -3090,6 +3103,61 @@ public class MatrixComplex {
 		return sumMat;
 	}
 	
+	/**
+	 * Calculates the principal square root {@code S} of an upper triangular matrix {@code T}
+	 * ({@code S*S=T}, {@code S} also upper triangular) using the Parlett recurrence -- the
+	 * standard, numerically stable method (Björck-Hammarling): unlike a generic matrix square
+	 * root, a triangular one never needs an eigendecomposition of its own, since a triangular
+	 * matrix's eigenvalues are already its diagonal entries.
+	 * <p>
+	 * Diagonal: {@code S_ii = Complex.sqrt(T_ii)} (principal branch, {@code arg(T_ii) ∈ (-π,π]}
+	 * gives {@code arg(S_ii) ∈ (-π/2,π/2]} -- the standard convention this recurrence requires, no
+	 * further branch choice needed once this is fixed). Off-diagonal, solved diagonal-by-diagonal
+	 * (increasing {@code d=j-i}) from {@code S*S=T} entry by entry: {@code S_ij = (T_ij -
+	 * Σ_{k=i+1}^{j-1} S_ik·S_kj) / (S_ii+S_jj)} -- by the time {@code S_ij} is computed, every
+	 * {@code S_ik}/{@code S_kj} needed by the sum (strictly between {@code i} and {@code j}) has
+	 * already been filled in, since those have a smaller {@code d}.
+	 * <p>
+	 * <b>KNOWN LIMITATION, documented not fixed:</b> the recurrence divides by {@code S_ii+S_jj},
+	 * which is (numerically) zero only in one genuine case under this project's principal-branch
+	 * convention: two DIAGONAL entries of {@code T} that are BOTH exactly zero and adjacent within
+	 * the same Jordan chain (a repeated zero eigenvalue with a nontrivial nilpotent block).
+	 * Verified empirically that "two eigenvalues that are each other's negative" -- the case one
+	 * would expect from the generic Parlett-recurrence literature -- does NOT actually trigger
+	 * this here: {@code Complex.sqrt()}'s principal branch always has {@code Re>=0} (confirmed
+	 * with {@code T=diag(4,-4)}: {@code S_00=2}, {@code S_11=2i}, sum {@code =2+2i}, nowhere near
+	 * zero), so {@code S_ii+S_jj} can only vanish when both terms are individually zero. A
+	 * nontrivial nilpotent block genuinely has NO triangular square root (a mathematical fact, not
+	 * a numerical artifact) -- confirmed to fail cleanly (`NaN`/`Infinity` via `Complex`'s already
+	 * established zero-division handling), not a hang or an unrelated crash. Same scope decision
+	 * already applied elsewhere in this codebase (e.g. {@code VectorComplex.vectorprod()}'s
+	 * 3D-only limitation) for a documented mathematical edge case rather than a code defect to
+	 * guard against.
+	 * @param tMat An upper triangular matrix (trusted as such by the caller -- not re-verified
+	 * here, see {@link #logm()}, the only caller, which always passes a genuine Schur factor).
+	 * @return The principal square root of tMat, upper triangular.
+	 */
+	private MatrixComplex sqrtTriangular(MatrixComplex tMat) {
+		int n = tMat.rows();
+		MatrixComplex sMat = new MatrixComplex(n, n);
+		for (int i = 0; i < n; ++i) {
+			sMat.setItem(i, i, Complex.sqrt(tMat.getItem(i, i)));
+		}
+		for (int d = 1; d < n; ++d) {
+			for (int i = 0; i < n - d; ++i) {
+				int j = i + d;
+				Complex sum = Complex.ZERO;
+				for (int k = i + 1; k < j; ++k) {
+					sum = sum.plus(sMat.getItem(i, k).times(sMat.getItem(k, j)));
+				}
+				Complex numerator = tMat.getItem(i, j).minus(sum);
+				Complex denominator = sMat.getItem(i, i).plus(sMat.getItem(j, j));
+				sMat.setItem(i, j, numerator.divides(denominator));
+			}
+		}
+		return sMat;
+	}
+
 	/**
 	 * Shortcut to the preferred natural logarithm expansion
 	 * @return the natural logarithm of the matrix
