@@ -21,8 +21,17 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.5 (2024_0114_0200)";
+	private final static String VERSION = "1.6 (2026_0801_1018)";
 	/* VERSION Release Note
+	 * 1.6 (2026_0801_1018)
+	 * 6 System.exit()s -> IllegalArgumentException: evalHorner()/evalFact()/evalNorm()/
+	 * solveWeierstrass()/solve2d() "not valid matrix" shape guards, and the "Arithmetic Overflow"
+	 * (NaN in the Durand-Kerner iteration) guard inside solveWeierstrass() -- the same one already
+	 * flagged in earlier sessions as "MatrixComplex.rank2() can kill the whole JVM via
+	 * Polynom.solve()". No caller checked for the specific exit code (confirmed with grep across
+	 * TestRank01-05.java), so this only lets callers recover via try/catch instead of the process
+	 * dying outright.
+	 *
 	 * 1.5 (2024_0114_0200)
 	 * public Complex eval(Complex value) 
 	 * public Complex eval(double value)
@@ -503,8 +512,7 @@ public class Polynom extends MatrixComplex {
 		int colLen = this.cols();
 		int rowLen = this.rows();
 		if (rowLen != 1) {
-			System.err.println("Not valid matrix: The matrix doesn't represent polynomial.");
-			System.exit(1);
+			throw new IllegalArgumentException(HEADINFO + "evalHorner: Not valid matrix, doesn't represent a polynomial: " + rowLen + " rows.");
 		}
 
 		Complex interValue = this.getItem(0,colLen-1).copy();
@@ -528,8 +536,7 @@ public class Polynom extends MatrixComplex {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		if (rowLen != 1) {
-			System.err.println("Not valid matrix: The matrix doesn't represent polynomial.");
-			System.exit(1);
+			throw new IllegalArgumentException(HEADINFO + "evalFact: Not valid matrix, doesn't represent a polynomial: " + rowLen + " rows.");
 		}
 
 		Complex cRes = this.complexMatrix[0][0].copy();
@@ -556,8 +563,7 @@ public class Polynom extends MatrixComplex {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		if (rowLen != 1) {
-			System.err.println("Not valid matrix: The matrix doesn't represent polynomial.");
-			System.exit(1);
+			throw new IllegalArgumentException(HEADINFO + "evalNorm: Not valid matrix, doesn't represent a polynomial: " + rowLen + " rows.");
 		}
 
 		Complex interValue = this.polyNorm[0][colLen-1].copy();
@@ -615,8 +621,7 @@ public class Polynom extends MatrixComplex {
 		this.normalizePol();
 
 		if (rowLen != 1 || colLen < 2) {
-			System.err.println("Not valid matrix: The matrix doesn't represent a Nth degree equation.");
-			System.exit(1);
+			throw new IllegalArgumentException(HEADINFO + "solveWeierstrass: Not valid matrix, doesn't represent a Nth degree equation: " + rowLen + " rows, " + colLen + " cols.");
 		}
 
 		if ( colLen == 2) {
@@ -649,8 +654,14 @@ public class Polynom extends MatrixComplex {
 
 				cre = cCoef.complexMatrix[0][i].cre();
 				if (cre.isNaN()) {
-					System.err.println("Arithmetic Overflow");
-					System.exit(10);
+					// Was System.exit(10) -- silently killed the whole JVM on arithmetic
+					// overflow during Durand-Kerner iteration (already flagged as a known issue
+					// in earlier sessions: MatrixComplex.rank2() -> charactPoly().solve() ->
+					// here). No caller catches or checks for this specific exit code (confirmed
+					// with grep across TestRank01-05.java), so converting it to a catchable
+					// exception doesn't change any test's pass/fail outcome, only lets the
+					// caller recover instead of the whole process dying.
+					throw new IllegalArgumentException(HEADINFO + "solveWeierstrass: Arithmetic Overflow (NaN) at root " + i + ", iteration " + iter + ".");
 				}
 				//finished &= (cCoef.complexMatrix[1][i].minus(cCoef.complexMatrix[0][i])).mod() < precision;
 				finished &= (cCoef.complexMatrix[1][i].minus(cCoef.complexMatrix[0][i])).equals(Complex.ZERO);
@@ -735,8 +746,7 @@ public class Polynom extends MatrixComplex {
 		int colLen = this.cols();
 
 		if (rowLen != 1 ||  colLen != 3) {
-			System.err.println("Not valid matrix: The matrix doesn't represent a 2nd degree equation.");
-			System.exit(1);
+			throw new IllegalArgumentException(HEADINFO + "solve2d: Not valid matrix, doesn't represent a 2nd degree equation: " + rowLen + " rows, " + colLen + " cols.");
 		}
 
 		MatrixComplex cSol = new MatrixComplex(colLen-1, 1);
