@@ -18,8 +18,24 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.29 (2026_0801_0932)";
+	private final static String VERSION = "1.30 (2026_0801_1600)";
 	/* VERSION Release Note
+	 *
+	 * 1.30 (2026_0801_1600)
+	 * orthonormalize() normalized the wrong axis: this.orthogonalize().normalizeByCols() should
+	 * have been normalizeByRows(). orthogonalize() (Gram-Schmidt via gramSchmidt()) leaves the
+	 * orthogonal basis vectors in the ROWS of the result (confirmed: gramSchmidt() builds each
+	 * vector as a column of an internal matrix, then returns it transposed), so normalizing by
+	 * columns left the actual basis vectors untouched -- confirmed with A=[[4,1],[2,3]]: before
+	 * the fix, U*.U-I had error ~0.6 (not unitary at all); after, ~2.2e-16 (machine precision).
+	 * Only 2 callers in the whole project: Schurfactor.java (the Schur decomposition used to
+	 * build a matrix U1 to complete an eigenvector to an orthonormal basis -- was silently
+	 * producing a non-unitary U1, so every downstream Schur factorization was wrong) and
+	 * TestGram06.java (never checked unitarity, which is why this went undetected). Verified
+	 * with a 9-matrix battery covering diagonal, well-conditioned non-diagonal (real/complex),
+	 * and the defective Jordan case that matters for the pending logm work (A=P*J*P^-1,
+	 * J=[[50,1],[0,50]], P not orthogonal, not already triangular): Schurfactor now factorizes
+	 * it correctly (U unitary to 3e-16, reconstruction exact to 2e-14).
 	 *
 	 * 1.29 (2026_0801_0932)
 	 * solveGauss()'s INCONSISTENT branch now throws IllegalArgumentException instead of
@@ -5908,7 +5924,7 @@ public class MatrixComplex {
 	 * @return The orthonormal Matrix
 	 */
 	public MatrixComplex orthonormalize() {
-		return this.orthogonalize().normalizeByCols();
+		return this.orthogonalize().normalizeByRows();
 	}
 	
 	/**
