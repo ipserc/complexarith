@@ -8,9 +8,31 @@ public class Line {
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.0 (2021_0206_0100)";
+	private final static String VERSION = "1.1 (2026_0801_1530)";
+	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.1 (2026_0801_1530)
+	 * distance(Line)/intersection(Line): parallelism was detected by comparing an acos-derived
+	 * angle (VectorComplex.angle(), Math.acos(dotprod/normA/normB)) to exactly 0. For genuinely
+	 * parallel directions, rounding in the two independent norm computations can push the ratio
+	 * fed to acos() 1 ULP above 1.0 (e.g. sqrt(13)*sqrt(52) -> 1.0000000000000002), making acos()
+	 * return NaN -- and NaN != 0 is true in IEEE754, silently misrouting the call into the
+	 * "not parallel" branch. Both methods now detect parallelism via the norm of the direction
+	 * vectors' cross product, scaled by their magnitudes (PARALLEL_TOLERANCE), which never calls
+	 * acos() and is immune to this failure mode.
+	 * distance(Line) also had an incomplete "parallel" branch: it returned 0 unconditionally
+	 * instead of the actual point-to-line distance (distance(Line) is only 0 when the lines
+	 * coincide) -- now delegates to the existing, correct distance(Point).
+	 * KNOWN LIMITATION, left unresolved by explicit user decision: the "not parallel" branch of
+	 * distance(Line) computes the minimum distance via the scalar triple product (mixedprod),
+	 * which is only mathematically valid in 3 dimensions. A dim==2 special case is added (two
+	 * non-parallel lines in a plane always intersect, distance is trivially 0), but dimension>3
+	 * still uses the 3D formula for lack of a general implementation (orthogonal projection onto
+	 * the orthogonal complement of both directions) -- may throw a dimension-mismatch exception
+	 * from crossprod()/dotprod(), or coincidentally work only where dimensions happen to align
+	 * (e.g. dim==7). See project continuity doc (Claude/ComplexArithRev.md) for context.
+	 *
 	 * 1.0 (2021_0206_0100)
 	 */
 
@@ -307,12 +329,16 @@ public class Line {
 	 * @return The minimum distance 
 	 */
 	public double distance(Line line) {
-		if (this.direction.angle(line.direction) != 0) { 
-			double num = this.point.minus(line.point).mixedprod(this.direction, line.direction).abs();
-			double den = this.direction.crossprod(line.direction).norm();
-			return num/den;
+		double crossNorm = this.direction.crossprod(line.direction).norm();
+		boolean parallel = crossNorm <= PARALLEL_TOLERANCE * this.direction.norm() * line.direction.norm();
+		if (parallel) {
+			return this.distance(line.point());
 		}
-		return 0;
+		if (this.direction.dim() == 2 && line.direction.dim() == 2) {
+			return 0.0;
+		}
+		double num = this.point.minus(line.point).mixedprod(this.direction, line.direction).abs();
+		return num/crossNorm;
 	}
 
 	/**
@@ -322,7 +348,9 @@ public class Line {
 	 */
 	public Point intersection(Line line) {
 		Point intersection = new Point(this.direction.dim()-1);
-		if (this.direction.angle(line.direction) != 0) {
+		double crossNorm = this.direction.crossprod(line.direction).norm();
+		boolean parallel = crossNorm <= PARALLEL_TOLERANCE * this.direction.norm() * line.direction.norm();
+		if (!parallel) {
 			Complex t1 = (this.point.complexMatrix[0][1].minus(line.point.complexMatrix[0][1]).times(line.direction.complexMatrix[0][0]));
 			t1 = t1.minus(this.point.complexMatrix[0][0].minus(line.point.complexMatrix[0][0]).times(line.direction.complexMatrix[0][1]));
 			t1 = t1.divides((this.direction.complexMatrix[0][0].times(line.direction.complexMatrix[0][1])).

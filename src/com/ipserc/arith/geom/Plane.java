@@ -16,8 +16,22 @@ public class Plane {
 	private Point point;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
-	private final static String VERSION = "1.1 (2026_0801_1023)";
+	private final static String VERSION = "1.2 (2026_0801_1530)";
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0801_1530)
+	 * intersection(Plane): the parallelism guard was inverted -- Math.cos(angle)!=0.0 detects
+	 * perpendicular normals, not parallel ones. Fixed to Math.abs(Math.cos(angle))!=1.0, the same
+	 * pattern already used correctly in distance(Line)/distance(Plane). Before the fix, two
+	 * parallel-and-distinct planes reached solveGauss() with a genuinely inconsistent system,
+	 * which used to return a silent NaN marker and now throws IllegalArgumentException (session
+	 * of 2026-07-31, MatrixComplex audit) -- exposed a real, unrelated preexisting bug instead of
+	 * masking it. Also removes an ungated debug println left in the same method.
+	 * The "planes are parallel" branch had the same class of dead-sentinel bug already fixed in
+	 * distance(Point) above: it built a placeholder new Line(0) to signal "no intersection",
+	 * which now throws (Not valid dimension: 0) since the VectorComplex(int) audit fix of the
+	 * previous session -- confusing, unrelated to the real cause. Now throws
+	 * IllegalArgumentException directly with a clear message, same pattern as distance(Point).
 	 *
 	 * 1.1 (2026_0801_1023)
 	 * distance(Point): the dimension-mismatch guard used to reset internal state and call
@@ -376,7 +390,7 @@ public class Plane {
 	 */
 	public Line intersection(Plane plane) {
 		double angle = this.angle(plane);
-		if (Math.cos(angle) != 0.0) {
+		if (Math.abs(Math.cos(angle)) != 1.0) {
 			VectorComplex direction = new VectorComplex();
 			direction = this.normal().crossprod(plane.normal());
 			MatrixComplex aMatrix = new MatrixComplex(this.normal.dim(),this.normal.dim()+1);
@@ -389,7 +403,6 @@ public class Plane {
 				aMatrix.complexMatrix[1][i] = plane.normal.complexMatrix[0][i];
 			}
 			aMatrix.complexMatrix[1][i] = plane.normal.dotprod(plane.toVector(plane.point));
-				aMatrix.println("Sistema ecuaciones");
 			MatrixComplex solutions = aMatrix.solve();
 			
 			Point point = new Point();
@@ -398,8 +411,7 @@ public class Plane {
 			return line;
 		}
 		else {
-			Line line = new Line(0);
-			return line;
+			throw new IllegalArgumentException(HEADINFO + "intersection: Planes are parallel, no intersection line exists.");
 		}
 	}
 	

@@ -44,8 +44,13 @@ public class TestPlane01 {
 		System.out.printf("Angulo Plano A al Plano B:%f\n", Math.toDegrees(planeA.angle(planeB)));
 		System.out.printf("Angulo Plano A al Plano B:%s\n", Complex.rad_DMS(planeA.angle(planeB)));
 		System.out.printf("Distancia Plano A al Plano B:%f\n", planeA.distance(planeB));
-		line = planeA.intersection(planeB);
-		line.println("line intersection");
+		try {
+			line = planeA.intersection(planeB);
+			line.println("line intersection");
+		}
+		catch (IllegalArgumentException excp) {
+			System.out.println("line intersection: " + excp.getMessage());
+		}
 		line = new Line(planeB.normal(), planeB.point());
 		line.println("Plane B line");
 		planeA.intersection(line).println("Interseccion Recta B al plano A:");
