@@ -18,8 +18,14 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.25 (2026_0801_0858)";
+	private final static String VERSION = "1.26 (2026_0801_0906)";
 	/* VERSION Release Note
+	 *
+	 * 1.26 (2026_0801_0906)
+	 * Javadoc only, no behavior change: documents why solveGauss()'s INCONSISTENT branch keeps
+	 * returning a NaN/Infinity marker instead of throwing -- Syseq.solveq() genuinely depends
+	 * on it (calls solve() before checking typeEqSys()). SCOPE DECISION, deferred at the
+	 * user's explicit request; a real fix would also need to touch Syseq.java.
 	 *
 	 * 1.25 (2026_0801_0858)
 	 * solveGauss()/solveCramer() throw IllegalArgumentException on a shape they can't handle
@@ -4800,7 +4806,24 @@ public class MatrixComplex {
 		// *************** INCONSISTENT ***************
 		if (typeEqSys == INCONSISTENT) {
 			trace(METH_NAME + ": " + "This system is INCONSISTENT. It hasn't got any solution!!!!!!!!!!");
-			// This is required to mark the Inconsistent solution for later operations 
+			// SCOPE DECISION (Octava sesion, auditoria EQUATION SYSTEMS, Hallazgo 3 -- documented,
+			// not fixed): this NaN/Infinity marker looks like the same "silent wrong result"
+			// antipattern already fixed elsewhere in this session (e.g. logTaylor()/sinTaylor()
+			// in the Taylor-series audit), but it is NOT the same situation -- it's an internal
+			// contract Syseq.java actually depends on, verified by tracing the real call chain:
+			// Syseq.solveq() calls this.completeEqSys().solve(lambda) UNCONDITIONALLY, BEFORE it
+			// ever checks typeEqSys(); if this branch threw instead, that throw would fire before
+			// Syseq gets the chance to classify the system and report "no solution" gracefully via
+			// printSol() (which DOES check typeEqSys()==INCONSISTENT before touching the result --
+			// so the marker is never actually printed there). Making this throw would break
+			// Syseq.solveq()/printSol() for every genuinely inconsistent system, not just callers
+			// who forget to check typeEqSys() first.
+			// Syseq.solution(n), on the other hand, returns this exact marker unchanged for the
+			// INCONSISTENT case (sol = partsol) -- a caller of solution() who does NOT check
+			// typeEqSys() first still gets NaN/Infinity silently. That residual risk is real, but
+			// fixing it belongs in Syseq.java (teach it to check typeEqSys() before delegating to
+			// solve(), so this branch could safely throw for any other direct caller), not here --
+			// deferred by explicit user decision, not applied in this pass.
 			return solMatrix.divides(0).transpose();
 		}
 
