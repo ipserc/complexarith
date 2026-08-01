@@ -18,8 +18,15 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.27 (2026_0801_0912)";
+	private final static String VERSION = "1.28 (2026_0801_0915)";
 	/* VERSION Release Note
+	 *
+	 * 1.28 (2026_0801_0915)
+	 * removeDuplicateRows() had an ungated System.out.println() logging every duplicate row it
+	 * dropped, unconditionally, in normal (non-debug) use. Switched to trace() (gated behind
+	 * the class's __DEBUG__ flag, false by default), same convention already used everywhere
+	 * else in this file. With this commit, the 5 EQUATION SYSTEMS findings of the Octava
+	 * sesion are closed (Hallazgo 3 documented, not code-changed; the other 4 fixed).
 	 *
 	 * 1.27 (2026_0801_0912)
 	 * typeEqSys() misclassified a homogeneous system of full column rank as INDETERMINATE
@@ -4634,7 +4641,7 @@ public class MatrixComplex {
 					}
 				}
 				if (isDuplicate) {
-					System.out.println("------- duplicate row:" + row +" - rrow:" + rrow);
+					trace("removeDuplicateRows: duplicate row:" + row + " - rrow:" + rrow);
 					break;
 				}
 			}
