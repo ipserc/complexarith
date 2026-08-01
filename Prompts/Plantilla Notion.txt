@@ -1,0 +1,3 @@
+ChatGPT
+
+Crear una plantilla de Notion para organizar tus documentos de ClaudeDiseñar una estructura de carpetas eficiente para tus códigos en tu ordenadorVer cómo estructurar un prompt para que Claude actualice un artefacto sin crear uno nuevo

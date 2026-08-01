@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="javadoc">
+    <target name="javadoc">
+        <javadoc access="private" author="true" classpath="classes" destdir="doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="com.ipserc.arith.complex,com.ipserc.arith.geom,com.ipserc.arith.matrixcomplex,com.ipserc.arith.combinatoric,com.ipserc.arith.polynom,com.ipserc.arith.syseq,com.ipserc.arith.vector" source="1.8" sourcefiles="src/com/ipserc/arith/signal/Fourier.java,src/com/ipserc/arith/factorization/QRfactor.java,src/com/ipserc/arith/factorization/LUfactor.java,src/com/ipserc/arith/factorization/Diagfactor.java,src/com/ipserc/arith/signal/Sigfunc.java,src/com/ipserc/arith/factorization/SVDfactor.java" sourcepath="src" splitindex="true" use="true" version="true"/>
+    </target>
+</project>

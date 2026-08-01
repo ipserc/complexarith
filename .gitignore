@@ -38,3 +38,14 @@ data/
 doc/
 Cartas/
 Results/
+
+# Large test/debug output dumps (not source)
+Matrices Logaritmizables.txt
+TestTaylorLogExp03a.txt
+
+# Unrelated embedded third-party project
+CombinationCalculate-master/
+
+# IDE project file / old archive snapshot
+complexarith.gpj
+fourier_2020_1012_0350.7z

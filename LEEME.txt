@@ -1,0 +1,27 @@
+complexarith es un intento de modelar la aritmética de campo complejo en Java para poder ser utilizado en desarrollos matemáticos.
+El paquete com.ipserc.arith.complex contiene la clase Complex.
+Complex.java es la clase que incorpora los métodos y operaciones para poder trabajar on complejos. La clase permite la introducción de números complejos de forma natural en formato texto, así el constructor de la calse admite la instanciación de numeros complejos de la forma "3-2i"
+Complex.java incorpra todas las operaciones aritméticas con complejos, así como numerosas funciones.
+
+El paquete com.ipserc.arith.matrixcomplex contiene la clase MatrixComplex.
+MatrixComplex extiende los complejos para se incorporados en matrices. Proporciona métodos para crear matrices en campo complejo y sus operaciones.
+MatrixComplex calcula determnantes, resuelve sistemas de ecuaciones y otogonaliza mediante Gramm-Schmidt.
+MatrixComplex calcula el polinomio característico de la matriz, y sus autovalores y autovectores.
+
+El paquete com.ipserc.arith.factorization contiene las clases
+	Diagfactor.java
+	LUfactor.java
+	QRfactor.java
+	SVDfactor.java
+Diagfactor.java Factoriza una matriz de la forma A=P·D·P⁻¹ donde D es una matriz diagonal.
+LUfactor.java Facturiza una matriz de la forma A = L U, donde L es una matriz triangular inferior y U es una matriz triangular superior.
+QRfactor.java Factoriza una matriz de la forma A = Q R donde Q es una matriz ortogonal m por m, y R es una matriz triangular superior m por n.
+SVDfactor.java Factoriza una matriz de la forma A = U Σ V T, donde Σ es una matriz diagonal mxn, y U y V son matrices ortogonales mxm y nxn respectivamente.
+
+El paquete com.ipserc.arith.polynom contiene la clase Polynom.
+Polynom.java proporciona los métodos para operar con polinomios y calcular sus raices en campo complejo.
+Genera polinomios de Hermite, Legendre, Lagerre y Chebyshev.
+Incorpora métodos para presentar de forma gráfica los polinomios. Utiliza la librería JavaPlot de Panayotis (http://javaplot.panayotis.com/)
+
+El paquete com.ipserc.arith.vectorcomplex contiene la clase VectorComplex.
+VectorComplex.java introduce los métodos necesarios para operar con vectores en campo complejo.

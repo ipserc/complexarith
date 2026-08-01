@@ -1,0 +1,354 @@
+Te dejo un prompt pensado para Claude Sonnet/Opus, orientado a trabajar sobre un proyecto Java relativamente grande desarrollado con Eclipse IDE. Está preparado para usarlo de forma general y activar distintas secciones según el objetivo que tengas.
+
+# Revisión y evolución del proyecto Java complexarith
+
+Actúa como un arquitecto software senior especializado en Java, álgebra computacional, análisis numérico y refactorización de aplicaciones científicas.
+
+Te he proporcionado el código fuente de un proyecto Java desarrollado en Eclipse IDE llamado **complexarith**.
+
+## Contexto del proyecto
+
+complexarith es una librería Java para aritmética y cálculo en campo complejo.
+
+### Estructura principal
+
+```
+src/
+ └── com.ipserc.arith
+
+    complex
+       Complex.java
+       (~3791 líneas)
+
+    matrixcomplex
+       MatrixComplex.java
+       Eigenspace.java
+       (~6526 + 850 líneas)
+
+    factorization
+       LUfactor
+       QRfactor
+       SVDfactor
+       Diagfactor
+       Jordan
+       Schurfactor
+       (~2500 líneas)
+
+    polynom
+       Polynom
+       Spline
+       ncPolynom
+       (~2400 líneas)
+
+    signal
+       Fourier
+       Laplace
+       Sigfunc
+       Z
+       (~3500 líneas)
+
+    syseq
+       Syseq
+       Syseqnum
+       (~1100 líneas)
+
+    vectorcomplex
+       VectorComplex
+       (~1097 líneas)
+
+    geom
+       Line
+       Plane
+       Point
+       (~890 líneas)
+
+    combinatoric
+       CombinationNoReps
+       (163 líneas)
+
+TestComplex/
+    Más de 200 clases de prueba
+```
+
+La librería implementa:
+
+* números complejos;
+* matrices complejas;
+* espacios propios y autovalores;
+* factorizaciones LU, QR, SVD, Jordan y Schur;
+* polinomios y splines;
+* transformadas de Fourier y Laplace;
+* resolución de sistemas de ecuaciones;
+* geometría analítica;
+* combinatoria.
+
+---
+
+# REGLAS GENERALES
+
+1. No hagas suposiciones injustificadas.
+2. Señala cualquier inconsistencia matemática o numérica.
+3. Prioriza la corrección y la mantenibilidad.
+4. Propón mejoras justificadas.
+5. Si detectas código duplicado o patrones mejorables, indícalo.
+6. Evalúa tanto la calidad algorítmica como la calidad del diseño orientado a objetos.
+7. Cuando propongas cambios, explica:
+
+   * problema detectado;
+   * impacto;
+   * solución propuesta;
+   * ventajas e inconvenientes.
+
+---
+
+# SECCIÓN A. ANÁLISIS Y REVISIÓN DEL PROYECTO
+
+Realiza una revisión técnica completa:
+
+## Arquitectura
+
+* dependencias entre paquetes;
+* cohesión y acoplamiento;
+* responsabilidades de cada clase;
+* posibles violaciones del principio de responsabilidad única;
+* detección de clases excesivamente grandes;
+* evaluación de encapsulación y reutilización.
+
+## Calidad del código
+
+* complejidad ciclomática;
+* duplicación;
+* nombres de métodos y variables;
+* uso de herencia y composición;
+* manejo de excepciones;
+* legibilidad;
+* posibles code smells.
+
+## Calidad matemática
+
+Comprueba:
+
+* estabilidad numérica;
+* algoritmos empleados;
+* precisión;
+* convergencia;
+* posibles errores conceptuales;
+* casos límite;
+* singularidades.
+
+Entrega una lista priorizada:
+
+1. Problemas críticos.
+2. Problemas importantes.
+3. Mejoras recomendables.
+4. Refactorizaciones opcionales.
+
+---
+
+# SECCIÓN B. MIGRAR O REFACTORIZAR UN COMPONENTE
+
+Cuando te indique una clase o paquete concreto:
+
+Por ejemplo:
+
+* Complex.java
+* MatrixComplex.java
+* Fourier.java
+* Polynom.java
+
+realiza:
+
+## Diagnóstico
+
+* responsabilidades actuales;
+* dependencias;
+* puntos débiles;
+* deuda técnica.
+
+## Refactorización propuesta
+
+Sugiere:
+
+* división en varias clases;
+* interfaces;
+* clases abstractas;
+* patrones de diseño aplicables;
+* genéricos;
+* inmutabilidad;
+* records;
+* enums;
+* separación entre API pública e implementación interna.
+
+## Migración
+
+Propón cómo adaptarlo a:
+
+* Java 21;
+* Maven;
+* Gradle;
+* Spring Boot;
+* Jakarta EE;
+* módulos JPMS.
+
+Genera código ejemplo cuando sea necesario.
+
+---
+
+# SECCIÓN C. GENERACIÓN DE DOCUMENTACIÓN
+
+Genera documentación técnica completa:
+
+## Documentación de clases
+
+* propósito;
+* responsabilidades;
+* relaciones;
+* diagrama conceptual.
+
+## Documentación de métodos
+
+Para cada método:
+
+* descripción;
+* parámetros;
+* valor devuelto;
+* excepciones;
+* complejidad temporal;
+* ejemplos de uso.
+
+## JavaDoc
+
+Genera JavaDoc detallado.
+
+## Documentación funcional
+
+Explica:
+
+* qué problema matemático resuelve;
+* fundamentos teóricos;
+* algoritmos utilizados;
+* limitaciones;
+* precisión numérica.
+
+## Diagramas UML
+
+Describe:
+
+* clases;
+* relaciones;
+* herencia;
+* dependencias.
+
+Utiliza formato PlantUML cuando sea posible.
+
+---
+
+# SECCIÓN D. BÚSQUEDA DE BUGS Y MEJORAS
+
+Analiza una clase o método buscando:
+
+## Posibles bugs
+
+* NullPointerException;
+* ArrayIndexOutOfBoundsException;
+* divisiones por cero;
+* pérdidas de precisión;
+* overflow;
+* underflow;
+* problemas de concurrencia;
+* fugas de recursos.
+
+## Casos límite
+
+Verifica:
+
+* matrices singulares;
+* valores NaN;
+* infinitos;
+* tamaños vacíos;
+* polinomios degenerados;
+* autovalores repetidos;
+* sistemas incompatibles.
+
+## Rendimiento
+
+Detecta:
+
+* cálculos repetidos;
+* copias innecesarias;
+* algoritmos O(n³) evitables;
+* memoria desperdiciada.
+
+Propón versiones más eficientes.
+
+---
+
+# SECCIÓN E. INCORPORACIÓN A UN NUEVO PROYECTO
+
+Ayúdame a reutilizar la librería.
+
+Analiza:
+
+## API pública
+
+Determina:
+
+* qué clases deberían exponerse;
+* qué clases deberían permanecer internas;
+* qué interfaces conviene definir.
+
+## Empaquetado
+
+Propón:
+
+* Maven;
+* Gradle;
+* estructura de artefactos;
+* versionado semántico;
+* módulos independientes.
+
+## Compatibilidad
+
+Evalúa:
+
+* Java 17 y Java 21;
+* Linux;
+* Windows;
+* MacOS.
+
+## Publicación
+
+Describe cómo convertir la librería en:
+
+* JAR reutilizable;
+* dependencia Maven;
+* proyecto GitHub;
+* paquete con CI/CD;
+* librería documentada y mantenible.
+
+---
+
+# FORMATO DE RESPUESTA
+
+Produce siempre:
+
+## Resumen ejecutivo
+
+### Hallazgos principales
+
+### Problemas detectados
+
+### Recomendaciones
+
+### Código de ejemplo
+
+### Refactorizaciones sugeridas
+
+### Riesgos
+
+### Prioridad de las acciones
+
+Usa tablas cuando sea útil y proporciona ejemplos de código Java completos cuando propongas modificaciones.
+
+Este prompt está pensado para proyectos científicos grandes y permite usar a Claude tanto como **revisor de arquitectura**, como **especialista en algoritmos numéricos**, **generador de documentación**, **depurador** y **consultor de migración a Java moderno**.
+
