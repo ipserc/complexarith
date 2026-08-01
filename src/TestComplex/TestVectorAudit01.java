@@ -6,8 +6,8 @@ import com.ipserc.arith.vectorcomplex.VectorComplex;
 
 /**
  * Regression test for the VectorComplex.java audit fixes (Octava sesion, 1 agosto 2026).
- * Covers, in order: Fase A (aliasing fix), Fase B (System.exit/silent-null -> IllegalArgumentException).
- * Fase C (division by zero) and Fase D (vectorprod doc only) are appended as they land.
+ * Covers, in order: Fase A (aliasing fix), Fase B (System.exit/silent-null -> IllegalArgumentException),
+ * Fase C (division by zero -> IllegalArgumentException). Fase D (vectorprod doc only, no test needed).
  */
 public class TestVectorAudit01 {
 
@@ -83,6 +83,26 @@ public class TestVectorAudit01 {
 		expectException("v3.crossprod(v4) (size mismatch)", () -> v3.crossprod(v4));
 		expectNoException("v3.innerprod(v3)", () -> v3.innerprod(v3));
 		expectNoException("v3.crossprod(v3)", () -> v3.crossprod(v3));
+
+		// ---- Fase C: division by zero used to give a silent NaN/Infinity ----
+		VectorComplex nullVector = new VectorComplex(3);   // initialized to zero, per the class Javadoc
+		VectorComplex nonNull = new VectorComplex("1,0,0");
+
+		expectException("nullVector.normalize()", () -> nullVector.normalize());
+		expectNoException("nonNull.normalize()", () -> nonNull.normalize());
+
+		expectException("nonNull.projectionScalar(nullVector)", () -> nonNull.projectionScalar(nullVector));
+		expectException("nonNull.projection(nullVector)", () -> nonNull.projection(nullVector));
+		expectNoException("nonNull.projectionScalar(nonNull)", () -> nonNull.projectionScalar(nonNull));
+		expectNoException("nonNull.projection(nonNull)", () -> nonNull.projection(nonNull));
+
+		expectException("nullVector.angleps(nonNull)", () -> nullVector.angleps(nonNull));
+		expectException("nonNull.angleps(nullVector)", () -> nonNull.angleps(nullVector));
+		expectNoException("nonNull.angleps(nonNull)", () -> nonNull.angleps(nonNull));
+
+		expectException("nullVector.angle(nonNull)", () -> nullVector.angle(nonNull));
+		expectException("nonNull.angle(nullVector)", () -> nonNull.angle(nullVector));
+		expectNoException("nonNull.angle(nonNull)", () -> nonNull.angle(nonNull));
 
 		System.out.println();
 		System.out.println("TOTAL pass=" + pass + " fail=" + fail);

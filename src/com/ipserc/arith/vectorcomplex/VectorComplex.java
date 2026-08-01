@@ -8,8 +8,13 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0801_0835)";
+	private final static String VERSION = "1.7 (2026_0801_0838)";
 	/* VERSION Release Note
+	 * 1.7 (2026_0801_0838)
+	 * normalize()/projectionScalar()/projection()/angleps()/angle() divided by norm()/mod()
+	 * without checking for a null vector, giving a silent NaN. Now throw
+	 * IllegalArgumentException with an explicit "undefined for a null vector" message.
+	 *
 	 * 1.6 (2026_0801_0835)
 	 * System.exit(1)/silent-null/warn-and-continue -> IllegalArgumentException, same pattern
 	 * already applied to MatrixComplex.java: plus()/minus() (were System.exit(1)); constructors
@@ -273,7 +278,11 @@ public class VectorComplex extends MatrixComplex {
 	 * 
 	 */
 	public VectorComplex normalize() {
-		return (this.div(this.norm())).clone();
+		double norm = this.norm();
+		if (norm == 0) {
+			throw new IllegalArgumentException(HEADINFO + "normalize: a null vector has no defined direction");
+		}
+		return (this.div(norm)).clone();
 	}
 	
 	/**
@@ -966,8 +975,11 @@ public class VectorComplex extends MatrixComplex {
 	 * @return the scalar projection.
 	 */
 	public Complex projectionScalar(VectorComplex vector) {
-		VectorComplex vectorU = new VectorComplex();
-		vectorU = vector.div(vector.mod());
+		double mod = vector.mod();
+		if (mod == 0) {
+			throw new IllegalArgumentException(HEADINFO + "projectionScalar: cannot project onto a null vector");
+		}
+		VectorComplex vectorU = vector.div(mod);
 		return this.dotprod(vectorU);
 	}
 
@@ -977,8 +989,11 @@ public class VectorComplex extends MatrixComplex {
 	 * @return the vector projection.
 	 */
 	public VectorComplex projection(VectorComplex vector) {
-		VectorComplex vectorU = new VectorComplex();
-		vectorU = vector.div(vector.mod());
+		double mod = vector.mod();
+		if (mod == 0) {
+			throw new IllegalArgumentException(HEADINFO + "projection: cannot project onto a null vector");
+		}
+		VectorComplex vectorU = vector.div(mod);
 		return vectorU.prod(this.projectionScalar(vector));
 	}
 
@@ -988,8 +1003,11 @@ public class VectorComplex extends MatrixComplex {
 	 * @return the angle between the vector and the vector component in radians.
 	 */
 	public double angleps(VectorComplex vector) {
-		double ps = this.projectionScalar(vector).mod();
 		double mod = this.mod();
+		if (mod == 0) {
+			throw new IllegalArgumentException(HEADINFO + "angleps: this is a null vector, angle is undefined");
+		}
+		double ps = this.projectionScalar(vector).mod(); // guards vector==0 internally
 		return Math.acos(ps/mod);
 	}
 
@@ -999,7 +1017,12 @@ public class VectorComplex extends MatrixComplex {
 	 * @return the angle between the vector and the vector component in radians.
 	 */
 	public double angle(VectorComplex vector) {
-		return Math.acos(this.dotprod(vector).mod()/this.norm()/vector.norm());
+		double modThis = this.norm();
+		double modVector = vector.norm();
+		if (modThis == 0 || modVector == 0) {
+			throw new IllegalArgumentException(HEADINFO + "angle: undefined between a null vector and another vector");
+		}
+		return Math.acos(this.dotprod(vector).mod()/modThis/modVector);
 	}
 
 	/**
