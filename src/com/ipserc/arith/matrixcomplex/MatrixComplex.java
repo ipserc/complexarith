@@ -18,8 +18,14 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.23 (2026_0801_0100)";
+	private final static String VERSION = "1.24 (2026_0801_0854)";
 	/* VERSION Release Note
+	 *
+	 * 1.24 (2026_0801_0854)
+	 * solveGauss()/nbrOfSolutions() completed a genuinely rectangular system (fewer equations
+	 * than unknowns) internally via completeEqSys() instead of silently returning an empty
+	 * solution matrix / 0. Only for the under-determined case; over-determined systems are
+	 * left untouched (completeEqSys() would truncate, not pad, extra equations).
 	 *
 	 * 1.23 (2026_0801_0100)
 	 * trigonTaylor(): trampa explicita de NaN/Infinity (hallazgo colateral del
@@ -4626,7 +4632,10 @@ public class MatrixComplex {
 	 * @return The minimum number of LI solutions
 	 */
 	public int nbrOfSolutions() {
-		if (this.rows()+1 != this.cols()) return 0;
+		// Same rectangular-system fix as solveGauss(): complete rather than bail out to 0
+		// when there are fewer equations than unknowns.
+		if (this.rows()+1 < this.cols()) return this.completeEqSys().nbrOfSolutions();
+		if (this.rows()+1 > this.cols()) return 0;
 		int rank = this.rank();
 		int dim = this.cols();
 		int nbrUkn = dim-1;
@@ -4745,6 +4754,17 @@ public class MatrixComplex {
 	public MatrixComplex solveGauss(Complex lambda) {
 		final boolean DEBUG_ON = false;
 		final String METH_NAME = "solveGauss";
+
+		// A genuinely rectangular system (fewer equations than unknowns) used to fall through
+		// to nbrOfSolutions() returning 0 further down, silently producing an empty solution
+		// matrix. Complete it first with zero rows, same workaround Syseq.solveq() already
+		// uses (this.completeEqSys().solve(lambda)). Only for fewer-than-needed rows: an
+		// over-determined system (more equations than unknowns) is NOT completed here, since
+		// completeEqSys() would silently truncate/drop the extra equations instead of padding.
+		if (this.rows()+1 < this.cols()) {
+			return this.completeEqSys().solveGauss(lambda);
+		}
+
 		int rowLen = this.rows();
 		int colLen = this.cols();
 
