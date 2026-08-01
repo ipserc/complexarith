@@ -8,8 +8,14 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0731_1200)";
+	private final static String VERSION = "1.5 (2026_0801_0830)";
 	/* VERSION Release Note
+	 * 1.5 (2026_0801_0830)
+	 * Fix: VectorComplex(MatrixComplex row) only cloned the outer (row) array, leaving
+	 * this.complexMatrix[0] aliased to row.complexMatrix[0] -- a later cell reassignment
+	 * on row (e.g. row.setItem(0,col,Complex)) silently corrupted the already-built vector.
+	 * Now clones the inner row array too, same pattern already used by MatrixComplex.getRow().
+	 *
 	 * 1.4 (2026_0731_1200)
 	 * Migration from Vector to VectorComplex completed
 	 * public VectorComplex rotationD(ArrayList<Double> rotator)
@@ -106,7 +112,13 @@ public class VectorComplex extends MatrixComplex {
 			this.complexMatrix = null;
 		}
 		else {
+			// row.complexMatrix.clone() alone only clones the outer (row) array; since row has
+			// exactly one row, this.complexMatrix[0] would stay the SAME array instance as
+			// row.complexMatrix[0], so a later cell reassignment on row (e.g. row.setItem(0,col,Complex))
+			// would silently corrupt this vector too. Clone the inner row array as well, same
+			// pattern already used by MatrixComplex.getRow().
 			this.complexMatrix = row.complexMatrix.clone();
+			this.complexMatrix[0] = row.complexMatrix[0].clone();
 		}
 	}
 		
