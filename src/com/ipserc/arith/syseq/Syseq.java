@@ -9,10 +9,17 @@ public class Syseq extends MatrixComplex {
 	private Boolean solved = false;
 
 	private final static String HEADINFO = "Syseq --- INFO: ";
-	private final static String VERSION = "1.5 (2023_0528_1700)";
+	private final static String VERSION = "1.6 (2026_0801_0927)";
 
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.6 (2026_0801_0927)
+	 * solveq() now checks typeEqSys() BEFORE calling solve(): for an INCONSISTENT system it no
+	 * longer calls solve() at all (partsol/homosol stay null), instead of silently receiving
+	 * MatrixComplex.solveGauss()'s NaN/Infinity marker and carrying it around unused.
+	 * solution()/partSol()/partSol(int) now throw IllegalArgumentException for an INCONSISTENT
+	 * system instead of returning/propagating that marker.
+	 *
 	 * 1.5 (2023_0528_1700)
 	 * public Complex partSol(int n)
 	 * public MatrixComplex partSol() 
@@ -87,7 +94,21 @@ public class Syseq extends MatrixComplex {
 	 * @param lambda The complex value to calculate the solutions
 	 */
 	public void solveq(Complex lambda) {
-		final boolean DEBUG_ON = false; 
+		final boolean DEBUG_ON = false;
+
+		// Check typeEqSys() BEFORE calling solve(): an INCONSISTENT system has no particular
+		// solution to compute, and MatrixComplex.solveGauss() no longer tolerates being asked
+		// for one (Octava sesion, cierre del Hallazgo 3 de la auditoria EQUATION SYSTEMS --
+		// antes devolvia un marcador NaN/Infinity que Syseq nunca necesito de verdad, solo lo
+		// arrastraba sin usarlo). partsol/homosol quedan en null; solution()/partSol()/
+		// partSol(int) lanzan de forma explicita si se llaman sobre un sistema INCONSISTENT.
+		if (this.typeEqSys() == INCONSISTENT) {
+			partsol = null;
+			homosol = null;
+			solved = true;
+			return;
+		}
+
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
 			System.out.println(HEADINFO + Complex.repeat("# ", 40));
@@ -145,10 +166,10 @@ public class Syseq extends MatrixComplex {
 		if (!solved) this.solveq();
 		switch (this.typeEqSys()) {
 			case DETERMINATE:	sol = partsol; break;
-			case INDETERMINATE:	if (this.isHomogeneous()) sol = partsol.times(n); 
+			case INDETERMINATE:	if (this.isHomogeneous()) sol = partsol.times(n);
 								else sol = partsol.plus(homosol.times(n));
 								break;
-			case INCONSISTENT:	sol = partsol; break;
+			case INCONSISTENT:	throw new IllegalArgumentException(HEADINFO + "solution: the system is INCONSISTENT, there is no solution.");
 		}
 		return sol;
 	}
@@ -159,15 +180,19 @@ public class Syseq extends MatrixComplex {
 	 * @return Returns the nth component of the particular solution
 	 */
 	public Complex partSol(int n) {
+		if (!solved) this.solveq();
+		if (partsol == null) throw new IllegalArgumentException(HEADINFO + "partSol: the system is INCONSISTENT, there is no solution.");
 		if (partsol.isEmpty()) return new Complex();
 		return this.partsol.getItem(0, n);
 	}
-	
+
 	/**
-	 * Returns the particular solution 
+	 * Returns the particular solution
 	 * @return the particular solution
 	 */
 	public MatrixComplex partSol() {
+		if (!solved) this.solveq();
+		if (partsol == null) throw new IllegalArgumentException(HEADINFO + "partSol: the system is INCONSISTENT, there is no solution.");
 		return partsol;
 	}
 	
