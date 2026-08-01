@@ -19,8 +19,23 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 	
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0801_2252)";
+	private final static String VERSION = "1.7 (2026_0802_0131)";
 	/* VERSION Release Note
+	 *
+	 * 1.7 (2026_0802_0131)
+	 * eigenval() now solves the characteristic polynomial via Polynom.solveRobust() instead of
+	 * solve() (Durand-Kerner only) -- same fix as MatrixComplex.rank2() (previous commit), same
+	 * root cause (Durand-Kerner's arithmetic-overflow exception on higher-degree/widely-spread-
+	 * coefficient polynomials). Confirmed with a live repro: TestDiag.java/TestDiag01.java were
+	 * crashing outright (uncaught IllegalArgumentException from solveWeierstrass(), not a check
+	 * failure) via Diagfactor -> Eigenspace's own constructor -- both now complete cleanly.
+	 * Verified with the full Schurfactor/Jordan-block sweep already used this session to
+	 * characterize Eigenspace's fragility: byte-for-byte identical results to plain Durand-Kerner
+	 * in every case that already worked -- solveRobust() only ever falls back to Aberth-Ehrlich on
+	 * cases that were already throwing, never changes an already-successful result. Does NOT fix
+	 * the separate, already-documented precision ceiling for repeated eigenvalues in larger Jordan
+	 * blocks (see Jordan.java/TestJordanAudit01, MatrixComplex.logm()) -- that is inherent to
+	 * Newton-type root-finding near a multiple root, not an overflow.
 	 *
 	 * 1.6 (2026_0801_2252)
 	 * Bug fix: eigenval() grouped consecutive roots into "the same eigenvalue" using
@@ -437,7 +452,20 @@ public class Eigenspace extends MatrixComplex {
 	 */
 	public void eigenval() {
 		Complex prevRoot, actRoot;
-		roots = charactPoly.solve();
+		// Was charactPoly.solve() (Durand-Kerner only, Polynom.solveWeierstrass()). Switched to
+		// solveRobust() -- tries Durand-Kerner first, falls back to Aberth-Ehrlich only if that
+		// throws an arithmetic-overflow exception -- verified this session with the full
+		// Schurfactor/Jordan-block sweep already used to characterize Eigenspace's fragility:
+		// byte-for-byte identical results to plain Durand-Kerner in every case that already
+		// worked (no silent precision change on the already-working path), while eliminating the
+		// crash risk on the higher-degree/widely-spread-coefficient characteristic polynomials
+		// that Durand-Kerner alone can hit (same root cause already fixed for MatrixComplex.rank2()
+		// this session). Does NOT by itself fix the separate, already-documented precision
+		// limitation for repeated eigenvalues in larger Jordan blocks (see Jordan.java/
+		// TestJordanAudit01 and MatrixComplex.logm()'s Javadoc) -- that is a precision ceiling
+		// inherent to Newton-type root-finding near a multiple root, not an overflow, and neither
+		// Durand-Kerner nor Aberth-Ehrlich escapes it.
+		roots = charactPoly.solveRobust();
 		// eigenvalues.quicksortup(0); // DO NOT USE - SVD factorization doesn't allow this
 		// order = Order.UP;
 		// By default the order in which the eigenvalues are sorted is from Higher to Lower
