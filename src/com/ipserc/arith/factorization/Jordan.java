@@ -7,8 +7,25 @@ import com.ipserc.arith.complex.Complex;
 public class Jordan extends Eigenspace {
 
 	private final static String HEADINFO = "Jordan --- INFO:";
-	private final static String VERSION = "1.1 (2026_0801_0954)";
+	private final static String VERSION = "1.2 (2026_0801_2252)";
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0801_2252)
+	 * Bug fix: factorize()/factorize2() built eigenValArray from this.roots().clone() -- the raw,
+	 * individually-perturbed Durand-Kerner output -- even after arithmeticMultiplicity() correctly
+	 * detected a repeated eigenvalue's multiplicity (via the Eigenspace.eigenval() fix, VERSION
+	 * 1.6). Feeding that raw root into eigenvectors(Complex,int) built (A-eigenval*I)^k with
+	 * eigenval off from the true eigenvalue by whatever error Durand-Kerner happened to leave on
+	 * that specific root, enough for a defective eigenvalue to make the matrix insufficiently close
+	 * to singular and collapse the generalized eigenvector to the trivial all-zero solution (P
+	 * singular, P.inverse() -> NaN). Fixed with a new helper, expandedEigenValues(), that expands
+	 * the corrected/averaged Eigenspace.eigenvalues() array back to one row per repetition instead
+	 * of using roots() directly -- see its own Javadoc. Verified with P*J*P^-1 reconstruction: the
+	 * "defective 3x3, simple eigenvalue processed first" case (TestJordanAudit01, previously
+	 * documented as an unexplained ~2^-24 residual) now reconstructs to within ~3.4e-7, down from
+	 * NaN -- the remaining residual is inherent numerical amplification from Durand-Kerner's
+	 * achievable precision through a near-singular pivot, not a further bug (see
+	 * TestJordanAudit01's own Javadoc for the full diagnosis).
 	 *
 	 * 1.1 (2026_0801_0954)
 	 * Compile fix: values()/vectors() no longer exist in Eigenspace, replaced with roots()/
@@ -161,7 +178,43 @@ public class Jordan extends Eigenspace {
 	}
 
 	/**
-	 * 
+	 * Expands {@link Eigenspace#eigenvalues()} (one row per DISTINCT eigenvalue, with its
+	 * arithmetic multiplicity in the second column) back into one row per REPETITION -- the same
+	 * shape as {@link Eigenspace#roots()} -- but using the group-averaged representative value from
+	 * {@code eigenvalues()} instead of {@code roots()}'s raw, individually-perturbed Durand-Kerner
+	 * output.
+	 * <p>
+	 * Needed because {@link #factorize()}/{@link #jordanForm(MatrixComplex)} use the {@code i +=
+	 * arithMult} indexing convention, which assumes one row per repetition -- so a plain {@code
+	 * this.roots().clone()} looked like the right source (see the historical comment in {@link
+	 * #factorize()}). But feeding one of {@code roots()}'s raw individual roots of a repeated
+	 * eigenvalue straight into {@link #eigenvectors(Complex, int)} builds (A-eigenval*I)^k with
+	 * {@code eigenval} off from the true eigenvalue by whatever error Durand-Kerner happened to
+	 * leave on that particular root -- for a genuinely defective eigenvalue this is enough to make
+	 * that matrix insufficiently close to singular, collapsing the generalized eigenvector to the
+	 * trivial (all-zero) solution instead of a real one (confirmed with "0,3,1;2,-1,-1;-2,-1,-1":
+	 * P*J*P^-1 came out NaN). {@link Eigenspace#eigenvalues()}'s representative value is the
+	 * AVERAGE of the roots grouped into that eigenvalue, measurably closer to the true value (see
+	 * {@link Eigenspace#eigenval()}'s own comment) -- expanding it back to one-row-per-repetition
+	 * keeps every existing {@code i += arithMult} loop below unchanged.
+	 * @return one row per repetition of each eigenvalue, in the same order as {@code eigenvalues()}
+	 */
+	private MatrixComplex expandedEigenValues() {
+		MatrixComplex distinct = this.eigenvalues();
+		int total = 0;
+		for (int row = 0; row < distinct.rows(); ++row) total += (int)distinct.getItem(row, 1).cre();
+		MatrixComplex expanded = new MatrixComplex(total, 1);
+		int idx = 0;
+		for (int row = 0; row < distinct.rows(); ++row) {
+			Complex eigenval = distinct.getItem(row, 0);
+			int arithMult = (int)distinct.getItem(row, 1).cre();
+			for (int k = 0; k < arithMult; ++k) expanded.setItem(idx++, 0, eigenval);
+		}
+		return expanded;
+	}
+
+	/**
+	 *
 	 * @param eigenValArray
 	 * @return
 	 */
@@ -218,18 +271,15 @@ public class Jordan extends Eigenspace {
 			System.exit(-1);
 		}
 		// values()/vectors() no longer exist in Eigenspace (see the class' own VERSION history).
-		// The correct modern replacements are roots()/solutions(), NOT eigenvalues()/eigenvectors():
-		// roots() has one row PER REPETITION of each eigenvalue (dim rows total, e.g. [5,5,3] for
-		// a defective 3x3 matrix with a double eigenvalue), matching the i/i+=arithMult indexing
-		// this class already uses everywhere below -- eigenvalues() (rootCount rows, one per
-		// DISTINCT eigenvalue) would silently skip eigenvalues under that same indexing.
-		// roots() returns the live internal field (no defensive copy) -- clone before sorting it
-		// in place, to avoid corrupting Eigenspace's own state as a side effect of factorize().
-		MatrixComplex eigenValArray = this.roots().clone();
-		eigenValArray.quicksort(0);
+		// eigenValArray needs one row PER REPETITION of each eigenvalue (matching the i/i+=arithMult
+		// indexing used everywhere below) -- but sourced from the group-averaged values in
+		// eigenvalues(), not the raw individually-perturbed roots() -- see expandedEigenValues()'s
+		// own Javadoc for why using roots() directly corrupts defective eigenvalues' generalized
+		// eigenvectors.
+		MatrixComplex eigenValArray = this.expandedEigenValues();
 		MatrixComplex eigenVectArray = this.solutions();
 		eigenVectArray.println(HEADINFO + "eigenVectArray");
-		
+
 		cJ = new MatrixComplex(rowLen, colLen);
 		cP = new MatrixComplex(0, 0);
 		
@@ -266,10 +316,9 @@ public class Jordan extends Eigenspace {
 			System.out.println(HEADINFO + "The Matrix MUST be square to be factorized as a Jordan Matrix");
 			System.exit(-1);
 		}
-		// See factorize()'s comment above for why roots()/solutions() (not eigenvalues()/
-		// eigenvectors()) are the correct replacements for the old values()/vectors().
-		MatrixComplex eigenValArray = this.roots().clone();
-		eigenValArray.quicksort(0);
+		// See expandedEigenValues()'s Javadoc for why eigenValArray must come from the group-averaged
+		// eigenvalues() (expanded back to one row per repetition), not a raw roots() clone.
+		MatrixComplex eigenValArray = this.expandedEigenValues();
 		MatrixComplex eigenVectArray = this.solutions();
 		eigenVectArray.println(HEADINFO + "eigenVectArray");
 
