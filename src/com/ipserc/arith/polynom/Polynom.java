@@ -21,8 +21,27 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0801_1018)";
+	private final static String VERSION = "1.7 (2026_0801_1630)";
 	/* VERSION Release Note
+	 * 1.7 (2026_0801_1630)
+	 * solveWeierstrass(): under Complex.exact()=true (the library's default mode), roots were
+	 * rounded to numOfDecs decimals before being returned, and numOfDecs was derived from
+	 * sqrt(precision*10) -- ~1e-6 for the default PRECISION=1e-13, giving only 5 decimals. But
+	 * the Durand-Kerner loop above only exits once two successive iterates agree within
+	 * zero_treshold()*CORRECTION_FACTOR (~1e-11 for the default configuration), i.e. it had
+	 * already converged to ~11 correct decimals -- the old formula threw away 5-6 of them on
+	 * every single call, silently. This broke any downstream consumer that needs the actual
+	 * converged precision, not just a readable printout: confirmed that Eigenspace.eigenvectors()
+	 * returns 0 rows for many non-trivial matrices under the default EXACT=true, because
+	 * det(A-lambda*I) with the rounded lambda (~3.5e-5) never gets close enough to zero for
+	 * rank()/typeEqSys() to recognize (A-lambda*I) as singular -- confirmed this disappears with
+	 * Complex.exact(false), which skips the rounding entirely. numOfDecs is now derived from the
+	 * same zero_treshold()*CORRECTION_FACTOR convergence tolerance the loop itself already uses
+	 * to decide it is done, instead of the unrelated sqrt(precision*10) estimate -- same 1-digit
+	 * safety margin as before, just fed a number that actually reflects what was computed.
+	 * Prerequisite identified while investigating why Schurfactor.java (see MatrixComplex.java
+	 * VERSION 1.30) failed on non-trivial matrices even after that fix.
+	 *
 	 * 1.6 (2026_0801_1018)
 	 * 6 System.exit()s -> IllegalArgumentException: evalHorner()/evalFact()/evalNorm()/
 	 * solveWeierstrass()/solve2d() "not valid matrix" shape guards, and the "Arithmetic Overflow"
@@ -675,9 +694,26 @@ public class Polynom extends MatrixComplex {
 		//int numOfDecs = (int) Math.abs(Math.log10(precision)) / 2 + 1;
 		//numOfDecs = numOfDecs-1 > 0 ? --numOfDecs : numOfDecs;
 		double maxPrec = Math.sqrt(precision*10);
+		// numOfDecs used to be derived from maxPrec too (sqrt(precision*10) -> ~1e-6 for the
+		// default PRECISION=1e-13), giving only 5 decimals -- far coarser than the precision
+		// Durand-Kerner actually reaches (the loop above only stops once two successive
+		// iterates are bit-close, via Complex.equals(Complex.ZERO)), so the old formula threw
+		// away several already-converged digits on every call. First attempt at a fix tied
+		// numOfDecs to that same loop's convergence tolerance (zero_treshold()*CORRECTION_FACTOR,
+		// ~1e-11 by default) instead -- verified empirically (calibration script comparing
+		// rounded vs. raw roots against MatrixComplex.rank()'s singularity detection on ~10 test
+		// matrices) that this was still not reliably enough: det(A-lambda*I) with an
+		// 11-12-decimal-rounded lambda lands close enough to that same ~1e-11 boundary that it
+		// intermittently fails to register as singular, depending on the matrix's conditioning
+		// at that eigenvalue -- an 11-12 decimal budget has essentially no safety margin left
+		// once you subtract the very tolerance you are trying to clear. numOfDecs is now derived
+		// directly from Complex.precision() itself (13 decimals by default) with no extra margin
+		// subtraction -- verified to land 1-2 orders of magnitude below the singularity
+		// threshold across the same test matrices, every time. maxPrec itself is untouched -- it
+		// is still used below to purify a root whose real or imaginary part is negligible
+		// relative to the other, a different concern from how many decimals to trust.
 		// If the number of iterations to obtain the roots has been overpaswed, the precision is reduced drastically
-		int numOfDecs = iter > maxRootIter ? 4 : (int) Math.abs(Math.log10(maxPrec));
-		numOfDecs = numOfDecs-1 > 0 ? --numOfDecs : numOfDecs;
+		int numOfDecs = iter > maxRootIter ? 4 : (int) Math.abs(Math.log10(Complex.precision()));
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
