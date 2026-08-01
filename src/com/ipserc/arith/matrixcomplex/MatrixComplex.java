@@ -18,8 +18,13 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.26 (2026_0801_0906)";
+	private final static String VERSION = "1.27 (2026_0801_0912)";
 	/* VERSION Release Note
+	 *
+	 * 1.27 (2026_0801_0912)
+	 * typeEqSys() misclassified a homogeneous system of full column rank as INDETERMINATE
+	 * instead of DETERMINATE. Full column rank always means exactly one solution (the trivial
+	 * x=0 for a homogeneous system), not a free parameter.
 	 *
 	 * 1.26 (2026_0801_0906)
 	 * Javadoc only, no behavior change: documents why solveGauss()'s INCONSISTENT branch keeps
@@ -4443,7 +4448,10 @@ public class MatrixComplex {
 		if (augmRank != coefRank) return INCONSISTENT;
 		//if (augmRank != coefRank || coefRank == 0) return INCONSISTENT;
 			
-		if (coefRank == numUnk) return this.isHomogeneous() ? INDETERMINATE : DETERMINATE;
+		// Full column rank always means exactly one solution, regardless of homogeneity: a
+		// homogeneous full-rank system has the unique trivial solution (x=0), it is not
+		// underdetermined -- there is no free parameter to speak of.
+		if (coefRank == numUnk) return DETERMINATE;
 		else return INDETERMINATE;
 	}
 

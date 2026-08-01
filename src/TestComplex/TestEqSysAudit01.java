@@ -5,8 +5,9 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 /**
  * Regression test for the EQUATION SYSTEMS audit fixes in MatrixComplex.java (Octava sesion,
  * 1 agosto 2026). Covers, in order, Hallazgo 1 (rectangular systems), Hallazgo 2
- * (solveCramer()/solveGauss() throwing on invalid shapes). Other hallazgos are appended as
- * they land.
+ * (solveCramer()/solveGauss() throwing on invalid shapes), Hallazgo 4 (typeEqSys()
+ * misclassifying a homogeneous full-rank system). Hallazgo 3 was closed without a code
+ * change (documented only). Other hallazgos are appended as they land.
  */
 public class TestEqSysAudit01 {
 
@@ -94,6 +95,24 @@ public class TestEqSysAudit01 {
 		// requires a square coefficient matrix), so it must still throw -- unlike solveGauss(),
 		// which Hallazgo 1 already taught to complete and solve it via free parameters.
 		expectException("under-determined solveCramer() \"1,1,0\"", () -> rect.solveCramer());
+
+		// ---- Hallazgo 4: typeEqSys() misclassified a homogeneous full-rank system as
+		// INDETERMINATE instead of DETERMINATE (full column rank always means exactly one
+		// solution -- the trivial x=0 for a homogeneous system -- not a free parameter). ----
+		check("homogeneous full-rank 2x2 is DETERMINATE",
+				new MatrixComplex("1,0,0;0,1,0").typeEqSys() == MatrixComplex.DETERMINATE,
+				"typeEqSys()=" + new MatrixComplex("1,0,0;0,1,0").typeEqSys());
+		check("homogeneous full-rank 3x3 is DETERMINATE",
+				new MatrixComplex("1,0,0,0;0,1,0,0;0,0,1,0").typeEqSys() == MatrixComplex.DETERMINATE,
+				"typeEqSys()=" + new MatrixComplex("1,0,0,0;0,1,0,0;0,0,1,0").typeEqSys());
+		// regression guards: unaffected classifications
+		check("homogeneous underdetermined \"1,1,0\" stays INDETERMINATE",
+				rect.typeEqSys() == MatrixComplex.INDETERMINATE, "typeEqSys()=" + rect.typeEqSys());
+		check("non-homogeneous full-rank \"1,0,3;0,1,4\" stays DETERMINATE",
+				square.typeEqSys() == MatrixComplex.DETERMINATE, "typeEqSys()=" + square.typeEqSys());
+		check("inconsistent \"0,0,1\" stays INCONSISTENT",
+				new MatrixComplex("0,0,1").typeEqSys() == MatrixComplex.INCONSISTENT,
+				"typeEqSys()=" + new MatrixComplex("0,0,1").typeEqSys());
 
 		System.out.println();
 		System.out.println("TOTAL pass=" + pass + " fail=" + fail);
