@@ -16,9 +16,16 @@ public class Plane {
 	private Point point;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
-	private final static String VERSION = "1.0 (2021_0206_0100)";
+	private final static String VERSION = "1.1 (2026_0801_1023)";
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.1 (2026_0801_1023)
+	 * distance(Point): the dimension-mismatch guard used to reset internal state and call
+	 * System.exit(0) -- already dead code in practice (an incidental side effect of the
+	 * VectorComplex(int) audit fix earlier this session: new VectorComplex(0) now throws before
+	 * System.exit(0) is ever reached), but with a misleading message unrelated to the actual
+	 * plane/point mismatch. Now throws IllegalArgumentException directly with a clear message.
+	 *
 	 * 1.0 (2021_0206_0100)
 	 */
 
@@ -260,11 +267,8 @@ public class Plane {
 	 */
 	public double distance(Point point) {
 		if (this.normal.dim() != point.dim()) {
-			this.normal = new VectorComplex(0);
-			this.point = new Point(0);
-			System.err.println(HEADINFO + "Plane and point must have the same dimension.");
-			System.exit(0);
-		}		
+			throw new IllegalArgumentException(HEADINFO + "distance: Plane and point must have the same dimension: " + this.normal.dim() + " != " + point.dim() + ".");
+		}
 		Point intersection = this.projection(point);
 		return (point.minus(intersection)).norm();
 	}
