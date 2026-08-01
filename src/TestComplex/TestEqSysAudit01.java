@@ -6,8 +6,9 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  * Regression test for the EQUATION SYSTEMS audit fixes in MatrixComplex.java (Octava sesion,
  * 1 agosto 2026). Covers, in order, Hallazgo 1 (rectangular systems), Hallazgo 2
  * (solveCramer()/solveGauss() throwing on invalid shapes), Hallazgo 4 (typeEqSys()
- * misclassifying a homogeneous full-rank system). Hallazgo 3 was closed without a code
- * change (documented only). Other hallazgos are appended as they land.
+ * misclassifying a homogeneous full-rank system), and the Hallazgo 3 follow-up
+ * (solveGauss()/solve() throwing for INCONSISTENT, once Syseq.java stopped depending on the
+ * NaN/Infinity marker -- see Syseq.VERSION 1.6).
  */
 public class TestEqSysAudit01 {
 
@@ -113,6 +114,15 @@ public class TestEqSysAudit01 {
 		check("inconsistent \"0,0,1\" stays INCONSISTENT",
 				new MatrixComplex("0,0,1").typeEqSys() == MatrixComplex.INCONSISTENT,
 				"typeEqSys()=" + new MatrixComplex("0,0,1").typeEqSys());
+
+		// ---- Hallazgo 3 follow-up: solveGauss()/solve() now throw for INCONSISTENT instead of
+		// returning the NaN/Infinity marker (Syseq.java was fixed first, Syseq.VERSION 1.6, so
+		// no real caller depends on getting the marker back anymore). x+y=1, x+y=2: needs
+		// rows()+1==cols() already (no completion/truncation via Hallazgo 1's guard) to actually
+		// reach solveGauss()'s INCONSISTENT branch. ----
+		MatrixComplex inconsistent = new MatrixComplex("1,1,1;1,1,2");
+		expectException("inconsistent solve()", () -> inconsistent.solve());
+		expectException("inconsistent solveGauss(ONE)", () -> inconsistent.solveGauss(com.ipserc.arith.complex.Complex.ONE));
 
 		System.out.println();
 		System.out.println("TOTAL pass=" + pass + " fail=" + fail);

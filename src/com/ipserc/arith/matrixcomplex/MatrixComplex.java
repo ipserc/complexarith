@@ -18,8 +18,17 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.28 (2026_0801_0915)";
+	private final static String VERSION = "1.29 (2026_0801_0932)";
 	/* VERSION Release Note
+	 *
+	 * 1.29 (2026_0801_0932)
+	 * solveGauss()'s INCONSISTENT branch now throws IllegalArgumentException instead of
+	 * returning a NaN/Infinity marker (follow-up to the Hallazgo 3 SCOPE DECISION of 1.26 --
+	 * Syseq.java was fixed first, see Syseq.VERSION 1.6, to stop depending on that marker).
+	 * Verified no other real caller (MatrixComplex.kernel(), Jordan.java, geom/Plane.java,
+	 * Polynom.java's Vandermonde interpolation) depends on it either -- all solve either a
+	 * homogeneous system (always consistent) or one geometrically/algebraically guaranteed
+	 * consistent whenever actually reached.
 	 *
 	 * 1.28 (2026_0801_0915)
 	 * removeDuplicateRows() had an ungated System.out.println() logging every duplicate row it
@@ -4820,26 +4829,18 @@ public class MatrixComplex {
 		
 		// *************** INCONSISTENT ***************
 		if (typeEqSys == INCONSISTENT) {
-			trace(METH_NAME + ": " + "This system is INCONSISTENT. It hasn't got any solution!!!!!!!!!!");
-			// SCOPE DECISION (Octava sesion, auditoria EQUATION SYSTEMS, Hallazgo 3 -- documented,
-			// not fixed): this NaN/Infinity marker looks like the same "silent wrong result"
-			// antipattern already fixed elsewhere in this session (e.g. logTaylor()/sinTaylor()
-			// in the Taylor-series audit), but it is NOT the same situation -- it's an internal
-			// contract Syseq.java actually depends on, verified by tracing the real call chain:
-			// Syseq.solveq() calls this.completeEqSys().solve(lambda) UNCONDITIONALLY, BEFORE it
-			// ever checks typeEqSys(); if this branch threw instead, that throw would fire before
-			// Syseq gets the chance to classify the system and report "no solution" gracefully via
-			// printSol() (which DOES check typeEqSys()==INCONSISTENT before touching the result --
-			// so the marker is never actually printed there). Making this throw would break
-			// Syseq.solveq()/printSol() for every genuinely inconsistent system, not just callers
-			// who forget to check typeEqSys() first.
-			// Syseq.solution(n), on the other hand, returns this exact marker unchanged for the
-			// INCONSISTENT case (sol = partsol) -- a caller of solution() who does NOT check
-			// typeEqSys() first still gets NaN/Infinity silently. That residual risk is real, but
-			// fixing it belongs in Syseq.java (teach it to check typeEqSys() before delegating to
-			// solve(), so this branch could safely throw for any other direct caller), not here --
-			// deferred by explicit user decision, not applied in this pass.
-			return solMatrix.divides(0).transpose();
+			// Used to return a NaN/Infinity marker in silence (solMatrix.divides(0).transpose()).
+			// That was a deliberate SCOPE DECISION for a while (Octava sesion, Hallazgo 3):
+			// Syseq.solveq() used to call solve() UNCONDITIONALLY, before checking typeEqSys(),
+			// so it genuinely depended on getting a MatrixComplex back even for an inconsistent
+			// system. Syseq.java was fixed afterward (Syseq.VERSION 1.6) to check typeEqSys()
+			// FIRST and skip calling solve() entirely for INCONSISTENT -- confirmed with grep
+			// that every other real caller of solve()/solveGauss() (MatrixComplex.kernel(),
+			// Jordan.java, geom/Plane.java's plane-intersection, Polynom.java's Vandermonde
+			// interpolation) either solves a homogeneous system (always consistent by
+			// construction) or is geometrically/algebraically guaranteed consistent whenever it's
+			// actually reached -- none of them depend on this marker either. Throwing is now safe.
+			throw new IllegalArgumentException(HEADINFO + METH_NAME + ": This system is INCONSISTENT, there is no solution.");
 		}
 
 		// *************** DETERMINATE ***************
