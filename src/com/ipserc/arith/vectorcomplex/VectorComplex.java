@@ -8,8 +8,14 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.7 (2026_0801_0838)";
+	private final static String VERSION = "1.8 (2026_0801_0840)";
 	/* VERSION Release Note
+	 * 1.8 (2026_0801_0840)
+	 * Javadoc only, no behavior change: documents that vectorprod() (Levi-Civita with a fixed
+	 * 3-index symbol) is only mathematically valid in 3 dimensions. Generalizing the formula
+	 * itself to more dimensions is deferred, at the user's explicit request, to a future
+	 * mathematical consultancy/audit pass.
+	 *
 	 * 1.7 (2026_0801_0838)
 	 * normalize()/projectionScalar()/projection()/angleps()/angle() divided by norm()/mod()
 	 * without checking for a null vector, giving a silent NaN. Now throw
@@ -521,9 +527,24 @@ public class VectorComplex extends MatrixComplex {
 	}
 	
 	/**
-	 * 
-	 * @param aVector
-	 * @return
+	 * Calculates the vector product of two vectors using the (3-index) Levi-Civita symbol:
+	 * result_i = sum over j,k of epsilon_ijk * this_j * aVector_k.
+	 * <p>
+	 * <b>KNOWN LIMITATION, documented not fixed (Octava sesion, auditoria de VectorComplex.java,
+	 * Hallazgo BAJO, fase D):</b> this formula, with a fixed 3-index Levi-Civita symbol
+	 * ({@code coef} is always {@code int[3]}), is only mathematically valid in exactly 3
+	 * dimensions. Looping col1/col2/col3 up to {@code aVector.dim()} for a different dimension
+	 * does not generalize the cross product -- it silently produces garbage (e.g. {@code (0,0)}
+	 * in 2D, confirmed empirically) rather than throwing, because {@link #leviCivita(int[])}
+	 * only ever receives 3-element arrays regardless of the vector's actual dimension.
+	 * {@link #crossprod(VectorComplex)} is the correct, already-generalized vector product (up
+	 * to 7 dimensions, via the Beno Eckmann construction) and matches this method exactly in 3D
+	 * (verified). <b>Pending, at the user's explicit request:</b> generalize this formula itself
+	 * to more dimensions (i.e. an n-index Levi-Civita symbol) as part of a future mathematical
+	 * consultancy/audit pass on VectorComplex/MatrixComplex, not scoped into this bug-fixing
+	 * session.
+	 * @param aVector the vector to multiply. Only meaningful for 3-dimensional vectors.
+	 * @return the vector product, valid only when both vectors have dimension 3.
 	 */
 	public VectorComplex vectorprod(VectorComplex aVector) {
 		int coef[] = new int[3];
