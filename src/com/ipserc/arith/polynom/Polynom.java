@@ -21,8 +21,20 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.7 (2026_0801_1630)";
+	private final static String VERSION = "1.8 (2026_0801_1700)";
 	/* VERSION Release Note
+	 * 1.8 (2026_0801_1700)
+	 * solveWeierstrass(): Durand-Kerner's initial guesses moved from clustered near the origin
+	 * (module ~1, further shrunk by *Math.random()) to a circle whose radius is Cauchy's bound
+	 * on the polynomial's roots (R=1+max|a_i| from the normalized coefficients), at n equally
+	 * spaced angles with a small offset to avoid the real axis. Confirmed root cause of the
+	 * "Arithmetic Overflow (NaN)" guard firing on the large majority of random 3x3 integer
+	 * matrices tested: seeds starting far from every actual root (which can have magnitude
+	 * 10-30 for a characteristic polynomial of a matrix with entries in the tens) blow up during
+	 * the earliest iterations. Also removes solveWeierstrass()'s own Math.random() call, one of
+	 * the two known sources of the non-deterministic output already documented for
+	 * TestEigenV18/TestTaylorSeries01/TestDeterminant03.
+	 *
 	 * 1.7 (2026_0801_1630)
 	 * solveWeierstrass(): under Complex.exact()=true (the library's default mode), roots were
 	 * rounded to numOfDecs decimals before being returned, and numOfDecs was derived from
@@ -655,10 +667,33 @@ public class Polynom extends MatrixComplex {
 		MatrixComplex cCoef = new MatrixComplex(2, colLen);
 		// boolean[] cCoefCalc = new boolean[colLen];
 
-		cCoef.initMatrixRandomRec();
-
+		// Initial guesses used to live near the origin (initMatrixRandomRec() -> module ~1,
+		// then shrunk further by *Math.random()), regardless of where the actual roots live.
+		// For a characteristic polynomial of a matrix with entries in the tens, roots of
+		// magnitude 10-30 are common -- starting Durand-Kerner that far from every root means
+		// the earliest iterations evaluate the polynomial nowhere near a zero, producing huge
+		// intermediate values divided by a (initially tiny, since all seeds start clustered near
+		// 0) product-of-differences denominator: exactly the mechanism behind the "Arithmetic
+		// Overflow (NaN)" guard below, confirmed to fire on the large majority of random 3x3
+		// integer matrices tested. Fix: seed on a circle whose radius is Cauchy's bound on the
+		// roots' magnitude (R = 1 + max|a_i|, i=0..n-1, computed from the already-normalized
+		// monic polynomial in polyNorm -- the same array evalNorm() below reads from), spread at
+		// n equally-spaced angles with a pi/(2n) offset to keep every seed off the real axis
+		// (avoids seeds colliding with the real roots of a real-coefficient polynomial, whose
+		// roots come in conjugate pairs). Side effect: this also removes solveWeierstrass()'s own
+		// use of Math.random(), one of the two known sources of the non-deterministic test output
+		// already documented for TestEigenV18/TestTaylorSeries01/TestDeterminant03 (the other,
+		// the Durand-Kerner seeding inside solveWeierstrass() itself for OTHER polynomials in the
+		// same call chain, is fixed by this same change).
+		double maxCoefMod = 0;
+		for (int j = 0; j < colLen; ++j) {
+			double coefMod = this.polyNorm[0][j].mod();
+			if (coefMod > maxCoefMod) maxCoefMod = coefMod;
+		}
+		double cauchyRadius = 1.0 + maxCoefMod;
 		for (int i = 0; i < colLen; ++i) {
-			cCoef.complexMatrix[1][i] = cCoef.complexMatrix[0][i].times(Math.random());
+			double theta = 2*Math.PI*i/colLen + Math.PI/(2*colLen);
+			cCoef.complexMatrix[1][i] = new Complex('P', cauchyRadius, theta);
 		}
 
 		Double cre;
