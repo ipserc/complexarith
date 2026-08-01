@@ -19,9 +19,19 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 	
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.5 (2025_0319_2345)";
+	private final static String VERSION = "1.6 (2026_0801_2252)";
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.6 (2026_0801_2252)
+	 * Bug fix: eigenval() grouped consecutive roots into "the same eigenvalue" using
+	 * Complex.equals()'s fixed ~1e-11 tolerance, tighter than Durand-Kerner's actual error on a
+	 * genuinely repeated root (measured ~5.3e-9 for a double eigenvalue) -- silently splitting one
+	 * defective eigenvalue of multiplicity 2 into two "eigenvalues" of multiplicity 1 each,
+	 * corrupting Jordan.factorize() downstream (see Jordan.VERSION 1.2). Fixed to group with the
+	 * same bestNumDecs()-based rounded comparison arithmeticMultiplicity() already promises, and to
+	 * store the GROUP AVERAGE of the grouped roots as the representative eigenvalue instead of an
+	 * arbitrary raw member (measurably closer to the true value).
+	 *
 	 * 1.5 (2025_0319_2345)
 	 * 	public MatrixComplex eigenvector(int i) {
 	 *  public void check() {
@@ -435,36 +445,66 @@ public class Eigenspace extends MatrixComplex {
 			case UP: roots.quicksortup(0); break;
 			case DOWN: roots.quicksortdown(0); break;
 		}
-			
+
+		// Grouping consecutive roots into "the same eigenvalue" must use the same tolerance as
+		// arithmeticMultiplicity(Complex) (rounded to bestNumDecs() significant decimals), not
+		// Complex.equals()'s fixed ~1e-11 tolerance. Durand-Kerner's actual numerical error on a
+		// genuinely repeated root is condition-number-dependent and can be much coarser than that
+		// fixed tolerance (confirmed: a double root at -2 converged to -1.9999999973348/
+		// -2.0000000026547, 5.3e-9 apart, for a matrix whose bestNumDecs()==3) -- comparing with
+		// Complex.equals() silently split one defective eigenvalue of multiplicity 2 into two
+		// distinct "eigenvalues" of multiplicity 1 each, which downstream (Jordan.factorize()) built
+		// a purely diagonal Jordan form instead of the correct 2x2 block, reconstructing the wrong
+		// matrix by ~5.96e-8. Using the same rounded comparison here keeps eigenval()'s own grouping
+		// consistent with what arithmeticMultiplicity() already promises callers.
+		int digits = this.bestNumDecs();
+
 		// calculates the number of different roots
 		int rootCount = 1;
-		prevRoot = roots.getItem(0, 0);		
+		prevRoot = roots.getItem(0, 0);
 		for (int i = 1; i < roots.rows(); ++i) {
 			actRoot = roots.getItem(i, 0);
-			if (prevRoot.equals(actRoot)) continue;
+			if (Complex.round(prevRoot, digits).equals(Complex.round(actRoot, digits))) continue;
 			++rootCount;
 			prevRoot = actRoot;
 		}
 		// With the number of different roots creates the eignevalues array
 		// Col 0 for the eigenvalue, Col 1 for the arithmetic multiplicity
+		// The representative eigenvalue stored per group is the AVERAGE of its grouped raw roots,
+		// not just the first one encountered: Durand-Kerner's error on the two (or more) roots of a
+		// genuinely repeated eigenvalue is not one-sided, so averaging cancels part of it (in the
+		// -2 case documented above, the average lands ~5e-12 from the true value vs. ~2.6e-9 for
+		// either raw root alone -- about 500x closer). Picking an arbitrary raw member of the group
+		// was fine when grouping only fired for near-exact matches (the old ~1e-11 tolerance), but
+		// is not precise enough once grouping uses the coarser bestNumDecs()-based tolerance above:
+		// feeding an imprecise scalar into (A-eigenval*I) for a generalized-eigenvector chain
+		// (Jordan.java) can make that matrix insufficiently close to singular, producing a
+		// degenerate (all-zero) generalized eigenvector instead of a real one.
 		eigenvalues = new MatrixComplex(rootCount, 2);
 		int eigvalIdx = 0;
-		int arithMult = 0;
-		prevRoot = roots.getItem(eigvalIdx, 0);
-		eigenvalues.setItem(eigvalIdx, 0, prevRoot);
-		eigenvalues.setItem(eigvalIdx, 1, new Complex(++arithMult,0));
+		int arithMult = 1;
+		double sumRe = roots.getItem(0, 0).rep();
+		double sumIm = roots.getItem(0, 0).imp();
+		prevRoot = roots.getItem(0, 0);
 		for (int i = 1; i < roots.rows(); ++i) {
 			actRoot = roots.getItem(i, 0);
-			if (prevRoot.equals(actRoot)) {
-				eigenvalues.setItem(eigvalIdx, 1, new Complex(++arithMult,0));				
+			if (Complex.round(prevRoot, digits).equals(Complex.round(actRoot, digits))) {
+				sumRe += actRoot.rep();
+				sumIm += actRoot.imp();
+				++arithMult;
 			}
 			else {
-				eigenvalues.setItem(++eigvalIdx, 0, actRoot);
+				eigenvalues.setItem(eigvalIdx, 0, new Complex(sumRe/arithMult, sumIm/arithMult));
+				eigenvalues.setItem(eigvalIdx, 1, new Complex(arithMult, 0));
+				++eigvalIdx;
+				sumRe = actRoot.rep();
+				sumIm = actRoot.imp();
+				arithMult = 1;
 				prevRoot = actRoot;
-				arithMult = 0;
-				eigenvalues.setItem(eigvalIdx, 1, new Complex(++arithMult,0));								
 			}
 		}
+		eigenvalues.setItem(eigvalIdx, 0, new Complex(sumRe/arithMult, sumIm/arithMult));
+		eigenvalues.setItem(eigvalIdx, 1, new Complex(arithMult, 0));
 	}
 
 	/**
