@@ -12,15 +12,24 @@ package com.ipserc.arith.matrixcomplex;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.factorization.Diagfactor;
+import com.ipserc.arith.factorization.QRSchurfactor;
 import com.ipserc.arith.polynom.Polynom;
 import com.ipserc.arith.syseq.Syseq;
 import com.ipserc.arith.vectorcomplex.*;
 
 public class Eigenspace extends MatrixComplex {
-	
+
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.7 (2026_0802_0131)";
+	private final static String VERSION = "1.8 (2026_0802_1100)";
 	/* VERSION Release Note
+	 *
+	 * 1.8 (2026_0802_1100)
+	 * public MatrixComplex eigenvaluesQR() -- Etapa 4 del plan QR-con-desplazamientos: via
+	 * ALTERNATIVA de autovalores (Hessenberg + QR con desplazamiento de Wilkinson, QRSchurfactor)
+	 * puramente aditiva, para comparar contra el motor por defecto (polinomio caracteristico +
+	 * Durand-Kerner/Aberth-Ehrlich, eigenval()/eigenvalues()) sin sustituirlo. No toca eigenval(),
+	 * eigenvalues(), calculate() ni ningun otro metodo existente -- cero riesgo de regresion para
+	 * los ~30 ficheros que ya dependen de esta clase.
 	 *
 	 * 1.7 (2026_0802_0131)
 	 * eigenval() now solves the characteristic polynomial via Polynom.solveRobust() instead of
@@ -285,6 +294,27 @@ public class Eigenspace extends MatrixComplex {
 	 */
 	public MatrixComplex eigenvalues() {
 		return eigenvalues;
+	}
+
+	/**
+	 * Via ALTERNATIVA de autovalores (Etapa 4 del plan QR-con-desplazamientos, ver
+	 * {@code Claude/ComplexArithRev.md} / plan mutable-rolling-stardust.md): reduccion a Hessenberg
+	 * + iteracion QR con desplazamiento de Wilkinson ({@code QRSchurfactor}), en vez del motor por
+	 * defecto de esta clase (polinomio caracteristico + Durand-Kerner/Aberth-Ehrlich, ver
+	 * {@link #eigenval()}/{@link #eigenvalues()}). NO sustituye al motor por defecto -- decision de
+	 * alcance deliberada de esta etapa, pendiente de comparacion exhaustiva antes de considerarlo.
+	 * <p>
+	 * A diferencia de {@link #eigenvalues()}, devuelve un valor por FILA de la matriz (una entrada
+	 * de la diagonal de la forma de Schur cada una), sin agrupar por multiplicidad ni promediar
+	 * repeticiones -- para un autovalor de multiplicidad {@code m}, aparecera {@code m} veces
+	 * (aproximadamente iguales, no exactamente, igual que las raices crudas de
+	 * {@link #roots()} antes de agrupar).
+	 * @return Los autovalores, uno por fila, en el orden en que aparecen en la diagonal de T.
+	 * @throws IllegalArgumentException si la matriz no es cuadrada, o si la iteracion QR no converge
+	 * (ver {@code QRSchurfactor.factorize()}).
+	 */
+	public MatrixComplex eigenvaluesQR() {
+		return new QRSchurfactor(this).getEigenvalues();
 	}
 
 	/**
