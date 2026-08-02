@@ -19,8 +19,15 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.33 (2026_0802_0131)";
+	private final static String VERSION = "1.34 (2026_0802_1400)";
 	/* VERSION Release Note
+	 *
+	 * 1.34 (2026_0802_1400)
+	 * New public nullspaceBasis(): Gauss-Jordan elimination to reduced row echelon form, tracking
+	 * pivot vs. free columns explicitly, returning one independent basis vector per free column
+	 * (nullity() rows) -- unlike kernel()/kernel(Complex), which return a SINGLE vector (all free
+	 * variables set to the same scalar), the right tool only when the nullspace is 1-dimensional.
+	 * Fase A of generalizing Jordan.java beyond geometric multiplicity 1 (ver ComplexArithRev.md).
 	 *
 	 * 1.33 (2026_0802_0131)
 	 * rank2() now solves A'*A's characteristic polynomial via Polynom.solveRobust() instead of
@@ -6309,6 +6316,65 @@ public class MatrixComplex {
 	 */
 	public MatrixComplex ker() {
 		return kernel();
+	}
+
+	/**
+	 * Computes a genuine BASIS of the nullspace (kernel) of this matrix via Gauss-Jordan
+	 * elimination to reduced row echelon form, tracking pivot vs. free columns explicitly.
+	 * <p>
+	 * Unlike {@link #kernel()}/{@link #kernel(Complex)} (which return a SINGLE vector, all free
+	 * variables set to the same scalar {@code lambda} -- the right tool when the nullspace is
+	 * known to be 1-dimensional, the common case throughout this project), this returns one
+	 * independent vector per free column: {@code nullity()} rows, each with exactly one free
+	 * variable set to {@code 1} and the rest to {@code 0}, back-substituted through the reduced
+	 * pivot rows. Needed to generalize {@code Jordan.java} beyond geometric multiplicity 1, where
+	 * a single scalar-parameterized vector can no longer span the eigenspace.
+	 * @return A matrix with one basis vector per row ({@code cols()-rank()} rows, {@code cols()}
+	 * columns each); empty (0 rows) if the nullspace is trivial.
+	 */
+	public MatrixComplex nullspaceBasis() {
+		int n = this.cols();
+		int rowLen = this.rows();
+		MatrixComplex r = this.copy();
+
+		int[] pivotColOfRow = new int[rowLen];
+		boolean[] isPivotCol = new boolean[n];
+		int pivotRow = 0;
+
+		for (int col = 0; col < n && pivotRow < rowLen; ++col) {
+			int best = pivotRow;
+			double bestMod = r.getItem(pivotRow, col).mod();
+			for (int row = pivotRow + 1; row < rowLen; ++row) {
+				double mod = r.getItem(row, col).mod();
+				if (mod > bestMod) { bestMod = mod; best = row; }
+			}
+			if (r.getItem(best, col).isZero()) continue; // no usable pivot in this column: free column
+
+			if (best != pivotRow) r.swapRows(pivotRow, best);
+			r.Ftransf(pivotRow, r.getItem(pivotRow, col).inverse()); // normalize pivot to 1
+			for (int row = 0; row < rowLen; ++row) {
+				if (row == pivotRow) continue;
+				Complex factor = r.getItem(row, col);
+				if (!factor.isZero()) r.Ftransf(row, pivotRow, factor.opposite());
+			}
+			pivotColOfRow[pivotRow] = col;
+			isPivotCol[col] = true;
+			++pivotRow;
+		}
+
+		int nullity = 0;
+		for (int col = 0; col < n; ++col) if (!isPivotCol[col]) ++nullity;
+
+		MatrixComplex basis = new MatrixComplex(nullity, n);
+		int basisRow = 0;
+		for (int freeCol = 0; freeCol < n; ++freeCol) {
+			if (isPivotCol[freeCol]) continue;
+			basis.setItem(basisRow, freeCol, Complex.ONE);
+			for (int prow = 0; prow < pivotRow; ++prow)
+				basis.setItem(basisRow, pivotColOfRow[prow], r.getItem(prow, freeCol).opposite());
+			++basisRow;
+		}
+		return basis;
 	}
 
 	/*
