@@ -19,8 +19,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.36 (2026_0802_1800)";
+	private final static String VERSION = "1.37 (2026_0802_2230)";
 	/* VERSION Release Note
+	 *
+	 * 1.37 (2026_0802_2230)
+	 * PRINTING section (print/println/toString/toMaxima/toWolfram/toMatlab/toOctave/
+	 * preMatrixComplex/toMatrixComplex) extracted to new package-private MatrixComplexFormat,
+	 * same pattern as PolynomFormat (Decima sesion) -- MatrixComplex.java's own methods keep their
+	 * exact signatures, delegating in one line each. Etapa 1 of the multi-session MatrixComplex.java
+	 * restructuring roadmap (Undecima sesion, ver ComplexArithRev.md). No visibility widening needed
+	 * (isEmpty() was already public). Public API unchanged.
 	 *
 	 * 1.36 (2026_0802_1800)
 	 * logTaylor(): new LOG_TAYLOR_MAX_ITER=10000 cap (was effectively Complex.digits()'s
@@ -1087,17 +1095,14 @@ public class MatrixComplex {
 	 * Prints the array of values without carriage return.
 	 */
 	public void print() {
-		//print(this.complexMatrix);
-		this.printCM();
+		MatrixComplexFormat.print(this);
 	}
 
 	/**
 	 * Prints the array of values with a carriage return.
 	 */
 	public void println() {
-		//print(this.complexMatrix);
-		this.printCM();
-		System.out.print('\n');
+		MatrixComplexFormat.println(this);
 	}
 
 	/**
@@ -1105,11 +1110,7 @@ public class MatrixComplex {
 	 * @param caption The title above the matrix.
 	 */
 	public void print(String caption) {
-		int rowLen = this.rows();
-
-		if (rowLen > 1) System.out.println(caption);
-		else System.out.print(caption+" ");
-		this.print();
+		MatrixComplexFormat.print(this, caption);
 	}
 
 	/**
@@ -1117,11 +1118,7 @@ public class MatrixComplex {
 	 * @param caption The title above the matrix.
 	 */
 	public void println(String caption) {
-		int rowLen = this.rows();
-
-		if (rowLen > 1) System.out.println(caption);
-		else System.out.print(caption+" ");
-		this.println();
+		MatrixComplexFormat.println(this, caption);
 	}
 
 	/**
@@ -1130,31 +1127,7 @@ public class MatrixComplex {
 	 * The columns are separated by commas.
 	 */
 	public String toString() {
-		if (this.isEmpty()) return "[]";
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		String toString = new String();
-		String itemStr;
-		for (int row = 0; row < rowLen; ++row) {
-			toString += "[ ";
-			for (int col = 0; col < colLen; ++col) {
-				itemStr = this.complexMatrix[row][col].toString();
-				//toString += itemStr.charAt(0)== '-' ? itemStr : __NUMPAD__ + itemStr ;
-				toString += itemStr;
-				toString += (col == colLen-1 ? " ]" : " , ");
-			}
-			toString += (row == rowLen-1 ? "" : "\n");
-		}
-		return toString;
-	}
-
-	/**
-	 * Private method that presents the matrix enclosed in brackets.
-	 * Each line corresponds to a row of the array.
-	 * The columns are separated by commas.
-	 */
-	private void printCM() {
-		System.out.print(this.toString());
+		return MatrixComplexFormat.toString(this);
 	}
 
 	/**
@@ -1163,64 +1136,23 @@ public class MatrixComplex {
 	 * @param caption The title
 	 */
 	public void println(int col, String caption) {
-		int rowLen = this.rows();
-
-		MatrixComplex cMatrix = new MatrixComplex(rowLen, 1);
-		for (int row = 0; row < rowLen; ++row) cMatrix.complexMatrix[row][0] = this.complexMatrix[row][col];  
-
-		cMatrix.println(caption);
+		MatrixComplexFormat.println(this, col, caption);
 	}
 
 	/**
 	 * Returns a string with the array expression in the format used by Maxima (Computer Algebra System)
 	 * @return The string with the array in Maxima format.
 	 */
-	//matrix([-1.0 + 6.0*%i,2.0 - 8.0*%i,-1.0,1.0 - 4.0*%i],
-	//		 [4.0 - 9.0*%i,8.0 - 4.0*%i,7.0 + 5.0*%i,-9.0 - 3.0*%i],
-	//		 [5.0 + 7.0*%i,2.0 + 4.0*%i,-3.0 + 4.0*%i,6.0 + 6.0*%i],if (__DEBUG__) 
-	//		 [-4.0 - 4.0*%i,6.0 - 5.0*%i,3.0 + 8.0*%i,-3.0 - 3.0*%i]);
 	public String toMaxima() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		String matrixMaxima = new String();
-
-		for (int row = 0; row < rowLen; ++row) {
-			matrixMaxima += "[";
-			for (int col = 0; col < colLen; ++col) {
-				matrixMaxima += this.complexMatrix[row][col].toString();
-				matrixMaxima += (col == colLen-1 ? "]" : ",");
-			}
-			matrixMaxima += (row == rowLen-1 ? ")" : ",");
-		}
-		matrixMaxima = matrixMaxima.replace("i", "*%i");
-		matrixMaxima = "matrix(" + matrixMaxima;
-
-		return matrixMaxima;
+		return MatrixComplexFormat.toMaxima(this);
 	}
 
 	/**
 	 * Returns a string with the array expression in the format used by Wolfram Mathematica.
 	 * @return The string with the array in Wolfram Mathematica format.
 	 */
-	//{{-1.0 + 6.0i,2.0 - 8.0i,-1.0,1.0 - 4.0i},
-	// {4.0 - 9.0i,8.0 - 4.0i,7.0 + 5.0i,-9.0 - 3.0i},
-	// {5.0 + 7.0i,2.0 + 4.0i,-3.0 + 4.0i,6.0 + 6.0i},
-	// {-4.0 - 4.0i,6.0 - 5.0i,3.0 + 8.0i,-3.0 - 3.0i}}
 	public String toWolfram() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		String matrixWolfram = new String();
-		matrixWolfram += "{";
-
-		for (int row = 0; row < rowLen; ++row) {
-			matrixWolfram += "{";
-			for (int col = 0; col < colLen; ++col) {
-				matrixWolfram += this.complexMatrix[row][col].toStringRecWolfram();
-				matrixWolfram += (col == colLen-1 ? "}" : ",");
-			}
-			matrixWolfram += (row == rowLen-1 ? "}" : ",");
-		}
-		return matrixWolfram.replace("E", "*10^");
+		return MatrixComplexFormat.toWolfram(this);
 	}
 
 	/**
@@ -1228,19 +1160,7 @@ public class MatrixComplex {
 	 * @return The string with the array in Matlab format.
 	 */
 	public String toMatlab() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		String matrixWolfram = new String();
-		matrixWolfram += "[";
-
-		for (int row = 0; row < rowLen; ++row) {
-			for (int col = 0; col < colLen; ++col) {
-				matrixWolfram += this.complexMatrix[row][col].toString();
-				matrixWolfram += (col == colLen-1 ? "" : ",");
-			}
-			matrixWolfram += (row == rowLen-1 ? "]" : ";");
-		}
-		return matrixWolfram;
+		return MatrixComplexFormat.toMatlab(this);
 	}
 
 	/**
@@ -1248,41 +1168,23 @@ public class MatrixComplex {
 	 * @return The string with the array in GNU Octave format.
 	 */
 	public String toOctave() {
-		return toMatlab();
+		return MatrixComplexFormat.toOctave(this);
 	}
-	
+
 	/**
 	 * Prepares the matrix string for toMatrixComplex
 	 * @return the matrix string
 	 */
 	public String preMatrixComplex() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		String preMatrixComplex = new String();
-		int row, col;
-
-		preMatrixComplex = "\"";
-		for (row = 0; row < rowLen-1; ++row) {
-			for (col = 0; col < colLen; ++col) {
-				preMatrixComplex += this.complexMatrix[row][col].toString();
-				preMatrixComplex += (col == colLen-1 ? ";" : ",");
-			}
-		}
-		for (col = 0; col < colLen; ++col) {
-			preMatrixComplex += this.complexMatrix[row][col].toString();
-			preMatrixComplex += (col == colLen-1 ? "\"" : ",");
-		}
-		return preMatrixComplex;
+		return MatrixComplexFormat.preMatrixComplex(this);
 	}
-	
+
 	/**
-	 * Returns a string with the array expression in the format used by Matrix Complex. 
+	 * Returns a string with the array expression in the format used by Matrix Complex.
 	 * @return The string with the array in MatrixComplex format.
 	 */
 	public String toMatrixComplex() {
-		String toMatrixComplex;
-		toMatrixComplex = "new MatrixComplex(" + preMatrixComplex() +");";
-		return toMatrixComplex;
+		return MatrixComplexFormat.toMatrixComplex(this);
 	}
 
 	/*
