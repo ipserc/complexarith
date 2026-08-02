@@ -18,7 +18,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.42 (2026_0802_2308)";
+	private final static String VERSION = "1.43 (2026_0802_2317)";
 	/* VERSION Release Note
 	 *
 	 * 1.40 (2026_0803_1900)
@@ -4138,35 +4138,12 @@ public class MatrixComplex {
 		return MatrixComplexRank.isSquare(this);
 	}
 
-	/*
-	 * https://es.wikipedia.org/wiki/Proceso_de_ortogonalizaci%C3%B3n_de_Gram-Schmidt
-	 * Proceso de ortogonalizaciÃ³n de Gram-Schmidt con el mÃ©todo de Gauss
-	 */
 	/**
-	 * Gram-Schmidt orthogonalization process via Gaussian elimination. 
+	 * Gram-Schmidt orthogonalization process via Gaussian elimination.
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
 	 */
 	public MatrixComplex gramSchmidtGauss() {
-		final boolean DEBUG_ON = false; 
-		MatrixComplex auxMatrix = this.times(this.adjoint());
-		
-		MatrixComplex augmentedMatrix = auxMatrix.copy();
-		augmentedMatrix = augmentedMatrix.augment(this);
-
-		/* -------------   DEBUGGING BLOCK   ------------- */
-		trace(augmentedMatrix, "augmentedMatrix");
-		/* ------------- END DEBUGGING BLOCK ------------- */
-		
-		augmentedMatrix = augmentedMatrix.triangle();
-		
-		MatrixComplex gramSchmidtMatrix = new MatrixComplex(this.rows(), this.cols());
-		for (int row = 0; row < gramSchmidtMatrix.rows(); ++row) {
-			for (int col = 0; col < gramSchmidtMatrix.cols(); ++col) {
-				gramSchmidtMatrix.setItem(row, col, augmentedMatrix.getItem(row, col+this.cols()));
-			}
-		}
-		
-		return gramSchmidtMatrix.transpose();
+		return MatrixComplexOrtho.gramSchmidtGauss(this);
 	}
 
 	/**
@@ -4177,28 +4154,7 @@ public class MatrixComplex {
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
 	 */
 	public MatrixComplex gramSchmidt() {
-		// Because we operate with cols
-		MatrixComplex thsiTansposed = this.transpose();
-		int rowLen = thsiTansposed.rows();
-		int colLen = thsiTansposed.cols();
-
-		colLen = colLen > rowLen ? rowLen : colLen;
-
-		MatrixComplex gramschmidt = new MatrixComplex(rowLen, colLen);
-		MatrixComplex v = new MatrixComplex(rowLen, 1);
-		MatrixComplex x = new MatrixComplex(rowLen, 1);
-		MatrixComplex g = new MatrixComplex(rowLen, 1);
-
-		for (int i = 0; i < colLen; ++i) {
-			x.copyCol(0, thsiTansposed, i);
-			g = x;
-			for (int j = i-1; j >= 0; --j) {
-				v.copyCol(0, gramschmidt, j);
-				g = g.minus(v.times((g.dotprod(v)).divides(v.dotprod(v)))) ;				
-			}
-			gramschmidt.copyCol(i, g, 0);
-		}
-		return gramschmidt.transpose();
+		return MatrixComplexOrtho.gramSchmidt(this);
 	}
 
 	/**
@@ -4207,29 +4163,7 @@ public class MatrixComplex {
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
 	 */
 	public MatrixComplex gramSchmidtFull() {
-		// Because we operate with cols
-		MatrixComplex thsiTansposed = this.transpose();
-		int rowLen = thsiTansposed.rows();
-		int colLen = thsiTansposed.cols();
-
-		colLen = colLen > rowLen ? rowLen : colLen;
-
-		MatrixComplex gramschmidtF = new MatrixComplex(rowLen, colLen);
-		MatrixComplex v = new MatrixComplex(rowLen, 1);
-		MatrixComplex x = new MatrixComplex(rowLen, 1);
-		MatrixComplex g = new MatrixComplex(rowLen, 1);
-
-		for (int i = 0; i < colLen; ++i) {
-			if (i < colLen) x.copyCol(0, thsiTansposed, i);
-			else x.initMatrixRandomInt(9);
-			g = x;
-			for (int j = i-1; j >= 0; --j) {
-				v.copyCol(0, gramschmidtF, j);
-				g = g.minus(v.times((x.dotprod(v)).divides(v.dotprod(v)))) ;				
-			}
-			gramschmidtF.copyCol(i, g, 0);
-		}
-		return gramschmidtF.transpose();
+		return MatrixComplexOrtho.gramSchmidtFull(this);
 	}
 
 	/**
@@ -4238,30 +4172,7 @@ public class MatrixComplex {
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
 	 */
 	public MatrixComplex gramSchmidtMFull() {
-		// Because we operate with cols
-		MatrixComplex thsiTansposed = this.transpose();
-		int rowLen = thsiTansposed.rows();
-		int colLen = thsiTansposed.cols();
-
-		colLen = colLen > rowLen ? rowLen : colLen;
-
-		MatrixComplex gramschmidtF = new MatrixComplex(rowLen, colLen);
-		MatrixComplex v = new MatrixComplex(rowLen, 1);
-		MatrixComplex x = new MatrixComplex(rowLen, 1);
-		MatrixComplex g = new MatrixComplex(rowLen, 1);
-
-		gramschmidtF = thsiTansposed.copy();
-		for (int i = 0; i < colLen; ++i) {
-			if (i < colLen) x.copyCol(0, gramschmidtF, i);
-			else x.initMatrixRandomInt(9);
-			g = x;
-			for (int j = i-1; j >= 0; --j) {
-				v.copyCol(0, gramschmidtF, j);
-				g = g.minus(v.times((g.dotprod(v)).divides(v.dotprod(v)))) ;				
-			}
-			gramschmidtF.copyCol(i, g, 0);
-		}
-		return gramschmidtF.transpose();
+		return MatrixComplexOrtho.gramSchmidtMFull(this);
 	}
 
 	/**
@@ -4270,29 +4181,7 @@ public class MatrixComplex {
 	 * @return The matrix with the orthogonal basis that generates the same vector subspace.
 	 */
 	public MatrixComplex gramSchmidtM() {
-		// Because we operate with cols
-		MatrixComplex thsiTansposed = this.transpose();
-		int rowLen = thsiTansposed.rows();
-		int colLen = thsiTansposed.cols();
-
-		colLen = colLen > rowLen ? rowLen : colLen;
-
-		MatrixComplex gramschmidt = new MatrixComplex(rowLen, colLen);
-		MatrixComplex v = new MatrixComplex(rowLen, 1);
-		MatrixComplex x = new MatrixComplex(rowLen, 1);
-		MatrixComplex g = new MatrixComplex(rowLen, 1);
-
-		gramschmidt = thsiTansposed.copy();
-		for (int i = 0; i < colLen; ++i) {
-			x.copyCol(0, gramschmidt, i);
-			g = x;
-			for (int j = i-1; j >= 0; --j) {
-				v.copyCol(0, gramschmidt, j);
-				g = g.minus(v.times((g.dotprod(v)).divides(v.dotprod(v)))) ;				
-			}
-			gramschmidt.copyCol(i, g, 0);
-		}
-		return gramschmidt.transpose();
+		return MatrixComplexOrtho.gramSchmidtM(this);
 	}
 
 	/**
@@ -4300,15 +4189,15 @@ public class MatrixComplex {
 	 * @return The orthogonal Matrix
 	 */
 	public MatrixComplex orthogonalize() {
-		return this.gramSchmidt();
+		return MatrixComplexOrtho.orthogonalize(this);
 	}
-	
+
 	/**
 	 * Shortcut to normalize method.
 	 * @return The normalized matrix.
 	 */
 	public MatrixComplex normalize() {
-		return normalizeByRows();
+		return MatrixComplexOrtho.normalize(this);
 	}
 
 	/**
@@ -4316,27 +4205,15 @@ public class MatrixComplex {
 	 * @return The orthonormal Matrix
 	 */
 	public MatrixComplex orthonormalize() {
-		return this.orthogonalize().normalizeByRows();
+		return MatrixComplexOrtho.orthonormalize(this);
 	}
-	
+
 	/**
 	 * Normalizes the matrix by columns using the Euclidean norm.
 	 * @return The normalized matrix.
 	 */
 	public MatrixComplex normalizeByCols() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		double v_euc_norm;
-		MatrixComplex norm = new MatrixComplex(rowLen, colLen);
-		MatrixComplex v = new MatrixComplex(rowLen, 1);
-
-		for (int col = 0; col < colLen; ++col) {
-			v.copyCol(0, this, col);
-			v_euc_norm = v.euc_norm();
-			if (v_euc_norm > Complex.zero_treshold()) v = v.divides(v.euc_norm());
-			norm.copyCol(col, v, 0);
-		}
-		return norm;
+		return MatrixComplexOrtho.normalizeByCols(this);
 	}
 
 	/**
@@ -4344,42 +4221,7 @@ public class MatrixComplex {
 	 * @return The normalized matrix.
 	 */
 	public MatrixComplex normalizeByRows() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		double v_euc_norm;
-		MatrixComplex norm = new MatrixComplex(rowLen, colLen);
-		MatrixComplex v = new MatrixComplex(1, colLen);
-
-		for (int row = 0; row < rowLen; ++row) {
-			v.copyRow(0, this, row);
-			v_euc_norm = v.euc_norm();
-			if (v_euc_norm > Complex.zero_treshold()) v = v.divides(v.euc_norm());
-			norm.copyRow(row, v, 0);
-		}
-		return norm;
-	}
-
-	/**
-	 * Private method. The dot product used in some other methods (gramSchmidt)
-	 * This is the dotprod for MatrixComplex class. "Vector" class has the public method dotprod used in vector arithmetic.
-	 * @param cMatrix A index to the row to make the dot product.
-	 * @return The Complex result of the dot product.
-	 */
-	private Complex dotprod(MatrixComplex cMatrix) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int rowLenC = cMatrix.rows();
-		int colLenC = cMatrix.cols();
-
-		if (colLen != 1 || colLenC != 1) {
-			System.err.println(HEADINFO + "dotprod: " + "One of the componentes isn't a row/col");
-		}
-
-		if (rowLen != rowLenC) {
-			System.err.println(HEADINFO + "dotprod: " + "row col of different size");
-		}
-
-		return cMatrix.adjoint().times(this).complexMatrix[0][0];
+		return MatrixComplexOrtho.normalizeByRows(this);
 	}
 
 	/**
