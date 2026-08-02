@@ -1225,7 +1225,7 @@ El usuario preguntó si merece la pena reestructurar `Hessenbergfactor`/`QRSchur
 
 ---
 
-## Reestructuración de `MatrixComplex.java` — Etapas 1 y 2 completas (commits `626af10` y pendiente)
+## Reestructuración de `MatrixComplex.java` — Etapas 1 y 2 completas (commits `626af10`, `c102ae5`, `cd355e1`)
 
 Undécima sesión. Arranque formal (`EnterPlanMode`, plan guardado en `dapper-singing-sky.md`) del candidato dejado abierto arriba. Dos exploraciones previas dieron el mapa completo: 7144 líneas, 20 secciones, 220 ficheros dependientes (197 tests, 23 de librería), 17 subclases directas. Hoja de ruta multi-sesión, misma disciplina que QR-con-desplazamientos: una etapa concreta por sesión, el resto anotado a nivel de "qué sección + qué riesgos", detalle fino solo justo antes de empezarla.
 
@@ -1244,6 +1244,14 @@ Undécima sesión. Arranque formal (`EnterPlanMode`, plan guardado en `dapper-si
 **Los 2 bugs arreglados a continuación (commit `cd355e1`, mismo `VERSION`→`1.39`)**: batería completa re-ejecutada tras el fix, mismos `exit code` que antes de los fixes en todos los casos (las diferencias de contenido en los `TestTaylorSeries0X`/`TestTaylorLogExp0X` confirmadas como el mismo ruido preexistente de `Math.random()` — verificado ejecutando el MISMO binario dos veces seguidas y viendo que también difiere entre sí, sin relación con el fix).
 
 **Hoja de ruta para próximas sesiones** (detalle completo en el plan guardado): Etapa 3 candidata EQUATION SYSTEMS (1750 líneas, la sección más grande, con 5 subgrupos — máxima cautela en el núcleo de resolución de sistemas del que depende `Syseq`); Etapa 4 candidata UNARY OPERATORS (867 líneas, 8 subgrupos). `COLS & ROWS OPERATIONS` (hub de helpers usados por varias secciones) y `ARITHMETIC OPERATIONS` (535 líneas, núcleo algebraico) se quedan en el núcleo, no son candidatos a extracción.
+
+## SESIÓN PAUSADA — Undécima sesión (2/3 agosto 2026)
+
+A petición del usuario ("Paramos por ahora"). Todo commiteado y pusheado hasta `c4cde6f` inclusive. Árbol trackeado limpio salvo dos ficheros modificados que NO son de esta sesión (`Claude/ClaudeRevisionComplexArith.txt` y `src/TestComplex/TestEigenV22.java`, cambios propios del usuario en paralelo, presentes ya al empezar hoy — no tocar, no son míos).
+
+**EXACTO PUNTO DE RETOMADA**: la reestructuración de `MatrixComplex.java` (plan formal guardado en `C:\Users\josel\.claude\plans\dapper-singing-sky.md`) tiene **Etapa 1 (`MatrixComplexFormat`, PRINTING) y Etapa 2 (`MatrixComplexFunctions`, TAYLOR'S SERIES) completas**, más 2 bugs incidentales de la Etapa 2 ya arreglados (`cd355e1`). Siguiente paso natural: **Etapa 3 — EQUATION SYSTEMS** (líneas ~4700-6449 de la versión pre-reestructuración, 1750 líneas, la sección más grande del fichero, 5 subgrupos: A+B clasificación/resolución+Gauss/Cramer ~813 líneas —cuidado, `Syseq` depende de este núcleo—, C rango/nulidad/triangularización ~569 líneas, D Gram-Schmidt ~219 líneas, E producto escalar/Kronecker/kernel ~148 líneas). El plan guardado recomienda tratar cada subgrupo como una sub-fase independiente en vez de una sola clase, dada la heterogeneidad — decidir el desglose exacto justo al empezar, no antes.
+
+Nada queda a medias: ambas etapas completas y verificadas (comparación byte a byte + batería de regresión completa), documentadas en la sección de arriba, sin deuda oculta.
 
 ---
 
