@@ -1205,6 +1205,15 @@ Retoma el candidato anotado antes ("¿merece la pena reestructurar los módulos 
 
 **Resultado**: `Polynom.java` pasa de ~2128 a ~1560 líneas, ya no importa `JavaPlot` directamente. Ninguno de los 34 ficheros que usan `Polynom` necesitó cambios. Batería de regresión completa en ambas fases, exit 0 en todos salvo los fallos preexistentes ya documentados por falta de `gnuplot` en este entorno.
 
+## `ncPolynom.java` borrado + bug de `plotRe(double[][])` arreglado (commit `7473671`)
+
+Dos limpiezas pedidas explícitamente por el usuario tras cerrar la reestructuración de `Polynom.java`, con análisis previo en ambos casos (a petición del usuario: "primero análisis, efectos colaterales y luego decidir si resolver o no").
+
+- **`ncPolynom.java` borrado**: esqueleto sin terminar desde 2019 (confirmado con `git log`) — extendía `MatrixComplex` directamente (no `Polynom`), solo 2 constructores + un campo `dOffset` (parece un intento temprano de polinomios con grado inicial distinto de 0), sin `eval`/`toString`/aritmética/nada más. Cero referencias en todo el proyecto. `Polynom.java` es y ha sido siempre la clase completa.
+- **Bug arreglado**: `PolynomPlot.plotRe(Polynom,double[][])` — `points[points.length][0]` → `points[points.length-1][0]`. Análisis antes de arreglar: cero callers en todo el proyecto (nadie usa esta sobrecarga de 1 argumento), y el método revertaba con `ArrayIndexOutOfBoundsException` el 100% de las veces que se llamaba, así que el arreglo no tenía ningún efecto colateral posible. Verificado: ahora llega correctamente hasta la llamada a `gnuplot` (que falla solo por no estar instalado en este entorno).
+
+Batería de regresión completa (35 ficheros) exit 0 en todos salvo los fallos preexistentes ya documentados por falta de `gnuplot`. `Polynom.VERSION`: `1.12→1.13`.
+
 ## Reestructuración arquitectónica de los módulos tocados hoy — diagnóstico y estado
 
 El usuario preguntó si merece la pena reestructurar `Hessenbergfactor`/`QRSchurfactor`/`Eigenspace`/`Polynom` (los módulos tocados en la Décima sesión) igual que se hizo con `Complex.java` en el Paso 2 (Sexta sesión: split en clases *package-private* por responsabilidad, API pública 100% intacta vía delegadores de una línea, ver esa sección arriba para el patrón completo). Diagnóstico dado en su momento:
