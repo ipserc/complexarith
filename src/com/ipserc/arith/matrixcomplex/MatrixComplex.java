@@ -18,8 +18,19 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.38 (2026_0803_0100)";
+	private final static String VERSION = "1.39 (2026_0803_0130)";
 	/* VERSION Release Note
+	 *
+	 * 1.39 (2026_0803_0130)
+	 * Fixed both bugs found incidentally in VERSION 1.38 (both explicitly requested by the user,
+	 * not deferred): (1) static ccos(MatrixComplex) used Complex.sin() instead of Complex.cos()
+	 * for every entry -- now matches ccos()'s (correct) instance body; verified diff==0 against
+	 * the instance method. (2) MatrixComplexFunctions.logMercator() had no iteration cap (still
+	 * used raw Complex.digits(), ~10^13) -- added LOG_MERCATOR_MAX_ITER=10000 (same value/rationale
+	 * as logTaylor()'s LOG_TAYLOR_MAX_ITER, VERSION 1.36) plus an explicit "did not converge"
+	 * exception, same pattern. Confirmed real hang before the fix (the nilpotent "0,1;0,0" case,
+	 * same boundary as logTaylor()'s); now throws in ~40ms. Convergent-case regression (matches
+	 * log()) and full test battery unaffected -- see ComplexArithRev.md for detail.
 	 *
 	 * 1.38 (2026_0803_0100)
 	 * TAYLOR'S SERIES section (exp/exp_, sin/cos/tan families incl. Taylor/Euler/item-to-item
@@ -2118,10 +2129,10 @@ public class MatrixComplex {
 	 */
 	public static MatrixComplex ccos(MatrixComplex matrix) {
 		MatrixComplex cosMat = new MatrixComplex(matrix.rows(), matrix.cols());
-		
+
 		for (int row = 0; row < cosMat.rows(); ++row)
 			for (int col = 0; col < cosMat.cols(); ++col)
-				cosMat.setItem(row, col, Complex.sin(matrix.getItem(row, col)));
+				cosMat.setItem(row, col, Complex.cos(matrix.getItem(row, col)));
 		return cosMat;
 	}
 

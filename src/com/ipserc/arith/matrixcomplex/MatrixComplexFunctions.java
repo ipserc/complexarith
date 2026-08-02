@@ -871,9 +871,21 @@ class MatrixComplexFunctions {
 	}
 
 	/**
+	 * Hard cap on {@link #logMercator}'s iteration count, overriding {@code Complex.digits()} --
+	 * same rationale and same value as {@link #LOG_TAYLOR_MAX_ITER}, applied here after this cap
+	 * was found missing (confirmed hanging on the same boundary-case nilpotent matrix,
+	 * {@code [[0,1],[0,0]]}, that {@link #logTaylor}'s own cap was added for) while extracting
+	 * this class (Undecima sesion).
+	 */
+	private final static int LOG_MERCATOR_MAX_ITER = 10000;
+
+	/**
 	 * Calculates the logarithm of a Matrix using Mercator's Extension summation log(1 + x)
 	 * @param m The matrix.
 	 * @return The logarithm of a Matrix using Mercator's Extension
+	 * @throws IllegalArgumentException if the series diverges (existing check), or if it fails to
+	 * converge within {@link #LOG_MERCATOR_MAX_ITER} iterations (same boundary case as
+	 * {@link #logTaylor}).
 	 */
 	static MatrixComplex logMercator(MatrixComplex m) {
 		MatrixComplex.trace("------------ logMercator() ------------ ");
@@ -917,9 +929,12 @@ class MatrixComplexFunctions {
 		MatrixComplex errAntMat = new MatrixComplex(m.rows(), m.cols());
 		MatrixComplex logMatant;
 
-		// precision can be changed with Complex.digits(long_value)
-		long maxIter = Complex.digits();
+		// precision can be changed with Complex.digits(long_value) -- capped at
+		// LOG_MERCATOR_MAX_ITER regardless (see that constant's Javadoc for why
+		// Complex.digits() alone isn't safe here, same boundary case as logTaylor()).
+		long maxIter = Math.min(Complex.digits(), LOG_MERCATOR_MAX_ITER);
 		long k = 2;
+		boolean converged = false;
 
 		// Variables to use at check convergence section
 		int maxPoints = 99999;
@@ -934,7 +949,7 @@ class MatrixComplexFunctions {
 			logMatrix = logMatrix.plus(powMatrix.divides(k*(k%2 == 0 ? -1 : 1)));
 			errMatrix = logMatant.minus(logMatrix);
 			errMatrix.abs();
-			if (errMatrix.isNullC()) break;
+			if (errMatrix.isNullC()) { converged = true; break; }
 
 			/*
 			 * Check convergence section
@@ -960,6 +975,14 @@ class MatrixComplexFunctions {
 			 * End of Check convergence section
 			 */
 		} while(k++ < maxIter);
+
+		if (!converged)
+			throw new IllegalArgumentException("logMercator: the Mercator series log(1+x) did not converge "
+				+ "within " + maxIter + " iterations -- the matrix's dominant eigenvalue is likely "
+				+ "exactly on (or very close to) the series' radius of convergence (e.g. a defective/"
+				+ "nilpotent structure), a boundary case the deviation-based divergence check above can "
+				+ "miss (grows too slowly -- linearly, not exponentially -- to trigger it in reasonable time).");
+
 		if (MatrixComplex.debug()) {
 			MatrixComplex.trace("Iterations to converge:" + k);
 			MatrixComplex.trace("accumulator:" + accumulator);
