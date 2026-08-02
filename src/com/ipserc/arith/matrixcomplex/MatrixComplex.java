@@ -2854,9 +2854,37 @@ public class MatrixComplex {
 	}
 	
 	/**
+	 * Hard cap on {@link #logTaylor()}'s iteration count, overriding {@code Complex.digits()}
+	 * (which is {@code 10^precision}, astronomically large, never meant to be reached in
+	 * practice -- the real exit was supposed to be either convergence or the deviation-based
+	 * divergence check). Confirmed real case where BOTH those exits fail to fire in reasonable
+	 * time: a nilpotent matrix ({@code [[0,1],[0,0]]}), whose {@code thisMatrix=I-A} is a
+	 * defective Jordan block with eigenvalue exactly {@code 1} (the boundary of the series'
+	 * convergence radius) -- its powers grow LINEARLY (not exponentially), so the error norm
+	 * never shrinks (never converges) AND the deviation ratio hovers at {@code ~1.0} (never
+	 * clearly {@code >1} by enough to make the {@code accumulator>500} check fire before
+	 * {@code Complex.digits()}'s ~{@code 10^13} iterations -- confirmed hanging for minutes on a
+	 * 2x2 matrix before this fix). See {@link #logTaylor()}'s own Javadoc.
+	 */
+	private final static int LOG_TAYLOR_MAX_ITER = 10000;
+
+	/**
 	 * Calculates the logarithm of a Matrix using Taylor's Extension summation log(1 - x)
-	 * @return The logarithm of a Matrix using Taylor's Extension 
+	 * <p>
+	 * <b>KNOWN LIMITATION, root cause fixed, detection improved:</b> the series converges only
+	 * when {@code I-this/||this||}'s spectral radius is {@code <1} -- for a matrix whose dominant
+	 * eigenvalue orientation isn't close to {@code +||A||}, or (the case that used to hang, not
+	 * just diverge) a defective/nilpotent structure putting that spectral radius exactly {@code
+	 * =1}, the series does not converge. The existing deviation-based divergence check (comparing
+	 * successive error norms) only catches EXPONENTIAL divergence quickly; a boundary case where
+	 * the error norm simply fails to shrink (LINEAR, not exponential growth) can evade it for as
+	 * long as {@link #LOG_TAYLOR_MAX_ITER} allows before this method now throws explicitly instead
+	 * of running that many iterations.
+	 * @return The logarithm of a Matrix using Taylor's Extension
 	 * https://es.wikipedia.org/wiki/Logaritmo_de_una_matriz
+	 * @throws IllegalArgumentException if the series diverges (existing check), or if it fails to
+	 * converge within {@link #LOG_TAYLOR_MAX_ITER} iterations (new safety net for the boundary
+	 * case the divergence check can miss).
 	 */
 	public MatrixComplex logTaylor() {
 		trace("------------ logtaylor() ------------ ");
@@ -2900,10 +2928,12 @@ public class MatrixComplex {
 		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
 		MatrixComplex logMatant;
 		
-		// precision can be changed with Complex.digits(long_value)
-		long maxIter = Complex.digits();
+		// precision can be changed with Complex.digits(long_value) -- capped at LOG_TAYLOR_MAX_ITER
+		// regardless (see that constant's Javadoc for why Complex.digits() alone isn't safe here).
+		long maxIter = Math.min(Complex.digits(), LOG_TAYLOR_MAX_ITER);
 		long k = 2;
-		
+		boolean converged = false;
+
 		// Variables to use at check convergence section
 		int maxPoints = 99999;
 		double[][] dataTable = new double[maxPoints][2];
@@ -2917,13 +2947,13 @@ public class MatrixComplex {
 			logMatrix = logMatrix.plus(powMatrix.divides(k));
 			errMatrix = logMatant.minus(logMatrix);
 			errMatrix.abs();
-			if (errMatrix.isNullC()) break;
+			if (errMatrix.isNullC()) { converged = true; break; }
 
 			/*
 			 * Check convergence section
 			 */
 			if ( k > 100 ) {
-				
+
 				/* * /
 				logMatrix.println("- - - DEBUG · logMatrix:");
 				if ( errMatrix.norm() > 2 ) {
@@ -2932,14 +2962,14 @@ public class MatrixComplex {
 					System.out.println("- - - DEBUG · errAntMat.norm():" + errAntMat.norm());
 				}
 				/* */
-				
+
 				deviation = errMatrix.norm()/errAntMat.norm();
 				accumulator += deviation > 1 ? deviation : 0.0;
 				if (c < maxPoints) {
 					dataTable[c][0] = k;
 					dataTable[c++][1] = deviation;
 				}
-				/* */ 
+				/* */
 				if (accumulator > 500) {
 					/* * /
 					if (__DEBUG__) {
@@ -2951,23 +2981,30 @@ public class MatrixComplex {
 					/* */
 					throw new IllegalArgumentException("logTaylor: The Taylor series log(1-x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
 				}
-				
+
 				/* * /
-				if (__DEBUG__) { 
+				if (__DEBUG__) {
 					if ( deviation > 0) System.out.println("- - - DEBUG · Iteration:"+ k);
 					System.out.println("- - - DEBUG · deviation:" + deviation);
 				}
 				/* */
-				
+
 				/* */
 			}
 			errAntMat = errMatrix.copy();
-			if ( deviation.isInfinite() ) break;
+			if ( deviation.isInfinite() ) { converged = true; break; }
 			/*
 			 * End of  Check convergence section
 			 */
 		} while(k++ < maxIter);
-		
+
+		if (!converged)
+			throw new IllegalArgumentException("logTaylor: the Taylor series log(1-x) did not converge "
+				+ "within " + maxIter + " iterations -- the matrix's dominant eigenvalue is likely "
+				+ "exactly on (or very close to) the series' radius of convergence (e.g. a defective/"
+				+ "nilpotent structure), a boundary case the deviation-based divergence check above can "
+				+ "miss (grows too slowly -- linearly, not exponentially -- to trigger it in reasonable time).");
+
 		/* * /
 		if (__DEBUG__) {
 			System.out.println("- - - DEBUG · Iterations to converge:" + k);
@@ -2976,14 +3013,14 @@ public class MatrixComplex {
 			doPlot("-- DEVIATION --", dataTable, --c);
 		}
 		/* */
-		
+
 		/* * /
 		if (__DEBUG__) {
 			logMatrix.println("--- CHECK logMatrix:");
 			logMatrix.opposite().println("--- CHECK logMatrix.opposite():");
 			logMatrix.opposite().plusMat(m,0).println("--- CHECK logMatrix.opposite().plusMat(m,0)");
 		/* */
-		
+
 		return logMatrix.opposite().plusMat(Math.log(factor));
 	}
 	

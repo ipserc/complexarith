@@ -17,18 +17,12 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  * blind spot): {@code log()} must now succeed (via {@code logm()}) instead of throwing --
  * confirmed real case: a defective 2x2 block ({@code lambda=-50}, P not orthogonal) that used to
  * make {@code log()} throw outright.</li>
+ * <li>The genuinely-unrecoverable (nilpotent) case: {@code logm()} throws cleanly (verified in
+ * {@code TestLogmAudit01}), {@code log()} falls back to {@code logTaylor()}, which used to HANG
+ * (not throw, not terminate within 15s) for this exact input -- fixed separately (see {@code
+ * MatrixComplex.LOG_TAYLOR_MAX_ITER}'s own Javadoc / {@code TestLogTaylorAudit01}) -- {@code
+ * log()} must now throw explicitly and quickly.</li>
  * </ol>
- * <b>Deliberately NOT tested here:</b> the genuinely-unrecoverable (nilpotent) case. {@code
- * logm()} itself already handles it correctly (throws cleanly, verified in {@code
- * TestLogmAudit01}) -- but {@code log()}'s dispatch falls back to {@code logTaylor()} whenever
- * {@code logm()} throws, and {@code logTaylor()} was found, DURING this fix, to hang (not throw,
- * not terminate within 15s) for a nilpotent matrix. Confirmed PRE-EXISTING and unrelated to this
- * fix: calling {@code logTaylor()} directly on a fresh build from before this change hangs
- * identically -- {@code log()}'s dispatch reached {@code logTaylor()} for this exact input before
- * this fix too (neither diagonal nor diagonalizable), so the exposure is unchanged, just newly
- * discovered while writing this test. Documented as a separate, deferred finding (see {@code
- * Claude/ComplexArithRev.md}), not fixed here -- exercising it in an automated test would make
- * this suite hang for whoever runs it.
  */
 public class TestLogDispatch01 {
 
@@ -83,6 +77,18 @@ public class TestLogDispatch01 {
 		MatrixComplex pMulti = new MatrixComplex("1,2,0;0,1,1;1,0,1");
 		checkSelfConsistentExp("defective 3x3 multi-block (2x2 lambda=5 + 1x1 lambda=-2), P not orthogonal",
 			pMulti.times(jMulti).times(pMulti.inverse()), 1e-4);
+
+		// Genuinely unrecoverable (nilpotent): logm() throws, log() falls back to logTaylor(),
+		// which used to hang here -- must now throw quickly and explicitly, not hang.
+		long t0 = System.currentTimeMillis();
+		try {
+			new MatrixComplex("0,1;0,0").log();
+			report("nilpotent matrix -- log() must throw", false, "did not throw");
+		} catch (IllegalArgumentException e) {
+			long elapsedMs = System.currentTimeMillis() - t0;
+			report("nilpotent matrix -- log() must throw quickly, not hang", elapsedMs < 5000,
+				"elapsed=" + elapsedMs + "ms, threw: " + e.getMessage());
+		}
 
 		System.out.println();
 		System.out.println("TOTAL pass=" + pass + " fail=" + fail);
