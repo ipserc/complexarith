@@ -18,7 +18,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.41 (2026_0802_2258)";
+	private final static String VERSION = "1.42 (2026_0802_2308)";
 	/* VERSION Release Note
 	 *
 	 * 1.40 (2026_0803_1900)
@@ -4114,10 +4114,6 @@ public class MatrixComplex {
 		return MatrixComplexRank.triangleUpPerfect(this);
 	}
 
-	public MatrixComplex triangleUpPerfect_DEPRECATED() {
-		return MatrixComplexRank.triangleUpPerfect_DEPRECATED(this);
-	}
-
 	/**
 	 * Checks if the matrix is lower triangular.
 	 * @return true if the matrix is lower triangular, false otherwise.
@@ -4132,10 +4128,6 @@ public class MatrixComplex {
 	 */
 	public MatrixComplex triangleLo(){
 		return MatrixComplexRank.triangleLo(this);
-	}
-
-	public MatrixComplex triangleLo1() {
-		return MatrixComplexRank.triangleLo1(this);
 	}
 
 	/**

@@ -19,17 +19,26 @@ import com.ipserc.arith.complex.Complex;
  * Etapa 2, referenced here qualified as {@code MatrixComplex.trace(...)}). {@code partialPivotUp(int)}
  * (used by {@code triangleLo()}) was widened from {@code private} to package-private for this exact
  * purpose -- every other helper this section calls ({@code partialPivot}, {@code swapRows},
- * {@code Ftransf}, {@code locateSwapRowDown}, {@code getRow}, {@code subMatrix}, {@code getItem},
- * {@code setItem}, {@code isNull}, {@code isNullRow}) was already public. {@code MatrixComplex.java}'s
- * own public methods keep their exact signatures, delegating to these in one line each -- the public
- * API is unchanged.
+ * {@code Ftransf}, {@code getRow}, {@code subMatrix}, {@code getItem}, {@code setItem}, {@code isNull},
+ * {@code isNullRow}) was already public. {@code MatrixComplex.java}'s own public methods keep their
+ * exact signatures, delegating to these in one line each -- the public API is unchanged.
  * <p>
  * {@code rank11()}/{@code rank12()} (helpers of {@code rank1()}) and {@code rowsAreLC(int,int)}
- * (helper of {@code triangleUpPerfect()}/{@code triangleUpPerfect_DEPRECATED()}) stay {@code private}
- * here, called directly as sibling static methods (no public delegator ever existed for them).
- * {@code locateSwapRow(int,int)} is carried over verbatim as dead code (zero callers anywhere in the
- * project, confirmed by grep before this extraction) -- out of scope to remove, same criterion as the
- * {@code ALGEBRAIC BASIS (REMOVED)} block noted in the restructuring plan.
+ * (helper of {@code triangleUpPerfect()}) stay {@code private} here, called directly as sibling static
+ * methods (no public delegator ever existed for them). {@code locateSwapRow(int,int)} is carried over
+ * verbatim as dead code (zero callers anywhere in the project, confirmed by grep before this
+ * extraction) -- out of scope to remove, same criterion as the {@code ALGEBRAIC BASIS (REMOVED)} block
+ * noted in the restructuring plan.
+ * <p>
+ * {@code triangleUpPerfect_DEPRECATED()} and {@code triangleLo1()} were dropped entirely (not carried
+ * over, unlike {@code locateSwapRow}) during this extraction, at the user's explicit request: both had
+ * zero callers anywhere in the project, and {@code triangleUpPerfect_DEPRECATED()} additionally had a
+ * genuine infinite loop for any N x N matrix with N&lt;=3 (confirmed reproducible identically against
+ * an unmodified {@code HEAD} build, i.e. preexisting, not introduced by this restructuring) -- its
+ * inner loop never executes when {@code cols()-2 <= row}, so the outer row counter that only advances
+ * inside the inner loop's body never advances either. {@code triangleLo1()} was a silent no-op (not a
+ * hang) due to an inverted loop guard ({@code k < 0} instead of {@code k >= 0} on a descending
+ * countdown starting at {@code rowLen-1>=0}), confirmed harmless but useless.
  */
 class MatrixComplexRank {
 
@@ -480,44 +489,6 @@ class MatrixComplexRank {
 
 	}
 
-	static MatrixComplex triangleUpPerfect_DEPRECATED(MatrixComplex m) {
-		boolean DEBUG_ON = false;
-		String METH_NAME = "triangleUpPerfect()";
-
-		MatrixComplex triUpMatrix = m.triangleUp().heap();
-		/* ----------  START DEBUGGING BLOCK   ----------- * /
-		trace(triUpMatrix, METH_NAME + ": triUpMatrix");
-		trace(METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		// Clean up linear combinations rows
-		int rowLen = triUpMatrix.rows();
-		for (int row1 = 0; row1 < rowLen -1; ++row1)
-			for (int row2 = row1+1; row2 < rowLen -1; ++row2) {
-				if (rowsAreLC(triUpMatrix, row1, row2)) {
-					for (int col2 = 0; col2 < m.cols(); ++col2)
-						triUpMatrix.setItem(row2, col2, Complex.ZERO);
-				}
-			}
-
-		for (int row = 1, rowCount = 0; row < triUpMatrix.rows()-1;) {
-			for (int col = row; col < triUpMatrix.cols()-2; ++col) {
-				if (triUpMatrix.getItem(row, col).equals(Complex.ZERO) && !triUpMatrix.getItem(row, col+1).equals(Complex.ZERO)) {
-					triUpMatrix.swapRows(row, col+1);
-					// Added to exit in case of misplaced rows. Avoid endless loop
-					if (++rowCount >= triUpMatrix.rows()) ++row;
-					break;
-				}
-				//if (col > row || col == triUpMatrix.cols()-3 ) {
-				if (col == triUpMatrix.cols()-3 || ++rowCount >= triUpMatrix.rows()) {
-					++row;
-					break;
-				}
-			}
-		}
-		return triUpMatrix;
-	}
-
 	/**
 	 * Checks if the matrix is lower triangular.
 	 * @param m The matrix.
@@ -566,32 +537,6 @@ class MatrixComplexRank {
 				cCoef = auxMatrix.getItem(row,k).divides(auxMatrix.getItem(k,k)).opposite();
 				auxMatrix.Ftransf(row, k, cCoef);
 			}
-		}
-		return auxMatrix;
-	}
-
-	static MatrixComplex triangleLo1(MatrixComplex m) {
-
-		int rowLen = m.rows();
-		Complex cCoef = new Complex();
-		MatrixComplex auxMatrix = m.clone();
-
-		if (m.isTriangleLo()) return auxMatrix;
-
-		for (int k = rowLen-1; k < 0; --k) {
-			if (auxMatrix.getItem(k,k).equals(Complex.ZERO)) {
-				int rowSwap = auxMatrix.locateSwapRowDown(k);
-				if (rowSwap == -1) {
-					continue;
-				}
-				if (rowSwap != k) auxMatrix.swapRows(k, rowSwap);
-			}
-			for (int row = k+1; row < 0; --row) {
-				if (auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
-				cCoef = auxMatrix.getItem(row, k).divides(auxMatrix.getItem(k,k).opposite());
-				auxMatrix.Ftransf(row, k, cCoef);
-			}
-			if (auxMatrix.isTriangleLo()) break;
 		}
 		return auxMatrix;
 	}
