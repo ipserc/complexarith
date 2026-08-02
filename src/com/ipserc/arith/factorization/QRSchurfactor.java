@@ -1,25 +1,34 @@
 /*
- * Factorizacion de Schur via iteracion QR sin desplazamiento, con deflacion.
+ * Factorizacion de Schur via iteracion QR con desplazamiento de Wilkinson, con deflacion.
 
     Aplicable a: una matriz compleja A cuadrada n por n.
 
     Factorizacion: A = Q*T*Q^H donde Q es unitaria n por n y T es triangular superior (forma de
     Schur), con los autovalores de A en la diagonal de T.
 
-    Metodo de calculo (Etapa 2 de la hoja de ruta QR-con-desplazamientos, ver
+    Metodo de calculo (Etapas 1-3 de la hoja de ruta QR-con-desplazamientos, ver
     Claude/ComplexArithRev.md y el plan mutable-rolling-stardust.md):
     1. Reduccion previa a forma de Hessenberg (Hessenbergfactor, Etapa 1).
-    2. Iteracion QR clasica SIN desplazamiento sobre la ventana activa [0..hi]: H_(k+1) = Qk^H*H_k*Qk
-       donde Qk viene de la factorizacion QR (Householder, reutilizando QRfactor) del bloque activo.
-    3. Deflacion: cuando la subdiagonal en (hi,hi-1) se anula (dentro de tolerancia), ese autovalor
+    2. Iteracion QR SIN desplazamiento sobre la ventana activa [0..hi] (Etapa 2): H_(k+1)=Qk^H*H_k*Qk.
+    3. Desplazamiento de Wilkinson (Etapa 3, esta version): en vez de factorizar H directamente, se
+       factoriza (H-mu*I) donde mu es el autovalor del bloque 2x2 final de la ventana activa mas
+       cercano a la esquina inferior derecha -- acelera la convergencia de lineal a (generalmente)
+       cubica, y resuelve el caso de autovalores de modulo igual que la Etapa 2 dejaba sin converger
+       (el desplazamiento se calcula localmente del bloque 2x2, no depende de la separacion GLOBAL
+       de modulos del espectro).
+    4. Deflacion: cuando la subdiagonal en (hi,hi-1) se anula (dentro de tolerancia), ese autovalor
        ya esta aislado en H[hi][hi] y la ventana activa se reduce en uno.
 
-    Esta etapa NO tiene desplazamientos todavia (eso es la Etapa 3) -- converge mas despacio, a
-    una tasa gobernada por el cociente de modulos de autovalores consecutivos, y estanca (no
-    converge) para autovalores de modulo exactamente igual (limitacion conocida de la iteracion QR
-    sin desplazar, no un bug de esta implementacion -- documentada explicitamente, no oculta, mas
-    abajo). Trabaja siempre en aritmetica compleja pura: cada autovalor complejo se deflaciona de
-    uno en uno, sin el tratamiento especial de bloques 2x2 que necesitaria una forma de Schur real.
+    Trabaja siempre en aritmetica compleja pura: cada autovalor complejo se deflaciona de uno en
+    uno, sin el tratamiento especial de bloques 2x2 que necesitaria una forma de Schur real -- lo
+    cual, de paso, simplifica tambien el propio calculo del desplazamiento (raiz cuadrada compleja
+    directa via Complex.sqrt(), sin distinguir casos real/complejo).
+
+    KNOWN LIMITATION heredada de cualquier variante de "desplazamiento simple" (single-shift) de la
+    iteracion QR, no arreglada aqui: no hay deteccion de estancamiento ni desplazamientos exceptionales
+    (ad-hoc) para los (raros) casos en los que el propio desplazamiento de Wilkinson entra en un
+    ciclo sin converger -- LAPACK anade esa salvaguarda tras varias iteraciones sin progreso; esta
+    implementacion solo tiene la cota MAX_ITERS_PER_EIGENVALUE como red de seguridad.
  */
 
 package com.ipserc.arith.factorization;
@@ -35,16 +44,16 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public class QRSchurfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "QRSchurfactor --- INFO: ";
-	private final static String VERSION = "1.0 (2026_0802_0824)";
+	private final static String VERSION = "1.1 (2026_0802_1015)";
 
 	/**
-	 * Cota de iteraciones QR sin desplazamiento admitidas para deflacionar UN autovalor antes de
-	 * declarar que la iteracion no converge. Sin desplazamientos, la convergencia es lineal
-	 * (tasa ~|lambda_(i+1)/lambda_i|); 1000 es generoso para autovalores con modulos razonablemente
-	 * separados. Autovalores de modulo exactamente igual (p.ej. +-i) NUNCA convergen bajo este
-	 * esquema sin desplazar, sea cual sea la cota -- ver KNOWN LIMITATION en factorize().
+	 * Cota de iteraciones QR admitidas para deflacionar UN autovalor antes de declarar que la
+	 * iteracion no converge. Con el desplazamiento de Wilkinson (Etapa 3) la convergencia suele
+	 * ser cubica -- unas pocas iteraciones por autovalor, incluso para casos adversarios (modulo
+	 * igual, autovalores repetidos) -- asi que esta cota es una red de seguridad generosa, no el
+	 * caso esperado.
 	 */
-	private final static int MAX_ITERS_PER_EIGENVALUE = 1000;
+	private final static int MAX_ITERS_PER_EIGENVALUE = 300;
 
 	private boolean factorized = false;
 
@@ -52,6 +61,11 @@ public class QRSchurfactor extends MatrixComplex {
 	private MatrixComplex cSchur;
 
 	/* VERSION Release Note
+	 *
+	 * 1.1 (2026_0802_1015)
+	 * factorize(): anade el desplazamiento de Wilkinson (Etapa 3) al paso QR de cada iteracion,
+	 * calculado por el nuevo helper privado wilkinsonShift(). MAX_ITERS_PER_EIGENVALUE 1000->300
+	 * (la convergencia con desplazamiento es mucho mas rapida, la cota es solo red de seguridad).
 	 *
 	 * 1.0 (2026_0802_0824)
 	 * public QRSchurfactor(String strMatrix)
@@ -109,16 +123,19 @@ public class QRSchurfactor extends MatrixComplex {
 
 	/**
 	 * Calcula la factorizacion de Schur A = Q*T*Q^H via reduccion a Hessenberg (Hessenbergfactor)
-	 * seguida de iteracion QR sin desplazamiento con deflacion.
+	 * seguida de iteracion QR con desplazamiento de Wilkinson y deflacion.
 	 * <p>
-	 * <b>KNOWN LIMITATION (Etapa 2, sin desplazamientos todavia):</b> la ventana activa [0..hi] se
-	 * itera completa en cada paso (no se detecta deflacion interior, solo en el borde inferior
-	 * hi/hi-1) y no hay desplazamientos de Wilkinson (Etapa 3) -- para autovalores de modulo
-	 * EXACTAMENTE igual (p.ej. el par +i/-i de una matriz de rotacion) la subdiagonal (hi,hi-1)
-	 * nunca converge a cero bajo este esquema, por muchas iteraciones que se den; se lanza
-	 * {@code IllegalArgumentException} tras {@code MAX_ITERS_PER_EIGENVALUE} iteraciones en vez de
-	 * colgarse o devolver basura. No es un defecto de esta implementacion, es una propiedad
-	 * matematica de la iteracion QR sin desplazar -- se resuelve anadiendo desplazamientos.
+	 * En cada paso, en vez de factorizar la ventana activa H directamente (Etapa 2), se factoriza
+	 * {@code H-mu*I} (mu = {@link #wilkinsonShift(MatrixComplex, int)}) y se aplica la MISMA
+	 * actualizacion por semejanza {@code H := Qk^H*H*Qk} sobre la {@code H} SIN desplazar -- el
+	 * desplazamiento cancela algebraicamente ({@code Qk} viene de {@code H-mu*I=Qk*Rk}, luego
+	 * {@code Rk*Qk+mu*I = Qk^H*(H-mu*I)*Qk+mu*I = Qk^H*H*Qk}), asi que solo hace falta un termino
+	 * {@code Qk^H*H*Qk} en el codigo, igual que en la Etapa 2.
+	 * <p>
+	 * <b>KNOWN LIMITATION heredada de cualquier variante de desplazamiento simple (single-shift),
+	 * no arreglada aqui:</b> no hay desplazamientos exceptionales (ad-hoc, como en LAPACK) para el
+	 * caso raro en que el propio desplazamiento entra en un ciclo sin progreso -- solo la cota
+	 * {@code MAX_ITERS_PER_EIGENVALUE} como red de seguridad final.
 	 * @throws IllegalArgumentException si la matriz no es cuadrada, o si la iteracion no converge
 	 * dentro de la cota de iteraciones (ver arriba).
 	 */
@@ -145,19 +162,19 @@ public class QRSchurfactor extends MatrixComplex {
 
 			if (++itersSinceDeflate > MAX_ITERS_PER_EIGENVALUE)
 				throw new IllegalArgumentException(HEADINFO
-					+ "unshifted QR iteration did not converge (subdiagonal at (" + hi + "," + (hi - 1)
-					+ ") stayed non-zero after " + MAX_ITERS_PER_EIGENVALUE + " iterations -- likely "
-					+ "eigenvalues of equal modulus; needs Wilkinson shifts, Etapa 3 of the roadmap, "
-					+ "not implemented yet).");
+					+ "shifted QR iteration did not converge (subdiagonal at (" + hi + "," + (hi - 1)
+					+ ") stayed non-zero after " + MAX_ITERS_PER_EIGENVALUE + " iterations).");
 
-			// Paso QR (Householder estable) sobre la ventana activa [0..hi] x [0..hi].
+			// Desplazamiento de Wilkinson: factoriza (activa - mu*I), no la ventana activa directa.
+			Complex mu = wilkinsonShift(h, hi);
 			MatrixComplex active = h.subMatrix(0, 0, hi + 1);
-			MatrixComplex qStep = stableHouseholderQ(active);
+			MatrixComplex shifted = active.minus(MatrixComplex.eye(hi + 1).times(mu));
+			MatrixComplex qStep = stableHouseholderQ(shifted);
 
 			// Embebe Qstep en una identidad n x n (identidad fuera de la ventana activa) y aplica
-			// la transformacion por semejanza al array COMPLETO -- esto actualiza tambien el
-			// bloque de acoplamiento superior-derecho (filas 0..hi, columnas hi+1..n-1), no solo
-			// la ventana activa, manteniendo A = Q*H*Q^H valido en todo momento.
+			// la transformacion por semejanza SIN desplazar al array COMPLETO -- esto actualiza
+			// tambien el bloque de acoplamiento superior-derecho (filas 0..hi, columnas hi+1..n-1),
+			// no solo la ventana activa, manteniendo A = Q*H*Q^H valido en todo momento.
 			MatrixComplex qK = MatrixComplex.eye(n);
 			for (int i = 0; i <= hi; ++i)
 				for (int j = 0; j <= hi; ++j)
@@ -170,6 +187,36 @@ public class QRSchurfactor extends MatrixComplex {
 		cSchur = h;
 		cQ = qHessenberg.times(qIter);
 		factorized = true;
+	}
+
+	/**
+	 * Desplazamiento de Wilkinson: el autovalor del bloque 2x2 final de la ventana activa
+	 * ({@code H[hi-1][hi-1..hi], H[hi][hi-1..hi]}) mas cercano a la esquina inferior derecha
+	 * {@code H[hi][hi]} -- eleccion estandar (Golub &amp; Van Loan) que acelera la convergencia y,
+	 * al ser puramente LOCAL (no depende de la separacion de modulos del espectro completo, a
+	 * diferencia de la iteracion sin desplazar de la Etapa 2), tambien resuelve el caso de
+	 * autovalores de modulo igual. Generalizado a complejos de forma directa: las dos raices del
+	 * bloque 2x2 se obtienen con la formula cuadratica de siempre, usando {@code Complex.sqrt()}
+	 * (que ya respeta el corte de rama principal de este proyecto) en vez de necesitar un caso
+	 * aparte para discriminante negativo como haria falta en aritmetica real.
+	 * @param h La matriz completa (solo se leen las 4 entradas del bloque 2x2 final de la ventana activa).
+	 * @param hi El indice superior de la ventana activa (el bloque 2x2 usa las filas/columnas hi-1,hi).
+	 * @return El desplazamiento mu.
+	 */
+	private static Complex wilkinsonShift(MatrixComplex h, int hi) {
+		Complex a = h.getItem(hi - 1, hi - 1);
+		Complex b = h.getItem(hi - 1, hi);
+		Complex c = h.getItem(hi, hi - 1);
+		Complex d = h.getItem(hi, hi);
+
+		Complex trace = a.plus(d);
+		Complex det = a.times(d).minus(b.times(c));
+		Complex discriminant = Complex.sqrt(trace.times(trace).minus(det.times(4.0)));
+
+		Complex lambda1 = trace.plus(discriminant).divides(2.0);
+		Complex lambda2 = trace.minus(discriminant).divides(2.0);
+
+		return (lambda1.minus(d).mod() <= lambda2.minus(d).mod()) ? lambda1 : lambda2;
 	}
 
 	/**

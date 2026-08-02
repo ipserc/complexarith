@@ -5,9 +5,9 @@ import com.ipserc.arith.factorization.QRSchurfactor;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
 /**
- * Regression test for {@code QRSchurfactor} (Etapa 2 del plan QR-con-desplazamientos, ver
- * {@code Claude/ComplexArithRev.md} / plan mutable-rolling-stardust.md): iteracion QR SIN
- * desplazamiento con deflacion sobre la forma de Hessenberg (Etapa 1), obteniendo la
+ * Regression test for {@code QRSchurfactor} (Etapas 1-3 del plan QR-con-desplazamientos, ver
+ * {@code Claude/ComplexArithRev.md} / plan mutable-rolling-stardust.md): iteracion QR CON
+ * desplazamiento de Wilkinson y deflacion sobre la forma de Hessenberg (Etapa 1), obteniendo la
  * factorizacion de Schur {@code A = Q*T*Q^H} y los autovalores directamente de la diagonal de
  * {@code T}, sin formar nunca el polinomio caracteristico.
  * <p>
@@ -20,11 +20,14 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  * <li>El conjunto de autovalores de la diagonal de {@code T} coincide (sin importar el orden,
  * dentro de tolerancia) con el oracle conocido.</li>
  * </ol>
- * <b>KNOWN LIMITATION, esperada y verificada explicitamente, no un bug:</b> sin desplazamientos,
- * la iteracion QR no converge para autovalores de modulo EXACTAMENTE igual (p.ej. el par
- * {@code +-i} de una matriz de rotacion) -- {@code factorize()} debe lanzar
- * {@code IllegalArgumentException} tras la cota de iteraciones en vez de colgarse o devolver
- * basura. Se resolvera anadiendo desplazamientos de Wilkinson (Etapa 3), no antes.
+ * El caso de autovalores de modulo EXACTAMENTE igual (par {@code +-i} de una matriz de rotacion)
+ * que la Etapa 2 (sin desplazar) dejaba como limitacion conocida (lanzaba excepcion tras la cota
+ * de iteraciones) ahora CONVERGE limpio -- el desplazamiento de Wilkinson se calcula localmente
+ * del bloque 2x2 final, no depende de la separacion global de modulos del espectro. Incluye
+ * ademas los mismos casos de bloques de Jordan defectuosos (autovalor REPETIDO, no solo modulo
+ * igual) conjugados por P no ortogonal ya usados para verificar {@code logm()} en la Novena
+ * sesion, con tolerancia relajada acorde al "techo de precision" ya documentado para autovalores
+ * repetidos (inherente a cualquier metodo, no un bug de esta clase).
  */
 public class TestQRSchur01 {
 
@@ -101,38 +104,52 @@ public class TestQRSchur01 {
 			new Complex[]{new Complex(2, 0), new Complex(3, 0), new Complex(5, 0)}, 1e-9);
 
 		checkFactorization("2x2 real distinct eigenvalues", new MatrixComplex("4,1;2,3"),
-			new Complex[]{new Complex(5, 0), new Complex(2, 0)}, 1e-6);
+			new Complex[]{new Complex(5, 0), new Complex(2, 0)}, 1e-9);
 
 		// A = P*diag(1,2,6)*P^-1, P no ortogonal -- oracle limpio de autovalores conocidos.
 		MatrixComplex p3 = new MatrixComplex("1,2,0;0,1,1;1,0,1");
 		MatrixComplex diag3 = new MatrixComplex("1,0,0;0,2,0;0,0,6");
 		checkFactorization("3x3 real distinct eigenvalues (P no ortogonal)",
 			p3.times(diag3).times(p3.inverse()),
-			new Complex[]{new Complex(1, 0), new Complex(2, 0), new Complex(6, 0)}, 1e-6);
+			new Complex[]{new Complex(1, 0), new Complex(2, 0), new Complex(6, 0)}, 1e-9);
 
-		// A = P*diag(1+1i,3-2i)*P^-1, autovalores complejos de modulo DISTINTO (converge sin desplazar).
+		// A = P*diag(1+1i,3-2i)*P^-1, autovalores complejos de modulo distinto.
 		MatrixComplex p2 = new MatrixComplex("2,1;1,1");
 		MatrixComplex diag2 = new MatrixComplex("1+1i,0;0,3-2i");
 		checkFactorization("2x2 complex distinct-modulus eigenvalues (P no ortogonal)",
 			p2.times(diag2).times(p2.inverse()),
-			new Complex[]{new Complex(1, 1), new Complex(3, -2)}, 1e-6);
+			new Complex[]{new Complex(1, 1), new Complex(3, -2)}, 1e-9);
 
 		// A = P*diag(1,2,3,4)*P^-1, 4x4, autovalores reales bien separados.
 		MatrixComplex p4 = new MatrixComplex("1,2,0,1;0,1,3,0;1,0,1,2;0,1,0,1");
 		MatrixComplex diag4 = new MatrixComplex("1,0,0,0;0,2,0,0;0,0,3,0;0,0,0,4");
 		checkFactorization("4x4 real distinct eigenvalues (P no ortogonal)",
 			p4.times(diag4).times(p4.inverse()),
-			new Complex[]{new Complex(1, 0), new Complex(2, 0), new Complex(3, 0), new Complex(4, 0)}, 1e-5);
+			new Complex[]{new Complex(1, 0), new Complex(2, 0), new Complex(3, 0), new Complex(4, 0)}, 1e-9);
 
-		// KNOWN LIMITATION: autovalores +-i, modulo exactamente igual -- no converge sin desplazar.
-		try {
-			new QRSchurfactor(new MatrixComplex("0,-1;1,0")).getSchur();
-			System.out.println("FAIL equal-modulus eigenvalues -- factorize() did not throw");
-			++fail;
-		} catch (IllegalArgumentException e) {
-			System.out.println("OK   equal-modulus eigenvalues -- factorize() threw as expected: " + e.getMessage());
-			++pass;
-		}
+		// Autovalores +-i, modulo exactamente igual -- la Etapa 2 (sin desplazar) no convergia aqui;
+		// el desplazamiento de Wilkinson (local al bloque 2x2) lo resuelve.
+		checkFactorization("2x2 equal-modulus eigenvalues (+-i, rotation matrix)", new MatrixComplex("0,-1;1,0"),
+			new Complex[]{new Complex(0, 1), new Complex(0, -1)}, 1e-9);
+
+		// Bloques de Jordan defectuosos (autovalor REPETIDO, no solo modulo igual), P no ortogonal --
+		// mismos casos adversarios usados para verificar logm() en la Novena sesion. Tolerancia
+		// relajada acorde al "techo de precision" ya documentado para autovalores repetidos.
+		MatrixComplex jSingle = new MatrixComplex("-50,1;0,-50");
+		MatrixComplex pSingle = new MatrixComplex("2,1;1,1");
+		// Tolerancia 1e-5, no 1e-9 como los casos de autovalores distintos: techo de precision ya
+		// documentado (Novena sesion) para autovalores repetidos, inherente a cualquier metodo --
+		// confirmado aqui tambien para QRSchurfactor (residuo medido ~1.2e-6 a 2.4e-6 en el
+		// multi-bloque, por debajo del limite pero por encima de la precision de maquina).
+		checkFactorization("2x2 bloque de Jordan lambda=-50 (repetido), P no ortogonal",
+			pSingle.times(jSingle).times(pSingle.inverse()),
+			new Complex[]{new Complex(-50, 0), new Complex(-50, 0)}, 1e-5);
+
+		MatrixComplex jMulti = new MatrixComplex("5,1,0;0,5,0;0,0,-2");
+		MatrixComplex pMulti = new MatrixComplex("1,2,0;0,1,1;1,0,1");
+		checkFactorization("3x3 multi-bloque (2x2 lambda=5 repetido + 1x1 lambda=-2), P no ortogonal",
+			pMulti.times(jMulti).times(pMulti.inverse()),
+			new Complex[]{new Complex(5, 0), new Complex(5, 0), new Complex(-2, 0)}, 1e-5);
 
 		try {
 			new QRSchurfactor(new MatrixComplex("1,2,3;4,5,6"));
