@@ -19,8 +19,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.34 (2026_0802_1400)";
+	private final static String VERSION = "1.35 (2026_0802_1700)";
 	/* VERSION Release Note
+	 *
+	 * 1.35 (2026_0802_1700)
+	 * log(): the defective (non-diagonalizable) branch now tries logm() (Schur + inverse
+	 * scaling-and-squaring, any eigenvalue orientation) first, falling back to logTaylor() (narrow
+	 * convergence range, close to +||A||) only on explicit failure. Connects logm() into the
+	 * dispatcher for the first time -- was deliberately left unconnected since the Novena sesion.
+	 * Confirmed real case fixed: a defective 2x2 block (lambda=-50, P not orthogonal) that made
+	 * log() throw outright now resolves cleanly via logm() (exp(log(A)) matches A to ~1.5e-9).
 	 *
 	 * 1.34 (2026_0802_1400)
 	 * New public nullspaceBasis(): Gauss-Jordan elimination to reduced row echelon form, tracking
@@ -3229,10 +3237,8 @@ public class MatrixComplex {
 	 * {@code +‖A‖}) -- this method targets exactly the gap: genuinely defective matrices (at least
 	 * one nontrivial Jordan block), for any eigenvalue orientation.
 	 * <p>
-	 * <b>Not yet wired into {@link #log()}'s dispatcher</b> -- deliberate scope decision (Novena
-	 * sesion plan, documented in {@code Claude/ComplexArithRev.md}): connecting it there changes
-	 * the default behavior of a widely-used public method and is left for a separate decision once
-	 * this method has been verified solid on its own.
+	 * <b>Now wired into {@link #log()}'s dispatcher</b> (Décima sesión) as the fallback for the
+	 * defective case, tried before {@link #logTaylor()} -- see {@link #log()}'s own Javadoc.
 	 * <p>
 	 * Inherits the same numerical-precision caveat already characterized this session while fixing
 	 * {@code Jordan.java}/{@code TestJordanAudit01}: {@link Schurfactor} recomputes {@link
@@ -3340,7 +3346,20 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Shortcut to the preferred natural logarithm expansion
+	 * Shortcut to the preferred natural logarithm expansion.
+	 * <p>
+	 * For the defective (non-diagonalizable) case, tries {@link #logm()} (Schur factorization +
+	 * inverse scaling-and-squaring, converges for any eigenvalue orientation) first, falling back
+	 * to {@link #logTaylor()} only if {@code logm()} throws explicitly -- same "try the general
+	 * method, fall back to the narrower one only on explicit failure" pattern already used by
+	 * {@code Polynom.solveRobust()}/{@code Eigenspace.eigenval()}. Connects {@link #logm()} into
+	 * this dispatcher for the first time (Novena/Décima sesión, previously a deliberate scope
+	 * decision to leave unconnected until verified solid on its own -- see {@code logm()}'s own
+	 * Javadoc history). {@code logTaylor()} alone only converges for a narrow range of dominant-
+	 * eigenvalue orientations (close to {@code +‖A‖}) -- confirmed real case:
+	 * {@code [[-52,4],[-1,-48]]} (a defective 2x2 block, {@code lambda=-50}, conjugated by a
+	 * non-orthogonal {@code P}) used to make {@code log()} throw outright; {@code logm()} resolves
+	 * it cleanly ({@code exp(logm(A))} matches {@code A} to {@code ~1.5e-9}).
 	 * @return the natural logarithm of the matrix
 	 */
 	public MatrixComplex log() {
@@ -3368,9 +3387,16 @@ public class MatrixComplex {
         	return dmat.P().times(Dmat).times(dmat.P().inverse());
     	}
 
-    	// Finally use the taylor Expansion
-		trace("Log() using the Taylor expansion");
-		return logTaylor();
+    	// Defective (non-diagonalizable): try logm() (Schur + scaling-and-squaring, handles any
+		// eigenvalue orientation) first, fall back to the narrower Taylor expansion only if it
+		// throws explicitly.
+		try {
+			trace("Log() using logm() (Schur factorization + inverse scaling-and-squaring)");
+			return logm();
+		} catch (IllegalArgumentException e) {
+			trace("Log() logm() failed (" + e.getMessage() + "), falling back to the Taylor expansion");
+			return logTaylor();
+		}
 	}
 
 	/**
