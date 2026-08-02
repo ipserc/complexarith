@@ -18,7 +18,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.40 (2026_0803_1900)";
+	private final static String VERSION = "1.41 (2026_0802_2258)";
 	/* VERSION Release Note
 	 *
 	 * 1.40 (2026_0803_1900)
@@ -1301,7 +1301,7 @@ public class MatrixComplex {
 	 * @param rowEnd Row and column from which the maximum search ends (search goes from row 0 to rowEnd, inclusive).
 	 * @return The index of the row with the value in maximum nonzero module or -1 if the value was not found.
 	 */
-	private int partialPivotUp(int rowEnd) {
+	int partialPivotUp(int rowEnd) {
 		int colP = rowEnd;
 		int rowMax = rowEnd;
 		Complex cMax = new Complex(this.complexMatrix[rowEnd][rowEnd].rep(), this.complexMatrix[rowEnd][rowEnd].imp());
@@ -4000,53 +4000,16 @@ public class MatrixComplex {
 	 * @return The rank of the matrix.
 	*/
 	public int rank() {
-		return rank1();
+		return MatrixComplexRank.rank1(this);
 	}
-	
+
 	/**
 	 * Calculates the rank of an array. It is not reliable for ill-conditioned matrix due to lack of precision
 	 * Kept for testing proposes
 	 * @return The rank of the matrix.
 	 */
 	public int rank0() {
-		final boolean DEBUG_ON = false;
-		int rank = 0, maxRank = this.rows();
-		MatrixComplex tempMatrix = this.copy();
-		MatrixComplex incrMatrix;
-		CombinationNoReps combinat = new CombinationNoReps();
-		
-		if (this.isNull()) return 0;
-
-		if (this.rows() > this.cols()) {
-			tempMatrix = this.transpose();
-			maxRank = this.cols();
-		}
-		
-		long[][] rows, cols;
-		boolean rankfound;
-		for (int order = 1; order <= maxRank; ++order) {
-			rankfound = false;
-			rows = combinat.getCollection(tempMatrix.rows(), order);
-			cols = combinat.getCollection(tempMatrix.cols(), order);
-			for (int row = 0; row < rows.length; ++row) {
-				int[] rowsi = new int[rows[row].length];
-				for (int idx = 0; idx < rowsi.length; ++idx ) rowsi[idx] = (int)rows[row][idx];
-				for (int col = 0; col < cols.length; ++col) {
-					int[] colsi = new int[cols[col].length];
-					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
-					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
-					trace(incrMatrix, "**************** incrMatrix");
-					trace("**************** Determinant incrMatrix:" + incrMatrix.determinant());
-					if (!incrMatrix.determinant().equals(Complex.ZERO)) {
-						++rank;
-						rankfound = true;
-						break;
-					}
-				}
-				if (rankfound) break;
-			}
-		}
-		return rank;
+		return MatrixComplexRank.rank0(this);
 	}
 
 	/**
@@ -4054,48 +4017,7 @@ public class MatrixComplex {
 	 * @return The major independet lineal minor
 	 */
 	public MatrixComplex majorIL() {
-		final boolean DEBUG_ON = false;
-		int maxRank = this.rows();
-		boolean transposed = false;
-		MatrixComplex tempMatrix = this.copy();
-		MatrixComplex incrMatrix = new MatrixComplex();
-		MatrixComplex majorIL= new MatrixComplex();
-		CombinationNoReps combinat = new CombinationNoReps();
-		
-		if (this.isNull()) return this;
-
-		if (this.rows() > this.cols()) {
-			tempMatrix = this.transpose();
-			maxRank = this.cols();
-			transposed = true;
-		}
-		
-		long[][] rows, cols;
-		boolean rankfound;
-		for (int order = 1; order <= maxRank; ++order) {
-			rankfound = false;
-			rows = combinat.getCollection(tempMatrix.rows(), order);
-			cols = combinat.getCollection(tempMatrix.cols(), order);
-			for (int row = 0; row < rows.length; ++row) {
-				int[] rowsi = new int[rows[row].length];
-				for (int idx = 0; idx < rowsi.length; ++idx ) rowsi[idx] = (int)rows[row][idx];
-				for (int col = 0; col < cols.length; ++col) {
-					int[] colsi = new int[cols[col].length];
-					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
-					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
-					trace(incrMatrix, "**************** incrMatrix");
-					trace("**************** Determinant incrMatrix:" + incrMatrix.determinant());
-					if (!incrMatrix.determinant().equals(Complex.ZERO, Complex.significative())) {
-						rankfound = true;
-						majorIL = incrMatrix.copy();
-						break;
-					}
-				}
-				if (rankfound) break;
-			}
-		}
-		if (transposed) majorIL = majorIL.transpose();
-		return majorIL;
+		return MatrixComplexRank.majorIL(this);
 	}
 
 	/**
@@ -4131,48 +4053,9 @@ public class MatrixComplex {
 	 * @return The rank of the matrix.
 	 */
 	public int rank1() {
-		MatrixComplex matrix = this.copy();
-		int rank11 = matrix.rank11();
-		int rank12 = matrix.rank12();
-		return rank11 < rank12 ? rank11 : rank12;
-	}
-	
-	private int rank11() {
-		int rank = 0;
-		MatrixComplex rankMatrix;
-		if (this.isNull()) return 0;
-		
-		if (this.cols() < this.rows()) rankMatrix = this.transpose();
-		else rankMatrix = this.copy();
-		
-		rankMatrix = rankMatrix.triangleLo().hollow();
-		rankMatrix = rankMatrix.triangleLo().hollow();
-		rankMatrix = rankMatrix.triangleUp().heap();
-		rankMatrix = rankMatrix.triangleUp().heap();
-		
-		for(int i = 0; i < rankMatrix.rows(); ++i)
-			if (!rankMatrix.isNullRow(i)) ++rank;
-		return rank;
+		return MatrixComplexRank.rank1(this);
 	}
 
-	private int rank12() {
-		int rank = 0;
-		MatrixComplex rankMatrix;
-		if (this.isNull()) return 0;
-		
-		if (this.cols() > this.rows()) rankMatrix = this.transpose();
-		else rankMatrix = this.copy().triangleUp();
-		
-		rankMatrix = rankMatrix.triangleUp().hollow();
-		rankMatrix = rankMatrix.triangleUp().hollow();
-		rankMatrix = rankMatrix.triangleLo().heap();
-		rankMatrix = rankMatrix.triangleLo().heap();
-		
-		for(int i = 0; i < rankMatrix.rows(); ++i)
-			if (!rankMatrix.isNullRow(i)) ++rank;
-		return rank;
-	}
-	
 	/**
 	 * The rank of A is equal the number of non-zero singular values of the characteristic polynomial of A.adjoint()*A
 	 * This is method used for other numerical programs
@@ -4180,47 +4063,15 @@ public class MatrixComplex {
 	 * @return The rank of the matrix.
 	 */
 	public int rank2() {
-		int rank = 0;
-		MatrixComplex ATA = this.adjoint().times(this);
-		// Was ATA.charactPoly().solve() (Durand-Kerner only) -- confirmed with a 1200-random-matrix
-		// battery that this threw "Arithmetic Overflow (NaN)" 74-100% of the time for 5x5+
-		// matrices, matching this method's own long-standing "Fail prone due to lack precision"
-		// warning (now removed, no longer true). solveRobust() tries Durand-Kerner first and only
-		// falls back to Aberth-Ehrlich if that throws -- verified on the same battery: 0 exceptions,
-		// identical rank to MatrixComplex.rank()/rank1() (ground truth via rank0()/brute force) in
-		// all 1200 cases, and byte-for-byte identical to plain Durand-Kerner wherever that already
-		// succeeded (no silent precision change on the already-working path).
-		MatrixComplex roots = ATA.charactPoly().solveRobust();
-		for (int row = 0; row < roots.rows(); ++row) {
-			if (roots.getItem(row, 0).equals(0,0)) continue;
-			if (roots.getItem(row, 0).isZero()) continue;
-			++rank;
-		}
-		return rank;
+		return MatrixComplexRank.rank2(this);
 	}
-	
+
 	/**
 	 * Calculates the nullity of a Vectorial Space.
 	 * @return The nullity of the Vectorial Space.
 	 */
 	public int nullity() {
-		return  this.cols() - this.rank();
-	}
-
-	/**
-	 * Private method. Locates the appropriate row to perform the swap in the triangularization methods.
-	 * The appropriate row is one whose column to pivot is not zero.
-	 * @param row The index of the start row for the search.
-	 * @param col The index of the column you want to pivot.
-	 * @return The value of the row found or -1 otherwise.
-	 */
-	private int locateSwapRow(int row, int col) {
-		int i;
-
-		for (i = row; i < this.rows(); ++i)
-			if (!this.complexMatrix[i][col].equals(0, 0))
-				break;
-		return (i == this.rows()) ? -1 : i;
+		return MatrixComplexRank.nullity(this);
 	}
 
 	/**
@@ -4228,252 +4079,43 @@ public class MatrixComplex {
 	 * @return true if the matrix is upper triangular, false otherwise.
 	 */
 	public boolean isTriangleUp() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int maxIter = rowLen < colLen ? rowLen : colLen;
-
-		for (int row = 1; row < maxIter; ++row)
-			for (int col = 0; col < row; ++col) {
-				if (!this.complexMatrix[row][col].equals(0,0)) return false;
-			}
-		return true;
+		return MatrixComplexRank.isTriangleUp(this);
 	}
-	
+
 	/**
 	 * Sorts the rows of an array so that those rows whose elements are all zeros occupy the highest positions in the array
 	 * @return The array with the null rows at the top
 	 */
 	public MatrixComplex hollow() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int countZeroArray = 0;
-		int countNonZeroArray = 0;
-		boolean isZero;
-		MatrixComplex zeroArray = new MatrixComplex(rowLen, colLen);
-		MatrixComplex nonZeroArray = new MatrixComplex(rowLen, colLen);
-		MatrixComplex hollow = new MatrixComplex(rowLen, colLen);
-		for(int row = 0; row < rowLen; ++row) {
-			isZero = true;
-			//for(int col = colLen-1; col < row && col > -1; --col) {
-			for(int col = 0; col < colLen; ++col) {
-				if (!this.complexMatrix[row][col].equals(Complex.ZERO)) {
-					isZero = false;
-					break;
-				}
-			}
-			if (isZero) zeroArray.complexMatrix[countZeroArray++] = this.complexMatrix[row].clone();
-			else nonZeroArray.complexMatrix[countNonZeroArray++] = this.complexMatrix[row].clone(); 
-		}
-		for(int row = 0; row < countZeroArray; ++row) hollow.complexMatrix[row] = zeroArray.complexMatrix[row].clone();
-		for(int row = 0; row < countNonZeroArray; ++row) hollow.complexMatrix[row+countZeroArray] = nonZeroArray.complexMatrix[row].clone();
-		
-		return hollow;
+		return MatrixComplexRank.hollow(this);
 	}
-	
+
 	/**
 	 * Sorts the rows of an array so that those rows whose elements are all zeros occupy the lowest positions in the array
 	 * @return The array with the null rows at the end
 	 */
 	public MatrixComplex heap() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int countZeroArray = 0;
-		int countNonZeroArray = 0;
-		boolean isZero;
-		MatrixComplex zeroArray = new MatrixComplex(rowLen, colLen);
-		MatrixComplex nonZeroArray = new MatrixComplex(rowLen, colLen);
-		MatrixComplex heap = new MatrixComplex(rowLen, colLen);
-		for(int row = 0; row < rowLen; ++row) {
-			isZero = true;
-			for(int col = 0; col < colLen; ++col) {
-				if (!this.complexMatrix[row][col].equals(Complex.ZERO)) {
-					isZero = false ;
-					break;
-				}
-			}
-			if (isZero) zeroArray.complexMatrix[countZeroArray++] = this.complexMatrix[row].clone();
-			else nonZeroArray.complexMatrix[countNonZeroArray++] = this.complexMatrix[row].clone();
-		}
-		for(int row = 0; row < countNonZeroArray; ++row) heap.complexMatrix[row] = nonZeroArray.complexMatrix[row].clone();
-		for(int row = 0; row < countZeroArray; ++row) heap.complexMatrix[row+countNonZeroArray] = zeroArray.complexMatrix[row].clone();
-		
-		return heap;
+		return MatrixComplexRank.heap(this);
 	}
-	
-	/**
-	 * Checks whether two rows are linear combination or not
-	 * @param idrow1 The 1st row
-	 * @param idrow2 The 2nd row
-	 * @return True if the two rows are linear combination, otherwise false
-	 */
-	private boolean rowsAreLC(int idrow1, int idrow2) {
-		Complex cCoef;
-		MatrixComplex row1 = this.getRow(idrow1).copy();
-		MatrixComplex row2 = this.getRow(idrow2).copy();		
-		for (int col = 0; col < row1.cols()-1; ++col) {
-			cCoef = row1.getItem(0, col);
-			if (row2.getItem(0, col).equals(Complex.ZERO)) continue;
-			else {
-				cCoef = cCoef.divides(row2.getItem(0, col));
-				if (row1.divides(cCoef).equals(row2)) return true;
-			}
-		}
-		return false;
-	}
-	
+
 	/**
 	 * Calculates the upper triangularization of the matrix.
 	 * @return The upper triangularized matrix.
 	 */
 	public MatrixComplex triangleUp() {
-		final boolean DEBUG_ON = false;
-		final String METH_NAME = "triangleUp";
-
-		int rowLen = this.rows();
-		Complex cCoef = new Complex();
-		MatrixComplex auxMatrix = this.clone();
-
-		/* -------------   DEBUGGING BLOCK   ------------- * /
-		trace(auxMatrix, METH_NAME + ": auxMatrix:");
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		if (this.isTriangleUp()) return auxMatrix;
-
-		for (int k = 0; k < rowLen-1; ++k) {
-			// Proactive partial pivoting: always swap to the row with the maximum modulus in this
-			// column (not only when the current pivot is exactly zero), and pick that maximum
-			// (partialPivot) rather than just the first nonzero row (locateSwapRowUp) -- a pivot
-			// that is merely small still amplifies rounding error.
-			int rowSwap = auxMatrix.partialPivot(k);
-			if (rowSwap != -1 && rowSwap != k) auxMatrix.swapRows(k, rowSwap);
-			for (int row = k+1; row < rowLen; ++row) {
-				/* -------------   DEBUGGING BLOCK   ------------- * /
-				trace(METH_NAME + ": auxMatrix.getItem(row, k) =" + auxMatrix.getItem(row, k).toString());
-				trace(METH_NAME + ": auxMatrix.getItem(k,k) = " + auxMatrix.getItem(k,k).toString());
-				/* ------------- END DEBUGGING BLOCK ------------- */
-
-				if (auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
-				cCoef = auxMatrix.getItem(row, k).divides(auxMatrix.getItem(k,k).opposite());
-				auxMatrix.Ftransf(row, k, cCoef);
-			}
-			if (auxMatrix.isTriangleUp()) break;
-		}
-		return auxMatrix;
+		return MatrixComplexRank.triangleUp(this);
 	}
-	
+
 	/**
-	 * It Upper Triangularize  the matrix by rearranging its rows so that they occupy the place corresponding to their non-zero element on the diagonal  
+	 * It Upper Triangularize  the matrix by rearranging its rows so that they occupy the place corresponding to their non-zero element on the diagonal
 	 * @return The perfect upper triangularized array
 	 */
 	public MatrixComplex triangleUpPerfect() {
-		boolean DEBUG_ON = false;
-		String METH_NAME = "triangleUpPerfect()";
-		
-		MatrixComplex triUpMatrix = this.triangleUp().heap();
-		/* ----------  START DEBUGGING BLOCK   ----------- * /
-		trace(triUpMatrix, METH_NAME + ": triUpMatrix Start");
-		trace(METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		// Clean up linear combinations rows
-		int rowLen = triUpMatrix.rows();
-		for (int row1 = 0; row1 < rowLen -1; ++row1)
-			for (int row2 = row1+1; row2 < rowLen -1; ++row2) {
-				if (triUpMatrix.rowsAreLC(row1, row2)) {
-					for (int col2 = 0; col2 < this.cols(); ++col2)
-						triUpMatrix.setItem(row2, col2, Complex.ZERO);
-				}
-			}
-
-		int[][] matIndex = new int[this.rows()][2];
-		for (int row = 0; row < this.rows(); ++row) {
-			matIndex[row][0] = -1;
-			matIndex[row][1] = -1;
-		}
-		
-		// Ubicar las filas correctas
-		for (int row = 0; row < this.rows(); ++row) {
-			if (triUpMatrix.isNullRow(row)) continue;
-			for (int col = 0; col < this.cols(); ++col) {
-				if (!triUpMatrix.getItem(row, col).isZero()) {
-					matIndex[row][0] = row;
-					matIndex[row][1] = col;
-					break;
-				}
-			}
-		}
-		
-		//Ubicar las restantes filas
-		for (int row = this.rows()-1; row > -1 ; --row) {
-			if (matIndex[row][0] != -1) continue;
-			{
-				for(int matIdxFreeRow = matIndex.length-1; matIdxFreeRow > -1; --matIdxFreeRow) {
-					if (matIndex[matIdxFreeRow][0] == -1) {
-						matIndex[matIdxFreeRow][0] = row;
-						matIndex[matIdxFreeRow][1] = matIdxFreeRow;						
-						break;
-					}
-				}				
-			}
-		}
-				
-		//Comprobar que todas las filas estÃ¡n ubicadas
-		for (int row = 0; row < this.rows(); ++row) {
-			if (matIndex[row][0] == -1) {
-				System.err.println("Location failure error.");
-				return triUpMatrix;
-			}
-		}
-		
-		for (int row = this.rows()-1; row > -1; --row) {
-			triUpMatrix.swapRows(matIndex[row][0], matIndex[row][1]);			
-		}
-		
-		/* ----------  START DEBUGGING BLOCK   ----------- * /
-		trace(triUpMatrix, METH_NAME + ": triUpMatrix End");
-		trace(METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		return triUpMatrix;
-		
+		return MatrixComplexRank.triangleUpPerfect(this);
 	}
-	
+
 	public MatrixComplex triangleUpPerfect_DEPRECATED() {
-		boolean DEBUG_ON = false;
-		String METH_NAME = "triangleUpPerfect()";
-		
-		MatrixComplex triUpMatrix = this.triangleUp().heap();
-		/* ----------  START DEBUGGING BLOCK   ----------- * /
-		trace(triUpMatrix, METH_NAME + ": triUpMatrix");
-		trace(METH_NAME + ": triUpMatrix: " + triUpMatrix.toMatrixComplex());
-		/* ------------- END DEBUGGING BLOCK ------------- */
-
-		// Clean up linear combinations rows
-		int rowLen = triUpMatrix.rows();
-		for (int row1 = 0; row1 < rowLen -1; ++row1)
-			for (int row2 = row1+1; row2 < rowLen -1; ++row2) {
-				if (triUpMatrix.rowsAreLC(row1, row2)) {
-					for (int col2 = 0; col2 < this.cols(); ++col2)
-						triUpMatrix.setItem(row2, col2, Complex.ZERO);
-				}
-			}
-
-		for (int row = 1, rowCount = 0; row < triUpMatrix.rows()-1;) {
-			for (int col = row; col < triUpMatrix.cols()-2; ++col) {
-				if (triUpMatrix.getItem(row, col).equals(Complex.ZERO) && !triUpMatrix.getItem(row, col+1).equals(Complex.ZERO)) { 
-					triUpMatrix.swapRows(row, col+1);
-					// Added to exit in case of misplaced rows. Avoid endless loop
-					if (++rowCount >= triUpMatrix.rows()) ++row;
-					break;
-				}
-				//if (col > row || col == triUpMatrix.cols()-3 ) {
-				if (col == triUpMatrix.cols()-3 || ++rowCount >= triUpMatrix.rows()) {
-					++row; 
-					break;
-				}
-			}
-		}
-		return triUpMatrix;
+		return MatrixComplexRank.triangleUpPerfect_DEPRECATED(this);
 	}
 
 	/**
@@ -4481,15 +4123,7 @@ public class MatrixComplex {
 	 * @return true if the matrix is lower triangular, false otherwise.
 	 */
 	public boolean isTriangleLo() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int maxIter = rowLen < colLen ? rowLen : colLen;
-
-		for (int row = 0; row < rowLen-1; ++row)
-			for (int col = row+1; col < maxIter; ++col) {
-				if (!this.complexMatrix[row][col].equals(0,0)) return false;
-			}
-		return true;
+		return MatrixComplexRank.isTriangleLo(this);
 	}
 
 	/**
@@ -4497,59 +4131,11 @@ public class MatrixComplex {
 	 * @return The lower triangularized matrix.
 	 */
 	public MatrixComplex triangleLo(){
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		Complex cCoef = new Complex();
-		MatrixComplex auxMatrix = this.clone();
-
-		if (this.isTriangleLo()) return auxMatrix;
-
-		//Prepare Matrix
-		int upLimit = rowLen < colLen ? colLen : rowLen;
-		int loLimit = rowLen > colLen ? colLen : rowLen;
-		for (int k = upLimit-1; k >= 0 ; --k) {
-			// Proactive partial pivoting: always swap to the row with the maximum modulus in this
-			// column (not only when the current pivot is exactly zero), and pick that maximum
-			// (partialPivotUp) rather than just the first nonzero row (locateSwapRowDown) -- a pivot
-			// that is merely small still amplifies rounding error.
-			if (k < rowLen && k < colLen) {
-				int rowSwap = auxMatrix.partialPivotUp(k);
-				if (rowSwap != -1 && rowSwap != k) auxMatrix.swapRows(k, rowSwap);
-			}
-
-			for (int row = k-1; row >= 0; --row) {
-				if (k >= loLimit || auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
-				cCoef = auxMatrix.getItem(row,k).divides(auxMatrix.getItem(k,k)).opposite();
-				auxMatrix.Ftransf(row, k, cCoef);
-			}
-		}
-		return auxMatrix;
+		return MatrixComplexRank.triangleLo(this);
 	}
-	
+
 	public MatrixComplex triangleLo1() {
-
-		int rowLen = this.rows();
-		Complex cCoef = new Complex();
-		MatrixComplex auxMatrix = this.clone();
-
-		if (this.isTriangleLo()) return auxMatrix;
-
-		for (int k = rowLen-1; k < 0; --k) {
-			if (auxMatrix.getItem(k,k).equals(Complex.ZERO)) {
-				int rowSwap = auxMatrix.locateSwapRowDown(k);
-				if (rowSwap == -1) {
-					continue;
-				}
-				if (rowSwap != k) auxMatrix.swapRows(k, rowSwap);
-			}
-			for (int row = k+1; row < 0; --row) {
-				if (auxMatrix.getItem(k,k).equals(Complex.ZERO)) continue;
-				cCoef = auxMatrix.getItem(row, k).divides(auxMatrix.getItem(k,k).opposite());
-				auxMatrix.Ftransf(row, k, cCoef);
-			}
-			if (auxMatrix.isTriangleLo()) break;
-		}
-		return auxMatrix;
+		return MatrixComplexRank.triangleLo1(this);
 	}
 
 	/**
@@ -4557,7 +4143,7 @@ public class MatrixComplex {
 	 * @return true for square matrix, false otherwise
 	 */
 	public boolean isSquare() {
-		return (this.rows() == this.cols());
+		return MatrixComplexRank.isSquare(this);
 	}
 
 	/*
