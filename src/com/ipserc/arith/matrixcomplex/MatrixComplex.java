@@ -8,7 +8,6 @@ import com.ipserc.arith.factorization.Diagfactor;
 import com.ipserc.arith.factorization.Schurfactor;
 import com.ipserc.arith.polynom.*;
 import com.ipserc.arith.syseq.Syseq;
-import com.panayotis.gnuplot.JavaPlot;
 
 /**
  * 
@@ -19,8 +18,30 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.37 (2026_0802_2230)";
+	private final static String VERSION = "1.38 (2026_0803_0100)";
 	/* VERSION Release Note
+	 *
+	 * 1.38 (2026_0803_0100)
+	 * TAYLOR'S SERIES section (exp/exp_, sin/cos/tan families incl. Taylor/Euler/item-to-item
+	 * variants, euler, sinh/cosh/tanh families, logTaylor/logMercator/logHat/logm/log,
+	 * llog/log10/llog10/logbase family) extracted to new package-private MatrixComplexFunctions,
+	 * same pattern as MatrixComplexFormat (Etapa 1). trace(String/MatrixComplex/Complex) widened
+	 * private->package-private (used throughout the moved code); __log10__ widened the same way;
+	 * doPlot(String,double[][],int) moved in (all 8 call sites were in this section) instead of
+	 * just widened, using the already-public doPlot()/debug() getters for its flag checks. Item-
+	 * to-item static twins (ssin(MatrixComplex) etc.) and the 3 power(...) statics were left
+	 * UNTOUCHED in this class -- they don't depend on anything moved, and moving them too would
+	 * have collided in signature with their own instance-derived counterpart in the new class.
+	 * Etapa 2 of the multi-session MatrixComplex.java restructuring roadmap (Undecima sesion, ver
+	 * ComplexArithRev.md). Public API unchanged; verified byte-for-byte against HEAD (65 method
+	 * calls x 7 matrices) plus the full regression battery, 0 behavior changes (only expected
+	 * extra stack frames on the tests that exercise thrown exceptions).
+	 * Two PRE-EXISTING bugs found incidentally while moving code, NOT fixed here (analysis only,
+	 * per usual practice): (1) logMercator() has no iteration cap -- same LOG_TAYLOR_MAX_ITER-style
+	 * hang logTaylor() used to have (fixed VERSION 1.36) for a boundary-case matrix (e.g. the
+	 * nilpotent "0,1;0,0"), confirmed still present, unrelated to this move; (2) the static
+	 * ccos(MatrixComplex) item-to-item method computes Complex.sin() instead of Complex.cos() for
+	 * every entry -- confirmed present verbatim in this class, unrelated to this move.
 	 *
 	 * 1.37 (2026_0802_2230)
 	 * PRINTING section (print/println/toString/toMaxima/toWolfram/toMatlab/toOctave/
@@ -408,7 +429,7 @@ public class MatrixComplex {
 	 * MATH & PROGRAM CONSTANTS 
 	 * ***********************************************
 	 */
-	private static double __log10__ = 2.30258509299405;
+	static double __log10__ = 2.30258509299405;
 
 	/* 
 	 * ***********************************************
@@ -472,16 +493,16 @@ public class MatrixComplex {
 		return __DOPLOT__;
 	}
 
-	private static void trace(String cadena) {
+	static void trace(String cadena) {
 		if (__DEBUG__) System.out.println("--- TRACE --- " + HEADINFO + cadena);
 	}
-	
-	private static void trace(MatrixComplex mat, String cadena) {
-		if (__DEBUG__) mat.println("--- TRACE --- " + HEADINFO + cadena);		
+
+	static void trace(MatrixComplex mat, String cadena) {
+		if (__DEBUG__) mat.println("--- TRACE --- " + HEADINFO + cadena);
 	}
-	
-	private static void trace(Complex complex, String cadena) {
-		if (__DEBUG__) complex.println("--- TRACE --- " + HEADINFO + cadena);		
+
+	static void trace(Complex complex, String cadena) {
+		if (__DEBUG__) complex.println("--- TRACE --- " + HEADINFO + cadena);
 	}
 	
 	/*
@@ -1961,38 +1982,7 @@ public class MatrixComplex {
 	 * @return The value of e^this
 	 */
 	public MatrixComplex exp() {
-		trace("------------ exp() ------------ ");
-		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
-		if (this.rows() != this.cols()) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-    		trace("Exp() of diagonal matrix");
-    		MatrixComplex powerMat = this.copy();
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, Complex.exp(getItem(i, i)));
-			return powerMat;
-		}
-
-		// Try using diagonalization
-		Diagfactor dmat = new Diagfactor(this);
-    	if (dmat.isDiagonalizable()) {
-    		trace("Exp() using diagonalization P·D·P⁻¹");
-	        trace(dmat.P(), "Matrix P");
-	        trace(dmat.D(), "Matrix D");
-    		
-        	MatrixComplex Dmat = dmat.D().copy();
-        	for (int i = 0; i < Dmat.cols(); ++i) 
-        		Dmat.setItem(i, i, Complex.exp(Dmat.getItem(i, i)));
-    		trace(Dmat, "Dmat");
-            trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Exp() Diagonal");
-        	return dmat.P().times(Dmat).times(dmat.P().inverse());
-    	}
-
-    	// Finally use the taylor Expansion
-		trace("Exp() using the Taylor expansion");
-    	return this.exp_();
+		return MatrixComplexFunctions.exp(this);
 	}
 	
 	/**
@@ -2001,51 +1991,7 @@ public class MatrixComplex {
 	 * @return The value of e^this
 	 */
 	public MatrixComplex exp_() {
-		MatrixComplex expMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex expMatant;
-		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex errMatrix;
-		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
-
-		int cNorma = (int)Math.ceil(this.euc_norm())*10;
-		MatrixComplex thisNorma = this.divides(cNorma);
-
-		expMatrix.initMatrixDiag(1, 0);
-		powMatrix.initMatrixDiag(1, 0);
-
-		// precision can be changed with Complex.digits(long_value)
-		long maxIter = Complex.digits();
-		long k = 1;
-		double fact = 1;
-		double accumulator = 0.0;
-		do {
-			expMatant = expMatrix.copy();
-			powMatrix = powMatrix.times(thisNorma);
-			fact *= k++;
-			expMatrix = expMatrix.plus(powMatrix.divides(fact));
-			errMatrix = expMatant.minus(expMatrix);
-			errMatrix.abs();
-			trace(errMatrix, "public MatrixComplex exp() - errmatrix:");
-			// thisNorma is already scaled to a small norm (~1/10), so this series converges very
-			// fast in practice; still, fail loudly instead of silently returning a NaN-poisoned
-			// result if something pathological happens (e.g. the scaling itself overflowed).
-			if (errMatrix.isNaN()) {
-				throw new IllegalArgumentException("exp_: the Taylor series produced a non-finite result for this matrix.");
-			}
-			if (errMatrix.isNullC()) break;
-			if (k > 100) {
-				double deviation = errMatrix.norm()/errAntMat.norm();
-				accumulator += deviation > 1 ? deviation : 0.0;
-				if (accumulator > 500) {
-					throw new IllegalArgumentException("exp_: the Taylor series is not converging cleanly for this matrix.");
-				}
-			}
-			errAntMat = errMatrix.copy();
-		} while(k < maxIter);
-
-		trace("Iterations to converge:" + k);
-
-		return expMatrix.power(cNorma);
+		return MatrixComplexFunctions.exp_(this);
 	}
 
 	/**
@@ -2062,117 +2008,13 @@ public class MatrixComplex {
 	 * @param sign 1 for "SIN"; -1 for "COS"
 	 * @return The "SIN" or "COS" depending on the sign	 
 	 */
-	private MatrixComplex trigonTaylor(int sign) {
-		if (this.rows() != this.cols()) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		// normalize2PI() used to be applied here, but reducing the WHOLE matrix's norm modulo 2pi
-		// is only valid periodicity-wise for a scalar -- sin/cos periodicity (z+2pi*k) applies per
-		// eigenvalue, not to a matrix rescaled by a single norm-based factor. Removed; the raw
-		// Taylor series converges for any matrix (sin/cos are entire functions), just possibly
-		// slower for a matrix with a large norm.
-		MatrixComplex normalThis = this;
-		MatrixComplex trigonMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex trigonMatant;
-		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex errMatrix;
-		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
-
-		boolean SIN = sign == 1 ? true : false;
-		boolean COS = !SIN;
-
-		trigonMatrix.initMatrixDiag(SIN ? 0 : 1, 0);
-		powMatrix.initMatrixDiag(1, 0);
-
-		// precision can be changed with Complex.digits(long_value)
-		long maxIter = Complex.digits();
-		int k = 1;
-		double fact = 1;
-		double accumulator = 0.0;
-		// Catastrophic cancellation watchdog: the alternating sin/cos series can swing through
-		// partial sums many orders of magnitude larger than the converged result (verified: Jordan
-		// [[50,1],[0,50]] makes sinTaylor() peak around 1e21 before "converging" to -31194.8, when
-		// the true value is -0.2624 -- the divergence safety net above does NOT catch this, since
-		// the iteration-to-iteration error keeps shrinking normally throughout, it just shrinks
-		// towards the wrong number). Track the largest partial-sum norm seen; if it dwarfs the
-		// final norm by more than a double can represent (~2^52, about 4.5e15), every bit of the
-		// final result is rounding noise from the cancellation, not signal.
-		double maxPartialNorm = trigonMatrix.norm();
-		do {
-			fact *= k;
-			if (SIN && k%2 == 0) {
-					powMatrix = powMatrix.times(normalThis);
-					continue;
-			}
-			if (COS && k%2 != 0) {
-					powMatrix = powMatrix.times(normalThis);
-					continue;
-			}
-			trigonMatant = trigonMatrix.copy();
-			powMatrix = powMatrix.times(normalThis);
-			trigonMatrix = trigonMatrix.plus(powMatrix.divides(fact).times(sign));
-			sign *= -1;
-			// NaN/Infinity trap: for large eigenvalues (e.g. Jordan [[80,1],[0,80]]) the unscaled
-			// power powMatrix can overflow double's range well before the series would otherwise
-			// converge or trip the divergence/cancellation safety nets below -- and once NaN
-			// appears, BOTH of those nets go blind, since every numeric comparison against NaN is
-			// false in IEEE754 (deviation>1 is false, finalNorm<noiseFloor is false), letting NaN
-			// propagate silently all the way to the return value (verified: sinTaylor() on that
-			// Jordan returns NaN+NaNi with no exception, taking 80s to grind through ~10^7
-			// iterations first). Catch it here, immediately, instead of relying on those checks.
-			double curNorm = trigonMatrix.norm();
-			if (Double.isNaN(curNorm) || Double.isInfinite(curNorm)) {
-				throw new IllegalArgumentException((SIN ? "sinTaylor" : "cosTaylor") + ": the unscaled Taylor series overflowed double's range at iteration " + k
-						+ " for this matrix (norm too large?); use sin()/cos() instead, which fall back to Euler's formula and scale correctly.");
-			}
-			if (curNorm > maxPartialNorm) maxPartialNorm = curNorm;
-			errMatrix = trigonMatant.minus(trigonMatrix);
-			errMatrix.abs();
-			if (errMatrix.isNullC()) break;
-
-			// Divergence safety net: sin/cos are entire functions (the series converges for any
-			// matrix), but without any argument reduction a large-norm matrix can need many terms
-			// and suffer growing intermediate cancellation before the terms start shrinking. Fail
-			// loudly instead of silently iterating up to maxIter (~10^8 by default).
-			if (k > 100) {
-				double deviation = errMatrix.norm()/errAntMat.norm();
-				accumulator += deviation > 1 ? deviation : 0.0;
-				if (accumulator > 500) {
-					throw new IllegalArgumentException((SIN ? "sinTaylor" : "cosTaylor") + ": the Taylor series is not converging cleanly for this matrix (norm too large?).");
-				}
-			}
-			errAntMat = errMatrix.copy();
-		} while(++k < maxIter);
-
-		trace("Iterations to converge:" + k);
-
-		// Noise-floor test: each of the k additions carries a relative rounding error of about one
-		// ULP, so a running sum that peaked at maxPartialNorm accumulates an absolute error floor
-		// of roughly maxPartialNorm * k * eps (a 10x cushion is applied since this is an estimate,
-		// not an exact bound). A single fixed peak/final ratio threshold is not enough on its own:
-		// verified with the same catastrophic Jordan that cosTaylor() converges in fewer terms with
-		// a smaller peak/final ratio (2.45e15) than sinTaylor() (5.66e15) despite being equally
-		// wrong (1929.6 vs the exact 0.965) -- accounting for k separates both from the
-		// well-conditioned case (ratio 1.2, k=15) correctly.
-		double finalNorm = trigonMatrix.norm();
-		double noiseFloor = maxPartialNorm * k * Math.ulp(1.0) * 10;
-		if (maxPartialNorm > 0 && finalNorm < noiseFloor) {
-			throw new IllegalArgumentException((SIN ? "sinTaylor" : "cosTaylor") + ": catastrophic cancellation destroyed all precision for this matrix (partial sums reached "
-					+ maxPartialNorm + " over " + k + " terms before cancelling down to " + finalNorm + ", below the double-precision noise floor of " + noiseFloor
-					+ "; norm too large for a direct Taylor series -- use sin()/cos() instead, which fall back to Euler's formula).");
-		}
-
-		return trigonMatrix;
-	}
-
 	/**
 	 * Calculates the sin of the matrix
 	 * This calculation is achieved using the Taylor's series of the sin extended for complex matrices
 	 * @return The value of sinTaylor()
 	 */
 	public MatrixComplex sinTaylor() {
-		return trigonTaylor(1);
+		return MatrixComplexFunctions.sinTaylor(this);
 	}
 
 	/**
@@ -2181,49 +2023,16 @@ public class MatrixComplex {
 	 * @return The value of sinEuler()
 	 */
 	public MatrixComplex sinEuler() {
-		Complex plusj = new Complex(0,1);
-		Complex minusj = new Complex(0,-1);
-
-		// normalize2PI() removed: exp() already handles any matrix correctly (including scaling
-		// for large norms), so no periodicity reduction is needed -- and the previous reduction
-		// was mathematically invalid for non-scalar matrices (see trigonTaylor()).
-		return (this.times(plusj).exp().minus(this.times(minusj).exp())).divides(Complex.i).divides(2);
+		return MatrixComplexFunctions.sinEuler(this);
 	}
 
 	/**
 	 * Calculates the sin of the matrix sin()
 	 * This is a shortcut to the preferred method for doing the calculation
 	 * @return The value of sin()
-	 */	
+	 */
 	public MatrixComplex sin() {
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-    		trace("Sin() of diagonal matrix");
-    		MatrixComplex powerMat = this.copy();
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, Complex.sin(this.getItem(i, i)));
-			return powerMat;
-		}
-
-		// Try using diagonalization
-		Diagfactor dmat = new Diagfactor(this);
-    	if (dmat.isDiagonalizable()) {
-			trace("Sin() using diagonalization P·D·P⁻¹");
-        	trace(dmat.P(), "Matrix P");
-        	trace(dmat.D(), "Matrix D");
-    		
-        	MatrixComplex Dmat = dmat.D().copy();
-        	for (int i = 0; i < Dmat.cols(); ++i) 
-        		Dmat.setItem(i, i, Complex.sin(Dmat.getItem(i, i)));
-			trace(Dmat, "Dmat");
-        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Sin() Diagonal");
-        	return dmat.P().times(Dmat).times(dmat.P().inverse());
-    	}
-
-    	// Finally use Euler's formula (relies on exp(), already correct for any matrix including
-    	// scaling for large norms) -- same choice already made by tan()/tanEuler().
-		trace("Sin() using Euler's formula");
-		return this.sinEuler();
+		return MatrixComplexFunctions.sin(this);
 	}
 
 	/**
@@ -2240,12 +2049,7 @@ public class MatrixComplex {
 	 * @return The sin item to item of this matrix
 	 */
 	public MatrixComplex ssin() {
-		MatrixComplex sinMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < sinMat.rows(); ++row)
-			for (int col = 0; col < sinMat.cols(); ++col)
-				sinMat.setItem(row, col, Complex.sin(this.getItem(row, col)));
-		return sinMat;
+		return MatrixComplexFunctions.ssin(this);
 	}
 			
 	/**
@@ -2268,7 +2072,7 @@ public class MatrixComplex {
 	 * @return The value of cosTaylor()
 	 */
 	public MatrixComplex cosTaylor() {
-		return trigonTaylor(-1);
+		return MatrixComplexFunctions.cosTaylor(this);
 	}
 
 	/**
@@ -2277,47 +2081,16 @@ public class MatrixComplex {
 	 * @return The value of cosEuler()
 	 */
 	public MatrixComplex cosEuler() {
-		Complex plusj = new Complex(0,1);
-		Complex minusj = new Complex(0,-1);
-
-		// normalize2PI() removed, see sinEuler().
-		return (this.times(plusj).exp().plus(this.times(minusj).exp())).divides(2);
+		return MatrixComplexFunctions.cosEuler(this);
 	}
 
 	/**
 	 * Calculates the sin of the matrix cos()
 	 * This is a shortcut to the preferred method for doing the calculation
 	 * @return The value of cos()
-	 */	
+	 */
 	public MatrixComplex cos() {
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-			trace("Cos() of diagonal matrix");
-    		MatrixComplex powerMat = this.copy();
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, Complex.cos(this.getItem(i, i)));
-			return powerMat;
-		}
-
-		// Try using diagonalization
-		Diagfactor dmat = new Diagfactor(this);
-    	if (dmat.isDiagonalizable()) {
-			trace("Cos() using diagonalization P·D·P⁻¹");
-        	trace(dmat.P(), "Matrix P");
-        	trace(dmat.D(), "Matrix D");
-    		
-        	MatrixComplex Dmat = dmat.D().copy();
-        	for (int i = 0; i < Dmat.cols(); ++i) 
-        		Dmat.setItem(i, i, Complex.cos(Dmat.getItem(i, i)));
-			trace(Dmat, "Dmat");
-        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "cos() Diagonal");
-        	return dmat.P().times(Dmat).times(dmat.P().inverse());
-    	}
-
-    	// Finally use Euler's formula (relies on exp(), already correct for any matrix including
-    	// scaling for large norms) -- same choice already made by tan()/tanEuler().
-		trace("Cos() using Euler's formula");
-		return this.cosEuler();
+		return MatrixComplexFunctions.cos(this);
 	}
 
 	/**
@@ -2335,12 +2108,7 @@ public class MatrixComplex {
 	 * @return The cos item to item of this matrix
 	 */
 	public MatrixComplex ccos() {
-		MatrixComplex cosMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < cosMat.rows(); ++row)
-			for (int col = 0; col < cosMat.cols(); ++col)
-				cosMat.setItem(row, col, Complex.cos(this.getItem(row, col)));
-		return cosMat;
+		return MatrixComplexFunctions.ccos(this);
 	}
 			
 	/**
@@ -2363,26 +2131,26 @@ public class MatrixComplex {
 	 * The tangent is calculated as sinTaylor()/cosTaylor()
 	 * @return The value of tanTaylor()
 	 */
-	public MatrixComplex tanTaylor() {	
-		return this.sinTaylor().divides(this.cosTaylor());
+	public MatrixComplex tanTaylor() {
+		return MatrixComplexFunctions.tanTaylor(this);
 	}
-	
+
 	/**
 	 * Calculates the tan of the matrix tanEuler()
 	 * The tangent is calculated as sinEuler()/cosEuler()
 	 * @return The value of tanEuler()
 	 */
-	public MatrixComplex tanEuler() {	
-		return this.sinEuler().divides(this.cosEuler());
+	public MatrixComplex tanEuler() {
+		return MatrixComplexFunctions.tanEuler(this);
 	}
 
 	/**
 	 * Calculates the sin of the matrix tan()
 	 * This is a shortcut to the preferred method for doing the calculation
 	 * @return The value of tan()
-	 */	
-	public MatrixComplex tan() {	
-		return this.tanEuler();
+	 */
+	public MatrixComplex tan() {
+		return MatrixComplexFunctions.tan(this);
 	}
 
 	/**
@@ -2399,12 +2167,7 @@ public class MatrixComplex {
 	 * @return The tan item to item of this matrix
 	 */
 	public MatrixComplex ttan() {
-		MatrixComplex tanMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < tanMat.rows(); ++row)
-			for (int col = 0; col < tanMat.cols(); ++col)
-				tanMat.setItem(row, col, Complex.tan(this.getItem(row, col)));
-		return tanMat;
+		return MatrixComplexFunctions.ttan(this);
 	}
 			
 	/**
@@ -2426,8 +2189,7 @@ public class MatrixComplex {
 	 * @return Euler's formula e^x
 	 */
 	public MatrixComplex euler() {
-		// normalize2PI() removed, see sinEuler().
-		return exp(this.times(Complex.i));
+		return MatrixComplexFunctions.euler(this);
 	}
 
 	/**
@@ -2441,65 +2203,12 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * The "SINH" or "COSH" depending hypFunc. One method to rule them all
-	 * @param hypFunc hyptrigon.SINH for SINH, hyptrigon.COSH for COSH
-	 * @return
-	 */
-	private enum hyptrigon {SINH, COSH};
-	private MatrixComplex trigonHyperbolycTaylor(hyptrigon hypFunc) {
-		if (!this.isSquare()) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		MatrixComplex trigHypMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex trigHypMatant;
-		MatrixComplex powMatrix = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex errMatrix;
-		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
-
-		trigHypMatrix.initMatrixDiag(hypFunc == hyptrigon.SINH ? 0 : 1, 0);
-		powMatrix.initMatrixDiag(1, 0);
-
-		// precision can be changed with Complex.digits(long_value)
-		long maxIter = Complex.digits();
-		int k = 1;
-		double fact = 1;
-		double accumulator = 0.0;
-		do {
-			fact *= k;
-			if ((hypFunc == hyptrigon.SINH && k%2 == 0) || (hypFunc == hyptrigon.COSH && k%2 != 0)) {
-				powMatrix = powMatrix.times(this);
-				continue;
-			}
-			trigHypMatant = trigHypMatrix.copy();
-			powMatrix = powMatrix.times(this);
-			trigHypMatrix = trigHypMatrix.plus(powMatrix.divides(fact));
-			errMatrix = trigHypMatant.minus(trigHypMatrix);
-			errMatrix.abs();
-			if (errMatrix.isNullC()) break;
-
-			// Divergence safety net, same rationale as trigonTaylor().
-			if (k > 100) {
-				double deviation = errMatrix.norm()/errAntMat.norm();
-				accumulator += deviation > 1 ? deviation : 0.0;
-				if (accumulator > 500) {
-					throw new IllegalArgumentException((hypFunc == hyptrigon.SINH ? "sinhTaylor" : "coshTaylor") + ": the Taylor series is not converging cleanly for this matrix (norm too large?).");
-				}
-			}
-			errAntMat = errMatrix.copy();
-		} while(++k < maxIter);
-
-		trace("Iterations to converge:" + k);
-		return trigHypMatrix;
-	}
-
-	/**
 	 * Calculates the hyperbolic sin of the matrix sinhTaylor(this)
 	 * This calculation is achieved using the Taylor's series of the hyperbolic sin extended for complex matrices
 	 * @return The value of sinh()
 	 */
 	public MatrixComplex sinhTaylor() {
-		return trigonHyperbolycTaylor(hyptrigon.SINH);
+		return MatrixComplexFunctions.sinhTaylor(this);
 	}
 
 	/**
@@ -2508,42 +2217,16 @@ public class MatrixComplex {
 	 * @return The value of sinhEuler()
 	 */
 	public MatrixComplex sinhEuler() {
-		return this.exp().minus(this.opposite().exp()).divides(2);
+		return MatrixComplexFunctions.sinhEuler(this);
 	}
 
 	/**
 	 * Calculates the sin of the matrix sinh()
 	 * This is a shortcut to the preferred method for doing the calculation
 	 * @return The value of sinh()
-	 */	
+	 */
 	public MatrixComplex sinh() {
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-			trace("Sinh() of diagonal matrix");
-    		MatrixComplex powerMat = this.copy();
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, Complex.sinh(this.getItem(i, i)));
-			return powerMat;
-		}
-
-		// Try using diagonalization
-		Diagfactor dmat = new Diagfactor(this);
-    	if (dmat.isDiagonalizable()) {
-			trace("Sinh() using diagonalization P·D·P⁻¹");
-        	trace(dmat.P(), "Matrix P");
-        	trace(dmat.D(), "Matrix D");
-    		
-        	MatrixComplex Dmat = dmat.D().copy();
-        	for (int i = 0; i < Dmat.cols(); ++i) 
-        		Dmat.setItem(i, i, Complex.sinh(Dmat.getItem(i, i)));
-			trace(Dmat, "Dmat");
-        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Sinh() Diagonal");
-        	return dmat.P().times(Dmat).times(dmat.P().inverse());
-    	}
-
-    	// Finally use the taylor Expansion
-		trace("Sinh() using the Taylor expansion");
-		return this.sinhTaylor();
+		return MatrixComplexFunctions.sinh(this);
 	}
 
 	/**
@@ -2560,12 +2243,7 @@ public class MatrixComplex {
 	 * @return The sinh item to item of this matrix
 	 */
 	public MatrixComplex ssinh() {
-		MatrixComplex sinhMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < sinhMat.rows(); ++row)
-			for (int col = 0; col < sinhMat.cols(); ++col)
-				sinhMat.setItem(row, col, Complex.sinh(this.getItem(row, col)));
-		return sinhMat;
+		return MatrixComplexFunctions.ssinh(this);
 	}
 			
 	/**
@@ -2588,7 +2266,7 @@ public class MatrixComplex {
 	 * @return The value of coshTaylor()
 	 */
 	public MatrixComplex coshTaylor() {
-		return trigonHyperbolycTaylor(hyptrigon.COSH);
+		return MatrixComplexFunctions.coshTaylor(this);
 	}
 
 	/**
@@ -2597,42 +2275,16 @@ public class MatrixComplex {
 	 * @return The value of coshEuler()
 	 */
 	public MatrixComplex coshEuler() {
-		return this.exp().plus(this.opposite().exp()).divides(2);
+		return MatrixComplexFunctions.coshEuler(this);
 	}
 
 	/**
 	 * Calculates the sin of the matrix cosh()
 	 * This is a shortcut to the preferred method for doing the calculation
 	 * @return The value of cosh()
-	 */	
+	 */
 	public MatrixComplex cosh() {
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-			trace("Cosh() of diagonal matrix");
-    		MatrixComplex powerMat = this.copy();
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, Complex.cosh(this.getItem(i, i)));
-			return powerMat;
-		}
-
-		// Try using diagonalization
-		Diagfactor dmat = new Diagfactor(this);
-    	if (dmat.isDiagonalizable()) {
-			trace("Cosh() using diagonalization P·D·P⁻¹");
-        	trace(dmat.P(), "Matrix P");
-        	trace(dmat.D(), "Matrix D");
-    		
-        	MatrixComplex Dmat = dmat.D().copy();
-        	for (int i = 0; i < Dmat.cols(); ++i) 
-        		Dmat.setItem(i, i, Complex.cosh(Dmat.getItem(i, i)));
-			trace(Dmat, "Dmat");
-        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Cosh() Diagonal");
-        	return dmat.P().times(Dmat).times(dmat.P().inverse());
-    	}
-
-    	// Finally use the taylor Expansion
-		trace("Cosh() using the Taylor expansion");
-		return this.coshTaylor();
+		return MatrixComplexFunctions.cosh(this);
 	}
 
 	/**
@@ -2649,12 +2301,7 @@ public class MatrixComplex {
 	 * @return The cosh item to item of this matrix
 	 */
 	public MatrixComplex ccosh() {
-		MatrixComplex coshMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < coshMat.rows(); ++row)
-			for (int col = 0; col < coshMat.cols(); ++col)
-				coshMat.setItem(row, col, Complex.cosh(this.getItem(row, col)));
-		return coshMat;
+		return MatrixComplexFunctions.ccosh(this);
 	}
 			
 	/**
@@ -2678,7 +2325,7 @@ public class MatrixComplex {
 	 * @return The value of tanhTaylor()
 	 */
 	public MatrixComplex tanhTaylor() {
-		return this.sinhTaylor().divides(this.coshTaylor());
+		return MatrixComplexFunctions.tanhTaylor(this);
 	}
 
 	/**
@@ -2688,42 +2335,16 @@ public class MatrixComplex {
 	 * @return The value of tanhEuler()
 	 */
 	public MatrixComplex tanhEuler() {
-		return this.sinhEuler().divides(this.coshEuler());
+		return MatrixComplexFunctions.tanhEuler(this);
 	}
-	
+
 	/**
 	 * Calculates the tan of the matrix tanh()
 	 * The tangent is calculated as tanh preferred method
 	 * @return The value of tanh()
 	 */
 	public MatrixComplex tanh() {
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-			trace("Tanh() of diagonal matrix");
-    		MatrixComplex powerMat = this.copy();
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, Complex.tanh(this.getItem(i, i)));
-			return powerMat;
-		}
-
-		// Try using diagonalization
-		Diagfactor dmat = new Diagfactor(this);
-    	if (dmat.isDiagonalizable()) {
-			trace("Tanh() using diagonalization P·D·P⁻¹");
-        	trace(dmat.P(), "Matrix P");
-        	trace(dmat.D(), "Matrix D");
-    		
-        	MatrixComplex Dmat = dmat.D().copy();
-        	for (int i = 0; i < Dmat.cols(); ++i) 
-        		Dmat.setItem(i, i, Complex.tanh(Dmat.getItem(i, i)));
-			trace(Dmat, "Dmat");
-        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Tanh() Diagonal");
-        	return dmat.P().times(Dmat).times(dmat.P().inverse());
-    	}
-
-    	// Finally use the taylor Expansion
-		trace("Tanh() using the Taylor expansion");
-		return this.tanhTaylor();
+		return MatrixComplexFunctions.tanh(this);
 	}
 
 	/**
@@ -2740,12 +2361,7 @@ public class MatrixComplex {
 	 * @return The tanh item to item of this matrix
 	 */
 	public MatrixComplex ttanh() {
-		MatrixComplex tanhMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < tanhMat.rows(); ++row)
-			for (int col = 0; col < tanhMat.cols(); ++col)
-				tanhMat.setItem(row, col, Complex.tanh(this.getItem(row, col)));
-		return tanhMat;
+		return MatrixComplexFunctions.ttanh(this);
 	}
 			
 	/**
@@ -2763,586 +2379,46 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Hard cap on {@link #logTaylor()}'s iteration count, overriding {@code Complex.digits()}
-	 * (which is {@code 10^precision}, astronomically large, never meant to be reached in
-	 * practice -- the real exit was supposed to be either convergence or the deviation-based
-	 * divergence check). Confirmed real case where BOTH those exits fail to fire in reasonable
-	 * time: a nilpotent matrix ({@code [[0,1],[0,0]]}), whose {@code thisMatrix=I-A} is a
-	 * defective Jordan block with eigenvalue exactly {@code 1} (the boundary of the series'
-	 * convergence radius) -- its powers grow LINEARLY (not exponentially), so the error norm
-	 * never shrinks (never converges) AND the deviation ratio hovers at {@code ~1.0} (never
-	 * clearly {@code >1} by enough to make the {@code accumulator>500} check fire before
-	 * {@code Complex.digits()}'s ~{@code 10^13} iterations -- confirmed hanging for minutes on a
-	 * 2x2 matrix before this fix). See {@link #logTaylor()}'s own Javadoc.
-	 */
-	private final static int LOG_TAYLOR_MAX_ITER = 10000;
-
-	/**
 	 * Calculates the logarithm of a Matrix using Taylor's Extension summation log(1 - x)
-	 * <p>
-	 * <b>KNOWN LIMITATION, root cause fixed, detection improved:</b> the series converges only
-	 * when {@code I-this/||this||}'s spectral radius is {@code <1} -- for a matrix whose dominant
-	 * eigenvalue orientation isn't close to {@code +||A||}, or (the case that used to hang, not
-	 * just diverge) a defective/nilpotent structure putting that spectral radius exactly {@code
-	 * =1}, the series does not converge. The existing deviation-based divergence check (comparing
-	 * successive error norms) only catches EXPONENTIAL divergence quickly; a boundary case where
-	 * the error norm simply fails to shrink (LINEAR, not exponential growth) can evade it for as
-	 * long as {@link #LOG_TAYLOR_MAX_ITER} allows before this method now throws explicitly instead
-	 * of running that many iterations.
 	 * @return The logarithm of a Matrix using Taylor's Extension
-	 * https://es.wikipedia.org/wiki/Logaritmo_de_una_matriz
-	 * @throws IllegalArgumentException if the series diverges (existing check), or if it fails to
-	 * converge within {@link #LOG_TAYLOR_MAX_ITER} iterations (new safety net for the boundary
-	 * case the divergence check can miss).
 	 */
 	public MatrixComplex logTaylor() {
-		trace("------------ logtaylor() ------------ ");
-		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
-		if (!this.isSquare()) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		MatrixComplex yMatrix = this.copy();
-
-		/* ***************************************
-		 * 1st Transformation
-		 * Applying a reduction to reduce the 
-		 * overflow error risk 
-		* ***************************************/		
-		double factor = yMatrix.euc_norm();
-		yMatrix = yMatrix.divides(factor);
-
-		trace(yMatrix, "1st Transformation : Taylor's Extension log(1 - x) - yMatrix reduced by factor:" + factor);
-		trace("yMatrix.euc_norm(): " + factor);
-
-		/* *************************************************
-		 * Taylor's Extension log(1 - x)
-		 * 2nd Transformation log(1 - x)
-		 * (1 - x) = y -> x = 1 - y
-		 * -1 <= x < 1 -> -1 <= 1 - y < 1 -> -1 < y - 1 <= 1 -> 0 < y <= 2
-		 * 
-		 * (I - thisMatrix) = this -> thisMatrix = I - this
-		 * -I <= this < I -> 0 <= thisMatrix < 2I 
-		 * *************************************************/
-		MatrixComplex thisMatrix = yMatrix.minusMat(1,0).opposite();
-
-		trace(thisMatrix, "2nd Transformation : thisMatrix:");
-		trace("thisMatrix.euc_norm(): " + thisMatrix.euc_norm());
-		
-		// These are the values for the 1st item of the summation. The first item of the expansion
-		// In this case we use the summation opposite. At the end we need to return the opposite
-		MatrixComplex logMatrix = thisMatrix.copy();
-		MatrixComplex powMatrix = thisMatrix.copy();
-		MatrixComplex errMatrix;
-		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex logMatant;
-		
-		// precision can be changed with Complex.digits(long_value) -- capped at LOG_TAYLOR_MAX_ITER
-		// regardless (see that constant's Javadoc for why Complex.digits() alone isn't safe here).
-		long maxIter = Math.min(Complex.digits(), LOG_TAYLOR_MAX_ITER);
-		long k = 2;
-		boolean converged = false;
-
-		// Variables to use at check convergence section
-		int maxPoints = 99999;
-		double[][] dataTable = new double[maxPoints][2];
-		int c = 0;
-		double accumulator = 0.0;
-		Double deviation = 0.0;
-		
-		do {
-			logMatant = logMatrix.copy();
-			powMatrix = powMatrix.times(thisMatrix);
-			logMatrix = logMatrix.plus(powMatrix.divides(k));
-			errMatrix = logMatant.minus(logMatrix);
-			errMatrix.abs();
-			if (errMatrix.isNullC()) { converged = true; break; }
-
-			/*
-			 * Check convergence section
-			 */
-			if ( k > 100 ) {
-
-				/* * /
-				logMatrix.println("- - - DEBUG · logMatrix:");
-				if ( errMatrix.norm() > 2 ) {
-					logMatrix.println("- - - DEBUG · logMatrix:");
-					System.out.println("- - - DEBUG · errMatrix.norm():" + errMatrix.norm());
-					System.out.println("- - - DEBUG · errAntMat.norm():" + errAntMat.norm());
-				}
-				/* */
-
-				deviation = errMatrix.norm()/errAntMat.norm();
-				accumulator += deviation > 1 ? deviation : 0.0;
-				if (c < maxPoints) {
-					dataTable[c][0] = k;
-					dataTable[c++][1] = deviation;
-				}
-				/* */
-				if (accumulator > 500) {
-					/* * /
-					if (__DEBUG__) {
-						System.out.println("- - - DEBUG · Iteration:"+ k +" - The logarithm is divergent");
-						System.out.println("- - - DEBUG · accumulator:" + accumulator);
-						System.out.println("- - - DEBUG · last deviation:" + deviation);
-						doPlot("-- DEVIATION --", dataTable, --c);
-					}
-					/* */
-					throw new IllegalArgumentException("logTaylor: The Taylor series log(1-x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
-				}
-
-				/* * /
-				if (__DEBUG__) {
-					if ( deviation > 0) System.out.println("- - - DEBUG · Iteration:"+ k);
-					System.out.println("- - - DEBUG · deviation:" + deviation);
-				}
-				/* */
-
-				/* */
-			}
-			errAntMat = errMatrix.copy();
-			if ( deviation.isInfinite() ) { converged = true; break; }
-			/*
-			 * End of  Check convergence section
-			 */
-		} while(k++ < maxIter);
-
-		if (!converged)
-			throw new IllegalArgumentException("logTaylor: the Taylor series log(1-x) did not converge "
-				+ "within " + maxIter + " iterations -- the matrix's dominant eigenvalue is likely "
-				+ "exactly on (or very close to) the series' radius of convergence (e.g. a defective/"
-				+ "nilpotent structure), a boundary case the deviation-based divergence check above can "
-				+ "miss (grows too slowly -- linearly, not exponentially -- to trigger it in reasonable time).");
-
-		/* * /
-		if (__DEBUG__) {
-			System.out.println("- - - DEBUG · Iterations to converge:" + k);
-			System.out.println("- - - DEBUG · accumulator:" + accumulator);
-			System.out.println("- - - DEBUG · last deviation:" + deviation);
-			doPlot("-- DEVIATION --", dataTable, --c);
-		}
-		/* */
-
-		/* * /
-		if (__DEBUG__) {
-			logMatrix.println("--- CHECK logMatrix:");
-			logMatrix.opposite().println("--- CHECK logMatrix.opposite():");
-			logMatrix.opposite().plusMat(m,0).println("--- CHECK logMatrix.opposite().plusMat(m,0)");
-		/* */
-
-		return logMatrix.opposite().plusMat(Math.log(factor));
+		return MatrixComplexFunctions.logTaylor(this);
 	}
-	
-	/** 
+
+	/**
 	 * Calculates the logarithm of a Matrix using Mercator's Extension summation log(1 + x)
-	 * @return The logarithm of a Matrix using Mercator's Extension 
+	 * @return The logarithm of a Matrix using Mercator's Extension
 	 */
 	public MatrixComplex logMercator() {
-		trace("------------ logMercator() ------------ ");
-		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
-		if (!this.isSquare()) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		MatrixComplex yMatrix = this.copy();
-		trace(yMatrix.determinant(), "[log()] - Determinant:");
-
-		/* ***************************************
-		 * 1st Transformation
-		 * Applying a reduction to reduce the 
-		 * overflow error risk 
-		 * ***************************************/		
-		double factor = yMatrix.euc_norm();
-		yMatrix = yMatrix.divides(factor);
-
-		trace(yMatrix, "1st Transformation : Taylor's Extension log(1 - x) - yMatrix reduced by factor:" + factor);
-		trace("yMatrix.euc_norm(): " + factor);
-
-		/* *************************************************
-		 * Mercator's Extension log(1 + x)
-		 * 2nd Transformation log(1 + x)
-		 * (1 + x) = y -> x = y - 1
-		 * -1 < x <= 1 -> 0 < y <= 2
-		 * 
-		 * (I + thisMatrix) = this -> thisMatrix = this - I
-		 * -I < this <= I -> 0 < thisMatrix <= 2I
-		 * *************************************************/
-		MatrixComplex thisMatrix = yMatrix.minusMat(1,0);
-	
-		trace(thisMatrix, "2nd Transformation : thisMatrix:");
-		trace("thisMatrix.euc_norm(): " +thisMatrix.euc_norm());
-
-		// These are the values for the 1st item of the summation
-		MatrixComplex logMatrix = thisMatrix.copy();
-		MatrixComplex powMatrix = thisMatrix.copy();
-		MatrixComplex errMatrix;
-		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex logMatant;
-
-		// precision can be changed with Complex.digits(long_value)
-		long maxIter = Complex.digits();
-		long k = 2;
-
-		// Variables to use at check convergence section
-		int maxPoints = 99999;
-		double[][] dataTable = new double[maxPoints][2];
-		int c = 0;
-		double accumulator = 0.0;
-		double deviation;
-		
-		do {
-			logMatant = logMatrix.copy();
-			powMatrix = powMatrix.times(thisMatrix);
-			logMatrix = logMatrix.plus(powMatrix.divides(k*(k%2 == 0 ? -1 : 1)));
-			errMatrix = logMatant.minus(logMatrix);
-			errMatrix.abs();
-			if (errMatrix.isNullC()) break;
-
-			/*
-			 * Check convergence section
-			 */
-			if ( k > 100 ) {
-				deviation = errMatrix.norm()/errAntMat.norm();
-				accumulator += deviation > 1 ? deviation: 0.0;
-				if ( c < maxPoints ) {
-					dataTable[c][0] = k;
-					dataTable[c++][1] = deviation;
-				}
-				if (accumulator > 500) {
-					if (__DEBUG__) {
-						trace("Iteration:"+ k +" - The logarithm is divergent");
-						trace("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable, --c);
-					}
-					throw new IllegalArgumentException("logMercator: The Mercator series log(1+x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
-				}
-			}
-			errAntMat = errMatrix.copy();
-			/*
-			 * End of Check convergence section
-			 */			
-		} while(k++ < maxIter);		
-		if (__DEBUG__) {
-			trace("Iterations to converge:" + k);
-			trace("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable, --c);
-		}
-		return logMatrix.plusMat(Math.log(factor));
+		return MatrixComplexFunctions.logMercator(this);
 	}
 
 	/**
 	 * Calculates the logarithm of a Matrix using Hyperbolic Arc Tangent's Extension summation.
 	 * Not recommended to use
-	 * @return The logarithm of a Matrix using Hyperbolic Arc Tangent's Extension 
+	 * @return The logarithm of a Matrix using Hyperbolic Arc Tangent's Extension
 	 */
 	public MatrixComplex logHat() {
-		trace("------------ loghat() ------------ ");
-		if (this.isNaN() || this.isNull() || this.isInfinite() ) return this;
-		if (this.rows() != this.cols()) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-		
-		MatrixComplex terMat = (this.power(2).minusMat(1,0)).divides(this.power(2).plusMat(1,0));
-		MatrixComplex powMat = terMat.copy();
-		MatrixComplex sumMat = powMat.copy();
-		MatrixComplex sumAnt;
-		MatrixComplex errMat;
-		MatrixComplex errAnt = new MatrixComplex(this.rows(), this.cols());
-		
-		// The term for k = 0 is already calculated at the variables definition 
-		long maxIter = Complex.digits();
-		long k = 1;
-
-		// Variables to check convergence section
-		int maxPoints = 99999;
-		double[][] dataTable = new double[maxPoints][2];
-		int c = 0;
-		double accumulator = 0.0;
-		double deviation;
-		
-		do {
-			sumAnt = sumMat.copy();
-			powMat = powMat.times(terMat).times(terMat);
-			sumMat = sumMat.plus(powMat.divides(2*k+1));
-			errMat = sumAnt.minus(sumMat);
-			errMat.abs();
-			if (errMat.isNullC()) break;
-
-			// Check convergence section
-			if ( k > 100 ) {
-				deviation = errMat.norm()/errAnt.norm();
-				accumulator += deviation > 1 ? deviation: 0.0;
-				if ( c < maxPoints ) {
-					dataTable[c][0] = k;
-					dataTable[c++][1] = deviation;
-				}
-				if (accumulator > 500) {
-					if (__DEBUG__) {
-						trace("Iteration:"+ k +" - The logarithm is divergent");
-						trace("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable, --c);
-					}
-					throw new IllegalArgumentException("logHat: The Hyperbolic Arc Tangent series is divergent for this matrix.");
-				}
-			}
-
-			errAnt = errMat.copy();
-		} while(k++ < maxIter);
-		if (__DEBUG__) {
-			trace("Iterations to converge:" + k);
-			trace("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable, --c);
-		}
-		return sumMat;
+		return MatrixComplexFunctions.logHat(this);
 	}
 	
 	/**
-	 * Calculates the principal square root {@code S} of an upper triangular matrix {@code T}
-	 * ({@code S*S=T}, {@code S} also upper triangular) using the Parlett recurrence -- the
-	 * standard, numerically stable method (Björck-Hammarling): unlike a generic matrix square
-	 * root, a triangular one never needs an eigendecomposition of its own, since a triangular
-	 * matrix's eigenvalues are already its diagonal entries.
-	 * <p>
-	 * Diagonal: {@code S_ii = Complex.sqrt(T_ii)} (principal branch, {@code arg(T_ii) ∈ (-π,π]}
-	 * gives {@code arg(S_ii) ∈ (-π/2,π/2]} -- the standard convention this recurrence requires, no
-	 * further branch choice needed once this is fixed). Off-diagonal, solved diagonal-by-diagonal
-	 * (increasing {@code d=j-i}) from {@code S*S=T} entry by entry: {@code S_ij = (T_ij -
-	 * Σ_{k=i+1}^{j-1} S_ik·S_kj) / (S_ii+S_jj)} -- by the time {@code S_ij} is computed, every
-	 * {@code S_ik}/{@code S_kj} needed by the sum (strictly between {@code i} and {@code j}) has
-	 * already been filled in, since those have a smaller {@code d}.
-	 * <p>
-	 * <b>KNOWN LIMITATION, documented not fixed:</b> the recurrence divides by {@code S_ii+S_jj},
-	 * which is (numerically) zero only in one genuine case under this project's principal-branch
-	 * convention: two DIAGONAL entries of {@code T} that are BOTH exactly zero and adjacent within
-	 * the same Jordan chain (a repeated zero eigenvalue with a nontrivial nilpotent block).
-	 * Verified empirically that "two eigenvalues that are each other's negative" -- the case one
-	 * would expect from the generic Parlett-recurrence literature -- does NOT actually trigger
-	 * this here: {@code Complex.sqrt()}'s principal branch always has {@code Re>=0} (confirmed
-	 * with {@code T=diag(4,-4)}: {@code S_00=2}, {@code S_11=2i}, sum {@code =2+2i}, nowhere near
-	 * zero), so {@code S_ii+S_jj} can only vanish when both terms are individually zero. A
-	 * nontrivial nilpotent block genuinely has NO triangular square root (a mathematical fact, not
-	 * a numerical artifact) -- confirmed to fail cleanly (`NaN`/`Infinity` via `Complex`'s already
-	 * established zero-division handling), not a hang or an unrelated crash. Same scope decision
-	 * already applied elsewhere in this codebase (e.g. {@code VectorComplex.vectorprod()}'s
-	 * 3D-only limitation) for a documented mathematical edge case rather than a code defect to
-	 * guard against.
-	 * @param tMat An upper triangular matrix (trusted as such by the caller -- not re-verified
-	 * here, see {@link #logm()}, the only caller, which always passes a genuine Schur factor).
-	 * @return The principal square root of tMat, upper triangular.
-	 */
-	private MatrixComplex sqrtTriangular(MatrixComplex tMat) {
-		int n = tMat.rows();
-		MatrixComplex sMat = new MatrixComplex(n, n);
-		for (int i = 0; i < n; ++i) {
-			sMat.setItem(i, i, Complex.sqrt(tMat.getItem(i, i)));
-		}
-		for (int d = 1; d < n; ++d) {
-			for (int i = 0; i < n - d; ++i) {
-				int j = i + d;
-				Complex sum = Complex.ZERO;
-				for (int k = i + 1; k < j; ++k) {
-					sum = sum.plus(sMat.getItem(i, k).times(sMat.getItem(k, j)));
-				}
-				Complex numerator = tMat.getItem(i, j).minus(sum);
-				Complex denominator = sMat.getItem(i, i).plus(sMat.getItem(j, j));
-				sMat.setItem(i, j, numerator.divides(denominator));
-			}
-		}
-		return sMat;
-	}
-
-	/**
-	 * Returns true if every diagonal entry of tMat is within threshold of 1 (in modulus).
-	 * Private helper for {@link #logm()}'s scaling loop -- since tMat is triangular by
-	 * construction there, its diagonal entries ARE its eigenvalues, no recomputation needed.
-	 */
-	private boolean isNearIdentityDiagonal(MatrixComplex tMat, double threshold) {
-		for (int i = 0; i < tMat.rows(); ++i) {
-			if (tMat.getItem(i, i).minus(Complex.ONE).mod() >= threshold) return false;
-		}
-		return true;
-	}
-
-	/**
 	 * Calculates the principal natural logarithm of a (possibly defective, non-diagonalizable)
-	 * matrix via Schur factorization plus inverse scaling-and-squaring -- the standard method
-	 * (MATLAB {@code logm}, Higham): {@code A=U·T·U*} (Schur, {@code T} upper triangular);
-	 * repeatedly take the principal square root of {@code T} ({@link
-	 * #sqrtTriangular(MatrixComplex)}) until its diagonal is close enough to {@code 1} that
-	 * Mercator's series {@code log(I+x)} converges quickly and safely (the same series already
-	 * used by {@link #logMercator()}, reused here WITHOUT its own {@code euc_norm()}-based
-	 * reduction/compensation -- {@code x} is already small by construction from the scaling);
-	 * then undo the scaling ({@code log(T)=2^s·log(S)}) and the Schur similarity
-	 * ({@code log(A)=U·log(T)·U*}, using {@link #adjoint()} rather than {@link #inverse()} since
-	 * {@code U} is unitary -- the same pattern {@link Schurfactor#factorize()} itself already
-	 * uses, exact and free of Gaussian-elimination noise).
-	 * <p>
-	 * Unlike {@link #log()} -- which already handles the diagonal and diagonalizable cases
-	 * correctly, falling back to {@link #logTaylor()} only for the remaining defective case, where
-	 * it only converges for a narrow range of dominant-eigenvalue orientations (close to
-	 * {@code +‖A‖}) -- this method targets exactly the gap: genuinely defective matrices (at least
-	 * one nontrivial Jordan block), for any eigenvalue orientation.
-	 * <p>
-	 * <b>Now wired into {@link #log()}'s dispatcher</b> (Décima sesión) as the fallback for the
-	 * defective case, tried before {@link #logTaylor()} -- see {@link #log()}'s own Javadoc.
-	 * <p>
-	 * Inherits the same numerical-precision caveat already characterized this session while fixing
-	 * {@code Jordan.java}/{@code TestJordanAudit01}: {@link Schurfactor} recomputes {@link
-	 * Eigenspace}/Durand-Kerner at every step of its own recursion, so {@code T}'s diagonal
-	 * entries carry whatever residual imprecision that root-finder leaves on them -- for a
-	 * defective eigenvalue this CAN be amplified through this method's own near-singular Parlett
-	 * divisions, same mechanism as diagnosed there.
+	 * matrix via Schur factorization plus inverse scaling-and-squaring (MATLAB {@code logm},
+	 * Higham).
 	 * @return The principal natural logarithm of this matrix.
-	 * @throws IllegalArgumentException if this matrix is not square, if a Schur factorization
-	 * could not be found, if the scaling loop doesn't reach a near-identity diagonal within a
-	 * generous safety cap, or if the Mercator series fails to converge even after scaling (would
-	 * indicate a deeper problem, since scaling is specifically meant to guarantee convergence).
 	 */
 	public MatrixComplex logm() {
-		trace("------------ logm() ------------ ");
-		if (this.isNaN() || this.isNull() || this.isInfinite()) return this;
-		if (!this.isSquare()) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		Schurfactor schur = new Schurfactor(this);
-		if (!schur.factorized()) {
-			throw new IllegalArgumentException("logm: could not compute a Schur factorization for this matrix.");
-		}
-		MatrixComplex uMat = schur.getU();
-		MatrixComplex tMat = schur.getSchur();
-
-		/* ***************************************
-		 * Inverse scaling: repeated principal square roots until T's diagonal is close enough to
-		 * 1 for Mercator's series to converge quickly, safely inside its |x|<1 radius with margin.
-		 * *************************************** */
-		final double NEAR_IDENTITY_THRESHOLD = 0.5;
-		final int MAX_SQRT_ITER = 100;
-		int s = 0;
-		while (!isNearIdentityDiagonal(tMat, NEAR_IDENTITY_THRESHOLD)) {
-			if (s >= MAX_SQRT_ITER) {
-				throw new IllegalArgumentException("logm: scaling did not reach a near-identity diagonal after "
-					+ MAX_SQRT_ITER + " square roots -- matrix may be singular or otherwise pathological.");
-			}
-			tMat = sqrtTriangular(tMat);
-			++s;
-		}
-		trace("logm(): scaling steps s=" + s);
-
-		/* *************************************************
-		 * Mercator's Extension log(1 + x), reused from logMercator()'s convergence loop verbatim
-		 * -- but WITHOUT its euc_norm() reduction/compensation, since x is already small here.
-		 * (I + xMat) = tMat -> xMat = tMat - I
-		 * *************************************************/
-		MatrixComplex xMat = tMat.minusMat(1, 0);
-
-		MatrixComplex logMatrix = xMat.copy();
-		MatrixComplex powMatrix = xMat.copy();
-		MatrixComplex errMatrix;
-		MatrixComplex errAntMat = new MatrixComplex(this.rows(), this.cols());
-		MatrixComplex logMatant;
-
-		long maxIter = Complex.digits();
-		long k = 2;
-
-		int maxPoints = 99999;
-		double[][] dataTable = new double[maxPoints][2];
-		int c = 0;
-		double accumulator = 0.0;
-		double deviation;
-
-		do {
-			logMatant = logMatrix.copy();
-			powMatrix = powMatrix.times(xMat);
-			logMatrix = logMatrix.plus(powMatrix.divides(k * (k % 2 == 0 ? -1 : 1)));
-			errMatrix = logMatant.minus(logMatrix);
-			errMatrix.abs();
-			if (errMatrix.isNullC()) break;
-
-			if (k > 100) {
-				deviation = errMatrix.norm() / errAntMat.norm();
-				accumulator += deviation > 1 ? deviation : 0.0;
-				if (c < maxPoints) {
-					dataTable[c][0] = k;
-					dataTable[c++][1] = deviation;
-				}
-				if (accumulator > 500) {
-					if (__DEBUG__) {
-						trace("logm(): Mercator series iteration:" + k + " - unexpectedly divergent after scaling");
-						trace("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable, --c);
-					}
-					throw new IllegalArgumentException(
-						"logm: the Mercator series failed to converge even after scaling close to identity.");
-				}
-			}
-			errAntMat = errMatrix.copy();
-		} while (k++ < maxIter);
-		if (__DEBUG__) {
-			trace("logm(): Mercator iterations to converge:" + k);
-			trace("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable, --c);
-		}
-
-		/* undo the scaling: log(T) = 2^s * log(S) */
-		MatrixComplex logT = logMatrix.times(Math.pow(2, s));
-
-		/* undo the Schur similarity: log(A) = U * log(T) * U* (U unitary: adjoint()==inverse() exactly) */
-		return uMat.times(logT).times(uMat.adjoint());
+		return MatrixComplexFunctions.logm(this);
 	}
 
 	/**
 	 * Shortcut to the preferred natural logarithm expansion.
-	 * <p>
-	 * For the defective (non-diagonalizable) case, tries {@link #logm()} (Schur factorization +
-	 * inverse scaling-and-squaring, converges for any eigenvalue orientation) first, falling back
-	 * to {@link #logTaylor()} only if {@code logm()} throws explicitly -- same "try the general
-	 * method, fall back to the narrower one only on explicit failure" pattern already used by
-	 * {@code Polynom.solveRobust()}/{@code Eigenspace.eigenval()}. Connects {@link #logm()} into
-	 * this dispatcher for the first time (Novena/Décima sesión, previously a deliberate scope
-	 * decision to leave unconnected until verified solid on its own -- see {@code logm()}'s own
-	 * Javadoc history). {@code logTaylor()} alone only converges for a narrow range of dominant-
-	 * eigenvalue orientations (close to {@code +‖A‖}) -- confirmed real case:
-	 * {@code [[-52,4],[-1,-48]]} (a defective 2x2 block, {@code lambda=-50}, conjugated by a
-	 * non-orthogonal {@code P}) used to make {@code log()} throw outright; {@code logm()} resolves
-	 * it cleanly ({@code exp(logm(A))} matches {@code A} to {@code ~1.5e-9}).
 	 * @return the natural logarithm of the matrix
 	 */
 	public MatrixComplex log() {
-		// Take advantage from diagonal matrices
-		if (this.isDiagonal()) {
-    		trace("Log() of diagonal matrix");
-    		MatrixComplex powerMat = this.copy();
-			for (int i = 0; i < this.rows(); ++i)
-				powerMat.setItem(i, i, Complex.log(this.getItem(i, i)));
-			return powerMat;
-		}
-
-		// Try using diagonalization
-		Diagfactor dmat = new Diagfactor(this);
-    	if (dmat.isDiagonalizable()) {
-			trace("Log() using diagonalization P·D·P⁻¹");
-        	trace(dmat.P(), "Matrix P");
-        	trace(dmat.D(), "Matrix D");
-    		
-        	MatrixComplex Dmat = dmat.D().copy();
-        	for (int i = 0; i < Dmat.cols(); ++i) 
-        		Dmat.setItem(i, i, Complex.log(Dmat.getItem(i, i)));
-			trace(Dmat, "Dmat");
-        	trace(dmat.P().times(Dmat).times(dmat.P().inverse()), "Log() Diagonal");
-        	return dmat.P().times(Dmat).times(dmat.P().inverse());
-    	}
-
-    	// Defective (non-diagonalizable): try logm() (Schur + scaling-and-squaring, handles any
-		// eigenvalue orientation) first, fall back to the narrower Taylor expansion only if it
-		// throws explicitly.
-		try {
-			trace("Log() using logm() (Schur factorization + inverse scaling-and-squaring)");
-			return logm();
-		} catch (IllegalArgumentException e) {
-			trace("Log() logm() failed (" + e.getMessage() + "), falling back to the Taylor expansion");
-			return logTaylor();
-		}
+		return MatrixComplexFunctions.log(this);
 	}
 
 	/**
@@ -3359,12 +2435,7 @@ public class MatrixComplex {
 	 * @return The log item to item of this matrix
 	 */
 	public MatrixComplex llog() {
-		MatrixComplex logMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < logMat.rows(); ++row)
-			for (int col = 0; col < logMat.cols(); ++col)
-				logMat.setItem(row, col, Complex.log(this.getItem(row, col)));
-		return logMat;
+		return MatrixComplexFunctions.llog(this);
 	}
 			
 	/**
@@ -3387,7 +2458,7 @@ public class MatrixComplex {
 	 * @return
 	 */
 	public MatrixComplex log10() {
-		return this.log().divides(__log10__);
+		return MatrixComplexFunctions.log10(this);
 	}
 
 	/**
@@ -3404,12 +2475,7 @@ public class MatrixComplex {
 	 * @return The log  item to item of this matrix
 	 */
 	public MatrixComplex llog10() {
-		MatrixComplex logMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < logMat.rows(); ++row)
-			for (int col = 0; col < logMat.cols(); ++col)
-				logMat.setItem(row, col, Complex.log(this.getItem(row, col)).divides(__log10__));
-		return logMat;
+		return MatrixComplexFunctions.llog10(this);
 	}
 			
 	/**
@@ -3433,7 +2499,7 @@ public class MatrixComplex {
 	 * @return
 	 */
 	public MatrixComplex logbase(Complex base) {
-		return this.log().divides(Complex.log(base));
+		return MatrixComplexFunctions.logbase(this, base);
 	}
 
 	/**
@@ -3443,12 +2509,7 @@ public class MatrixComplex {
 	 * @return
 	 */
 	public MatrixComplex llogbase(Complex base) {
-		MatrixComplex logMat = new MatrixComplex(this.rows(), this.cols());
-		
-		for (int row = 0; row < logMat.rows(); ++row)
-			for (int col = 0; col < logMat.cols(); ++col)
-				logMat.setItem(row, col, Complex.log(this.getItem(row, col)).divides(Complex.log(base)));
-		return logMat;
+		return MatrixComplexFunctions.llogbase(this, base);
 	}
 	
 	/**
@@ -3478,7 +2539,7 @@ public class MatrixComplex {
 	 * @return
 	 */
 	public MatrixComplex logbase(double base) {
-		return log().divides(Math.log(base));
+		return MatrixComplexFunctions.logbase(this, base);
 	}
 
 	/**
@@ -3488,8 +2549,7 @@ public class MatrixComplex {
 	 * @return
 	 */
 	public MatrixComplex llogbase(double base) {
-		Complex cBase = new Complex(base);
-		return this.llogbase(cBase);
+		return MatrixComplexFunctions.llogbase(this, base);
 	}
 	
 	/**
@@ -3519,7 +2579,7 @@ public class MatrixComplex {
 	 * @return
 	 */
 	public MatrixComplex logbase(MatrixComplex baseMat) {
-		return this.log().divides(baseMat.log());
+		return MatrixComplexFunctions.logbase(this, baseMat);
 	}
 
 	/**
@@ -7020,26 +6080,6 @@ public class MatrixComplex {
 	 * GENERAL PORPOUSE METHODS
 	 * ***********************************************
 	 */
-
-	/**
-	 * Private method to plot a table
-	 * Used to bring more info at debug
-	 * @param dataTable the table to plot
-	 */
-	private void doPlot(String Title, double[][] dataTable, int dataLen) {
-		if (!__DOPLOT__) return;
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(Title);
-		double[][] fullDataTable = new double[dataLen][2];
-		for (int i = 0; i < dataLen; ++i) fullDataTable[i] = dataTable[i];
-		p.addPlot(fullDataTable);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		//p.set("style", setLineStyle(lineStyle));
-		p.set("grid","");
-		p.plot();
-	}
 
 
 
