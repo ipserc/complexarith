@@ -31,7 +31,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public class Hessenbergfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "Hessenbergfactor --- INFO: ";
-	private final static String VERSION = "1.0 (2026_0802_0824)";
+	private final static String VERSION = "1.1 (2026_0802_0932)";
 
 	private boolean factorized = false;
 
@@ -39,6 +39,11 @@ public class Hessenbergfactor extends MatrixComplex {
 	private MatrixComplex cH;
 
 	/* VERSION Release Note
+	 *
+	 * 1.1 (2026_0802_0932)
+	 * factorize(): reflector de Householder usa la convencion de signo numericamente estable
+	 * (alpha=-sign(x0)*||x||) para evitar cancelacion catastrofica bajo reaplicacion iterativa
+	 * (descubierto al construir QRSchurfactor, Etapa 2 del plan QR-con-desplazamientos).
 	 *
 	 * 1.0 (2026_0802_0824)
 	 * public Hessenbergfactor(String strMatrix)
@@ -121,11 +126,17 @@ public class Hessenbergfactor extends MatrixComplex {
 			MatrixComplex x = new MatrixComplex(p, 1);
 			for (int i = 0; i < p; ++i) x.setItem(i, 0, cH.getItem(k + 1 + i, k));
 
-			// v = sign(x[0])*||x||*e1 - x ; u = v/||v|| ; P = I - 2*u*u^H  (mismo patron que QRfactor.qrHouseholder())
-			Complex xNorm = QRfactor.signHH(x.getItem(0, 0)).times(x.norm());
+			// v = -sign(x[0])*||x||*e1 - x ; u = v/||v|| ; P = I - 2*u*u^H
+			// El signo NEGATIVO (a diferencia de QRfactor.qrHouseholder(), que usa +sign(x[0])*||x||)
+			// evita cancelacion catastrofica en v[0] cuando x ya esta casi alineada con e1 (x[0]~=||x||):
+			// con + , v[0]=||x||-x[0] resta dos cantidades casi iguales; con -, v[0]=-(||x||+x[0]) suma
+			// magnitudes del mismo signo. Sin esta correccion, QRSchurfactor (que reaplica este mismo
+			// reflector de forma iterativa, acercandose cada vez mas a una columna ya alineada) se
+			// estanca en un residuo de ~1e-8 en vez de converger a precision de maquina.
+			Complex alpha = QRfactor.signHH(x.getItem(0, 0)).times(x.norm()).opposite();
 			MatrixComplex e1 = new MatrixComplex(p, 1);
 			e1.setItem(0, 0, Complex.ONE);
-			MatrixComplex v = (e1.times(xNorm)).minus(x);
+			MatrixComplex v = (e1.times(alpha)).minus(x);
 			double vNorm = v.norm();
 
 			// Subcolumna ya nula por debajo de la subdiagonal: nada que reflejar en este paso.
