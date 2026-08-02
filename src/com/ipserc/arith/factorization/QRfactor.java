@@ -29,9 +29,12 @@ public class QRfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "QRfactor --- INFO: ";
-	private final static String VERSION = "1.1 (2022_0209_2130)";
+	private final static String VERSION = "1.2 (2026_0802_0824)";
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.2 (2026_0802_0824)
+	 * signHH(Complex) widened from private to package-private static so Hessenbergfactor can reuse it.
+	 *
 	 * 1.1 (2022_0209_2130)
 	 * public void qrGramSchmidt()
 	 * public void qrGramSchmidtFull()
@@ -102,11 +105,13 @@ public class QRfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Private Method. Aproximation of the sign function for complex numbers to use in the Housholder decomposition.
+	 * Package-private Method (widened from private so {@code Hessenbergfactor} can reuse it without
+	 * duplicating the same Householder sign convention). Aproximation of the sign function for complex
+	 * numbers to use in the Housholder decomposition.
 	 * @param complexMatrix Complex number to evalute the sign.
 	 * @return The sign evaluated.
 	 */
-	private Complex signHH(Complex complexMatrix) {
+	static Complex signHH(Complex complexMatrix) {
 		Complex signHH = new Complex();
 		signHH = Complex.signP(complexMatrix);
 		signHH.setComplexPol(1, signHH.pha());
