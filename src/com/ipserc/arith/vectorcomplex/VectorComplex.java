@@ -8,8 +8,23 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.8 (2026_0801_0840)";
+	private final static String VERSION = "1.9 (2026_0802_1600)";
 	/* VERSION Release Note
+	 * 1.9 (2026_0802_1600)
+	 * New public vectorprodN(VectorComplex...): the mathematically correct n-dimensional
+	 * generalization deferred since VERSION 1.8. A BINARY vector product with the classical
+	 * defining properties (orthogonal to both operands, magnitude = area) only exists in 3 and 7
+	 * dimensions (Hurwitz's theorem) -- that is exactly why crossprod() resorts to a different
+	 * construction (Beno Eckmann tables) capped at 7D, and why vectorprod()'s fixed-3-index
+	 * Levi-Civita formula cannot generalize as a 2-argument method. The construction that DOES
+	 * generalize to every dimension n is the (n-1)-ARY generalized cross product: n-1 vectors in,
+	 * one vector out, orthogonal to all n-1 inputs, via an n-index Levi-Civita symbol -- exactly
+	 * vectorprod()'s own formula with the fixed 3-index coef array widened to n indices and the
+	 * fixed 2 operands (this, aVector) widened to n-1 (this, plus n-2 more). Reduces to
+	 * vectorprod()'s exact formula for n=3 (verified bit-for-bit identical). vectorprod() itself is
+	 * UNCHANGED -- still valid only in 3D, still silently wrong outside it, at the user's explicit
+	 * request to leave it alone rather than touch ~20 existing 3D call sites.
+	 *
 	 * 1.8 (2026_0801_0840)
 	 * Javadoc only, no behavior change: documents that vectorprod() (Levi-Civita with a fixed
 	 * 3-index symbol) is only mathematically valid in 3 dimensions. Generalizing the formula
@@ -567,7 +582,80 @@ public class VectorComplex extends MatrixComplex {
 		}
 		return result;
 	}
-	
+
+	/**
+	 * The generalized (n-1)-ary vector product: given {@code n-2} additional vectors (plus
+	 * {@code this}, {@code n-1} operands total) in an n-dimensional space, returns the vector
+	 * orthogonal to all {@code n-1} operands, via an n-index Levi-Civita symbol:
+	 * {@code result_i = sum over (j_1,...,j_(n-1)) of epsilon_{i,j_1,...,j_(n-1)} * op_1[j_1] * ... * op_(n-1)[j_(n-1)]}.
+	 * <p>
+	 * This is the construction that actually generalizes to every dimension {@code n>=1} -- unlike
+	 * a genuine BINARY vector product (2 operands in, 1 out, orthogonal to both), which by
+	 * Hurwitz's theorem only exists with the classical defining properties in 3 and 7 dimensions
+	 * (see {@link #crossprod(VectorComplex)}, capped there for exactly that reason). Reduces to
+	 * {@link #vectorprod(VectorComplex)}'s exact formula when {@code n=3} (one extra vector,
+	 * verified bit-for-bit identical) -- {@link #vectorprod(VectorComplex)} itself is left
+	 * unchanged, still valid only in 3D, at the user's explicit request.
+	 * @param vectors The {@code n-2} additional operand vectors (all of dimension {@code n =
+	 * this.dim()}); together with {@code this}, {@code n-1} operands total.
+	 * @return The generalized vector product: an n-dimensional vector orthogonal to {@code this}
+	 * and to every vector in {@code vectors}.
+	 * @throws IllegalArgumentException if the number of additional vectors isn't exactly
+	 * {@code this.dim()-2}, or if any vector's dimension doesn't match {@code this.dim()}.
+	 */
+	public VectorComplex vectorprodN(VectorComplex... vectors) {
+		int n = this.dim();
+		if (vectors.length != n - 2)
+			throw new IllegalArgumentException(HEADINFO + "vectorprodN: needs " + (n - 2)
+				+ " additional vector(s) (n-1=" + (n - 1) + " operands total, including this, for n="
+				+ n + " dimensions), got " + vectors.length + ".");
+		for (VectorComplex v : vectors)
+			if (v.dim() != n)
+				throw new IllegalArgumentException(HEADINFO + "vectorprodN: all vectors must have "
+					+ "the same dimension as this (" + n + "), got " + v.dim() + ".");
+
+		VectorComplex[] operands = new VectorComplex[n - 1];
+		operands[0] = this;
+		System.arraycopy(vectors, 0, operands, 1, vectors.length);
+
+		VectorComplex result = new VectorComplex(n);
+		int[] coef = new int[n];
+		for (int i = 0; i < n; ++i) {
+			coef[0] = i;
+			result.setCoord(i, vectorprodNTerm(operands, coef, 1, n));
+		}
+		return result;
+	}
+
+	/**
+	 * Private recursive helper for {@link #vectorprodN(VectorComplex...)}: sums {@code epsilon *
+	 * op_1[j_1] * ... * op_(n-1)[j_(n-1)]} over every combination of indices {@code j_1..j_(n-1)},
+	 * each ranging over {@code 0..n-1} -- the direct n-index generalization of the fixed
+	 * triple-nested loop in {@link #vectorprod(VectorComplex)}.
+	 * @param operands The {@code n-1} operand vectors, in order.
+	 * @param coef The index array being filled in; {@code coef[0]} (the result component) is
+	 * already set by the caller, {@code coef[1..level-1]} are already fixed by earlier recursion
+	 * levels.
+	 * @param level The next index position to fill (recursion base case: {@code level==n}).
+	 * @param n The dimension.
+	 * @return The partial sum for the already-fixed prefix of {@code coef}.
+	 */
+	private Complex vectorprodNTerm(VectorComplex[] operands, int[] coef, int level, int n) {
+		if (level == n) {
+			int lc = leviCivita(coef);
+			if (lc == 0) return new Complex(0, 0);
+			Complex product = new Complex(lc, 0);
+			for (int k = 0; k < operands.length; ++k) product = product.times(operands[k].getCoord(coef[k + 1]));
+			return product;
+		}
+		Complex sum = new Complex(0, 0);
+		for (int idx = 0; idx < n; ++idx) {
+			coef[level] = idx;
+			sum = sum.plus(vectorprodNTerm(operands, coef, level + 1, n));
+		}
+		return sum;
+	}
+
 	/**
 	 * There are more than one Beno Eckmann Coefficients Table in this world
 	 * @param order
