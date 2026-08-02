@@ -1175,6 +1175,18 @@ Retomado el candidato "generalizar `vectorprod()` más allá de 3D", aplazado de
 
 **Verificación** (`TestVectorAudit02.java`, nuevo): coincide bit a bit con `vectorprod()` en 3D (20 pares aleatorios); vectores base estándar en 4D/5D/6D dan `±e_n` exacto; ortogonalidad **bilineal** (sin conjugar — `dotprod()`/`innerprod()` usan `adjoint()`, la relación equivocada para este producto antisimétrico complejo) contra los `n-1` operandos, residuo exactamente `0`; validación explícita. `TOTAL pass=9 fail=0`. Batería de regresión completa — exit 0 en todas salvo `TestVector01`, que ya fallaba idéntico en `HEAD` antes de este cambio (bug preexistente sin relación en `determinant()`/`kroneckerprod`, confirmado contra build de referencia). `VectorComplex.VERSION`: `1.8→1.9`.
 
+## `log()` conectado a `logm()` para el caso defectuoso (commit `5e6f5c6`)
+
+Cierra la decisión de alcance aplazada desde la Novena sesión — `logm()` se dejó deliberadamente sin conectar hasta verificarlo sólido por su cuenta; ya lo está tras las Fases 1-3 de esa sesión.
+
+**Fix**: la rama defectuosa de `log()` (no diagonal, no diagonalizable vía `Diagfactor`) prueba `logm()` (Schur + escalado-cuadrado inverso, converge para cualquier orientación de autovalor) primero, cayendo a `logTaylor()` (rango de convergencia estrecho, cerca de `+‖A‖`) solo si `logm()` lanza excepción explícita — mismo patrón sin heurística ya usado hoy varias veces.
+
+**Confirmado con un caso real**: `[[-52,4],[-1,-48]]` (bloque defectuoso 2×2, `λ=-50`, conjugado por `P` no ortogonal) hacía que `log()` lanzara excepción directamente (Taylor divergente) antes de este cambio; ahora se resuelve limpio vía `logm()` (`exp(log(A))` coincide con `A` a `~1.5e-9`).
+
+**Hallazgo colateral, documentado, NO arreglado (fuera de alcance)**: `logTaylor()` se cuelga (no lanza excepción ni termina en tiempo razonable, >15s en una matriz 2×2) para una matriz nilpotente (`"0,1;0,0"`) — confirmado **preexistente**, llamando a `logTaylor()` directamente sobre un build de `HEAD` anterior a este cambio, mismo colgado. `log()` ya llegaba a `logTaylor()` para ese input antes de este commit (ni diagonal ni diagonalizable), así que la exposición no cambia — solo se descubrió al escribir el test nuevo. No se incluyó ese caso en el test persistente (colgaría la batería para quien la ejecute). Candidato aparte para otro día: auditar por qué `logTaylor()` no detecta divergencia/singularidad para este tipo de entrada.
+
+**Verificación**: `TestLogDispatch01.java` (nuevo) — diagonal/diagonalizable sin cambios (residuo a precisión de máquina), dos casos defectuosos con autovalor dominante lejos de `+‖A‖` (el punto ciego de `logTaylor()`) que ahora reconstruyen correctamente vía `logm()`. `TOTAL pass=6 fail=0`. Batería de 27 ficheros exit 0 en todos. `MatrixComplex.VERSION`: `1.34→1.35`.
+
 ## Candidato nuevo (sin empezar): reestructuración arquitectónica de los módulos tocados hoy
 
 El usuario preguntó si merece la pena reestructurar `Hessenbergfactor`/`QRSchurfactor`/`Eigenspace`/`Polynom` (los módulos tocados en la Décima sesión) igual que se hizo con `Complex.java` en el Paso 2 (Sexta sesión: split en clases *package-private* por responsabilidad, API pública 100% intacta vía delegadores de una línea, ver esa sección arriba para el patrón completo). Diagnóstico, sin implementar nada:
