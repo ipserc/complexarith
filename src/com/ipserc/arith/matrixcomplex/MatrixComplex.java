@@ -18,7 +18,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.44 (2026_0802_2338)";
+	private final static String VERSION = "1.45 (2026_0802_2343)";
 	/* VERSION Release Note
 	 *
 	 * 1.40 (2026_0803_1900)
@@ -4225,75 +4225,48 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * We define here A ⊗ B, the Kronecker product of two square matrices A = (ai,j) and B of dimension nA and nB, 
+	 * We define here A ⊗ B, the Kronecker product of two square matrices A = (ai,j) and B of dimension nA and nB,
 	 * respectively: A ⊗ B is the square matrix of dimension nA nB obtained from A by replacing every entry ai,j by ai,j B.
 	 * https://www.sciencedirect.com/topics/mathematics/kronecker-product
 	 * @param matrix
 	 * @return
 	 */
 	public MatrixComplex kroneckerprod(MatrixComplex matrix) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int rowLenC = matrix.rows();
-		int colLenC = matrix.cols();
-
-		MatrixComplex kronmat = new MatrixComplex(rowLen*rowLenC, colLen*colLenC);
-		int row = 0, col = 0;
-		for (int f1 = 0; f1 < rowLen; ++f1) {
-			for (int f2 = 0; f2 < rowLenC; ++f2) {
-				for (int c1 = 0; c1 < colLen; ++c1) {
-					for (int c2 = 0; c2 < colLenC; ++c2) {
-						// System.out.printf("(f1:%d,c1:%d)*(f2:%d,c2:%d) - ", f1,c1, f2,c2); 
-						kronmat.setItem(row, col, this.getItem(f1, c1).times(matrix.getItem(f2, c2)));
-						++col;
-					}
-				}
-				// System.out.println();
-				++row;
-				col = 0;
-			}
-		}
-		return kronmat;
+		return MatrixComplexKernel.kroneckerprod(this, matrix);
 	}
-	
+
 	/**
 	 * Calulates the Kernel of a base
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The kernel vector components
 	 */
 	public MatrixComplex kernel(Complex lambda) {
-		MatrixComplex kernel = new MatrixComplex();
-		if (this.rows() != this.cols()) {
-			System.err.println("The matrix has to be square.");
-			return kernel;
-		}
-		Syseq newSysEq = new Syseq(this.augment());
-		return newSysEq.solve(lambda);
+		return MatrixComplexKernel.kernel(this, lambda);
 	}
-	
+
 	/**
 	 * Calulates the Kernel of a base using Complex.ONE as seed
 	 * @return The kernel vector components
 	 */
 	public MatrixComplex kernel() {
-		return this.kernel(Complex.ONE);
+		return MatrixComplexKernel.kernel(this);
 	}
-	
+
 	/**
 	 * Shortcut to kernel() method
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The kernel vector components
 	 */
 	public MatrixComplex ker(Complex lambda) {
-		return kernel(lambda);
+		return MatrixComplexKernel.ker(this, lambda);
 	}
-	
+
 	/**
 	 * Shortcut to kernel() method
 	 * @return The kernel vector components
 	 */
 	public MatrixComplex ker() {
-		return kernel();
+		return MatrixComplexKernel.ker(this);
 	}
 
 	/**
@@ -4311,48 +4284,7 @@ public class MatrixComplex {
 	 * columns each); empty (0 rows) if the nullspace is trivial.
 	 */
 	public MatrixComplex nullspaceBasis() {
-		int n = this.cols();
-		int rowLen = this.rows();
-		MatrixComplex r = this.copy();
-
-		int[] pivotColOfRow = new int[rowLen];
-		boolean[] isPivotCol = new boolean[n];
-		int pivotRow = 0;
-
-		for (int col = 0; col < n && pivotRow < rowLen; ++col) {
-			int best = pivotRow;
-			double bestMod = r.getItem(pivotRow, col).mod();
-			for (int row = pivotRow + 1; row < rowLen; ++row) {
-				double mod = r.getItem(row, col).mod();
-				if (mod > bestMod) { bestMod = mod; best = row; }
-			}
-			if (r.getItem(best, col).isZero()) continue; // no usable pivot in this column: free column
-
-			if (best != pivotRow) r.swapRows(pivotRow, best);
-			r.Ftransf(pivotRow, r.getItem(pivotRow, col).inverse()); // normalize pivot to 1
-			for (int row = 0; row < rowLen; ++row) {
-				if (row == pivotRow) continue;
-				Complex factor = r.getItem(row, col);
-				if (!factor.isZero()) r.Ftransf(row, pivotRow, factor.opposite());
-			}
-			pivotColOfRow[pivotRow] = col;
-			isPivotCol[col] = true;
-			++pivotRow;
-		}
-
-		int nullity = 0;
-		for (int col = 0; col < n; ++col) if (!isPivotCol[col]) ++nullity;
-
-		MatrixComplex basis = new MatrixComplex(nullity, n);
-		int basisRow = 0;
-		for (int freeCol = 0; freeCol < n; ++freeCol) {
-			if (isPivotCol[freeCol]) continue;
-			basis.setItem(basisRow, freeCol, Complex.ONE);
-			for (int prow = 0; prow < pivotRow; ++prow)
-				basis.setItem(basisRow, pivotColOfRow[prow], r.getItem(prow, freeCol).opposite());
-			++basisRow;
-		}
-		return basis;
+		return MatrixComplexKernel.nullspaceBasis(this);
 	}
 
 	/*
