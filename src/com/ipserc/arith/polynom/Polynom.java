@@ -21,8 +21,17 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.9 (2026_0802_0131)";
+	private final static String VERSION = "1.10 (2026_0802_1300)";
 	/* VERSION Release Note
+	 * 1.10 (2026_0802_1300)
+	 * solve(double)/solve() now delegate to solveRobust() instead of solveWeierstrass() directly.
+	 * solveRobust() existed since 1.9 but nothing routed through it except MatrixComplex.rank2()
+	 * and Eigenspace.eigenval() -- every OTHER caller of this class' actual entry point (solve()),
+	 * including TestPolynom02/TestRoots01/TestPolynomFromRoots01 (degree>=6 polynomials with
+	 * widely-spread coefficients), kept hitting solveWeierstrass()'s Arithmetic Overflow directly.
+	 * Byte-for-byte identical on every already-working case (Aberth never invoked unless
+	 * Durand-Kerner itself throws).
+	 *
 	 * 1.9 (2026_0802_0131)
 	 * New solveAberth(double)/solveAberth(): Aberth-Ehrlich method (cubic convergence, uses
 	 * p'(z) via new private evalNormDerivative()) as an alternative to solveWeierstrass()
@@ -1008,20 +1017,28 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Shortcut for solveWeierstrass(double precision).
+	 * Shortcut for {@link #solveRobust(double)} (Durand-Kerner with an Aberth-Ehrlich fallback on
+	 * explicit failure), not raw {@link #solveWeierstrass(double)} anymore -- was the dispatcher
+	 * every caller of this class' main entry point actually reaches, so it was the one place that
+	 * mattered for {@code TestPolynom02}/{@code TestRoots01}/{@code TestPolynomFromRoots01} (degree
+	 * >=6 polynomials with widely-spread coefficients) to keep throwing even after solveRobust()
+	 * itself was added and verified this session: those callers use {@code solve()}, never
+	 * {@code solveRobust()} directly. Byte-for-byte identical to the old behavior on every
+	 * already-working case (Aberth is never invoked unless Durand-Kerner itself throws).
 	 * @param precision The precision used to identify a zero.
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solve(double precision) {
-		return solveWeierstrass(precision);
+		return solveRobust(precision);
 	}
 
 	/**
-	 * Shortcat for solveWeierstrass().
+	 * Shortcut for {@link #solveRobust()} using the library's default precision (see
+	 * {@link #solve(double)} for why this no longer calls {@link #solveWeierstrass()} directly).
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solve() {
-		return solveWeierstrass(Complex.precision());
+		return solveRobust(Complex.precision());
 	}
 
 	/**
