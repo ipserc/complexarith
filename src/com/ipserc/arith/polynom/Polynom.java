@@ -11,7 +11,6 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.syseq.Syseq;
 import java.util.ArrayList;
 import java.util.List;
-import com.panayotis.gnuplot.JavaPlot;
 
 public class Polynom extends MatrixComplex {
 	private Complex[][] polyNorm;
@@ -21,8 +20,17 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.11 (2026_0802_1900)";
+	private final static String VERSION = "1.12 (2026_0802_2000)";
 	/* VERSION Release Note
+	 * 1.12 (2026_0802_2000)
+	 * Fase 2 de la reestructuracion de Polynom.java: la seccion PLOTTING (plotExpression*, plot*,
+	 * plotRe/Im/Mod/Pha, walkInterval(Complex,Complex)) se movio a la nueva clase package-private
+	 * PolynomPlot, aislando ahi toda la dependencia de com.panayotis.gnuplot.JavaPlot (import
+	 * ahora eliminado de Polynom.java, sin uso). API publica 100% intacta, delegadores de una
+	 * linea. Preservado sin arreglar (mecanica pura, no bugfix): plotRe(double[][]) sigue con su
+	 * indexacion fuera de rango preexistente (points[points.length][0], deberia ser
+	 * points.length-1) -- documentado, no tocado en esta fase.
+	 *
 	 * 1.11 (2026_0802_1900)
 	 * Fase 1 de la reestructuracion de Polynom.java (ver Claude/ComplexArithRev.md): la seccion
 	 * PRINTING (toString, toMaxima_poly/roots, toWolfram_poly/roots, toOctave_poly/roots,
@@ -1230,14 +1238,7 @@ public class Polynom extends MatrixComplex {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public void plotExpression(String GNUplotExpression,double loLimit, double upLimit) {
-		double samples = (upLimit - loLimit) * sampleBase;
-		JavaPlot p = new JavaPlot();
-		p.addPlot(GNUplotExpression);
-		p.setTitle(this.toString());
-		p.addPlot("[" + loLimit + ":" + upLimit + "] " + this.toGNUPlot_poly());
-		p.set("zeroaxis", "");
-		p.set("samples", Double.toString(samples));
-		p.plot();
+		PolynomPlot.plotExpression(this, GNUplotExpression, loLimit, upLimit);
 	}
 
 	/**
@@ -1246,14 +1247,7 @@ public class Polynom extends MatrixComplex {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public void plotExpression(double loLimit, double upLimit) {
-		double samples = (upLimit - loLimit) * sampleBase;
-		JavaPlot p = new JavaPlot();
-		p.setTitle(this.toString());
-		p.set("zeroaxis", "");
-		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
-		p.set("samples", Double.toString(samples));
-		p.addPlot(this.toGNUPlot_poly());
-		p.plot();
+		PolynomPlot.plotExpression(this, loLimit, upLimit);
 	}
 
 	/**
@@ -1262,15 +1256,7 @@ public class Polynom extends MatrixComplex {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public void plotExpressionRe(double loLimit, double upLimit) {
-		double samples = (upLimit - loLimit) * sampleBase;
-		JavaPlot p = new JavaPlot();
-		p.setTitle("Re(" + this.toString() + ")");
-		p.set("zeroaxis", "");
-		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
-		p.set("key", "noautotitle");
-		p.set("samples", Double.toString(samples));
-		p.addPlot("real("+ this.toGNUPlot_poly() + ")");
-		p.plot();
+		PolynomPlot.plotExpressionRe(this, loLimit, upLimit);
 	}
 
 	/**
@@ -1279,15 +1265,7 @@ public class Polynom extends MatrixComplex {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public void plotExpressionIm(double loLimit, double upLimit) {
-		double samples = (upLimit - loLimit) * sampleBase;
-		JavaPlot p = new JavaPlot();
-		p.setTitle("Im(" + this.toString() + ")");
-		p.set("zeroaxis", "");
-		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
-		p.set("key", "noautotitle");
-		p.set("samples", Double.toString(samples));
-		p.addPlot("imag("+ this.toGNUPlot_poly() + ")");
-		p.plot();
+		PolynomPlot.plotExpressionIm(this, loLimit, upLimit);
 	}
 
 	/**
@@ -1296,15 +1274,7 @@ public class Polynom extends MatrixComplex {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public void plotExpressionReIm(double loLimit, double upLimit) {
-		double samples = (upLimit - loLimit) * sampleBase;
-		JavaPlot p = new JavaPlot();
-		p.setTitle("Re() Im() " + this.toString());
-		p.set("zeroaxis", "");
-		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
-		p.set("key", "noautotitle");
-		p.set("samples", Double.toString(samples));
-		p.addPlot("real(" + this.toGNUPlot_poly() + "), imag("+ this.toGNUPlot_poly() + ")");
-		p.plot();
+		PolynomPlot.plotExpressionReIm(this, loLimit, upLimit);
 	}
 
 	/**
@@ -1313,15 +1283,7 @@ public class Polynom extends MatrixComplex {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public void plotExpressionRepIm(double loLimit, double upLimit) {
-		double samples = (upLimit - loLimit) * sampleBase;
-		JavaPlot p = new JavaPlot();
-		p.setTitle("Re() Im() " + this.toString());
-		p.set("zeroaxis", "");
-		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
-		p.set("key", "noautotitle");
-		p.set("samples", Double.toString(samples));
-		p.addPlot("real(" + this.toGNUPlot_poly() + ") / imag("+ this.toGNUPlot_poly() + ")");
-		p.plot();
+		PolynomPlot.plotExpressionRepIm(this, loLimit, upLimit);
 	}
 
 	/**
@@ -1330,15 +1292,7 @@ public class Polynom extends MatrixComplex {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public void plotExpressionAbs(double loLimit, double upLimit) {
-		double samples = (upLimit - loLimit) * sampleBase;
-		JavaPlot p = new JavaPlot();
-		p.setTitle("Abs("+this.toString()+")");
-		p.set("zeroaxis", "");
-		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
-		p.set("key", "noautotitle");
-		p.set("samples", Double.toString(samples));
-		p.addPlot("abs(" + this.toGNUPlot_poly() + ")");
-		p.plot();
+		PolynomPlot.plotExpressionAbs(this, loLimit, upLimit);
 	}
 
 	/**
@@ -1347,87 +1301,37 @@ public class Polynom extends MatrixComplex {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public void plotExpressionPhase(double loLimit, double upLimit) {
-		double samples = (upLimit - loLimit) * sampleBase;
-		JavaPlot p = new JavaPlot();
-		p.setTitle("Phase("+this.toString()+")");
-		p.set("grid", "");
-		p.set("zeroaxis", "");
-		p.set("xrange", "[" + loLimit + ":" + upLimit + "]");
-		p.set("key", "noautotitle");
-		p.set("samples", Double.toString(samples));
-		p.addPlot("atan(real(" + this.toGNUPlot_poly() + ")/imag("+ this.toGNUPlot_poly() + "))");
-		p.plot();
+		PolynomPlot.plotExpressionPhase(this, loLimit, upLimit);
 	}
 
 	/**
 	 * Plots different graphics in the same canvas from their list of ponts
-	 * @param pointsList The list with the points defined as List<double[][]> 
+	 * @param pointsList The list with the points defined as List<double[][]>
 	 * @param title the title of the graphic
 	 */
 	public void plot(List<double[][]> pointsList, String title) {
-		JavaPlot p = new JavaPlot();
-		p.setTitle(title);
-		for(int i = 0; i < pointsList.size(); ++i) {
-			p.addPlot(pointsList.get(i));
-		}
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		p.set("mxtics","10");
-		p.set("mytics","10");
-		p.set("grid","xtics mxtics ytics mytics");
-		p.plot();
+		PolynomPlot.plot(pointsList, title);
 	}
 
 	public void plot(double[][] points, String title) {
-		JavaPlot p = new JavaPlot();
-		p.setTitle(title);
-		p.addPlot(points);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		p.set("mxtics","10");
-		p.set("mytics","10");
-		p.set("grid","xtics mxtics ytics mytics");
-		p.plot();
+		PolynomPlot.plot(points, title);
 	}
 
 	public void plotRe(MatrixComplex points, String title) {
-		int samples = points.rows();
-		double[][] pointsRe = new double[samples][2];		
-		for (int i = 0; i < samples; ++i) {
-			pointsRe[i][0] = points.getItem(i, 0).rep(); 
-			pointsRe[i][1] = points.getItem(i, 1).rep(); 
-		}
-		plot(pointsRe, title);
+		PolynomPlot.plotRe(points, title);
 	}
-	
+
 	/**
 	 * Plots the real component of different graphics in the same canvas from its definition of its points as complexes
 	 * @param pointsList The list with the points defined as <MatrixComplex>
 	 * @param title the title of the graphic
 	 */
 	public void plotRe(List<MatrixComplex> pointsList, String title) {
-		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
-		int samples = pointsList.get(0).rows();
-		for(int l = 0; l < pointsList.size(); ++l) {
-			double[][] pointsRe = new double[samples][2];
-			for (int i = 0; i < samples; ++i) {
-				pointsRe[i][0] = pointsList.get(l).getItem(i, 0).rep(); 
-				pointsRe[i][1] = pointsList.get(l).getItem(i, 1).rep(); 
-			}
-			pointsListGraph.add(pointsRe);
-		}
-		plot(pointsListGraph, title);
-	}	
+		PolynomPlot.plotRe(pointsList, title);
+	}
 
-	
 	public void plotIm(MatrixComplex points, String title) {
-		int samples = points.rows();
-		double[][] pointsIm = new double[samples][2];		
-		for (int i = 0; i < samples; ++i) {
-			pointsIm[i][0] = points.getItem(i, 0).imp(); 
-			pointsIm[i][1] = points.getItem(i, 1).imp(); 
-		}
-		plot(pointsIm, title);
+		PolynomPlot.plotIm(points, title);
 	}
 
 	/**
@@ -1436,75 +1340,33 @@ public class Polynom extends MatrixComplex {
 	 * @param title the title of the graphic
 	 */
 	public void plotIm(List<MatrixComplex> pointsList, String title) {
-		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
-		int samples = pointsList.get(0).rows();
-		for(int l = 0; l < pointsList.size(); ++l) {
-			double[][] pointsIm = new double[samples][2];
-			for (int i = 0; i < samples; ++i) {
-				pointsIm[i][0] = pointsList.get(l).getItem(i, 0).imp(); 
-				pointsIm[i][1] = pointsList.get(l).getItem(i, 1).imp();
-			}
-			pointsListGraph.add(pointsIm);
-		}
-		plot(pointsListGraph, title);
-	}	
+		PolynomPlot.plotIm(pointsList, title);
+	}
 
 	public void plotMod(MatrixComplex points, String title) {
-		int samples = points.rows();
-		double[][] pointsMod = new double[samples][2];		
-		for (int i = 0; i < samples; ++i) {
-			pointsMod[i][0] = points.getItem(i, 0).mod(); 
-			pointsMod[i][1] = points.getItem(i, 1).mod(); 
-		}
-		plot(pointsMod, title);
+		PolynomPlot.plotMod(points, title);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param pointsList
 	 * @param title
 	 */
 	public void plotMod(List<MatrixComplex> pointsList, String title) {
-		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
-		int samples = pointsList.get(0).rows();
-		for(int l = 0; l < pointsList.size(); ++l) {
-			double[][] pointsIm = new double[samples][2];
-			for (int i = 0; i < samples; ++i) {
-				pointsIm[i][0] = pointsList.get(l).getItem(i, 0).mod(); 
-				pointsIm[i][1] = pointsList.get(l).getItem(i, 1).mod();
-			}
-			pointsListGraph.add(pointsIm);
-		}
-		plot(pointsListGraph, title);
-	}	
+		PolynomPlot.plotMod(pointsList, title);
+	}
 
 	public void plotPha(MatrixComplex points, String title) {
-		int samples = points.rows();
-		double[][] pointsPha = new double[samples][2];		
-		for (int i = 0; i < samples; ++i) {
-			pointsPha[i][0] = points.getItem(i, 0).pha(); 
-			pointsPha[i][1] = points.getItem(i, 1).pha(); 
-		}
-		plot(pointsPha, title);
+		PolynomPlot.plotPha(points, title);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param pointsList
 	 * @param title
 	 */
 	public void plotPha(List<MatrixComplex> pointsList, String title) {
-		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
-		int samples = pointsList.get(0).rows();
-		for(int l = 0; l < pointsList.size(); ++l) {
-			double[][] pointsIm = new double[samples][2];
-			for (int i = 0; i < samples; ++i) {
-				pointsIm[i][0] = pointsList.get(l).getItem(i, 0).mod(); 
-				pointsIm[i][1] = pointsList.get(l).getItem(i, 1).pha();
-			}
-			pointsListGraph.add(pointsIm);
-		}
-		plot(pointsListGraph, title);
+		PolynomPlot.plotPha(pointsList, title);
 	}
 
 	/**
@@ -1515,21 +1377,9 @@ public class Polynom extends MatrixComplex {
 	 * @return
 	 */
 	public MatrixComplex walkInterval(Complex lolimit, Complex uplimit) {
-		Complex.storeFormatStatus();
-		Complex.setScientificON(20);		
-		MatrixComplex tupla = new MatrixComplex(sampleBase, 2);
-		Complex dir = uplimit.minus(lolimit);
-		Complex inc = dir.divides(sampleBase);
-		Complex point;
-		for(int i=0; i < sampleBase; ++i) {
-			point = lolimit.plus(inc.times(i));
-			tupla.setItem(i, 0, point);
-			tupla.setItem(i, 1, this.eval(point));			
-		}
-		Complex.restoreFormatStatus();
-		return tupla;
+		return PolynomPlot.walkInterval(this, lolimit, uplimit);
 	}
-	
+
 	/**
 	 * Traverses an interval taken sampleBase samples and evaluating the polynomial in these points
 	 * @param dlolimit
@@ -1541,21 +1391,11 @@ public class Polynom extends MatrixComplex {
 		Complex uplimit = new Complex(duplimit);
 		return walkInterval(lolimit, uplimit);
 	}
-	
+
 	public void plotRe(double[][] points) {
-		double lolimit = points[0][0];
-		double uplimit = points[points.length][0];
-		JavaPlot p = new JavaPlot();
-		p.setTitle("Phase("+this.toString()+")");
-		p.set("grid", "");
-		p.set("zeroaxis", "");
-		p.set("xrange", "[" + lolimit + ":" + uplimit + "]");
-		p.set("key", "noautotitle");
-		p.set("samples", Double.toString(sampleBase));
-		p.addPlot(points);
-		p.plot();
+		PolynomPlot.plotRe(this, points);
 	}
-	
+
 
 	/*
 	 * ***********************************************
