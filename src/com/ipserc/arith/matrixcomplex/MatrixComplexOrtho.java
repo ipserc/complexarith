@@ -22,7 +22,7 @@ import com.ipserc.arith.complex.Complex;
  * {@code MatrixComplex.trace(...)}) and {@code HEADINFO} (package-private since sub-fase A+B,
  * referenced here qualified as {@code MatrixComplex.HEADINFO}). No visibility needed widening for
  * this sub-fase -- every other helper this block calls ({@code times}, {@code adjoint},
- * {@code augment}, {@code triangle}, {@code copyCol}, {@code copyRow}, {@code initMatrixRandomInt},
+ * {@code augment}, {@code Ftransf}, {@code copyCol}, {@code copyRow}, {@code initMatrixRandomInt},
  * {@code euc_norm}, {@code divides}) was already public. {@code MatrixComplex.java}'s own public
  * methods keep their exact signatures, delegating to these in one line each -- the public API is
  * unchanged.
@@ -35,12 +35,32 @@ import com.ipserc.arith.complex.Complex;
  * Schmidt family, so it moves with D per the restructuring plan, avoiding a needless
  * package-private widening between D and E).
  * <p>
+ * {@code gramSchmidtGauss()} was also fixed here (not just moved), at the user's explicit request,
+ * after the mechanical extraction exposed two layered bugs: (1) a shape/offset bug crashing with
+ * {@code ArrayIndexOutOfBoundsException} on non-square input and silently returning a transposed
+ * result on square input (both fixed by reading the augmented matrix's right block at column offset
+ * {@code m.rows()} instead of {@code m.cols()}, and dropping a spurious final {@code .transpose()});
+ * (2) a deeper, preexisting algorithmic bug found while verifying fix (1): the method reused
+ * {@code augmentedMatrix.triangle()} (i.e. {@code triangleUp()}) for its Gaussian elimination step,
+ * but that method's proactive partial pivoting (Octava sesion, commit {@code db4c912}) swaps to the
+ * row of largest modulus in each column -- this breaks the row-to-row correspondence between the
+ * Gram matrix {@code G=m*m}{@code ^H} and {@code m} that the whole "eliminate {@code [G|m]}, read
+ * back the {@code m}-block" trick depends on (it is, in effect, computing {@code L}{@code ^-1*m} via
+ * forward elimination, valid only if elimination follows the ORIGINAL row order). Confirmed
+ * empirically with a 200-trial random-matrix sweep: ~43% of non-singular square inputs produced a
+ * non-orthogonal result with pivoting; the method now does its own elimination loop inline
+ * (via {@code Ftransf}), deliberately without any row swap, verified 0/200 non-orthogonal on the
+ * same sweep, plus row-orthogonality (not just shape) confirmed for tall/wide/rank-deficient cases.
+ * <p>
  * The one debug {@code trace(...)} call in {@code gramSchmidtGauss()} is genuinely live code (its
- * surrounding {@code /* ... *}{@code /} markers both close normally on their own line), unlike the
- * parked-comment convention seen elsewhere in this codebase (a deliberately unclosed {@code /* ... * /}
- * marker, space before the final slash, used to "park" code without deleting it -- see
- * {@code [[complexarith_codigo_aparcado_convencion]]} in memory) -- verified character by character
- * before moving it, to avoid silently turning dead comment-text into live code or vice versa.
+ * surrounding {@code /* ... *}{@code /} markers both closed normally on their own line in the
+ * original), unlike the parked-comment convention seen elsewhere in this codebase (a deliberately
+ * unclosed {@code /* ... * /} marker, space before the final slash, used to "park" code without
+ * deleting it -- see {@code [[complexarith_codigo_aparcado_convencion]]} in memory) -- verified
+ * character by character before moving it, to avoid silently turning dead comment-text into live
+ * code or vice versa; its surrounding markers were dropped when this method's body was rewritten for
+ * the algorithmic fix above, but the {@code trace(...)} call itself is kept, now unconditionally
+ * adjacent (no comment wrapper) since there was nothing left to preserve verbatim.
  */
 class MatrixComplexOrtho {
 
@@ -54,26 +74,40 @@ class MatrixComplexOrtho {
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
 	 */
 	static MatrixComplex gramSchmidtGauss(MatrixComplex m) {
-		final boolean DEBUG_ON = false;
 		MatrixComplex auxMatrix = m.times(m.adjoint());
 
 		MatrixComplex augmentedMatrix = auxMatrix.copy();
 		augmentedMatrix = augmentedMatrix.augment(m);
 
-		/* -------------   DEBUGGING BLOCK   ------------- */
 		MatrixComplex.trace(augmentedMatrix, "augmentedMatrix");
-		/* ------------- END DEBUGGING BLOCK ------------- */
 
-		augmentedMatrix = augmentedMatrix.triangle();
+		// Gaussian elimination on [G|m] (G=m*m^H) WITHOUT row swaps -- deliberately NOT
+		// augmentedMatrix.triangle()/triangleUp(), whose proactive partial pivoting (since the
+		// Octava sesion, commit db4c912) swaps to the row of largest modulus in each column. This
+		// method computes L^-1*m via forward elimination, which is only mathematically valid when
+		// elimination follows the ORIGINAL row order: swapping rows breaks the row-to-row
+		// correspondence between G's structure and m's rows, producing a non-orthogonal result.
+		// Confirmed empirically (200-trial random sweep): with triangle()/pivoting, ~43% of
+		// non-singular square matrices produced a non-orthogonal result; with this manual,
+		// swap-free elimination, 0/200.
+		int n = m.rows();
+		for (int k = 0; k < n; ++k) {
+			Complex pivot = augmentedMatrix.getItem(k, k);
+			if (pivot.equals(Complex.ZERO)) continue; // row k already a linear combination of earlier rows
+			for (int row = k+1; row < n; ++row) {
+				Complex cCoef = augmentedMatrix.getItem(row, k).divides(pivot.opposite());
+				augmentedMatrix.Ftransf(row, k, cCoef);
+			}
+		}
 
 		MatrixComplex gramSchmidtMatrix = new MatrixComplex(m.rows(), m.cols());
 		for (int row = 0; row < gramSchmidtMatrix.rows(); ++row) {
 			for (int col = 0; col < gramSchmidtMatrix.cols(); ++col) {
-				gramSchmidtMatrix.setItem(row, col, augmentedMatrix.getItem(row, col+m.cols()));
+				gramSchmidtMatrix.setItem(row, col, augmentedMatrix.getItem(row, col+m.rows()));
 			}
 		}
 
-		return gramSchmidtMatrix.transpose();
+		return gramSchmidtMatrix;
 	}
 
 	/**

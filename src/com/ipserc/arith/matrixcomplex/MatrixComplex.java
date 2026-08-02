@@ -18,7 +18,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.43 (2026_0802_2317)";
+	private final static String VERSION = "1.44 (2026_0802_2338)";
 	/* VERSION Release Note
 	 *
 	 * 1.40 (2026_0803_1900)
