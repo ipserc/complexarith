@@ -285,7 +285,7 @@ class PolynomPlot {
 
 	static void plotRe(Polynom p, double[][] points) {
 		double lolimit = points[0][0];
-		double uplimit = points[points.length][0];
+		double uplimit = points[points.length-1][0];
 		JavaPlot plt = new JavaPlot();
 		plt.setTitle("Phase("+p.toString()+")");
 		plt.set("grid", "");

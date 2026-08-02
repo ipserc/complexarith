@@ -20,8 +20,21 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.12 (2026_0802_2000)";
+	private final static String VERSION = "1.13 (2026_0802_2100)";
 	/* VERSION Release Note
+	 * 1.13 (2026_0802_2100)
+	 * Bug real arreglado en PolynomPlot.plotRe(Polynom,double[][]) (senalado, no tocado, en la Fase
+	 * 2): points[points.length][0] -> points[points.length-1][0]. Antes revertaba con
+	 * ArrayIndexOutOfBoundsException el 100% de las veces que se llamaba -- confirmado sin
+	 * callers en todo el proyecto (nadie usaba esta sobrecarga de 1 argumento, todos los sitios
+	 * llaman a la variante con MatrixComplex/List+titulo), asi que el arreglo no tiene efecto
+	 * colateral alguno sobre codigo existente. A peticion del usuario: analisis (callers, efecto
+	 * colateral) hecho primero, decision de arreglar tomada despues de verlo.
+	 * Borrado ncPolynom.java (com.ipserc.arith.polynom): esqueleto sin terminar desde 2019 (extiende
+	 * MatrixComplex directamente, solo 2 constructores + un campo dOffset, sin eval/toString/
+	 * aritmetica), cero referencias en todo el proyecto -- Polynom.java es y ha sido siempre la
+	 * clase completa.
+	 *
 	 * 1.12 (2026_0802_2000)
 	 * Fase 2 de la reestructuracion de Polynom.java: la seccion PLOTTING (plotExpression*, plot*,
 	 * plotRe/Im/Mod/Pha, walkInterval(Complex,Complex)) se movio a la nueva clase package-private
