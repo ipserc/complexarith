@@ -19,8 +19,15 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	private final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.35 (2026_0802_1700)";
+	private final static String VERSION = "1.36 (2026_0802_1800)";
 	/* VERSION Release Note
+	 *
+	 * 1.36 (2026_0802_1800)
+	 * logTaylor(): new LOG_TAYLOR_MAX_ITER=10000 cap (was effectively Complex.digits()'s
+	 * 10^precision, never meant to be reached) plus an explicit "did not converge" exception when
+	 * the iteration cap is exhausted -- fixes the hang confirmed for a nilpotent matrix (see the
+	 * constant's own Javadoc). VERSION bump missed in the commit that made this change; added here
+	 * as a tiny follow-up, no further code change.
 	 *
 	 * 1.35 (2026_0802_1700)
 	 * log(): the defective (non-diagonalizable) branch now tries logm() (Schur + inverse
