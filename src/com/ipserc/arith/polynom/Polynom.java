@@ -21,8 +21,17 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.10 (2026_0802_1300)";
+	private final static String VERSION = "1.11 (2026_0802_1900)";
 	/* VERSION Release Note
+	 * 1.11 (2026_0802_1900)
+	 * Fase 1 de la reestructuracion de Polynom.java (ver Claude/ComplexArithRev.md): la seccion
+	 * PRINTING (toString, toMaxima_poly/roots, toWolfram_poly/roots, toOctave_poly/roots,
+	 * toGNUPlot_poly, toCoefs, toPolynom) se movio a la nueva clase package-private
+	 * PolynomFormat -- API publica 100% intacta, cada
+	 * metodo movido deja un delegador de una linea. reverse() ampliado de private a
+	 * package-private (mismo cuerpo, mismo unico call site existente) para que PolynomFormat
+	 * pueda reutilizarlo en toOctave_poly() sin duplicarlo.
+	 *
 	 * 1.10 (2026_0802_1300)
 	 * solve(double)/solve() now delegate to solveRobust() instead of solveWeierstrass() directly.
 	 * solveRobust() existed since 1.9 but nothing routed through it except MatrixComplex.rank2()
@@ -228,7 +237,7 @@ public class Polynom extends MatrixComplex {
 	 * ...
 	 * Poly [n], is the term in x ^ n.
 	 */
-	private void reverse() {
+	void reverse() {
 		int rowLen = this.rows();
 		int colLen = this.cols();
 		Complex swap = new Complex();
@@ -307,12 +316,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Maxima's polynomial representation as a string.
 	 */
 	public String toMaxima_poly() {
-		String polynom = new String(); 
-
-		polynom = this.toString();
-		polynom = polynom.replace("i", "*%i");
-		polynom = polynom.replace("x", "*x");
-		return polynom;
+		return PolynomFormat.toMaximaPoly(this);
 	}
 	/**
 	 * Constructs the polynomial as string as the one used by Maxima (Computer Algebra System) appending a text before
@@ -320,15 +324,15 @@ public class Polynom extends MatrixComplex {
 	 * @return The Maxima's polynomial representation as a string.
 	 */
 	public String toMaxima_poly(String text) {
-		return text + this.toMaxima_poly();
+		return PolynomFormat.toMaximaPoly(this, text);
 	}
-	
+
 	/**
 	 * Constructs the expression for finding the roots of a polynomial as string as the one used by Maxima (Computer Algebra System)
 	 * @return The Maxima's allroots command for a polynomial.
 	 */
 	public String toMaxima_roots() {
-		return "allroots(" + this.toMaxima_poly() + ")";
+		return PolynomFormat.toMaximaRoots(this);
 	}
 
 	/**
@@ -337,7 +341,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Maxima's allroots command for a polynomial.
 	 */
 	public String toMaxima_roots(String text) {
-		return text + this.toMaxima_roots();
+		return PolynomFormat.toMaximaRoots(this, text);
 	}
 
 	/**
@@ -345,25 +349,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The GNUPlot's polynomial representation as a string.
 	 */
 	public String toGNUPlot_poly() {
-		int rowLen = this.rows();   
-		int colLen = this.cols();
-		Complex cCoef = new Complex();
-		String polynom = new String(); 
-
-		for (int row = 0; row < rowLen; ++row) {
-			for (int col = colLen-1; col >= 0; --col) {
-				cCoef = this.complexMatrix[row][col];				
-				//if (cCoef.mod() == 0.0) continue;
-				if (cCoef.equals(0,0)) 
-					continue;
-				if (col < colLen-1) polynom += "+";				
-				if (col != 0)
-					if (col != 1) polynom += cCoef.toStringGNUPlot()+"*x**"+col;
-					else polynom += cCoef.toStringGNUPlot()+"*x";
-				else polynom += cCoef.toStringGNUPlot();
-			}
-		}
-		return polynom;
+		return PolynomFormat.toGNUPlotPoly(this);
 	}
 
 	/**
@@ -371,10 +357,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Wolfram Mathematica's polynomial representation as a string.
 	 */
 	public String toWolfram_poly() {
-		String polynom = new String(); 
-
-		polynom = this.toString();
-		return polynom.replace("E", "*10^");
+		return PolynomFormat.toWolframPoly(this);
 	}
 
 	/**
@@ -383,7 +366,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Wolfram Mathematica's polynomial representation as a string.
 	 */
 	public String toWolfram_poly(String text) {
-		return text + toWolfram_poly();	
+		return PolynomFormat.toWolframPoly(this, text);
 	}
 
 	/**
@@ -391,7 +374,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Wolfram's roots command for a polynomial.
 	 */
 	public String toWolfram_roots() {
-		return "roots[" + toWolfram_poly() + "]";	
+		return PolynomFormat.toWolframRoots(this);
 	}
 
 	/**
@@ -400,7 +383,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Wolfram's roots command for a polynomial.
 	 */
 	public String toWolfram_roots(String text) {
-		return text + toWolfram_roots();	
+		return PolynomFormat.toWolframRoots(this, text);
 	}
 
 	/**
@@ -408,14 +391,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Octave polynomial representation as a string.
 	 */
 	public String toOctave_poly() {
-		String polynom = new String();
-		Polynom newPol = new Polynom();
-
-		newPol = this.copy();
-		newPol.reverse();
-		polynom = newPol.toOctave();
-
-		return polynom;
+		return PolynomFormat.toOctavePoly(this);
 	}
 
 	/**
@@ -424,7 +400,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Octave polynomial representation as a string.
 	 */
 	public String toOctave_poly(String text) {
-		return text + this.toOctave_poly();	
+		return PolynomFormat.toOctavePoly(this, text);
 	}
 
 	/**
@@ -432,7 +408,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The Octave's roots command for a polynomial.
 	 */
 	public String toOctave_roots() {
-		return "roots(" + this.toOctave_poly() +")";	
+		return PolynomFormat.toOctaveRoots(this);
 	}
 
 	/**
@@ -441,25 +417,14 @@ public class Polynom extends MatrixComplex {
 	 * @return The Octave's roots command for a polynomial.
 	 */
 	public String toOctave_roots(String text) {
-		return text + this.toOctave_roots();	
+		return PolynomFormat.toOctaveRoots(this, text);
 	}
 
 	/**
 	 * Displays the coefficients of the polynomial as a vector.
 	 */
 	public String toCoefs() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		String polyCoefs = new String(); 
-
-		for (int row = 0; row < rowLen; ++row) {
-			polyCoefs += ("(");
-			for (int col = colLen-1; col >= 0; --col) {
-				polyCoefs += this.complexMatrix[row][col].toString();
-				polyCoefs += (col == 0 ? ")" : ",");
-			}
-		}
-		return polyCoefs;
+		return PolynomFormat.toCoefs(this);
 	}
 
 	/**
@@ -467,23 +432,7 @@ public class Polynom extends MatrixComplex {
 	 * @return The string with the constructor statement of the polynomial.
 	 */
 	public String toPolynom() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int row, col;
-		String polynom = new String(); 
-
-		polynom = "new Polynom(\"";
-		for (row = 0; row < rowLen - 1; ++row) {
-			for (col = colLen-1; col >= 0; --col) {
-				polynom += this.complexMatrix[row][col].toString();
-				polynom += col == 0 ? ";" : ",";
-			}
-		}	
-		for (col = colLen-1; col >= 0; --col) {
-			polynom += this.complexMatrix[row][col].toString();
-			polynom += col == 0 ? "\");" : ",";
-		}
-		return polynom;
+		return PolynomFormat.toPolynom(this);
 	}
 
 	/**
@@ -492,33 +441,15 @@ public class Polynom extends MatrixComplex {
 	 * @return The string with constructor instruction
 	 */
 	public String toPolynom(String text) {
-		return text + this.toPolynom();	
+		return PolynomFormat.toPolynom(this, text);
 	}
-	
+
 	/**
 	 * Builds the string representation of the polynomial in the form A[n]x^n + A[n-1]x^(n-1) + ... + A[2]x^2 + A[1]x + A[0].
 	 * @return The string representation of the polynomial.
 	 */
 	public String toString() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		Complex cCoef = new Complex();
-		String polynom = new String(); 
-
-		for (int row = 0; row < rowLen; ++row) {
-			for (int col = colLen-1; col >= 0; --col) {
-				cCoef = this.complexMatrix[row][col];				
-				//if (cCoef.mod() == 0.0) continue;
-				if (cCoef.equals(0,0)) 
-					continue;
-				if (col < colLen-1) polynom += "+";				
-				if (col != 0)
-					if (col != 1) polynom += "("+cCoef.toStringRec()+")x^"+col;
-					else polynom += "("+cCoef.toStringRec()+")x";
-				else polynom += "("+cCoef.toStringRec()+")";
-			}
-		}
-		return polynom;
+		return PolynomFormat.toString(this);
 	}
 
 	/*
