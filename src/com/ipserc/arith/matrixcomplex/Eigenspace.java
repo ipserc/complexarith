@@ -20,8 +20,16 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.8 (2026_0802_1100)";
+	private final static String VERSION = "1.9 (2026_0802_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.9 (2026_0802_1200)
+	 * eigenval(): charactPoly.solveRobust() ahora tiene un fallback a QRSchurfactor.getEigenvalues()
+	 * si lanza excepcion (Durand-Kerner Y Aberth-Ehrlich exhaustos, caso confirmado real para
+	 * polinomios caracteristicos de grado>=10 con coeficientes muy dispares). No sustituye
+	 * solveRobust() en el caso comun (mismo patron "prueba lo conocido, cae a lo robusto solo ante
+	 * excepcion explicita" ya usado en solveRobust() mismo), solo rescata el caso donde ambos
+	 * root-finders ya fallaban.
 	 *
 	 * 1.8 (2026_0802_1100)
 	 * public MatrixComplex eigenvaluesQR() -- Etapa 4 del plan QR-con-desplazamientos: via
@@ -495,7 +503,25 @@ public class Eigenspace extends MatrixComplex {
 		// TestJordanAudit01 and MatrixComplex.logm()'s Javadoc) -- that is a precision ceiling
 		// inherent to Newton-type root-finding near a multiple root, not an overflow, and neither
 		// Durand-Kerner nor Aberth-Ehrlich escapes it.
-		roots = charactPoly.solveRobust();
+		// Fallback to QRSchurfactor (Hessenberg + QR con desplazamiento de Wilkinson, ver Etapas 1-3
+		// del plan QR-con-desplazamientos) only if solveRobust() itself throws -- same "prueba lo
+		// conocido, cae a lo robusto solo ante excepcion explicita" pattern as solveRobust() itself,
+		// no heuristic in between. Confirmed empirically (busqueda acotada, no exhaustiva) that
+		// solveRobust() (Durand-Kerner then Aberth-Ehrlich) can still exhaust for characteristic
+		// polynomials of degree >=10 with widely disparate coefficient magnitudes -- 5/108 random
+		// 10x10-12x12 integer matrices with entries up to +-1000 threw "Arithmetic Overflow" from
+		// BOTH root-finders. QRSchurfactor, which never forms the characteristic polynomial at all
+		// (the classical Wilkinson ill-conditioning of that step is exactly what breaks the two
+		// root-finders), rescued all 5, verified with a genuine (not garbage) reconstruction
+		// (Q*T*Q^H=A, residual ~8e-12) on at least one of them. Etapa 4 (see ComplexArithRev.md)
+		// found NO systematic precision advantage of QRSchurfactor over the default engine when
+		// BOTH succeed -- this fallback only fires on the narrower, disjoint case where the default
+		// engine fails outright, not as a general replacement.
+		try {
+			roots = charactPoly.solveRobust();
+		} catch (IllegalArgumentException e) {
+			roots = new QRSchurfactor(this).getEigenvalues();
+		}
 		// eigenvalues.quicksortup(0); // DO NOT USE - SVD factorization doesn't allow this
 		// order = Order.UP;
 		// By default the order in which the eigenvalues are sorted is from Higher to Lower
