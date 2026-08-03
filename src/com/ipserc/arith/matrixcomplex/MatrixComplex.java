@@ -18,7 +18,7 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.45 (2026_0802_2343)";
+	private final static String VERSION = "1.46 (2026_0803_2000)";
 	/* VERSION Release Note
 	 *
 	 * 1.40 (2026_0803_1900)
@@ -468,7 +468,7 @@ public class MatrixComplex {
 	 * INTERNAL FLAGS 
 	 * ***********************************************
 	 */
-	private int mSign = 1; //Tracks the correct sign in the determinants calculated through triangularization (Chio's rule)
+	int mSign = 1; //Tracks the correct sign in the determinants calculated through triangularization (Chio's rule); package-private since Etapa 4 (MatrixComplexUnary.determinantGauss() reads it off another instance)
 
 	/*
 	 * ***********************************************
@@ -2835,25 +2835,22 @@ public class MatrixComplex {
 	 * @return True is matrix is empty
 	 */
 	public boolean isEmpty() {
-		if (this.rows() == 0 && this.cols() == 0) return true;
-		return false;
+		return MatrixComplexUnary.isEmpty(this);
 	}
-	
+
 	/**
 	 * Makes the matrix to become positive semidefinite
 	 */
 	public void abs() {
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = 0; col < this.cols(); ++col)
-				this.setItem(row, col, this.getItem(row, col).abs());
-	}	
+		MatrixComplexUnary.abs(this);
+	}
 
 	/**
 	 * Checks whether the matrix is singular or not (determinant = 0)
 	 * @return True if the matrix is singular, false otherwise
 	 */
 	public boolean isSingular() {
-		return determinant().equals(Complex.ZERO);
+		return MatrixComplexUnary.isSingular(this);
 	}
 
 	/**
@@ -2861,8 +2858,7 @@ public class MatrixComplex {
 	 * @return True if the matrix is normal, false otherwise
 	 */
 	public boolean isNormal() {
-		if (!isSquare()) return false;
-		return this.times(this.adjoint()).equals(this.adjoint().times(this));
+		return MatrixComplexUnary.isNormal(this);
 	}
 
 	/**
@@ -2870,8 +2866,7 @@ public class MatrixComplex {
 	 * @return True if the matrix is normal, false otherwise
 	 */
 	public boolean isUnitary() {
-		if (!isSquare()) return false;
-		return this.adjoint().times(this).equals(eye(this.rows()));
+		return MatrixComplexUnary.isUnitary(this);
 	}
 
 	/**
@@ -2879,14 +2874,7 @@ public class MatrixComplex {
 	 * @return True if the matrix is diagonal, false otherwise
 	 */
 	public boolean isDiagonal() {
-		if (!isSquare()) return false;
-		for (int row = 0; row < rows(); ++row)
-			for (int col = 0; col < cols(); ++col) {
-				if (row != col) {
-					if (!getItem(row, col).equals(Complex.ZERO)) return false;
-				}
-			}
-		return true;
+		return MatrixComplexUnary.isDiagonal(this);
 	}
 
 	/**
@@ -2894,20 +2882,7 @@ public class MatrixComplex {
 	 * @return True if the matrix is orthogonal, false otherwise
 	 */
 	public boolean isOrthogonal() {
-		if (!isSquare()) return false;
-		if (this.determinant().isZero()) return false;
-		//return isDiagonal() && this.adjoint().times(this).equals(eye(this.rows()));
-		//return this.times(this.adjoint()).determinant().abs() - 1 <= Complex.zero_threshold_approx();
-		/*
-		 * I've observed that this happens if the basis is orthogonal.
-		 * this.times(this.adjoint()).isDiagonal();
-		 * This will resolve the duality between orthogonal matrices and orthogonal bases of a vector space, allowing a single orthogonality method to be defined for matrices.
-		 * this.adjoint().times(this), on the other hand, does not satisfy this property.
-		 */
-		//return this.times(this.adjoint()).isDiagonal();
-		//Una matriz ortogonal es una matriz cuadrada cuya matriz inversa coincide con su matriz traspuesta conjugada.
-		return this.adjoint().equals(this.inverse());
-		// return this.isUnitary();
+		return MatrixComplexUnary.isOrthogonal(this);
 	}
 
 	/**
@@ -2915,22 +2890,15 @@ public class MatrixComplex {
 	 * @return True if the matrix is orthonormal, false otherwise
 	 */
 	public boolean isOrthonormal() {
-		return isOrthogonal();
-		// if (!isSquare()) return false;
-		// if (this.determinant().equals(Complex.ZERO)) return false;
-		////return this.inverse().equals(this.adjoint());
-		//return this.times(this.adjoint()).equals(eye(this.rows()));
+		return MatrixComplexUnary.isOrthonormal(this);
 	}
-	
+
 	/**
 	 * Upper Hessenberg matrices: a(i,j) = 0 for any pair i, j such that i > j + 1.
 	 * @return True if the matrix is upper Hessenberg, false otherwise
 	 */
 	public boolean isHessenbergUpper() {
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = 0; col <= row; ++col)
-				if (!getItem(row,col).equals(Complex.ZERO)) return false;
-		return true;
+		return MatrixComplexUnary.isHessenbergUpper(this);
 	}
 
 	/**
@@ -2938,32 +2906,23 @@ public class MatrixComplex {
 	 * @return True if the matrix is lower Hessenberg, false otherwise
 	 */
 	public boolean isHessenbergLower() {
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = row; col < this.cols(); ++col)
-				if (!getItem(row,col).equals(Complex.ZERO)) return false;					
-		return true;
+		return MatrixComplexUnary.isHessenbergLower(this);
 	}
-	
+
 	/**
 	 * Checks if at least one of the values of the array is infinite
 	 * @return True if one infinite value is found
 	 */
  	public boolean isInfinite() {
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = 0; col < this.cols(); ++col)
-				if (this.getItem(row, col).isInfinite()) return true;
-		return false;
+		return MatrixComplexUnary.isInfinite(this);
 	}
-	
+
 	/**
 	 * Checks if at least one of the values of the array is NaN
 	 * @return True if one NaN value is found
 	 */
 	public boolean isNaN() {
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = 0; col < this.cols(); ++col)
-				if (this.getItem(row, col).isNaN()) return true;
-		return false;
+		return MatrixComplexUnary.isNaN(this);
 	}
 
 	/**
@@ -2971,10 +2930,7 @@ public class MatrixComplex {
 	 * @return true if the matrix is null, otherwise false.
 	 */
 	public boolean isNullC() {
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = 0; col < this.cols(); ++col)
-				if (!this.getItem(row, col).equals(Complex.ZERO)) return false;
-		return true;
+		return MatrixComplexUnary.isNullC(this);
 	}
 
 	/**
@@ -2982,10 +2938,7 @@ public class MatrixComplex {
 	 * @return true if the matrix is null, otherwise false.
 	 */
 	public boolean isNull() {
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = 0; col < this.cols(); ++col)
-				if (!this.getItem(row, col).equals(Complex.ZERO)) return false;					
-		return true;
+		return MatrixComplexUnary.isNull(this);
 	}
 
 	/**
@@ -2993,91 +2946,64 @@ public class MatrixComplex {
 	 * @return The matrix dimension.
 	 */
 	public int dim() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		return rowLen * colLen;
+		return MatrixComplexUnary.dim(this);
 	}
 
 	/**
-	 * Returns the condition number of the array using the p norm, where p is the order of the norm.  
+	 * Returns the condition number of the array using the p norm, where p is the order of the norm.
 	 * @return The condition number
 	 */
 	public double cond_p(int p) {
-		return this.p_norm(p) * this.inverse().p_norm(p);
+		return MatrixComplexUnary.cond_p(this, p);
 	}
-	
+
 	/**
-	 * Returns the condition number of the array using the euclidean norm 
+	 * Returns the condition number of the array using the euclidean norm
 	 * @return The condition number
 	 */
 	public double cond_f() {
-		return this.f_norm() * this.inverse().f_norm();
+		return MatrixComplexUnary.cond_f(this);
 	}
-	
+
 	/**
-	 * Returns the condition number of the array using the infinite norm 
+	 * Returns the condition number of the array using the infinite norm
 	 * @return The condition number
 	 */
 	public double cond_inf() {
-		return this.inf_norm() * this.inverse().inf_norm();
+		return MatrixComplexUnary.cond_inf(this);
 	}
 
 	/**
 	 * Returns the condition number of the array using the infinite norm.
-	 * Short cut to cond_imf() 
+	 * Short cut to cond_imf()
 	 * @return The condition number
 	 */
 	public double cond() {
-		return cond_inf();
+		return MatrixComplexUnary.cond(this);
 	}
-	
+
 	/**
-	 * Trace of an n-by-n square matrix A - the sum of the elements on the main diagonal. 
+	 * Trace of an n-by-n square matrix A - the sum of the elements on the main diagonal.
 	 * @return The value of the trace.
 	 */
 	public Complex trace() {
-		if (!this.isSquare()) {
-			throw new IllegalArgumentException("Not valid trace: The matrix has to be square.");
-		}
-		int rowLen = this.rows();
-		Complex trace = new Complex();
-
-		for (int i = 0; i < rowLen; ++i)
-			trace = trace.plus(this.complexMatrix[i][i]);
-		return trace;
+		return MatrixComplexUnary.trace(this);
 	}
 
 	/**
-	 * Cotrace of an n-by-n square matrix A - the sum of the elements on the secondary diagonal. 
+	 * Cotrace of an n-by-n square matrix A - the sum of the elements on the secondary diagonal.
 	 * @return The value of the trace.
 	 */
 	public Complex cotrace() {
-		if (!this.isSquare()) {
-			throw new IllegalArgumentException("Not valid cotrace: The matrix has to be square.");
-		}
-		int rowLen = this.rows();
-		Complex cotrace = new Complex();
-		
-		int col = rowLen - 1;
-		for (int i = 0; i < rowLen; ++i)
-			cotrace = cotrace.plus(this.complexMatrix[i][col--]);
-		return cotrace;
+		return MatrixComplexUnary.cotrace(this);
 	}
-	
+
 	/**
 	 * Calculates the opposite of the matrix.
 	 * @return The matrix opposite.
 	 */
 	public MatrixComplex opposite() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex cMatrix = new MatrixComplex(colLen, rowLen);
-
-		for (int row = 0; row < rowLen; ++row)
-			for (int col = 0; col < colLen; ++col)
-				cMatrix.complexMatrix[row][col] = this.complexMatrix[row][col].opposite();  		
-		return cMatrix;
+		return MatrixComplexUnary.opposite(this);
 	}
 
 	/**
@@ -3085,15 +3011,7 @@ public class MatrixComplex {
 	 * @return The matrix transposed.
 	 */
 	public MatrixComplex transpose() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex cMatrix = new MatrixComplex(colLen, rowLen);
-
-		for (int row = 0; row < rowLen; ++row)
-			for (int col = 0; col < colLen; ++col)
-				cMatrix.complexMatrix[col][row] = this.complexMatrix[row][col];
-		return cMatrix;
+		return MatrixComplexUnary.transpose(this);
 	}
 
 	/**
@@ -3102,15 +3020,7 @@ public class MatrixComplex {
 	 * @return The matrix conjugated.
 	 */
 	public MatrixComplex conjugate() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex cMatrix = new MatrixComplex(rowLen, colLen);
-
-		for (int row = 0; row < rowLen; ++row)
-			for (int col = 0; col < colLen; ++col)
-				cMatrix.complexMatrix[row][col] = this.complexMatrix[row][col].conjugate();		
-		return cMatrix;
+		return MatrixComplexUnary.conjugate(this);
 	}
 
 	/**
@@ -3119,16 +3029,7 @@ public class MatrixComplex {
 	 * @return The new matrix adjoint.
 	 */
 	public MatrixComplex adjoint() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex cMatrix = new MatrixComplex(colLen, rowLen);
-
-		//cMatrix = this.transpose().conjugate();
-		for (int row = 0; row < rowLen; ++row)
-			for (int col = 0; col < colLen; ++col)
-				cMatrix.complexMatrix[col][row] = this.complexMatrix[row][col].conjugate();
-		return cMatrix;
+		return MatrixComplexUnary.adjoint(this);
 	}
 
 	/**
@@ -3139,30 +3040,7 @@ public class MatrixComplex {
 	 * @return The minors' matrix.
 	 */
 	public MatrixComplex minor(int rowPivot, int colPivot) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		if (rowPivot < 0 || rowPivot > rowLen) {
-			throw new IllegalArgumentException("Not valid minor: The row to pivot is incorrect.");
-		}
-
-		if (colPivot < 0 || colPivot > colLen) {
-			throw new IllegalArgumentException("Not valid minor: The col to pivot is incorrect.");
-		}
-
-		MatrixComplex resultMatrix = new MatrixComplex(rowLen-1, colLen-1);
-
-		for (int row = 0, rowf = 0; row < rowLen; ++row) {
-			if (row == rowPivot) 
-				continue;
-			for (int col = 0, colf = 0; col < colLen; ++col) {
-				if (col == colPivot) 
-					continue;
-				resultMatrix.complexMatrix[rowf][colf++] = this.complexMatrix[row][col];
-			}
-			++rowf;
-		}
-		return resultMatrix;
+		return MatrixComplexUnary.minor(this, rowPivot, colPivot);
 	}
 
 	/**
@@ -3173,30 +3051,7 @@ public class MatrixComplex {
 	 * @return The cofactors' matrix.
 	 */
 	public MatrixComplex cofactors(int rowPivot, int colPivot) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		if (rowPivot < 0 || rowPivot > rowLen) {
-			throw new IllegalArgumentException("Not valid cofactor: The row to pivot is incorrect.");
-		}
-
-		if (colPivot < 0 || colPivot > colLen) {
-			throw new IllegalArgumentException("Not valid cofactor: The col to pivot is incorrect.");
-		}
-
-		MatrixComplex resultMatrix = new MatrixComplex(rowLen-1, colLen-1);
-
-		for (int row = 0, rowf = 0; row < rowLen; ++row) {
-			if (row == rowPivot) 
-				continue;
-			for (int col = 0, colf = 0; col < colLen; ++col) {
-				if (col == colPivot) 
-					continue;
-				resultMatrix.complexMatrix[rowf][colf++] = this.complexMatrix[row][col].times(Math.pow(-1, row+col));
-			}
-			++rowf;
-		}
-		return resultMatrix;
+		return MatrixComplexUnary.cofactors(this, rowPivot, colPivot);
 	}
 
 	/**
@@ -3205,7 +3060,7 @@ public class MatrixComplex {
 	 * @return The adjugate matrix.
 	 */
 	public MatrixComplex adjugate() {
-		return this.cofactor().transpose();
+		return MatrixComplexUnary.adjugate(this);
 	}
 
 	/**
@@ -3214,7 +3069,7 @@ public class MatrixComplex {
 	 * @return The adjunct matrix.
 	 */
 	public MatrixComplex adjunct() {
-		return this.adjugate();
+		return MatrixComplexUnary.adjunct(this);
 	}
 
 	/**
@@ -3225,7 +3080,7 @@ public class MatrixComplex {
 	 * @return The adjugate matrix.
 	 */
 	public MatrixComplex adjugate(int rowPivot, int colPivot) {
-		return this.cofactors(rowPivot, colPivot).transpose();
+		return MatrixComplexUnary.adjugate(this, rowPivot, colPivot);
 	}
 
 	/**
@@ -3236,7 +3091,7 @@ public class MatrixComplex {
 	 * @return The adjunct matrix.
 	 */
 	public MatrixComplex adjunct(int rowPivot, int colPivot) {
-		return this.adjugate(rowPivot, colPivot);
+		return MatrixComplexUnary.adjunct(this, rowPivot, colPivot);
 	}
 
 	/**
@@ -3246,17 +3101,22 @@ public class MatrixComplex {
 	 * @return The adjugate matrix.
 	 */
 	public MatrixComplex adjugate(int[] includedRows) {
-		return this.cofactors(includedRows).transpose();
+		return MatrixComplexUnary.adjugate(this, includedRows);
 	}
 
 	/**
 	 * Calculates the adjunct matrix of the rows passed in the parameter "includedRows".
 	 * The adjugate, classical adjoint, or adjunct of a square matrix is the transpose of its cofactor matrix.
+	 * <p>
+	 * FIX (Etapa 4, Decimocuarta sesion): delegated to {@code MatrixComplexUnary.adjunct(m, includedRows)},
+	 * which in turn delegates to {@code adjugate(m, includedRows)} -- the original body called itself
+	 * ({@code this.adjunct(includedRows)}), an infinite recursion that guaranteed a
+	 * {@code StackOverflowError} on every call. Zero callers anywhere in the project.
 	 * @param includedRows A list with the indexes of the the rows included in the cofactors array.
 	 * @return The adjunct matrix.
 	 */
 	public MatrixComplex adjunct(int[] includedRows) {
-		return this.adjunct(includedRows);
+		return MatrixComplexUnary.adjunct(this, includedRows);
 	}
 
 	/**
@@ -3266,7 +3126,7 @@ public class MatrixComplex {
 	 * @return The adjugate matrix.
 	 */
 	public MatrixComplex adjugate(String includedRowsList) {
-		return this.cofactors(includedRowsList).transpose();
+		return MatrixComplexUnary.adjugate(this, includedRowsList);
 	}
 
 	/**
@@ -3276,87 +3136,22 @@ public class MatrixComplex {
 	 * @return The adjunct matrix.
 	 */
 	public MatrixComplex adjunct(String includedRowsList) {
-		return this.adjugate(includedRowsList);
+		return MatrixComplexUnary.adjunct(this, includedRowsList);
 	}
 
 	/**
 	 * The inverse of the matrix calculated by Gauss-Jordan elimination method
-	 * Gauss-Jordan elimination method can be used for finding the inverse of a matrix, if it exists. 
-	 * If A is a n by n square matrix, then row reduction can be used to compute its inverse matrix, if it exists. 
-	 * First, the n by n identity matrix is augmented to the right of A, forming a n by 2n block matrix [A | I]. 
-	 * Now through application of elementary row operations, finds the reduced echelon form of this n by 2n matrix. 
-	 * The matrix A is invertible if and only if the left block can be reduced to the identity matrix I; in this case 
-	 * the right block of the final matrix is A⁻¹. If the algorithm is unable to reduce the left block to I, 
+	 * Gauss-Jordan elimination method can be used for finding the inverse of a matrix, if it exists.
+	 * If A is a n by n square matrix, then row reduction can be used to compute its inverse matrix, if it exists.
+	 * First, the n by n identity matrix is augmented to the right of A, forming a n by 2n block matrix [A | I].
+	 * Now through application of elementary row operations, finds the reduced echelon form of this n by 2n matrix.
+	 * The matrix A is invertible if and only if the left block can be reduced to the identity matrix I; in this case
+	 * the right block of the final matrix is A⁻¹. If the algorithm is unable to reduce the left block to I,
 	 * then A is not invertible.
 	 * @return The inverse matrix.
 	 */
 	public MatrixComplex inverse() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		Complex cCoef = new Complex();
-		int row, col;
-
-		if (rowLen != colLen) {
-			System.err.println(HEADINFO + "inverse: Not valid matrix: The matrix has to be square.");
-			return this.divides(0);
-		}
-
-		if (this.determinant().equals(0,0) ) {
-			//System.err.println(HEADINFO + "inverse: Not valid matrix: The matrix determinat is ZERO.");
-			return this.divides(0);
-		}
-
-		MatrixComplex auxMatrix = this.copy();
-		MatrixComplex unitMatrix = new MatrixComplex(rowLen); unitMatrix.initMatrixDiag(1,0);
-
-		for (int k = 0; k < rowLen-1; ++k) {
-			// Proactive partial pivoting: always swap to the row with the maximum modulus in this
-			// column, not only when the current pivot is exactly zero -- a pivot that is merely
-			// small (but nonzero within Complex.equals() tolerance) still amplifies rounding error.
-			int rowSwap = auxMatrix.partialPivot(k);
-			if (rowSwap == -1)
-				return auxMatrix.divides(0);
-			if (rowSwap != k) {
-				auxMatrix.swapRows(k, rowSwap);
-				unitMatrix.swapRows(k, rowSwap);
-			}
-			for (row = k+1; row < rowLen; ++row) {
-				cCoef = auxMatrix.complexMatrix[row][k].divides(auxMatrix.complexMatrix[k][k]);
-				for (col = 0; col < colLen; ++col) {
-					unitMatrix.complexMatrix[row][col] = unitMatrix.complexMatrix[row][col].minus(unitMatrix.complexMatrix[k][col].times(cCoef)); 
-					auxMatrix.complexMatrix[row][col] = auxMatrix.complexMatrix[row][col].minus(auxMatrix.complexMatrix[k][col].times(cCoef));
-				}
-			}
-		}
-
-		for (int k = rowLen-1; k >= 0 ; --k) {
-			if (auxMatrix.complexMatrix[k][k].equals(0,0)) {
-				int rowSwap = auxMatrix.partialPivot(k);
-				//int rowSwap = auxMatrix.locateSwapRowDown(k);
-				if (rowSwap == -1) 
-					return auxMatrix.divides(0);
-				if (rowSwap != k) {
-					auxMatrix.swapRows(k, rowSwap);
-					unitMatrix.swapRows(k, rowSwap);
-				}
-			}
-			for (row = k-1; row >= 0; --row) {
-				cCoef = auxMatrix.complexMatrix[row][k].divides(auxMatrix.complexMatrix[k][k]);
-				for (col = 0; col < colLen; ++col) {
-					unitMatrix.complexMatrix[row][col] = unitMatrix.complexMatrix[row][col].minus(unitMatrix.complexMatrix[k][col].times(cCoef)); 
-					auxMatrix.complexMatrix[row][col] = auxMatrix.complexMatrix[row][col].minus(auxMatrix.complexMatrix[k][col].times(cCoef));
-				}
-			}
-		}
-
-		for (row = 0; row < rowLen; ++row) {
-			cCoef = auxMatrix.complexMatrix[row][row].reciprocal();
-			for (col = 0; col < colLen; ++col) {
-				auxMatrix.complexMatrix[row][col] = auxMatrix.complexMatrix[row][col].times(cCoef);
-				unitMatrix.complexMatrix[row][col] = unitMatrix.complexMatrix[row][col].times(cCoef); 
-			}
-		}
-		return unitMatrix;
+		return MatrixComplexUnary.inverse(this);
 	}
 
 	/**
@@ -3364,23 +3159,23 @@ public class MatrixComplex {
 	 * @return The  upper triangular matrix.
 	 */
 	public MatrixComplex triangle(){
-		return this.triangleUp();
+		return MatrixComplexUnary.triangle(this);
 	}
 
 	/**
 	 * Generates a diagonal matrix using triangularization Low and then Up
 	 * @return The diagonal matrix
-	 */  
+	 */
 	public MatrixComplex diagonalLo() {
-		return (this.triangleLo()).triangleUp();
+		return MatrixComplexUnary.diagonalLo(this);
 	}
 
 	/**
 	 * Generates a diagonal matrix using triangularization Up and then Lo
 	 * @return The diagonal matrix
-	 */  
+	 */
 	public MatrixComplex diagonalUp() {
-		return (this.triangleUp()).triangleLo();
+		return MatrixComplexUnary.diagonalUp(this);
 	}
 
 	/**
@@ -3389,7 +3184,7 @@ public class MatrixComplex {
 	 * @return The value of the determinant.
 	 */
 	public Complex determinant() {
-		return this.determinantGauss();
+		return MatrixComplexUnary.determinant(this);
 	}
 
 	/**
@@ -3397,53 +3192,7 @@ public class MatrixComplex {
 	 * @return The value of the determinant.
 	 */
 	public Complex determinantGauss() {
-		int rowLen = this.rows();
-
-		if (rowLen != this.cols()) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		Complex cResult = new Complex(1, 0);
-		MatrixComplex auxMatrix = this.triangle();
-		for (int iter = 0; iter < rowLen; ++iter) {
-			cResult = cResult.times(auxMatrix.complexMatrix[iter][iter]);
-		}
-		return cResult.times(auxMatrix.mSign);
-	}
-
-	/**
-	 * Private method that calculates the matrix 3x3 determinant by the Sarrus' rule.
-	 * @return The value of the determinant.
-	 */
-	private Complex determinant3() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int k = 0;
-		Complex cGroup = new Complex(1,0);
-		Complex determinant = new Complex();
-
-		if (rowLen != colLen) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		for (int row = 0; row < rowLen; ++row) {
-			k = 0;
-			for (int col = 0; col < colLen; ++col) {
-				cGroup = cGroup.times(this.complexMatrix[(row+k++)%rowLen][col]);
-			}
-			determinant = determinant.plus(cGroup);
-			cGroup.setComplexPol(1, 0);
-
-		}
-		for (int row = rowLen-1; row >= 0; --row) {
-			k = rowLen-1;
-			for (int col = 0; col < colLen; ++col) {
-				cGroup = cGroup.times(this.complexMatrix[(row+k--)%rowLen][col]);
-			}
-			determinant = determinant.minus(cGroup);
-			cGroup.setComplexRec(1, 0);
-		}
-		return determinant;
+		return MatrixComplexUnary.determinantGauss(this);
 	}
 
 	/**
@@ -3452,40 +3201,7 @@ public class MatrixComplex {
 	 * @return The value of the determinant.
 	 */
 	public Complex determinantAdj() {
-		Complex cSum = new Complex(); 
-		int rowLen = this.rows();
-		if (rowLen == 1) 
-			return this.complexMatrix[0][0];	
-
-		int colLen = this.cols();
-
-		if (rowLen != colLen) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		if (rowLen == 2)
-			return (this.complexMatrix[0][0].times(this.complexMatrix[1][1])).
-					minus (this.complexMatrix[0][1].times(this.complexMatrix[1][0]));
-
-		if (rowLen == 3) {  //bottom case of recursion. size 1 complexMatrix determinant is itself.
-			return this.determinant3();
-		}
-
-		for (int i = 0; i < rowLen; ++i){ //finds determinant using row-by-row expansion
-			MatrixComplex smaller = new MatrixComplex(rowLen - 1, colLen - 1); //creates smaller complexMatrix- values not in same row, column
-			for (int a = 1; a < rowLen; ++a) {
-				for (int b = 0; b < colLen; ++b) {
-					if (b < i) { 
-						smaller.complexMatrix[a-1][b] = this.complexMatrix[a][b];
-					}
-					else if (b > i) { smaller.complexMatrix[a-1][b-1] = this.complexMatrix[a][b];
-					}
-				}
-			}
-			if ((i&1) == 0) cSum = cSum.plus (this.complexMatrix[0][i].times(smaller.determinantAdj()));
-			else cSum = cSum.minus(this.complexMatrix[0][i].times(smaller.determinantAdj()));
-		}
-		return cSum ; //returns determinant value. once stack is finished, returns final determinant.
+		return MatrixComplexUnary.determinantAdj(this);
 	}
 
 	/**
@@ -3493,26 +3209,15 @@ public class MatrixComplex {
 	 * @return True if the matrix is symmetric
 	 */
 	public boolean isSymmetric() {
-		if (this.rows() != this.cols()) return false;
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = row; col < this.cols(); ++col)
-				if(!getItem(row, col).equals(getItem(col, row))) return false;
-		return true;
+		return MatrixComplexUnary.isSymmetric(this);
 	}
-	
+
 	/**
 	 * Checks if the matrix is antisymmetric or not
 	 * @return True if the matrix is antisymmetric
 	 */
 	public boolean isAntiSymmetric() {
-		if (this.rows() != this.cols()) return false;
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = row; col < this.cols(); ++col)
-				if(row == col) {
-					if (!getItem(row, col).equals(Complex.ZERO)) return false;
-				}
-				else if(!getItem(row, col).equals(getItem(col, row).opposite().conjugate())) return false;
-		return true;
+		return MatrixComplexUnary.isAntiSymmetric(this);
 	}
 
 	/**
@@ -3520,7 +3225,7 @@ public class MatrixComplex {
 	 * @return True if the matrix is skew-symmetric
 	 */
 	public boolean isSkewSymmetric() {
-		return isAntiSymmetric();
+		return MatrixComplexUnary.isSkewSymmetric(this);
 	}
 
 	/**
@@ -3528,29 +3233,15 @@ public class MatrixComplex {
 	 * @return True if the matrix is hermitian
 	 */
 	public boolean isHermitian() {
-		if (this.rows() != this.cols()) return false;
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = row; col < this.cols(); ++col)
-				if(row == col) {
-					if (!getItem(row, col).isPureReal()) return false;
-				}
-				else if(!getItem(row, col).equals(getItem(col, row).conjugate())) return false;
-		return true;
+		return MatrixComplexUnary.isHermitian(this);
 	}
-	
+
 	/**
 	 * Checks if the matrix is antihermitian or not
 	 * @return True if the matrix is antihermitian
 	 */
 	public boolean isAntiHermitian() {
-		if (this.rows() != this.cols()) return false;
-		for (int row = 0; row < this.rows(); ++row)
-			for (int col = row; col < this.cols(); ++col)
-				if(row == col) {
-					if (!getItem(row, col).isPureImaginary()) return false;
-				}
-				else if(!getItem(row, col).equals(getItem(col, row).opposite().conjugate())) return false;
-		return true;
+		return MatrixComplexUnary.isAntiHermitian(this);
 	}
 
 	/**
@@ -3558,90 +3249,48 @@ public class MatrixComplex {
 	 * @return True if the matrix is skew-hermitian
 	 */
 	public boolean isSkewHermitian() {
-		return isAntiHermitian();
+		return MatrixComplexUnary.isSkewHermitian(this);
 	}
-	
+
 	/**
 	 * Method for creating an Square Identity array of "dim" size
 	 * @param dim The size of Identity array
 	 * @return The Identity array
 	 */
 	public static MatrixComplex eye(int dim) {
-		MatrixComplex eye = new MatrixComplex(dim);
-		eye.initMatrixDiag(1,0);
-		return eye;
+		return MatrixComplexUnary.eye(dim);
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isPostiveDefinite() {
-		if (this.isHermitian()) {
-			Eigenspace eigenSpace = new Eigenspace(this);
-			MatrixComplex eigenvals = eigenSpace.eigenvalues();
-			for (int row = 0; row < eigenvals.rows(); ++row) {
-				if (Math.abs(eigenvals.getItem(row, 0).imp()) < Complex.zero() &&
-						eigenvals.getItem(row, 0).rep() <= Complex.zero() )
-					return false;
-			}
-			return true;
-		}
-		else return false;
+		return MatrixComplexUnary.isPostiveDefinite(this);
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isPostiveSemiDefinite() {
-		if (this.isHermitian()) {
-			Eigenspace eigenSpace = new Eigenspace(this);
-			MatrixComplex eigenvals = eigenSpace.eigenvalues();
-			for (int row = 0; row < eigenvals.rows(); ++row) {
-				if (Math.abs(eigenvals.getItem(row, 0).imp()) < Complex.zero() &&
-						eigenvals.getItem(row, 0).rep() < Complex.zero() )
-					return false;
-			}
-			return true;
-		}
-		else return false;
+		return MatrixComplexUnary.isPostiveSemiDefinite(this);
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isNegtiveDefinite() {
-		if (this.isHermitian()) {
-			Eigenspace eigenSpace = new Eigenspace(this);
-			MatrixComplex eigenvals = eigenSpace.eigenvalues();
-			for (int row = 0; row < eigenvals.rows(); ++row) {
-				if (Math.abs(eigenvals.getItem(row, 0).imp()) > Complex.zero() && 
-						eigenvals.getItem(row, 0).rep() >= -Complex.zero() )
-					return false;
-			}
-			return true;
-		}
-		else return false;
+		return MatrixComplexUnary.isNegtiveDefinite(this);
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isNegtiveSemiDefinite() {
-		if (this.isHermitian()) {
-			Eigenspace eigenSpace = new Eigenspace(this);
-			MatrixComplex eigenvals = eigenSpace.eigenvalues();
-			for (int row = 0; row < eigenvals.rows(); ++row) {
-				if (Math.abs(eigenvals.getItem(row, 0).imp()) > Complex.zero() && 
-						eigenvals.getItem(row, 0).rep() > -Complex.zero() )
-					return false;
-			}
-			return true;
-		}
-		else return false;
+		return MatrixComplexUnary.isNegtiveSemiDefinite(this);
 	}
 
 	/**
@@ -3649,30 +3298,24 @@ public class MatrixComplex {
 	 * @return True if a zero was found, false otherwise.
 	 */
 	public boolean hasZeroMainDiag() {
-		for (int i=0; i < this.rows(); ++i)
-			if (this.getItem(i, i).isZero()) return true;
-		return false;
+		return MatrixComplexUnary.hasZeroMainDiag(this);
 	}
-	
+
 	/**
 	 * Checks if there is one item on the main diagonal for which its REAL PART is zero or negative .
 	 * @return False if a non positive was found, false otherwise.
 	 */
 	public boolean repPositiveMainDiag() {
-		for (int i=0; i < this.rows(); ++i)
-			if (this.getItem(i, i).rep() < 0) return false;
-		return true;
+		return MatrixComplexUnary.repPositiveMainDiag(this);
 	}
-	
+
 	/**
 	 * Method for creating an Square Identity array of "this" matrix size
 	 * @param dim The size of Identity array
 	 * @return The Identity array
 	 */
 	public MatrixComplex eye() {
-		MatrixComplex eye = new MatrixComplex(this.rows());
-		eye.initMatrixDiag(1,0);
-		return eye;
+		return MatrixComplexUnary.eye(this);
 	}
 
 	/**
@@ -3681,14 +3324,7 @@ public class MatrixComplex {
 	 * @return The diagonal NxN matrix
 	 */
 	public static MatrixComplex diagonal(MatrixComplex values) {
-		MatrixComplex newValArray = values.clone();
-		if (newValArray.rows() == 1) newValArray = newValArray.transpose();
-		
-		MatrixComplex sqDiagonal = new MatrixComplex(newValArray.rows());
-		for (int row = 0; row < newValArray.rows(); ++row) {
-			sqDiagonal.setItem(row, row, newValArray.getItem(row, 0));
-		}
-		return sqDiagonal;
+		return MatrixComplexUnary.diagonal(values);
 	}
 	
 	/*
