@@ -20,8 +20,26 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.10 (2026_0805_1800)";
+	private final static String VERSION = "1.11 (2026_0805_2000)";
 	/* VERSION Release Note
+	 *
+	 * 1.11 (2026_0805_2000)
+	 * setEigenvectors(): hallazgo colateral de la bateria de regresion de VERSION 1.10, investigado
+	 * a peticion del usuario. Reproducido con un bloque de Jordan 4x4 puro (autovalor defectuoso,
+	 * multiplicidad algebraica 4, geometrica real 1): ArrayIndexOutOfBoundsException opaco,
+	 * confirmado PREEXISTENTE (identico contra HEAD antes de VERSION 1.10 -- el cambio anterior solo
+	 * cambio que matrices concretas exponen el hueco, no lo creo). Causa raiz: Syseq.solution() (via
+	 * MatrixComplexEquationSystems.solveGauss()'s rama INDETERMINATE, nbrOfSolutions()) calcula los
+	 * grados de libertad contando ceros en la diagonal de triangleUpPerfect() -- para un autovalor
+	 * defectuoso IMPRECISO, un sistema casi-singular puede hacer que esa cuenta SOBREESTIME la
+	 * multiplicidad geometrica real, devolviendo mas filas "solucion" no nulas de las que
+	 * solutions.rank() (un calculo de rango independiente) puede dar cabida en setEigenvectors().
+	 * Fix acotado (a peticion explicita del usuario, valorado tambien un fix de fondo en
+	 * nbrOfSolutions()/triangleUpPerfect() y descartado por tocar el nucleo de EQUATION SYSTEMS del
+	 * que depende Syseq, mismo tipo de riesgo de tolerancia ad-hoc ya evitado antes en el proyecto):
+	 * mismo patron "fallar alto con mensaje claro" ya usado en Jordan.checkReconstruction()/
+	 * logTaylor()/logMercator() -- IllegalArgumentException diagnostica en vez del
+	 * ArrayIndexOutOfBoundsException opaco, sin tocar el techo de precision de fondo.
 	 *
 	 * 1.10 (2026_0805_1800)
 	 * eigenval(): dos cambios juntos, medidos antes de aplicar (ver Claude/ComplexArithRev.md,
@@ -737,6 +755,25 @@ public class Eigenspace extends MatrixComplex {
 			// Pero solo son autovectores las soluciones NO NULAS
 			if (solutions.isNullRow(row)) continue;
 			else {
+				// Asume que el numero de filas NO NULAS de "solutions" siempre coincide con
+				// solutions.rank() -- normalmente cierto, pero puede romperse para un autovalor
+				// defectuoso impreciso: Syseq.solution()/nbrOfSolutions() (via
+				// triangleUpPerfect()'s deteccion de ceros en la diagonal) puede SOBREESTIMAR
+				// los grados de libertad de un sistema casi-singular, devolviendo mas filas "no
+				// nulas" en solutions que el rango real -- confirmado con un bloque de Jordan 4x4
+				// puro (autovalor defectuoso, multiplicidad geometrica real 1) que revienta con un
+				// ArrayIndexOutOfBoundsException opaco aqui mismo antes de este fix. Mismo patron
+				// "fallar alto con mensaje claro, no arreglar el techo de precision de fondo" ya
+				// usado en Jordan.checkReconstruction()/logTaylor()/logMercator() -- el problema
+				// real (la imprecision del autovalor defectuoso) no es arreglable aqui, solo dejar
+				// de propagar una excepcion opaca de indice.
+				if (i >= eigenvRows)
+					throw new IllegalArgumentException(HEADINFO + "setEigenvectors: found more "
+						+ "non-null solution rows than solutions.rank()=" + eigenvRows
+						+ " accounts for -- the eigenvalue(s) involved are almost certainly too "
+						+ "imprecise for their multiplicity (Syseq.nbrOfSolutions() overestimating "
+						+ "degrees of freedom for a near-singular system), not a defect in this "
+						+ "construction itself.");
 				eigenvectors.setRow(i++, solutions.getRow(row));
 			}
 		}
