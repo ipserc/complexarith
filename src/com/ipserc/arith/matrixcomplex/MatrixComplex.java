@@ -18,8 +18,33 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.48 (2026_0805_1400)";
+	private final static String VERSION = "1.49 (2026_0805_2300)";
 	/* VERSION Release Note
+	 *
+	 * 1.49 (2026_0805_2300)
+	 * times(MatrixComplex) (the O(n^3) matrix-product hot path): the inner loop used to do
+	 * resultMatrix.complexMatrix[rowf][colf] = resultMatrix.complexMatrix[rowf][colf].plus(
+	 * this.complexMatrix[rowf][iter].times(cMatrix.complexMatrix[iter][colf])) -- 2 new Complex
+	 * allocations per iteration (times() and plus()) plus a redundant array read+store every
+	 * iteration. Now accumulates in place via plusEq() into the zero-initialized cell the
+	 * constructor already allocated -- same accumulator idiom already used throughout
+	 * ComplexFunctions.java (acc.plusEq(a.times(b))), just applied to this class' own hot path.
+	 * Halves the allocations in the inner loop (only the times() product remains) and drops the
+	 * per-iteration array store. Candidate from the "double[]/Vector API" performance roadmap
+	 * (Rol 1-2, ver ComplexArithRev.md) -- deliberately the smallest possible first step: no
+	 * layout change, no JDK/module changes (jdk.incubator.vector needs the project's compiler
+	 * compliance raised from 1.8 first, a separate decision). Measured with a Chronometer-based
+	 * driver (matrices 50-300 square, 10 reps, warmup): ~5-15% wall-time reduction depending on
+	 * size, plus visibly less run-to-run variance (fewer allocations -> less GC pressure) -- the
+	 * expected, modest gain for removing allocations while the per-add trigonometric recompute
+	 * (setPolCoord() inside plusEq()) still dominates the cost, unaffected by this change. Verified
+	 * byte-for-byte identical output against a build from HEAD on a fixed 4x4*4x4 product, plus a
+	 * 143-file battery (every TestComplex file that calls .times()) comparing exit codes against a
+	 * build from HEAD: 0 real regressions (2 apparent mismatches, TestDeterminant01/TestLaplace01,
+	 * traced to pre-existing timeout flakiness in determinantAdj()'s O(n!) cofactor expansion on an
+	 * unseeded random 11x11 matrix -- confirmed unrelated: the mismatches occurred in BOTH
+	 * directions across the two files, and a standalone timing of determinantAdj() alone, which
+	 * never calls this method, already sits at ~8.6s, right at the battery's 10s per-file timeout).
 	 *
 	 * 1.48 (2026_0805_1400)
 	 * bestNumDecs()'s ceiling lowered from Complex.getSignificative() (general library precision,
@@ -1796,10 +1821,17 @@ public class MatrixComplex {
 
 		MatrixComplex resultMatrix = new MatrixComplex(rowLenA1, colLenA2);
 
+		// Accumulates in place via plusEq() into the zero-initialized cell the constructor above
+		// already allocated, instead of the old resultMatrix.complexMatrix[rowf][colf] =
+		// resultMatrix.complexMatrix[rowf][colf].plus(...) -- same accumulator idiom already used
+		// throughout ComplexFunctions.java (acc.plusEq(a.times(b))), here applied to this class'
+		// canonical O(n^3) hot path. Halves the allocations in the inner loop (was 2 new Complex
+		// per iteration -- times() and plus() -- now just the times() product) and drops the
+		// redundant per-iteration array read+store.
 		for (int rowf = 0; rowf < rowLenA1; ++rowf)
 			for (int colf = 0; colf < colLenA2; ++colf)
 				for (int iter = 0; iter < colLenA1; ++iter)
-					resultMatrix.complexMatrix[rowf][colf] = resultMatrix.complexMatrix[rowf][colf].plus(this.complexMatrix[rowf][iter].times(cMatrix.complexMatrix[iter][colf]));
+					resultMatrix.complexMatrix[rowf][colf].plusEq(this.complexMatrix[rowf][iter].times(cMatrix.complexMatrix[iter][colf]));
 		return resultMatrix;
 	}
 
