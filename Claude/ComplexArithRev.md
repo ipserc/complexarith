@@ -45,6 +45,16 @@ Para cada módulo se reliza lo siguiente:
 4. Mejora de los modelos de acuerdo con las ditectrices de INSTRUCCIONES DE REVISIÓN Y REFRACTORIZACIÓN.
 5. Cómo **Doctor en Ciencias Físicas y Mecánica Cuántica** revisión de los métodos y funciones implementados y propuesta de de nuevos métodos enfocados en el análisis de la Mecánica Cuántica.
 
+## Nota de secuenciación de los 3 roles (aclarada por el usuario, Decimoquinta sesión, 5 agosto 2026)
+
+Preguntado explícitamente si el trabajo real (15 sesiones: auditorías de corrección + reestructuración arquitectónica, sin tocar rendimiento/Vector API ni mecánica cuántica) seguía cumpliendo este bloque, el usuario confirmó que **el enfoque actual es correcto** y aclaró la secuencia pretendida, que no estaba explícita arriba:
+
+- **Rol 5 (Doctor en Física/Mecánica Cuántica)**: se aborda **al finalizar la revisión completa** del proyecto (todas las clases, no solo `MatrixComplex.java`) — deliberadamente el último paso, no aparcado por descuido.
+- **Rol 3-4 (Doctor en Matemáticas Aplicadas)**: se aplica **de forma oportunista ya, cuando se detecte ocasión durante el trabajo en curso** (igual que ha venido pasando: bugs matemáticos reales encontrados y arreglados durante auditorías y extracciones) — sin ir a buscarlo activamente en cada sesión. **Se repetirá en profundidad como pasada dedicada** una vez cerrada la revisión de corrección de todo el código, y **antes** de abordar el rol 5.
+- **Rol 1-2 (Performance Engineer)**: sin aclaración nueva — sigue siendo lo que domina la mayoría de sesiones (auditoría de defectos + reestructuración), el rendimiento/Vector API sigue como candidato grande aplazado (ver lista de candidatos heredados en la última sección del documento).
+
+**Orden por tanto**: (1) terminar la revisión de corrección/reestructuración en curso (rol 1-2, con rol 3-4 oportunista) → (2) pasada dedicada en profundidad de rol 3-4 → (3) rol 5 (Física/Mecánica Cuántica), al final de todo.
+
 ---
 
 # ESTADO DE LA SESIÓN Y CONTINUACIÓN (leer esto primero al retomar)
