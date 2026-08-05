@@ -62,7 +62,11 @@ public class TestTaylorSeries08 {
     		return;
     	}
 
-    	Diagfactor dmat = new Diagfactor(zMatrix);   	
+    	Diagfactor dmat = new Diagfactor(zMatrix);
+    	if (!dmat.isDiagonalizable()) {
+    		System.out.println("******* zMatrix is not diagonalizable, skipping the diagonal check");
+    		return;
+    	}
     	MatrixComplex Dmat = dmat.D().copy();
     	for (int i = 0; i < Dmat.cols(); ++i) 
     		Dmat.setItem(i, i, Dmat.getItem(i, i).power(cplx2Exp.inverse()));

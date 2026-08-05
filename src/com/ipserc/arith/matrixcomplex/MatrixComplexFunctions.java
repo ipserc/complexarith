@@ -1101,9 +1101,13 @@ class MatrixComplexFunctions {
 		for (int d = 1; d < n; ++d) {
 			for (int i = 0; i < n - d; ++i) {
 				int j = i + d;
-				Complex sum = Complex.ZERO;
+				// Private zero-valued accumulator, NOT Complex.ZERO -- plusEq() mutates its
+				// receiver in place, and calling it directly on the shared ZERO constant (as a
+				// naive sum=Complex.ZERO; sum.plusEq(...) rewrite would) would corrupt it for
+				// every other caller in the JVM. Same accumulator idiom as MatrixComplex.times().
+				Complex sum = new Complex();
 				for (int k = i + 1; k < j; ++k) {
-					sum = sum.plus(sMat.getItem(i, k).times(sMat.getItem(k, j)));
+					sum.plusEq(sMat.getItem(i, k).times(sMat.getItem(k, j)));
 				}
 				Complex numerator = tMat.getItem(i, j).minus(sum);
 				Complex denominator = sMat.getItem(i, i).plus(sMat.getItem(j, j));

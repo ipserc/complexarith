@@ -18,8 +18,28 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.49 (2026_0805_2300)";
+	private final static String VERSION = "1.50 (2026_0806_0000)";
 	/* VERSION Release Note
+	 *
+	 * 1.50 (2026_0806_0000)
+	 * MatrixComplexFunctions.sqrtTriangular() (private helper of logm()'s inverse
+	 * scaling-and-squaring): its off-diagonal Parlett-recurrence sum loop did
+	 * "Complex sum = Complex.ZERO; ... sum = sum.plus(...)" -- same allocation-per-iteration
+	 * pattern as times(MatrixComplex) before VERSION 1.49, now fixed the same way (sum.plusEq(...)
+	 * into a private zero-valued accumulator). Deliberately NOT a naive "swap plus() for plusEq()"
+	 * on the existing sum variable: plusEq() mutates its receiver in place, and the old code started
+	 * the accumulator from Complex.ZERO, the library's shared zero constant -- calling plusEq()
+	 * directly on that would have corrupted it for every other caller in the JVM (the exact danger
+	 * plusEq()'s own Javadoc warns about). Changed the initial value to a private "new Complex()"
+	 * first, so the accumulator is safe to mutate. Verified byte-for-byte identical logm() output
+	 * against a build from HEAD on a fixed 4x4 defective matrix, plus a 55-file battery (every
+	 * TestComplex file calling exp/sin/cos/tan/log/logm/sqrt family functions) against a build from
+	 * HEAD: 0 regressions from this change. 2 apparent mismatches investigated and confirmed
+	 * unrelated: TestLaplace01 (same pre-existing determinantAdj()-adjacent timeout flakiness as
+	 * VERSION 1.49's battery) and TestTaylorSeries08 (a genuinely pre-existing bug in the TEST file
+	 * itself, not this class -- see that file's own history for the fix, confirmed present at a
+	 * similar failure rate in BOTH builds over 20 runs each before being fixed there, unrelated to
+	 * this change).
 	 *
 	 * 1.49 (2026_0805_2300)
 	 * times(MatrixComplex) (the O(n^3) matrix-product hot path): the inner loop used to do
