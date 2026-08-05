@@ -10,8 +10,34 @@ import java.util.List;
 public class Jordan extends Eigenspace {
 
 	private final static String HEADINFO = "Jordan --- INFO:";
-	private final static String VERSION = "1.3 (2026_0802_1500)";
+	private final static String VERSION = "1.4 (2026_0805_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.4 (2026_0805_1200)
+	 * New private checkReconstruction(), called at the end of factorize()/factorize2(): verifies
+	 * P*J*P^-1 actually reconstructs the original matrix (within RECONSTRUCTION_TOLERANCE=1e-4,
+	 * deliberately looser than machine precision -- see that constant's own Javadoc) and that P is
+	 * square, throwing an explicit IllegalArgumentException otherwise instead of returning silently
+	 * wrong results. Closes a gap VERSION 1.3 left open: eigenvectors()'s NaN check only covers an
+	 * outright NaN entry in the vectors it builds, not a P that inverts into garbage afterwards.
+	 * Two real, previously-silent failures confirmed and now caught: (1) lambda=3, a 4x4 matrix with
+	 * two 2x2 chains -- factorize() used to report success with det(P)~7.7e-28 and a P*J*P^-1
+	 * reconstruction of literal NaN; (2) a genuinely new finding, TestJordan01's own 4x4 matrix
+	 * "2,2,-3,4;-2,2,1,0;3,3,-5,7;4,2,-6,7" -- eigenvalues() and arithmeticMultiplicity() disagree on
+	 * this matrix's true grouping (both its eigenvalue pairs near 2 and near 1 sit ~1e-7 apart from
+	 * Durand-Kerner), producing a non-square P (4 rows, 2 columns) that used to reach
+	 * MatrixComplex.inverse()'s old print-and-continue error path and silently corrupt the caller's
+	 * own P*J*P^-1 printout instead of ever surfacing as a Jordan-level failure. Neither is a new bug
+	 * in the geometric-multiplicity construction itself -- both are the same already-documented
+	 * root-finder-precision ceiling (see factorize()'s own Javadoc) now failing loud instead of quiet.
+	 * TestJordan01.java (a diagnostic-only script predating any pass/fail convention, zero assertions
+	 * of its own) now crashes with a stack trace instead of printing a NaN "PROOF" matrix for its
+	 * second case -- an intentional, expected consequence of this fix, not a regression: its exit
+	 * code was never a meaningful signal. Verified against a 12-file battery (every TestComplex file
+	 * referencing Jordan/factorize, plus TestLU01) compiled and run against both builds -- 0 exit-code
+	 * mismatches except TestJordan01 (expected, explained above); TestJordanAudit01's documented
+	 * "defective 3x3, simple eigenvalue processed first" case (residual ~3.4e-7, deliberately accepted
+	 * since VERSION 1.3) still passes comfortably under RECONSTRUCTION_TOLERANCE.
 	 *
 	 * 1.3 (2026_0802_1500)
 	 * KNOWN LIMITATION resolved: eigenvalues with geometric multiplicity greater than 1 (needing
@@ -569,6 +595,7 @@ public class Jordan extends Eigenspace {
 		}
 		cP = cP.transpose();
 		cP.println("----------PASS MATRIX");
+		checkReconstruction();
 	}
 
 	/**
@@ -630,6 +657,58 @@ public class Jordan extends Eigenspace {
 		}
 		cP = cP.transpose();
 		cP.println("----------PASS MATRIX");
+		checkReconstruction();
+	}
+
+	/**
+	 * Reconstruction residual tolerance for {@link #checkReconstruction()} -- deliberately much
+	 * looser than machine precision. A genuinely defective eigenvalue reconstructs with a residual
+	 * around {@code precision^(1/m)} for a chain of length {@code m} (confirmed real case: {@code
+	 * TestJordanAudit01}'s "defective 3x3, simple eigenvalue processed first", residual ~3.4e-7 for
+	 * {@code m=2}, already documented and deliberately accepted, not a bug) -- this constant sits
+	 * two orders of magnitude above that, comfortably accepting every known-good case while still
+	 * being enormously tighter than the actual failures {@link #checkReconstruction()} exists to
+	 * catch, which measured {@code NaN} or a completely wrong matrix shape, not a borderline residual.
+	 */
+	private final static double RECONSTRUCTION_TOLERANCE = 1e-4;
+
+	/**
+	 * Verifies {@code cP*cJ*cP^-1} actually reconstructs the original matrix before letting
+	 * {@link #factorize()}/{@link #factorize2()} return normally. Closes a gap left open since
+	 * VERSION 1.3: {@link #eigenvectors(Complex, int)} already fails loud on an outright {@code
+	 * NaN} entry, but a genuinely near-singular {@code cP} (confirmed real case: {@code lambda=3},
+	 * a 4x4 matrix with two {@code 2x2} chains, {@code det(P)~7.7e-28}) can pass that check and
+	 * still make {@code cP.inverse()} blow up -- {@code factorize()} used to report success with
+	 * a {@code cP}/{@code cJ} that don't actually reconstruct the matrix at all. Same "fail loud,
+	 * not silent garbage" pattern used throughout this project; does not fix the underlying
+	 * eigenvalue-imprecision problem (see {@link #factorize()}'s own Javadoc), only stops it from
+	 * being reported as success. Uses {@link #RECONSTRUCTION_TOLERANCE} rather than {@link
+	 * MatrixComplex#equals(MatrixComplex)}'s tight default tolerance -- see that constant's own
+	 * Javadoc for why.
+	 */
+	private void checkReconstruction() {
+		if (cP.rows() != cP.cols()) {
+			throw new IllegalArgumentException(HEADINFO + " factorize: P has " + cP.rows() + " rows "
+				+ "but " + cP.cols() + " columns (not square) -- fewer or more generalized "
+				+ "eigenvectors were collected than the matrix size, almost certainly because an "
+				+ "imprecise eigenvalue made arithmeticMultiplicity() misjudge some eigenvalue's true "
+				+ "multiplicity.");
+		}
+		MatrixComplex reconstructed = cP.times(cJ).times(cP.inverse());
+		double maxAbsDiff = 0.0;
+		for (int row = 0; row < this.rows(); ++row) {
+			for (int col = 0; col < this.cols(); ++col) {
+				Complex d = this.getItem(row, col).minus(reconstructed.getItem(row, col));
+				maxAbsDiff = Math.max(maxAbsDiff, Math.max(Math.abs(d.rep()), Math.abs(d.imp())));
+			}
+		}
+		if (!(maxAbsDiff < RECONSTRUCTION_TOLERANCE))
+			throw new IllegalArgumentException(HEADINFO + " factorize: P*J*P^-1 does not "
+				+ "reconstruct the original matrix (max residual " + maxAbsDiff + ", tolerance "
+				+ RECONSTRUCTION_TOLERANCE + ") -- the eigenvalue(s) involved are almost "
+				+ "certainly too imprecise for their multiplicity (root-finder grouping/precision "
+				+ "limitation), producing a near-singular P that the individual eigenvector "
+				+ "construction checks didn't catch.");
 	}
 
 }
