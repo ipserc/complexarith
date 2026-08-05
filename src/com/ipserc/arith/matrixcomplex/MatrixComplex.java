@@ -18,8 +18,26 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.46 (2026_0803_2000)";
+	private final static String VERSION = "1.47 (2026_0805_1100)";
 	/* VERSION Release Note
+	 *
+	 * 1.47 (2026_0805_1100)
+	 * CHARACTERISTIC POLYNOMIAL section (422 lines: charactPoly, the augment/augment1/augment2/
+	 * unkMatrix family, cofactor/cofactors/minor, coefCP, the quicksort/quicksortdown/quicksortup
+	 * family, hermitian/skewHermitian/commutator/anticommutator) extracted to new package-private
+	 * MatrixComplexCharPoly, same pattern as MatrixComplexUnary (Etapa 4) -- a single class, no
+	 * sub-phases, since the section (422 lines, well under Etapa 4's 867) didn't justify splitting
+	 * despite its subgroups having low cross-cohesion. Etapa 5 of the multi-session MatrixComplex.java
+	 * restructuring roadmap (ver ComplexArithRev.md). No field or method visibility widened -- the one
+	 * cross-class dependency anticipated when Etapa 4 closed (cofactor() called from
+	 * MatrixComplexUnary.adjugate()) resolves through the already-public m.cofactor()/m.cofactors(...)
+	 * delegators, same direction as every previous cross-section call. Public API unchanged; verified
+	 * byte-for-byte against HEAD (19 methods/overloads x 7 representative matrices: real/complex/
+	 * singular/Hermitian/2x2/4x4/rectangular 3x2, including exception-path cases -- non-square
+	 * cofactor(), dimension-mismatched augment(MatrixComplex)/commutator(), out-of-range coefCP(order))
+	 * plus a 56-file regression battery (every TestComplex file referencing any moved method), 0
+	 * exit-code mismatches (4 pre-existing non-deterministic/known failures -- TestEigenV16,
+	 * TestSyseqnum01/02, TestTaylorSeries01 -- reproduced identically, exit code 1, in both builds).
 	 *
 	 * 1.40 (2026_0803_1900)
 	 * EQUATION SYSTEMS section, sub-fase A+B (classification/resolution + Gauss/Cramer/submatrices,
@@ -3935,29 +3953,7 @@ public class MatrixComplex {
 	 * @return The characteristic polynomial
 	 */
 	public Polynom charactPoly() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		Polynom charactPoly = new Polynom(colLen);
-
-		if (rowLen != colLen) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-
-		for (int order = 0; order <= colLen; ++order) {
-			switch (order) {
-				case 0: 
-					charactPoly.complexMatrix[0][colLen-order].setComplexPol(1, 0); 
-					break;
-				case 1: 
-					charactPoly.complexMatrix[0][colLen-order] = this.trace().opposite(); 
-					break;
-				default: 
-					charactPoly.complexMatrix[0][colLen-order] = this.coefCP(order).times(Math.pow(-1, order)); 
-					break;
-			}
-		}
-		//this.print(charactPolyMatrix.complexMatrix);
-		return (colLen % 2) == 0 ? charactPoly : charactPoly.opposite();
+		return MatrixComplexCharPoly.charactPoly(this);
 	}
 
 	/**
@@ -3966,26 +3962,11 @@ public class MatrixComplex {
 	 * @return The augmented matrix.
 	 */
 	public MatrixComplex augment() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int row, col;
-
-		MatrixComplex extendedMatrix = new MatrixComplex(rowLen, colLen+1);
-		for (row = 0; row < rowLen; ++row) {
-			for (col = 0; col < colLen; ++col) {
-				extendedMatrix.complexMatrix[row][col] = this.complexMatrix[row][col];
-			}
-			extendedMatrix.complexMatrix[row][col].setComplexPol(0,0);
-		}
-		return extendedMatrix;
+		return MatrixComplexCharPoly.augment(this);
 	}
 
 	public MatrixComplex augment(int numCols) {
-		MatrixComplex extendedMatrix = this;
-		for (int iter = 0; iter < numCols; ++iter) {
-			extendedMatrix = extendedMatrix.augment();
-		}
-		return extendedMatrix;
+		return MatrixComplexCharPoly.augment(this, numCols);
 	}
 
 	/**
@@ -3994,9 +3975,9 @@ public class MatrixComplex {
 	 * @return The augmented matrix.
 	 */
 	public MatrixComplex augment(MatrixComplex interms) {
-		return augment2(interms);
+		return MatrixComplexCharPoly.augment(this, interms);
 	}
-	
+
 	/**
 	 * DEPRECATED Returns a new augmented array with the FIRST column of terms.
 	 * DEPRECATED Copies the original matrix and add the FIRST column "interms".
@@ -4005,18 +3986,7 @@ public class MatrixComplex {
 	 * @return The augmented matrix.
 	 */
 	public MatrixComplex augment1(MatrixComplex interms) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int row, col;
-
-		MatrixComplex extendedMatrix = new MatrixComplex(rowLen, colLen+1);
-		for (row = 0; row < rowLen; ++row) {
-			for (col = 0; col < colLen; ++col) {
-				extendedMatrix.complexMatrix[row][col] = this.complexMatrix[row][col];
-			}
-			extendedMatrix.complexMatrix[row][col] = interms.complexMatrix[row][0];
-		}
-		return extendedMatrix;
+		return MatrixComplexCharPoly.augment1(this, interms);
 	}
 
 	/**
@@ -4026,20 +3996,7 @@ public class MatrixComplex {
 	 * @return The augmented matrix.
 	 */
 	public MatrixComplex augment2(MatrixComplex interms) {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int row, col;
-
-		MatrixComplex extendedMatrix = new MatrixComplex(rowLen, colLen+interms.cols());
-		for (row = 0; row < rowLen; ++row) {
-			for (col = 0; col < colLen; ++col) {
-				extendedMatrix.complexMatrix[row][col] = this.complexMatrix[row][col];
-			}
-			for (int incol = 0; incol < interms.cols(); ++incol) {
-				extendedMatrix.complexMatrix[row][col+incol] = interms.complexMatrix[row][incol];
-			}
-		}
-		return extendedMatrix;
+		return MatrixComplexCharPoly.augment2(this, interms);
 	}
 
 	/**
@@ -4048,45 +4005,7 @@ public class MatrixComplex {
 	 * @return The augmented matrix.
 	 */
 	public MatrixComplex unkMatrix() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int row, col;
-
-		MatrixComplex unkMatrix = new MatrixComplex(rowLen, colLen-1);
-		for (row = 0; row < rowLen; ++row) {
-			for (col = 0; col < colLen-1; ++col) {
-				unkMatrix.complexMatrix[row][col] = this.complexMatrix[row][col];
-			}
-		}
-		return unkMatrix;
-	}
-	
-	/**
-	 * Private method. Identifies if a row is used to construct the cofactor's matrix (included for convenience)
-	 * @param listRows List with the rows to check.
-	 * @param item The item to look for.
-	 * @return true if found, otherwise false.
-	 */
-	private boolean foundItem(int[] listRows, int item) {
-		for (int i = 0; i < listRows.length; ++i) {
-			if (listRows[i] == item) 
-				return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Private method. Identifies if a row is used to construct the cofactor's matrix.
-	 * @param listRows List with the rows to check.
-	 * @param item The item to look for.
-	 * @return true if NOT found, otherwise false.
-	 */    
-	private boolean notFoundItem(int[] listRows, int item) {
-		for (int i = 0; i < listRows.length; ++i) {
-			if (listRows[i] == item) 
-				return false;
-		}
-		return true;
+		return MatrixComplexCharPoly.unkMatrix(this);
 	}
 
 	/**
@@ -4094,67 +4013,16 @@ public class MatrixComplex {
 	 * @return The new cofactor matrix.
 	 */
 	public MatrixComplex cofactor() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-		int row, col;
-		MatrixComplex cofactor = new MatrixComplex(rowLen);
-
-		if (rowLen != colLen) {
-			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
-		}
-		
-		for (row = 0; row < rowLen; ++row)
-			for (col = 0; col < colLen; ++col) {
-				cofactor.complexMatrix[row][col] = this.cofactors(row, col).determinant().times(((col+row)&1)==0?1:-1);
-			}
-		return cofactor;
+		return MatrixComplexCharPoly.cofactor(this);
 	}
-	
+
 	/**
 	 * Returns a new matrix of cofactors.
 	 * @param includedRows The list with the indexes of the rows included in the new matrix.
 	 * @return The new matrix of cofactors.
 	 */
 	public MatrixComplex cofactors(int[] includedRows) {
-		int rowLen = this.rows();
-		int order = includedRows.length;
-
-		MatrixComplex cofactor = new MatrixComplex(order, order);
-		for (int row = 0, rrow = 0; row < rowLen; ++row) {
-			if (notFoundItem(includedRows, row)) 
-				continue;
-			for (int col = 0, ccol = 0; col < rowLen; ++col) {
-				if (notFoundItem(includedRows, col)) 
-					continue;
-				cofactor.complexMatrix[rrow][ccol++] = this.complexMatrix[row][col];
-			}
-			++rrow;
-		}
-		return cofactor;
-	}
-
-	/**
-	 * Private method. Bubblesort method for sort a list of integers. 
-	 * Used in cofactors(String includedRowsList) for sorting the row list.
-	 * @param in The list of integers to sort.
-	 * @return The sorted list.
-	 */
-	private static int[] bubbleSort(int[] in) {
-		int n = in.length;
-		int c, d, swap;
-		int matrix[] = new int[in.length];
-		for (c = 0; c < n; ++c) matrix[c] = in[c];
-
-		for (c = 0; c < n-1; ++c) {
-			for (d = 0; d < n-c-1; ++d) {
-				if (matrix[d] > matrix[d+1]) { /* For descending order use < */
-					swap 		= matrix[d];
-					matrix[d]   = matrix[d+1];
-					matrix[d+1] = swap;
-				}
-			}
-		}
-		return matrix;
+		return MatrixComplexCharPoly.cofactors(this, includedRows);
 	}
 
 	/**
@@ -4163,11 +4031,7 @@ public class MatrixComplex {
 	 * @return The new matrix of cofactors.
 	 */
 	public MatrixComplex cofactors(String includedRowsList) {
-		String[] includedRowsTextItems = includedRowsList.split(",");
-		int incRows[] = new int[includedRowsTextItems.length];    	
-		for (int i = 0; i < incRows.length; ++i) incRows[i] = Integer.parseInt(includedRowsTextItems[i]);
-		incRows = bubbleSort(incRows);
-		return this.cofactors(incRows);
+		return MatrixComplexCharPoly.cofactors(this, includedRowsList);
 	}
 
 	/**
@@ -4177,22 +4041,7 @@ public class MatrixComplex {
 	 * @return The result of the determinant.
 	 */
 	public Complex minor(int[] includedRows) {
-		return cofactors(includedRows).determinant();
-	}
-
-	/**
-	 * Private method. Returns the exact list of rows included to generate the cofactors' matrix.
-	 * Used in coefCP(int order)
-	 * @param order The order of the cofactors' matrix.
-	 * @param v The array of the rows included.
-	 * @return Aa array with the indexes of the included rows
-	 */
-	private int[] includedRows(int order, int[] v) {
-		int includedRows[] = new int[order];		
-		int i;
-
-		for (i = 0; i < order; ++i) includedRows[i] = v[i];
-		return includedRows;
+		return MatrixComplexCharPoly.minor(this, includedRows);
 	}
 
 	/**
@@ -4201,110 +4050,31 @@ public class MatrixComplex {
 	 * @return The coefficient of the polynomial
 	 */
 	public Complex coefCP(int order) {
-		int grade = this.rows();
-		Complex coefCP = new Complex();
-		int[] includedRows;
-		int i, j;
-		int v[] = new int[grade];
-
-		for (i = 0; i < grade; ++i) v[i]=i;
-		includedRows = includedRows(order, v);
-		coefCP = coefCP.plus(minor(includedRows));
-		while (true) {
-			i = order-1;
-			while (v[i] == grade-order+i && --i >= 0);
-			if (i < 0) break;
-			v[i] += 1;
-			for (j = i+1; j < order; ++j) v[j] = v[i]+j-i;
-			includedRows = includedRows(order, v);
-			coefCP = coefCP.plus(minor(includedRows));
-		}
-		return coefCP;
-	}
-
-	/**
-	 * Constant to define the decreasing sort
-	 */
-	private final static int DECREASING = 0;
-
-	/**
-	 * Constant to define the increasing sort
-	 */
-	private final static int INCREASING = 1;
-
-	/**
-	 * Compare method parameterized by sort
-	 * @param cVal1 Complex Value1. The method uses cVal1.cre()
-	 * @param cVal2 Complex Value2. The method uses cVal1.cre()
-	 * @param sort the type of rule to sort. From Max to min, decreasing sort = DECREASING = 0. From min to Max, increasing sort = INCREASING = 1
-	 * @return the comparison result
-	 */
-	private static boolean compare(Complex cVal1, Complex cVal2, int sort) {
-		//int signif = Complex.significative()-1;
-		switch (sort) {
-			//case DECREASING: return Complex.round(cVal1.cre(), signif) >= Complex.round(cVal2.cre(), signif);
-			//case INCREASING: return Complex.round(cVal1.cre(), signif) <= Complex.round(cVal2.cre(), signif);
-			case DECREASING: return cVal1.cre() >= cVal2.cre();
-			case INCREASING: return cVal1.cre() <= cVal2.cre();
-		}
-		return cVal1.cre() >= cVal2.cre();
-	}
-
-	/**
-	 * Sorts using the quicksort method the rows of an array by the modulus of the item in the column "col".
-	 * @param col Index of the column to order.
-	 * @param izq Pivot index on the left.
-	 * @param der Pivot index on the right.
-	 * @param order the type of order to sort. From Max to min, decreasing order = DECREASING = 0. From min to Max, increasing order = INCREASING = 1
-	 */
-	private void quicksort(int col, int izq, int der, int order) {
-		int colLen = this.cols();
-		int i = izq; 									// i realiza la búsqueda de izquierda a derecha
-		int j = der; 									// j realiza la búsqueda de derecha a izquierda
-
-		MatrixComplex aux = new MatrixComplex(1, colLen);
-		MatrixComplex pivote = new MatrixComplex(1, colLen);
-		pivote.complexMatrix[0] = this.complexMatrix[izq].clone();	// tomamos primer elemento como pivote
-
-		while (i < j) {            																		// mientras no se crucen las búsquedas
-			while (i < j &&  compare(this.complexMatrix[i][col], pivote.complexMatrix[0][col], order)) ++i;	// busca elemento mayor que pivote
-			while (!compare(this.complexMatrix[j][col], pivote.complexMatrix[0][col], order)) --j;			// busca elemento menor que pivote
-			if (i < j) {                      									// si no se han cruzado                      
-				aux.complexMatrix[0] = this.complexMatrix[i].clone();			// los intercambia
-				this.complexMatrix[i] = this.complexMatrix[j].clone();
-				this.complexMatrix[j] = aux.complexMatrix[0].clone();
-			}
-		}
-		this.complexMatrix[izq] = this.complexMatrix[j].clone(); 	// se coloca el pivote en su lugar de forma que tendremos
-		this.complexMatrix[j] = pivote.complexMatrix[0].clone(); 	// los menores a su izquierda y los mayores a su derecha
-		if (izq < j-1)
-			this.quicksort(col, izq, j-1, order); // ordenamos submatrix izquierdo
-		if (j+1 < der)
-			this.quicksort(col, j+1, der, order); // ordenamos submatrix derecho
+		return MatrixComplexCharPoly.coefCP(this, order);
 	}
 
 	/**
 	 * Sorts from maximum to minimum using the quicksort method the rows of an array by the modulus of the item in the column "col".
 	 * @param col Index of the column to order.
-	 */   
+	 */
 	public void quicksort(int col) {
-		this.quicksort(col,0,this.rows()-1, DECREASING);
+		MatrixComplexCharPoly.quicksort(this, col);
 	}
 
 	/**
 	 * Sorts from maximum to minimum using the quicksort method the rows of an array by the modulus of the item in the column "col".
 	 * @param col Index of the column to order.
-	 */   
+	 */
 	public void quicksortdown(int col) {
-		this.quicksort(col,0,this.rows()-1, DECREASING);
+		MatrixComplexCharPoly.quicksortdown(this, col);
 	}
 
 	/**
 	 * Sorts from minimum to maximum using the quicksort method the rows of an array by the modulus of the item in the column "col".
 	 * @param col Index of the column to order.
-	 */   
+	 */
 	public void quicksortup(int col) {
-		this.quicksort(col,0,this.rows()-1, INCREASING);
+		MatrixComplexCharPoly.quicksortup(this, col);
 	}
 
 	/**
@@ -4314,7 +4084,7 @@ public class MatrixComplex {
 	 * @return The Hermitian matrix.
 	 */
 	public MatrixComplex hermitian() {
-		return (this.plus(this.adjoint()));
+		return MatrixComplexCharPoly.hermitian(this);
 	}
 
 	/**
@@ -4323,7 +4093,7 @@ public class MatrixComplex {
 	 * @return The skew-Hermitian matrix.
 	 */
 	public MatrixComplex skewHermitian() {
-		return (this.minus(this.adjoint()));
+		return MatrixComplexCharPoly.skewHermitian(this);
 	}
 
 	/**
@@ -4333,7 +4103,7 @@ public class MatrixComplex {
 	 * @return The commutator array.
 	 */
 	public MatrixComplex commutator(MatrixComplex B) {
-		return (this.times(B)).minus(B.times(this));
+		return MatrixComplexCharPoly.commutator(this, B);
 	}
 
 	/**
@@ -4342,7 +4112,7 @@ public class MatrixComplex {
 	 * @return The anticommutator array.
 	 */
 	public MatrixComplex anticommutator(MatrixComplex B) {
-		return (this.times(B)).plus(B.times(this));
+		return MatrixComplexCharPoly.anticommutator(this, B);
 	}
 
 	/*
