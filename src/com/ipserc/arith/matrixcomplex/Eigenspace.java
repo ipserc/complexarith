@@ -20,8 +20,40 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.9 (2026_0802_1200)";
+	private final static String VERSION = "1.10 (2026_0805_1800)";
 	/* VERSION Release Note
+	 *
+	 * 1.10 (2026_0805_1800)
+	 * eigenval(): dos cambios juntos, medidos antes de aplicar (ver Claude/ComplexArithRev.md,
+	 * secciones "QR-con-desplazamientos: precision bruta vs. agrupamiento" y "Candidato real:
+	 * agrupamiento por DISTANCIA"):
+	 * (1) QRSchurfactor pasa a ser la fuente de autovalores POR DEFECTO (antes: solo fallback si
+	 * solveRobust() lanzaba excepcion) -- invertido el orden try/catch. Medido contra los mismos
+	 * ~600 casos de autovalor repetido real: precision bruta ~35-47x mejor, agrupamiento mult=3
+	 * 49%->55%, mult=4 41%->53%, falsos positivos 6.8%->6.1%, CERO excepciones de factorizacion
+	 * en el barrido -- gana en las tres metricas a la vez, sin contrapartida. solveRobust() se
+	 * mantiene como fallback (mismo patron "prueba lo conocido, cae a lo robusto solo ante
+	 * excepcion explicita") por si QRSchurfactor.factorize() lanza en algun caso no cubierto por
+	 * el barrido.
+	 * (2) El agrupamiento de raices consecutivas ("la misma raiz repetida") pasa de redondeo por
+	 * COMPONENTE (Complex.round(a,digits).equals(Complex.round(b,digits))) a DISTANCIA
+	 * (|a-b|<=tolFactor*10^-digits, tolFactor=0.5) -- diagnosticado que el redondeo por componente
+	 * penaliza el autovalor repetido COMPLEJO el doble que el real (parte real Y parte imaginaria
+	 * deben caer del mismo lado del cubo de redondeo para que el redondeo coincida, dos
+	 * oportunidades independientes de fallar en vez de una) incluso cuando la precision bruta ya
+	 * es buena. tolFactor=0.5 elegido por ser el punto medido que mejora o empata TODAS las
+	 * metricas a la vez (real, complejo Y falsos positivos) -- tolFactor mas suelto (5-10x) llega
+	 * a mult=3 casi perfecto pero empeora los falsos positivos, no elegido por eso. El agrupamiento
+	 * pasa de "ancla" (comparaba contra el primer miembro fijo del grupo en curso) a "cadena"
+	 * (compara siempre contra el elemento inmediatamente anterior, actualizado en cada paso) --
+	 * necesario porque, a diferencia de la igualdad de redondeo (transitiva por construccion), la
+	 * distancia NO es transitiva (|a-b|<=tol y |b-c|<=tol no implican |a-c|<=tol) y el barrido que
+	 * midio estos numeros usaba cadena, no ancla.
+	 * arithmeticMultiplicity(Complex,int) actualizado con el mismo criterio de distancia para
+	 * mantenerse consistente con lo que eigenval() ya promete (mismo motivo que la Novena sesion
+	 * para el redondeo). Diagfactor.java linea ~203 usa una comparacion equivalente (Complex.equals
+	 * (Complex,int), tambien redondeo por componente) -- NO tocada aqui, fuera de alcance de este
+	 * cambio, candidato aparte del mismo tipo si hiciera falta.
 	 *
 	 * 1.9 (2026_0802_1200)
 	 * eigenval(): charactPoly.solveRobust() ahora tiene un fallback a QRSchurfactor.getEigenvalues()
@@ -115,6 +147,17 @@ public class Eigenspace extends MatrixComplex {
 	private MatrixComplex eigenvectors; // The eigenvectors taken from vectors by removing the null and the linear combination ones
 	private Polynom charactPoly;
 	private Complex seed;
+
+	/**
+	 * Factor multiplicativo sobre la tolerancia derivada de {@link MatrixComplex#bestNumDecs()}
+	 * para el agrupamiento de raices por DISTANCIA (ver {@link #groupingTolerance(int)}). Valor
+	 * medido, no arbitrario: barrido de tolFactor en {0.5,1,2,5,10} sobre ~600 casos de
+	 * multiplicidad conocida (real y compleja) mas un barrido companion de autovalores distintos
+	 * -- 0.5 es el unico valor que mejora o empata TODAS las metricas a la vez (agrupamiento real,
+	 * agrupamiento complejo Y falsos positivos); valores mas sueltos ganan mas en agrupamiento pero
+	 * pierden mas en falsos positivos. Ver Claude/ComplexArithRev.md, VERSION 1.10 de esta clase.
+	 */
+	private static final double GROUPING_TOL_FACTOR = 0.5;
 	
 	
 
@@ -389,11 +432,23 @@ public class Eigenspace extends MatrixComplex {
 	 * @return The arithmetic multiplicity
 	 */
 	public int arithmeticMultiplicity(Complex eigenVal, int digits) {
+		double tol = groupingTolerance(digits);
 		int row;
 		for (row = 0; row < eigenvalues.rows(); ++row) {
-			if (Complex.round(eigenVal, digits).equals(Complex.round(eigenvalues.getItem(row, 0), digits))) break;
+			if (eigenVal.minus(eigenvalues.getItem(row, 0)).mod() <= tol) break;
 		}
 		return (int)eigenvalues.getItem(row, 1).cre();
+	}
+
+	/**
+	 * Tolerancia de DISTANCIA equivalente a "digits" decimales, para el agrupamiento de raices en
+	 * {@link #eigenval()} y la busqueda en {@link #arithmeticMultiplicity(Complex, int)}. Ver
+	 * {@link #GROUPING_TOL_FACTOR} para el porque del factor.
+	 * @param digits El numero de decimales de precision (tipicamente {@link MatrixComplex#bestNumDecs()}).
+	 * @return La tolerancia de distancia.
+	 */
+	private static double groupingTolerance(int digits) {
+		return GROUPING_TOL_FACTOR * Math.pow(10, -digits);
 	}
 	
 	public int arithmeticMultiplicity__(Complex eigenVal, int digits) {
@@ -490,37 +545,16 @@ public class Eigenspace extends MatrixComplex {
 	 */
 	public void eigenval() {
 		Complex prevRoot, actRoot;
-		// Was charactPoly.solve() (Durand-Kerner only, Polynom.solveWeierstrass()). Switched to
-		// solveRobust() -- tries Durand-Kerner first, falls back to Aberth-Ehrlich only if that
-		// throws an arithmetic-overflow exception -- verified this session with the full
-		// Schurfactor/Jordan-block sweep already used to characterize Eigenspace's fragility:
-		// byte-for-byte identical results to plain Durand-Kerner in every case that already
-		// worked (no silent precision change on the already-working path), while eliminating the
-		// crash risk on the higher-degree/widely-spread-coefficient characteristic polynomials
-		// that Durand-Kerner alone can hit (same root cause already fixed for MatrixComplex.rank2()
-		// this session). Does NOT by itself fix the separate, already-documented precision
-		// limitation for repeated eigenvalues in larger Jordan blocks (see Jordan.java/
-		// TestJordanAudit01 and MatrixComplex.logm()'s Javadoc) -- that is a precision ceiling
-		// inherent to Newton-type root-finding near a multiple root, not an overflow, and neither
-		// Durand-Kerner nor Aberth-Ehrlich escapes it.
-		// Fallback to QRSchurfactor (Hessenberg + QR con desplazamiento de Wilkinson, ver Etapas 1-3
-		// del plan QR-con-desplazamientos) only if solveRobust() itself throws -- same "prueba lo
-		// conocido, cae a lo robusto solo ante excepcion explicita" pattern as solveRobust() itself,
-		// no heuristic in between. Confirmed empirically (busqueda acotada, no exhaustiva) that
-		// solveRobust() (Durand-Kerner then Aberth-Ehrlich) can still exhaust for characteristic
-		// polynomials of degree >=10 with widely disparate coefficient magnitudes -- 5/108 random
-		// 10x10-12x12 integer matrices with entries up to +-1000 threw "Arithmetic Overflow" from
-		// BOTH root-finders. QRSchurfactor, which never forms the characteristic polynomial at all
-		// (the classical Wilkinson ill-conditioning of that step is exactly what breaks the two
-		// root-finders), rescued all 5, verified with a genuine (not garbage) reconstruction
-		// (Q*T*Q^H=A, residual ~8e-12) on at least one of them. Etapa 4 (see ComplexArithRev.md)
-		// found NO systematic precision advantage of QRSchurfactor over the default engine when
-		// BOTH succeed -- this fallback only fires on the narrower, disjoint case where the default
-		// engine fails outright, not as a general replacement.
+		// QRSchurfactor (Hessenberg + QR con desplazamiento de Wilkinson) es la fuente de
+		// autovalores por defecto desde VERSION 1.10 -- nunca forma el polinomio caracteristico
+		// (el paso que Wilkinson demostro numericamente traicionero), midiendo mejor precision Y
+		// mejor agrupamiento que solveRobust() sin contrapartida (ver release note de arriba).
+		// solveRobust() (Durand-Kerner con fallback a Aberth-Ehrlich) se mantiene como fallback
+		// ante excepcion explicita, mismo patron "prueba lo conocido, cae a lo robusto" de siempre.
 		try {
-			roots = charactPoly.solveRobust();
-		} catch (IllegalArgumentException e) {
 			roots = new QRSchurfactor(this).getEigenvalues();
+		} catch (IllegalArgumentException e) {
+			roots = charactPoly.solveRobust();
 		}
 		// eigenvalues.quicksortup(0); // DO NOT USE - SVD factorization doesn't allow this
 		// order = Order.UP;
@@ -530,26 +564,19 @@ public class Eigenspace extends MatrixComplex {
 			case DOWN: roots.quicksortdown(0); break;
 		}
 
-		// Grouping consecutive roots into "the same eigenvalue" must use the same tolerance as
-		// arithmeticMultiplicity(Complex) (rounded to bestNumDecs() significant decimals), not
-		// Complex.equals()'s fixed ~1e-11 tolerance. Durand-Kerner's actual numerical error on a
-		// genuinely repeated root is condition-number-dependent and can be much coarser than that
-		// fixed tolerance (confirmed: a double root at -2 converged to -1.9999999973348/
-		// -2.0000000026547, 5.3e-9 apart, for a matrix whose bestNumDecs()==3) -- comparing with
-		// Complex.equals() silently split one defective eigenvalue of multiplicity 2 into two
-		// distinct "eigenvalues" of multiplicity 1 each, which downstream (Jordan.factorize()) built
-		// a purely diagonal Jordan form instead of the correct 2x2 block, reconstructing the wrong
-		// matrix by ~5.96e-8. Using the same rounded comparison here keeps eigenval()'s own grouping
-		// consistent with what arithmeticMultiplicity() already promises callers.
+		// Grouping consecutive roots into "the same eigenvalue" uses DISTANCE (groupingTolerance(),
+		// chain-based: compares against the immediately preceding root, updated every iteration),
+		// not component-wise rounding -- see VERSION 1.10 release note above for why. Kept
+		// consistent with arithmeticMultiplicity(Complex,int), which uses the same tolerance.
 		int digits = this.bestNumDecs();
+		double tol = groupingTolerance(digits);
 
 		// calculates the number of different roots
 		int rootCount = 1;
 		prevRoot = roots.getItem(0, 0);
 		for (int i = 1; i < roots.rows(); ++i) {
 			actRoot = roots.getItem(i, 0);
-			if (Complex.round(prevRoot, digits).equals(Complex.round(actRoot, digits))) continue;
-			++rootCount;
+			if (prevRoot.minus(actRoot).mod() > tol) ++rootCount;
 			prevRoot = actRoot;
 		}
 		// With the number of different roots creates the eignevalues array
@@ -572,7 +599,7 @@ public class Eigenspace extends MatrixComplex {
 		prevRoot = roots.getItem(0, 0);
 		for (int i = 1; i < roots.rows(); ++i) {
 			actRoot = roots.getItem(i, 0);
-			if (Complex.round(prevRoot, digits).equals(Complex.round(actRoot, digits))) {
+			if (prevRoot.minus(actRoot).mod() <= tol) {
 				sumRe += actRoot.rep();
 				sumIm += actRoot.imp();
 				++arithMult;
@@ -584,8 +611,8 @@ public class Eigenspace extends MatrixComplex {
 				sumRe = actRoot.rep();
 				sumIm = actRoot.imp();
 				arithMult = 1;
-				prevRoot = actRoot;
 			}
+			prevRoot = actRoot;
 		}
 		eigenvalues.setItem(eigvalIdx, 0, new Complex(sumRe/arithMult, sumIm/arithMult));
 		eigenvalues.setItem(eigvalIdx, 1, new Complex(arithMult, 0));
