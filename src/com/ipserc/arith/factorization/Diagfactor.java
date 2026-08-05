@@ -39,8 +39,17 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0731_1930)";
+	private final static String VERSION = "1.4 (2026_0805_1900)";
 	/* VERSION Release Note
+	 * 1.4 (2026_0805_1900)
+	 * isDiagonalizable__(Eigenspace) borrado -- codigo muerto confirmado (cero llamadores en todo
+	 * el proyecto, ya marcado en su propio Javadoc como "DEPRECATED. USELESS"). Contenia la unica
+	 * comparacion de agrupamiento por redondeo por componente que quedaba fuera de Eigenspace.java
+	 * tras el fix de VERSION 1.10 de esa clase (agrupamiento por distancia) -- el camino REAL que
+	 * se ejecuta de verdad, diagonalize()->eigenspace.isDiagonaizable(), ya usaba (y sigue usando)
+	 * arithmeticMultiplicity(Complex), ya corregido alli. No quedaba nada que mejorar en el metodo
+	 * muerto, solo borrarlo.
+	 *
 	 * 1.3 (2026_0731_1930)
 	 * diagonalize(): System.exit(-1) sobre matriz no cuadrada sustituido por
 	 * IllegalArgumentException (auditoria matematica de MatrixComplex, paso 3) --
@@ -173,51 +182,6 @@ public class Diagfactor extends MatrixComplex {
 		return eigenspace.isDiagonaizable();
 	}
 	
-	/**
-	 * DEPRECATED. USELESS it needs an Eigenspace and then can use Eigenspace isDiagonaizable() method
-	 * @param eigenspace
-	 * @return
-	 */
-	public boolean isDiagonalizable__(Eigenspace eigenspace) {
-		final boolean DEBUG_ON = false;
-		final String METH_NAME = "isDiagonalizable";
-		int arithMult, geomMult;
-		int sumArithMult = 0;
-
-		Complex eigenValue = eigenspace.eigenvalues().getItem(0, 0);
-		arithMult = eigenspace.arithmeticMultiplicity(eigenValue);
-		geomMult = eigenspace.geometricMultiplicity(eigenValue);
-		/* -------------   DEBUGGING BLOCK   ------------- */
-		if (DEBUG_ON) {
-			System.out.printf(HEADINFO + METH_NAME + ": eigenValue = %s\n", eigenValue.toString());			
-			System.out.printf(HEADINFO + METH_NAME + ": arithMult = %d\n", arithMult);
-			System.out.printf(HEADINFO + METH_NAME + ": geomMult  = %d\n", geomMult);
-		}
-		/* ------------- END DEBUGGING BLOCK ------------- */
-		
-		if (arithMult != geomMult) return false;
-
-		sumArithMult += arithMult;		
-		for (int row = 1; row < eigenspace.eigenvalues().rows(); ++row) {
-			// ***** if (eigenValue.equalsred(eigenspace.values().getItem(row, 0), this.bestNumDecs())) continue;
-			if (eigenValue.equals(eigenspace.eigenvalues().getItem(row, 0), this.bestNumDecs())) continue;
-			eigenValue = eigenspace.eigenvalues().getItem(row, 0);
-			arithMult = eigenspace.arithmeticMultiplicity(eigenValue);
-			geomMult = eigenspace.geometricMultiplicity(eigenValue);
-			/* -------------   DEBUGGING BLOCK   ------------- */
-			if (DEBUG_ON) {
-				System.out.printf(HEADINFO + METH_NAME + ": eigenValue = %s\n", eigenValue.toString());			
-				System.out.printf(HEADINFO + METH_NAME + ": arithMult = %d\n", arithMult);
-				System.out.printf(HEADINFO + METH_NAME + ": geomMult  = %d\n", geomMult);
-			}
-			/* ------------- END DEBUGGING BLOCK ------------- */
-			if (arithMult != geomMult) return false;
-			sumArithMult += arithMult;
-		}
-		if (sumArithMult == this.rows()) return true;
-		else return false;
-	}
-
 	/*
 	 * ***********************************************
 	 * 	OPERATION 
