@@ -1403,8 +1403,11 @@ Presentadas al usuario las 7 secciones pequeñas restantes (tabla con líneas/m�
 - Generalizar `vectorprod()` más allá del caso binario 3D — aplazado a petición del usuario.
 - Multiplicidad geométrica >1 en `Jordan.java` — resuelto para autovalores exactos, sigue siendo impredecible con autovalores reales imprecisos.
 - Trabajo de layout `double[]`/Vector API (`jdk.incubator.vector`) — no iniciado.
-- Limpieza de la pila grande de contenido sin trackear — sin avances.
 - Sustituir GnuPlot/JavaPlot por Jzy3D (preferida)/XChart (respaldo 2D) — investigado, no implementado. 31 ficheros afectados.
+
+## CORRECCIÓN — "Limpieza de la pila sin trackear" NO es un candidato abierto (misma Decimoquinta sesión, 5 agosto 2026)
+
+Las listas de "candidatos heredados" de las últimas sesiones (Décimo-tercera en adelante) venían repitiendo "limpieza de la pila grande de contenido sin trackear — sin avances" como pendiente, sin volver a verificarlo. **Es una nota obsoleta: el Punto 4 se cerró del todo el 1 de agosto (commit `599ca5b`, ver sección "Punto 4 — CERRADO" arriba)**, y las sesiones siguientes lo siguieron arrastrando en la lista por copiar el bloque de un cierre a otro sin re-chequear. Re-verificado a fondo esta sesión antes de darlo por bueno: `git status --short` limpio (solo los dos ficheros ajenos de siempre), `git status --ignored` muestra que todo el contenido no trackeado cae bajo reglas de `.gitignore` ya existentes y decididas, los ficheros de raíz que no salían en el inventario original (`LICENSE`, `README.md`, `doc.7z`, `isNull.txt`, `revisar.clones.txt`) están **todos ya trackeados** (contenido legítimo, no pila suelta), las 6 carpetas ignoradas (`Cartas/`, `Results/`, `doc/`, `data/`, `CombinationCalculate-master/`, `bin/`+`classes/`) contienen exactamente lo ya documentado (notas/capturas personales, resultados de test antiguos, javadoc generado, datos generados, mini-proyecto ajeno, build output) sin sorpresas, y no hay backups/copias sueltas (`*copia*`/`*.bak`/`*_old*`) en ningún punto de `src/`. **Eliminado definitivamente de la lista de candidatos** — no volver a incluirlo salvo que aparezca contenido nuevo sin trackear en el futuro.
 
 ---
 
