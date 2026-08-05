@@ -18,8 +18,31 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.47 (2026_0805_1100)";
+	private final static String VERSION = "1.48 (2026_0805_1400)";
 	/* VERSION Release Note
+	 *
+	 * 1.48 (2026_0805_1400)
+	 * bestNumDecs()'s ceiling lowered from Complex.getSignificative() (general library precision,
+	 * usually 8) to a new BEST_NUM_DECS_CAP=5 -- reintroduces, measured this time, a restriction
+	 * the user had applied by hand in the past specifically to stop a genuinely repeated eigenvalue
+	 * from being grouped as several distinct eigenvalues of multiplicity 1 each (root cause: a
+	 * repeated root only converges to about machine_epsilon^(1/m) via Durand-Kerner/Aberth-Ehrlich,
+	 * which cond()/2 alone doesn't capture, so the old 8-decimal ceiling was almost always too
+	 * optimistic once cond() was even moderately large). Confirmed real, not just theoretical: the
+	 * same root cause behind both Jordan.checkReconstruction() failures documented in Jordan.VERSION
+	 * 1.4. Measured with a 75-case synthetic sweep (known multiplicities 2-4, well-conditioned
+	 * random P, real root-finding pipeline) before committing to a value: the old cap misgroups
+	 * 43/75; BEST_NUM_DECS_CAP=5 fixes every multiplicity-2 case (0 remaining failures there) with
+	 * zero new false merges in a companion 63-case distinct-eigenvalue sweep (a looser cap of 6
+	 * gave identical results, so 5 -- the user's original value -- was kept rather than loosened
+	 * further). Multiplicity 3+ still fails about as often as before -- that residual is NOT this
+	 * bug: it's eigenvector CONSTRUCTION collapsing to a near-zero generalized eigenvector once the
+	 * grouped eigenvalue is used to build (A-eigenval*I)^k (confirmed with a dedicated geometric-
+	 * multiplicity-1 case that groups correctly under this fix but still fails at that later step,
+	 * residual ~1.6e-8) -- the same already-documented precision ceiling that needs
+	 * QR-con-desplazamientos, a DIFFERENT stage of the pipeline than this fix touches. Verified
+	 * against a 57-file battery (every TestComplex file referencing Diagfactor/Jordan/Eigenspace/
+	 * Schurfactor/logm/QRSchur) against a build from HEAD: 0 exit-code mismatches.
 	 *
 	 * 1.47 (2026_0805_1100)
 	 * CHARACTERISTIC POLYNOMIAL section (422 lines: charactPoly, the augment/augment1/augment2/
@@ -1105,12 +1128,33 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns the best number of significant decimals based on the condition number
+	 * Ceiling for {@link #bestNumDecs()}, deliberately much coarser than {@link
+	 * Complex#getSignificative()} (general library precision, up to 8). This one is specific to
+	 * comparing/grouping EIGENVALUES coming out of a numerical root-finder (Durand-Kerner/
+	 * Aberth-Ehrlich) -- what {@code cond()/2} alone cannot capture is that a genuinely repeated
+	 * root only converges to about {@code machine_epsilon^(1/m)} for a root of multiplicity
+	 * {@code m}, regardless of how well-conditioned the matrix otherwise is. User-supplied value,
+	 * reintroduced after measuring: a 75-case synthetic sweep (known multiplicities 2-4, random
+	 * well-conditioned {@code P}) found the OLD cap ({@code Complex.getSignificative()}, usually 8)
+	 * misgrouped 43/75 cases (confirmed real, not synthetic-only: the same root cause behind the
+	 * two {@code Jordan.checkReconstruction()} failures documented in {@code Jordan.VERSION} 1.4).
+	 * This cap fixes every multiplicity-2 case in that sweep (0 remaining failures) with zero new
+	 * false merges in a companion 63-case distinct-eigenvalue sweep; multiplicity 3+ still fails
+	 * about as often as before (a looser cap of 6 gave identical results) -- that residual is the
+	 * same already-documented precision ceiling that needs QR-con-desplazamientos to fix properly,
+	 * not a tolerance tweak (see {@code Claude/ComplexArithRev.md}).
+	 */
+	private final static int BEST_NUM_DECS_CAP = 5;
+
+	/**
+	 * Returns the best number of significant decimals based on the condition number, capped at
+	 * {@link #BEST_NUM_DECS_CAP} -- see that constant's own Javadoc for why the cap exists and
+	 * where its value comes from.
 	 * @return the best number of significant decimals
 	 */
 	public int bestNumDecs() {
 		int numDecs = (int)(this.cond()/2);
-		return numDecs > Complex.getSignificative() ? Complex.getSignificative() : numDecs;
+		return numDecs > BEST_NUM_DECS_CAP ? BEST_NUM_DECS_CAP : numDecs;
 	}
 	
 	/**
