@@ -20,8 +20,41 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.11 (2026_0805_2000)";
+	private final static String VERSION = "1.12 (2026_0806_0800)";
 	/* VERSION Release Note
+	 *
+	 * 1.12 (2026_0806_0800)
+	 * eigenvector(int): new fail-loud guard for a DIFFERENT "too few" failure mode than VERSION
+	 * 1.11's "too many" one -- found while investigating why Schurfactor.factorize() opaquely
+	 * failed on a well-conditioned 3x3 matrix (Decimoctava sesion, 6 agosto 2026, ver
+	 * ComplexArithRev.md). Root cause: eigenval()'s DISTANCE-based grouping (VERSION 1.10) merges
+	 * genuinely DISTINCT eigenvalues into one spurious "repeated" eigenvalue whenever their
+	 * spacing is smaller than groupingTolerance(bestNumDecs()) -- confirmed for THIS matrix by
+	 * comparing raw QRSchurfactor roots (three real, distinct eigenvalues ~0.05-0.13 apart) against
+	 * the post-grouping result (one eigenvalue, spurious multiplicity 3): bestNumDecs()==0 for a
+	 * well-conditioned matrix (cond()<2) makes the tolerance a full 0.5, coarser than the actual
+	 * spacing. That averaged eigenvalue isn't a real eigenvalue of the matrix, so its homogeneous
+	 * system is correctly INCONSISTENT for every "copy" of it, leaving `solutions` entirely null
+	 * and `eigenvectors` empty (0 rows) -- Schurfactor.Schur() then called eigenvector(0)
+	 * unconditionally (needs it for its recursive algorithm) and hit a raw, opaque
+	 * ArrayIndexOutOfBoundsException from MatrixComplex.getRow() with zero diagnostic context.
+	 * FIRST ATTEMPT (reverted before commit): guarded this inside setEigenvectors() itself,
+	 * mirroring VERSION 1.11's placement exactly -- wrong call, caught by testing before
+	 * committing. An empty `eigenvectors` is legitimate AT THAT LEVEL: isDiagonaizable() (used by
+	 * Diagfactor.diagonalize(), in turn used by MatrixComplex.power()) reads an all-null
+	 * `solutions` as `solutions.determinant()==0` and correctly returns false ("not
+	 * diagonalizable") WITHOUT ever calling eigenvector(idx) -- confirmed with a live repro:
+	 * nearIdentity.power(2) succeeded via a graceful non-exceptional fallback BEFORE this
+	 * investigation touched anything, and the setEigenvectors()-level guard broke that by throwing
+	 * unconditionally at Eigenspace CONSTRUCTION time, not at actual misuse. Moved the guard to
+	 * eigenvector(int idx) instead -- the actual point where a missing eigenvector is a real
+	 * problem for the caller, not before. Verified both directions after the correction: the
+	 * original crash (Schurfactor via eigenvector(0)) now throws a clear, diagnosable message
+	 * instead of an opaque one; MatrixComplex.power(2) on the same matrix still succeeds exactly as
+	 * before (byte-for-byte identical result), confirming the corrected fix touches only the
+	 * actually-broken call path. Same "fail loud with a clear message, don't fix the precision
+	 * ceiling here" pattern as VERSION 1.11 and the rest of the project's precedent for this kind
+	 * of defective/imprecise-eigenvalue edge case.
 	 *
 	 * 1.11 (2026_0805_2000)
 	 * setEigenvectors(): hallazgo colateral de la bateria de regresion de VERSION 1.10, investigado
@@ -330,6 +363,20 @@ public class Eigenspace extends MatrixComplex {
 	 * @return The i-th eigenvector
 	 */
 	public MatrixComplex eigenvector(int idx) {
+		// Guarded here, not in setEigenvectors(): an empty `eigenvectors` is a legitimate result
+		// there (isDiagonaizable() reads it as "not diagonalizable" without ever calling this
+		// accessor, see setEigenvectors()'s own note) -- it only becomes an actual problem for a
+		// caller that tries to fetch an eigenvector that doesn't exist, like Schurfactor.Schur(),
+		// which needs eigenvector(0) unconditionally for its recursive algorithm. Without this
+		// check, that caller hit an opaque ArrayIndexOutOfBoundsException from
+		// MatrixComplex.getRow() instead of a diagnosable message.
+		if (idx >= eigenvectors.rows()) {
+			throw new IllegalArgumentException(HEADINFO + "eigenvector: requested eigenvector index "
+				+ idx + " but only " + eigenvectors.rows() + " eigenvector(s) were found -- almost "
+				+ "certainly a spurious eigenvalue produced by eigenval()'s DISTANCE-based grouping "
+				+ "merging distinct-but-close roots (see bestNumDecs()) collapsing every eigenvalue's "
+				+ "homogeneous system to INCONSISTENT, not a defect in this construction itself.");
+		}
 		return eigenvectors.getRow(idx).clone();
 	}
 	
@@ -777,6 +824,21 @@ public class Eigenspace extends MatrixComplex {
 				eigenvectors.setRow(i++, solutions.getRow(row));
 			}
 		}
+
+		// NOTE: deliberately NOT guarding "eigenvectors.rows()==0" here (tried, reverted -- see
+		// eigenvector(idx) below for where this is actually guarded and why). An empty result IS
+		// legitimate at this level: isDiagonaizable() (via Diagfactor.diagonalize(), no crash risk
+		// there since it never calls eigenvector(idx)) relies on exactly this -- an all-null
+		// `solutions` correctly makes `solutions.determinant()==0`, which isDiagonaizable() reads
+		// as "not diagonalizable" and returns false WITHOUT ever touching `eigenvectors`. Throwing
+		// here unconditionally at construction time broke that legitimate silent path (confirmed:
+		// MatrixComplex.power(2) on a well-conditioned matrix whose eigenvalues are genuinely
+		// DISTINCT but closer together than eigenval()'s DISTANCE-based grouping tolerance
+		// collapses them into one spurious "repeated" eigenvalue -- its homogeneous system is
+		// correctly INCONSISTENT, `eigenvectors` ends up empty, and BEFORE this investigation that
+		// silently and correctly resolved to "not diagonalizable", falling back to plain matrix
+		// multiplication -- turning that success into a thrown exception would have been a real
+		// regression, not a fix).
 		return eigenvectors;
 	}
 	

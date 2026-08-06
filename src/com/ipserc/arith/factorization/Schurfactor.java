@@ -115,7 +115,15 @@ public class Schurfactor extends MatrixComplex {
 			factorized = true;
 		}
 		catch (Exception excp) {
-			System.out.println(HEADINFO + " The matrix hasn't got any Schur factorization.");
+			// Surface the real cause instead of discarding it: factorize() is meant to turn ANY
+			// failure into "factorized=false, check factorized() before using getU()/getSchur()"
+			// for callers (e.g. logm()) that already handle that gracefully -- but printing only
+			// the generic line below with no diagnostic made every failure indistinguishable,
+			// whether a genuine known limitation or an unrelated bug. Confirmed real: a spurious
+			// "repeated" eigenvalue from Eigenspace.eigenval()'s DISTANCE-based grouping used to
+			// surface here as an opaque ArrayIndexOutOfBoundsException with zero context.
+			System.out.println(HEADINFO + " The matrix hasn't got any Schur factorization. Cause: "
+				+ excp.getClass().getSimpleName() + ": " + excp.getMessage());
 		}
 	}
 	
