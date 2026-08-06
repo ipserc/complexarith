@@ -18,8 +18,32 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.51 (2026_0806_0100)";
+	private final static String VERSION = "1.52 (2026_0806_0200)";
 	/* VERSION Release Note
+	 *
+	 * 1.52 (2026_0806_0200)
+	 * Fase 2 of the "*Eq a nivel MatrixComplex" candidate: wired the VERSION 1.51 plusEq(MatrixComplex)
+	 * into all 5 plus-accumulator loops of MatrixComplexFunctions.java's Taylor/Mercator series (exp_,
+	 * trigonTaylor -- shared by sinTaylor/cosTaylor, trigonHyperbolycTaylor -- shared by sinhTaylor/
+	 * coshTaylor, logTaylor, logMercator, logm, logHat), replacing "acc = acc.plus(term)" with
+	 * "acc.plusEq(term)" in each. Each accumulator was already a private per-call instance (freshly
+	 * constructed or .copy()'d, never a shared/cached matrix and never the method's own input
+	 * parameter 'm'/'normalThis'), so no aliasing precaution was needed this time, unlike VERSION 1.50's
+	 * Complex.ZERO case. Eliminates one MatrixComplex (and its backing Complex[][], fully re-allocated
+	 * cell by cell) per loop iteration in each of the 7 methods.
+	 * Verified two ways: (1) a fixed-matrix driver (ScratchTaylorMercatorVerify01.java, deleted after
+	 * measuring) calling all 9 public delegators (exp_, sinTaylor, cosTaylor, sinhTaylor, coshTaylor,
+	 * logTaylor, logMercator, logHat, logm) on two fixed 3x3 matrices -- byte-for-byte identical output
+	 * against a build from HEAD; (2) the 11-file TestComplex/*.java battery that exercises these methods
+	 * -- identical exit codes against a build from HEAD in all 11 (0 regressions). Several of those files
+	 * showed content-level diffs on inspection, traced to unseeded random matrix generation
+	 * (initMatrixRandomInt(), confirmed in TestTaylorLogExp03a.java) and elapsed-time logging, not to
+	 * this change -- confirmed by one deterministic case (TestTaylorSeries01, fixed matrix) producing the
+	 * exact same stack trace in both builds for a pre-existing, unrelated failure upstream of these
+	 * methods (Eigenspace.setEigenvectors(), reached via exp()'s diagonalization fallback path before
+	 * ever calling exp_()).
+	 * timesEq(MatrixComplex) for the 2 times-accumulators (powMatrix in all 7 methods) remains deferred
+	 * to its own fase, per the design note already on VERSION 1.51.
 	 *
 	 * 1.51 (2026_0806_0100)
 	 * New in-place matrix arithmetic: plusEq(MatrixComplex)/minusEq(MatrixComplex), mirroring the

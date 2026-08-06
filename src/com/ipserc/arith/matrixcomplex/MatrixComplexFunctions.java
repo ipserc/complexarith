@@ -90,7 +90,7 @@ class MatrixComplexFunctions {
 			expMatant = expMatrix.copy();
 			powMatrix = powMatrix.times(thisNorma);
 			fact *= k++;
-			expMatrix = expMatrix.plus(powMatrix.divides(fact));
+			expMatrix.plusEq(powMatrix.divides(fact));
 			errMatrix = expMatant.minus(expMatrix);
 			errMatrix.abs();
 			MatrixComplex.trace(errMatrix, "public MatrixComplex exp() - errmatrix:");
@@ -171,7 +171,7 @@ class MatrixComplexFunctions {
 			}
 			trigonMatant = trigonMatrix.copy();
 			powMatrix = powMatrix.times(normalThis);
-			trigonMatrix = trigonMatrix.plus(powMatrix.divides(fact).times(sign));
+			trigonMatrix.plusEq(powMatrix.divides(fact).times(sign));
 			sign *= -1;
 			// NaN/Infinity trap: for large eigenvalues (e.g. Jordan [[80,1],[0,80]]) the unscaled
 			// power powMatrix can overflow double's range well before the series would otherwise
@@ -466,7 +466,7 @@ class MatrixComplexFunctions {
 			}
 			trigHypMatant = trigHypMatrix.copy();
 			powMatrix = powMatrix.times(m);
-			trigHypMatrix = trigHypMatrix.plus(powMatrix.divides(fact));
+			trigHypMatrix.plusEq(powMatrix.divides(fact));
 			errMatrix = trigHypMatant.minus(trigHypMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) break;
@@ -790,7 +790,7 @@ class MatrixComplexFunctions {
 		do {
 			logMatant = logMatrix.copy();
 			powMatrix = powMatrix.times(thisMatrix);
-			logMatrix = logMatrix.plus(powMatrix.divides(k));
+			logMatrix.plusEq(powMatrix.divides(k));
 			errMatrix = logMatant.minus(logMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) { converged = true; break; }
@@ -946,7 +946,7 @@ class MatrixComplexFunctions {
 		do {
 			logMatant = logMatrix.copy();
 			powMatrix = powMatrix.times(thisMatrix);
-			logMatrix = logMatrix.plus(powMatrix.divides(k*(k%2 == 0 ? -1 : 1)));
+			logMatrix.plusEq(powMatrix.divides(k*(k%2 == 0 ? -1 : 1)));
 			errMatrix = logMatant.minus(logMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) { converged = true; break; }
@@ -1025,7 +1025,7 @@ class MatrixComplexFunctions {
 		do {
 			sumAnt = sumMat.copy();
 			powMat = powMat.times(terMat).times(terMat);
-			sumMat = sumMat.plus(powMat.divides(2*k+1));
+			sumMat.plusEq(powMat.divides(2*k+1));
 			errMat = sumAnt.minus(sumMat);
 			errMat.abs();
 			if (errMat.isNullC()) break;
@@ -1218,7 +1218,7 @@ class MatrixComplexFunctions {
 		do {
 			logMatant = logMatrix.copy();
 			powMatrix = powMatrix.times(xMat);
-			logMatrix = logMatrix.plus(powMatrix.divides(k * (k % 2 == 0 ? -1 : 1)));
+			logMatrix.plusEq(powMatrix.divides(k * (k % 2 == 0 ? -1 : 1)));
 			errMatrix = logMatant.minus(logMatrix);
 			errMatrix.abs();
 			if (errMatrix.isNullC()) break;
