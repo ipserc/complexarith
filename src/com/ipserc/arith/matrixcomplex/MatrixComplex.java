@@ -18,8 +18,31 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.53 (2026_0806_0300)";
+	private final static String VERSION = "1.54 (2026_0806_0400)";
 	/* VERSION Release Note
+	 *
+	 * 1.54 (2026_0806_0400)
+	 * Fase 4 of the "*Eq a nivel MatrixComplex" candidate: wired the VERSION 1.53 timesEq(MatrixComplex)
+	 * into all 10 times-accumulator call sites of MatrixComplexFunctions.java's 7 Taylor/Mercator methods
+	 * (exp_: 1 site; trigonTaylor, shared by sinTaylor/cosTaylor: 3 sites; trigonHyperbolycTaylor, shared
+	 * by sinhTaylor/coshTaylor: 2 sites; logTaylor: 1; logMercator: 1; logm: 1; logHat: 1, the only
+	 * chained double-product "powMat.timesEq(terMat).timesEq(terMat)"), replacing
+	 * "powMatrix = powMatrix.times(x)" with "powMatrix.timesEq(x)" throughout. Same finding as Fase 2:
+	 * every powMatrix/powMat accumulator was already a private per-call instance, never the method's own
+	 * input parameter, so no aliasing precaution was needed. As documented on VERSION 1.53, this fase
+	 * does NOT remove the internal per-iteration complexMatrix allocation (timesEq() is still syntactic
+	 * sugar) -- it only removes the outer MatrixComplex variable reassignment/wrapper churn at each of
+	 * the 10 call sites.
+	 * Verified the same two ways as Fase 2: (1) the fixed-matrix driver (all 9 public delegators on 2
+	 * fixed 3x3 matrices, deleted after measuring) -- byte-for-byte identical output against a build from
+	 * HEAD; (2) the same 11-file TestComplex/*.java battery -- identical exit codes against a build from
+	 * HEAD in all 11 (0 regressions). TestTaylorSeries01 (the one file whose failure path is a fixed,
+	 * deterministic matrix, not a random one) produced the exact same stack trace in both builds --
+	 * confirms the same pre-existing, unrelated Eigenspace.setEigenvectors() failure as Fase 2, not a new
+	 * one from this change.
+	 * The "*Eq a nivel MatrixComplex" candidate's 4 fases (design+plusEq/minusEq, wire plusEq, design+
+	 * timesEq, wire timesEq) are now all closed. Fase 5 (aggregate verification + Chronometer benchmark
+	 * before/after) remains, not started.
 	 *
 	 * 1.53 (2026_0806_0300)
 	 * New timesEq(MatrixComplex): Fase 3 of the "*Eq a nivel MatrixComplex" candidate. Deliberately the
