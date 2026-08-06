@@ -18,8 +18,20 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.50 (2026_0806_0000)";
+	private final static String VERSION = "1.51 (2026_0806_0100)";
 	/* VERSION Release Note
+	 *
+	 * 1.51 (2026_0806_0100)
+	 * New in-place matrix arithmetic: plusEq(MatrixComplex)/minusEq(MatrixComplex), mirroring the
+	 * Complex.plusEq()/minusEq() accumulator idiom one level up. Mutates 'this' cell by cell via the
+	 * existing Complex.plusEq()/minusEq() (never reassigns this.complexMatrix, never allocates a new
+	 * MatrixComplex), reads but never mutates the argument. Fase 1 of the "*Eq a nivel MatrixComplex"
+	 * candidate (ver ComplexArithRev.md, Decimoctava sesion): wires into the 5 plus-accumulator loops
+	 * of MatrixComplexFunctions.java's Taylor/Mercator methods (exp_, trigonTaylor,
+	 * trigonHyperbolycTaylor, logTaylor, logMercator, logm, logHat) in a later fase. timesEq(MatrixComplex)
+	 * deliberately deferred to its own fase: a true in-place matrix product needs an internal buffer
+	 * (can't overwrite this.complexMatrix[i][j] while other cells of the same row/col are still needed),
+	 * unlike plusEq/minusEq which are safely elementwise.
 	 *
 	 * 1.50 (2026_0806_0000)
 	 * MatrixComplexFunctions.sqrtTriangular() (private helper of logm()'s inverse
@@ -1904,6 +1916,67 @@ public class MatrixComplex {
 		if (this.rows() == 1 && this.cols() == 1) return cMatrix.inverse().times(this.getItem(0, 0));
 		if (cMatrix.rows() == 1 && cMatrix.cols() == 1) return this.divides(cMatrix.getItem(0, 0));
 		return this.times(cMatrix.inverse());
+	}
+
+	/*
+	 * ***********************************************
+	 * IN-PLACE (MUTATING) ARITHMETIC OPERATIONS
+	 * For accumulator-style hot loops (e.g. the Taylor/Mercator series summations in
+	 * MatrixComplexFunctions.java) where reassigning to a freshly allocated MatrixComplex on every
+	 * iteration is the dominant cost. These mutate 'this' cell by cell via Complex.plusEq()/minusEq()
+	 * and return 'this' for fluent chaining; they do NOT allocate a new MatrixComplex or a new
+	 * complexMatrix array. Unlike plus/minus, calling these on a shared/cached MatrixComplex would
+	 * corrupt it for every other caller - only use them on a private accumulator instance. Only
+	 * 'this' is mutated; the argument matrix is read but never modified.
+	 * ***********************************************
+	 */
+
+	/**
+	 * In-place matrix addition: mutates 'this' to 'this' + 'cMatrix', cell by cell via
+	 * Complex.plusEq(). Does not allocate.
+	 * @param cMatrix the matrix to add.
+	 * @return 'this', for chaining.
+	 */
+	public MatrixComplex plusEq(MatrixComplex cMatrix) {
+		int rowLenA1 = this.rows();
+		int colLenA1 = this.cols();
+		int rowLenA2 = cMatrix.rows();
+		int colLenA2 = cMatrix.cols();
+
+		if (rowLenA1 != rowLenA2 || colLenA1 != colLenA2) {
+			throw new IllegalArgumentException("Not valid sum: The rows/cols of matrix1 has to be equal to the rows/cols of matrix2.");
+		}
+
+		for (int row = 0; row < rowLenA1; ++row) {
+			for (int col = 0; col < colLenA1; ++col) {
+				this.complexMatrix[row][col].plusEq(cMatrix.complexMatrix[row][col]);
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * In-place matrix subtraction: mutates 'this' to 'this' - 'cMatrix', cell by cell via
+	 * Complex.minusEq(). Does not allocate.
+	 * @param cMatrix the subtracting matrix.
+	 * @return 'this', for chaining.
+	 */
+	public MatrixComplex minusEq(MatrixComplex cMatrix) {
+		int rowLenA1 = this.rows();
+		int colLenA1 = this.cols();
+		int rowLenA2 = cMatrix.rows();
+		int colLenA2 = cMatrix.cols();
+
+		if (rowLenA1 != rowLenA2 || colLenA1 != colLenA2) {
+			throw new IllegalArgumentException("Not valid substraction: The rows/cols of matrix1 has to be equal to the rows/cols of matrix2.");
+		}
+
+		for (int row = 0; row < rowLenA1; ++row) {
+			for (int col = 0; col < colLenA1; ++col) {
+				this.complexMatrix[row][col].minusEq(cMatrix.complexMatrix[row][col]);
+			}
+		}
+		return this;
 	}
 
 	/**
