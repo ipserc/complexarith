@@ -1269,13 +1269,39 @@ public class MatrixComplex {
 	private final static int BEST_NUM_DECS_CAP = 5;
 
 	/**
-	 * Returns the best number of significant decimals based on the condition number, capped at
-	 * {@link #BEST_NUM_DECS_CAP} -- see that constant's own Javadoc for why the cap exists and
-	 * where its value comes from.
+	 * Floor for {@link #bestNumDecs()} -- the counterpart of {@link #BEST_NUM_DECS_CAP} at the
+	 * other end. {@code numDecs = cond()/2} returns 0 for ANY well-conditioned matrix
+	 * ({@code cond()&lt;2}, a wide, common band -- not a rare edge case), which
+	 * {@code Eigenspace.eigenval()}'s DISTANCE-based grouping turns into a tolerance of a full
+	 * 0.5: coarse enough to merge genuinely DISTINCT eigenvalues spaced closer than that into one
+	 * spurious "repeated" eigenvalue -- confirmed real via {@code Schurfactor.factorize()} opaquely
+	 * failing on a well-conditioned matrix whose 3 distinct eigenvalues (confirmed correct and
+	 * distinct via raw {@code QRSchurfactor} output) were only ~0.05-0.13 apart (Decimoctava
+	 * sesion, 6 agosto 2026, ver {@code Claude/ComplexArithRev.md}). User-supplied value,
+	 * measured the same way as {@link #BEST_NUM_DECS_CAP}: a 100-case synthetic sweep (Group A --
+	 * 3 genuinely distinct eigenvalues at gaps 0.005-1.2, well-conditioned by construction via a
+	 * unitary similarity) crossed with a 96-case companion sweep of genuinely repeated eigenvalues
+	 * (Group B -- multiplicities 2-4, both diagonalizable and defective/Jordan, magnitudes
+	 * 0.5-20), across floor candidates {0,1,2,3}, 3 random seeds each. Floor 2 is the point that
+	 * improves Group A (39-40% -> 96-97% correct) with ZERO change to Group B's recall (locked at
+	 * exactly 84/96 in every seed, both at floor 0 and floor 2) -- floor 3 reaches 100% on Group A
+	 * but at the cost of Group B recall dropping to 84.4% in every seed, a real regression, so NOT
+	 * chosen (same "improve or tie every metric at once" bar as {@link #BEST_NUM_DECS_CAP} and
+	 * {@code Eigenspace}'s {@code GROUPING_TOL_FACTOR}). Floor 2's remaining Group A failures are
+	 * concentrated entirely at the tightest gap tested (0.005, right at floor 2's own tolerance of
+	 * 0.005 -- an inherent boundary, not a representative failure).
+	 */
+	private final static int BEST_NUM_DECS_FLOOR = 2;
+
+	/**
+	 * Returns the best number of significant decimals based on the condition number, clamped
+	 * between {@link #BEST_NUM_DECS_FLOOR} and {@link #BEST_NUM_DECS_CAP} -- see those constants'
+	 * own Javadoc for why each bound exists and where its value comes from.
 	 * @return the best number of significant decimals
 	 */
 	public int bestNumDecs() {
 		int numDecs = (int)(this.cond()/2);
+		numDecs = numDecs < BEST_NUM_DECS_FLOOR ? BEST_NUM_DECS_FLOOR : numDecs;
 		return numDecs > BEST_NUM_DECS_CAP ? BEST_NUM_DECS_CAP : numDecs;
 	}
 	
