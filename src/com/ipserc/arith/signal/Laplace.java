@@ -30,9 +30,11 @@ public class Laplace extends MatrixComplex  {
 	private Boolean isSerialized = false;
 	private Boolean isTransformed = false;
 	private String filterData;
+	/** Real part of the Laplace variable s=sigma+j*omega used by DLT()/IDLT() (1/T units). */
+	private double sigma = 0.0;
 
 	/*
-	 * ****************	CONSTRUCTORS **************** 
+	 * ****************	CONSTRUCTORS ****************
 	 */
 	/**
 	 * Instantiates an empty Laplace object, ready to load Laplace Series Coefficients, or Discrete Laplace Transform items as function samples or DLT coefficients.
@@ -150,7 +152,27 @@ public class Laplace extends MatrixComplex  {
 	public int getN() {
 		return this.N;
 	}
-	
+
+	/**
+	 * Gets the value at index idx of the DLT transform (row 1 -- row 0 holds the associated
+	 * sample index/abscissa, see DLT()).
+	 * @param idx The coefficient index.
+	 * @return The DLT coefficient at idx.
+	 */
+	public Complex getTransformItem(int idx) {
+		return this.transform.getItem(1, idx);
+	}
+
+	/**
+	 * Gets the value at index idx of the time-domain samples (row 1 -- row 0 holds the associated
+	 * abscissa point).
+	 * @param idx The sample index.
+	 * @return The sample value at idx.
+	 */
+	public Complex getSampleItem(int idx) {
+		return this.samples.getItem(1, idx);
+	}
+
 	/**
 	 * Gets the lower limit of the abscissa axis as a complex number
 	 * @return The lower limit of the abscissa axis as a complex number
@@ -169,10 +191,26 @@ public class Laplace extends MatrixComplex  {
 	
 	/**Complex
 	 * Gets the length of the period of the function calculated as upper limit minus lower limit
-	 * @return The length of the period of the function 
+	 * @return The length of the period of the function
 	 */
 	public Complex getPeriod() {
 		return this.period;
+	}
+
+	/**
+	 * Gets sigma, the real part of the Laplace variable s=sigma+j*omega used by DLT()/IDLT().
+	 * @return sigma
+	 */
+	public double getSigma() {
+		return this.sigma;
+	}
+
+	/**
+	 * Sets sigma, the real part of the Laplace variable s=sigma+j*omega used by DLT()/IDLT().
+	 * @param sigma The decay rate to evaluate the DLT at.
+	 */
+	public void setSigma(double sigma) {
+		this.sigma = sigma;
 	}
 
 	/*
@@ -671,86 +709,112 @@ public class Laplace extends MatrixComplex  {
 
 	/*
 	 * **************** DISCRETE LAPLACE TRANSFORM METHODS ****************
-	 * 
-	 * NO SE HA CONSEGUIDO OBTENER UNA APROXIMACIÓN ACEPTABLE AL CALCULO
-	 * DE LA TRANSFORMADA DISCRETA DE LAPLACE
-	 * SE DEJA COMENTADA
+	 *
+	 * Arreglado (Decimonovena sesion, ver Claude/ComplexArithRev.md): la nota original de este
+	 * bloque decia "NO SE HA CONSEGUIDO OBTENER UNA APROXIMACION ACEPTABLE AL CALCULO DE LA
+	 * TRANSFORMADA DISCRETA DE LAPLACE" -- dos causas raiz distintas encontradas:
+	 * (1) DLT() aplicaba un peso exponencial e^{-n} fijo (".minus(n)" en el kernel), es decir
+	 * sigma=1/T sin parametrizar ni justificar -- ahora sigma es un parametro explicito (por
+	 * defecto 0, caso verificable: sigma=0 colapsa exactamente a la DFT de las muestras, ver
+	 * Fourier.DFT()).
+	 * (2) IDLT() calculaba el kernel de la inversa con Complex.exp(double) -- esa sobrecarga
+	 * devuelve la EXPONENCIAL REAL e^x (ver ComplexFunctions.exp(double): construye
+	 * new Complex(d) con parte imaginaria CERO antes de exponenciar), no e^{i*angulo}. Pasarle un
+	 * angulo real (double) no da un punto en la circunferencia unidad, da un real que crece sin
+	 * limite -- comparar con Fourier.IDFT(), que si usa Complex.exp(Complex) sobre
+	 * Complex.i.times(angulo). La formula era estructuralmente incapaz de invertir nada.
 	 */
 	/**
-	 * Calculates the DLT.
+	 * Calculates the DLT (Discrete Laplace Transform) at N points s_k = sigma + j*omega_k,
+	 * omega_k = 2*pi*k/(N*T), T el paso de muestreo -- equivalente a evaluar
+	 * X(s_k) = SUM_n x[n]*e^(-s_k*n*T) = DFT{x[n]*e^(-sigma*n*T)}[k].
+	 * sigma=0 reduce exactamente a la DFT de las muestras (caso de referencia verificable contra
+	 * Fourier.DFT()).
 	 * @param sampleFreq The frequency used to sample the function.
+	 * @param sigma The real part of the Laplace variable s (decay rate), in 1/T units.
 	 */
-	/* *********************************************************************************************************************************************************** */
-	public void DLT(int sampleFreq) {
+	public void DLT(int sampleFreq, double sigma) {
 		this.sampleFreq = sampleFreq;
 		this.N = sampleFreq;
+		this.sigma = sigma;
 		Complex idospiN = Complex.i.times(-Complex.DOS_PI/N); // -2*pi*i/N
-		Complex expkn = new Complex();
-		
+
 		System.out.println("Samples:" + this.N);
 		System.out.printf("sample frequency: %.3e Hz\n",(double)sampleFreq);
-		
+		System.out.printf("sigma: %.3e\n", sigma);
+
 		if (!isSampled) doTrfSampling();
-		
+
+		double T = upLimit.minus(loLimit).divides(N).rep();
+
 		transform = new MatrixComplex(2,N);
 
 		/*CHRONO*/ Chronometer chrono = new Chronometer();
 		/*CHRONO*/ chrono.start();
-		
+
 		for (int k = 0; k < N; ++k) { // freq index
 			Complex Ak = new Complex();
 			for (int n = 0; n < N; ++n) { // time index
-				expkn = Complex.exp(idospiN.times(k*n).minus(n));
+				// e^(-s_k*n*T) = e^(-sigma*n*T) * e^(-j*2*pi*k*n/N)
+				Complex expkn = Complex.exp(idospiN.times(k*n)).times(Math.exp(-sigma*n*T));
 				Ak = Ak.plus(this.samples.getItem(1,n).times(expkn));
 			}
 			transform.setItem(0, k, this.samples.getItem(0,k));
 			transform.setItem(1, k, Ak);
-			//transform.setItem(1, k, Ak.divides(N));
 		}
-		
+
 		/*CHRONO*/ chrono.stop();
 		/*CHRONO*/ System.out.println("Computing Time DLT:" + chrono.toString());
-		
+
 		isTransformed = true;
 	}
-	/* *********************************************************************************************************************************************************** */
+
+	/**
+	 * Calculates the DLT with sigma=0 (evaluates purely on the j*omega axis -- equivalent to the
+	 * DFT of the samples).
+	 * @param sampleFreq The frequency used to sample the function.
+	 */
+	public void DLT(int sampleFreq) {
+		DLT(sampleFreq, 0.0);
+	}
+
 	/**
 	 * Calculates the DLT using the signal definitions.
 	 */
-	/* *********************************************************************************************************************************************************** */
 	public void DLT() {
-		DLT(this.sampleFreq);
+		DLT(this.sampleFreq, this.sigma);
 	}
-	/* *********************************************************************************************************************************************************** */
 
 	/**
-	 * Calculates the samples of the function using the Inverse DLT.
+	 * Calculates the samples of the function using the Inverse DLT:
+	 * x[n] = (1/N) * SUM_k X(s_k) * e^(s_k*n*T), the exact inverse of DLT(sampleFreq, sigma).
 	 */
 	public void IDLT() {
 		if(!isTransformed) {
 			System.out.println("WARNING:DLT coeficients not calculated/loaded. Do the DLT or Load them first.");
 			return;
 		}
-		
+
 		System.out.println("Computing the Inverse DLT...");
-		double dospiN = Complex.DOS_PI/N; // +2*pi/N
-		Complex expkn = new Complex();
+		Complex idospiN = Complex.i.times(Complex.DOS_PI/N); // +2*pi*i/N
 		samples = new MatrixComplex(2,N);
 		Complex point = loLimit.copy();
     	Complex incr = upLimit.minus(loLimit).divides(N);
+		double T = incr.rep();
 		Complex Tk = new Complex();
 
 		/*CHRONO*/ Chronometer chrono = new Chronometer();
 		/*CHRONO*/ chrono.start();
 
-		for (int k = 0; k < N; ++k) { // time index
+		for (int n = 0; n < N; ++n) { // time index
 			Tk.setComplexRec(0,0);
-			for (int n = 0; n < N; ++n) { // freq index
-				expkn = Complex.exp(dospiN*k*n);
-				Tk = Tk.plus(expkn.times(this.transform.getItem(0, n)));
+			for (int k = 0; k < N; ++k) { // freq index
+				// e^(s_k*n*T) = e^(sigma*n*T) * e^(j*2*pi*k*n/N)
+				Complex expkn = Complex.exp(idospiN.times(k*n)).times(Math.exp(sigma*n*T));
+				Tk = Tk.plus(expkn.times(this.transform.getItem(1, k)));
 			}
-			samples.setItem(0, k, point);
-			samples.setItem(1, k, Tk.divides(N));
+			samples.setItem(0, n, point);
+			samples.setItem(1, n, Tk.divides(N));
 			point = point.plus(incr);
 		}
 

@@ -193,7 +193,16 @@ public class Fourier extends MatrixComplex {
 	public int getN() {
 		return this.N;
 	}
-	
+
+	/**
+	 * Gets the value at index idx of the DFT transform.
+	 * @param idx The coefficient index.
+	 * @return The DFT coefficient at idx.
+	 */
+	public Complex getTransformItem(int idx) {
+		return this.transform.getItem(0, idx);
+	}
+
 	/**
 	 * Gets the lower limit of the abscissa axis as a complex number
 	 * @return The lower limit of the abscissa axis as a complex number
