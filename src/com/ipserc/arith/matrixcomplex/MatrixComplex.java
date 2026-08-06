@@ -18,8 +18,26 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.52 (2026_0806_0200)";
+	private final static String VERSION = "1.53 (2026_0806_0300)";
 	/* VERSION Release Note
+	 *
+	 * 1.53 (2026_0806_0300)
+	 * New timesEq(MatrixComplex): Fase 3 of the "*Eq a nivel MatrixComplex" candidate. Deliberately the
+	 * "syntactic sugar" design option (chosen by the user over a buffer-reusing true in-place product):
+	 * "this.complexMatrix = this.times(cMatrix).complexMatrix; return this;" -- saves the caller's own
+	 * MatrixComplex variable reassignment and wrapper-object churn (e.g. "powMatrix.timesEq(x)" instead
+	 * of "powMatrix = powMatrix.times(x)"), but still allocates a full replacement complexMatrix array
+	 * internally via times(), since a true in-place product can't overwrite a cell of 'this' while other
+	 * cells of the same row/column are still needed for the rest of the product -- that would need a
+	 * temporary row/matrix buffer, a possible future step, not this one. Safe even when the argument is
+	 * 'this' itself (in-place squaring): times() fully computes the product from the original
+	 * complexMatrix before this method reassigns it, so there is no read-after-write hazard.
+	 * Verified with a driver (ScratchTimesEqVerify01.java, deleted after measuring): result matches
+	 * times() exactly, returns 'this' (same object identity), the argument matrix is left unmutated,
+	 * timesEq(this) (in-place squaring) matches times(this), and a chained
+	 * timesEq(b).timesEq(b) matches times(b).times(b). Not yet wired into any caller -- the 2
+	 * times-accumulators (powMatrix) in MatrixComplexFunctions.java's 7 Taylor/Mercator methods are
+	 * Fase 4, still to decide/do.
 	 *
 	 * 1.52 (2026_0806_0200)
 	 * Fase 2 of the "*Eq a nivel MatrixComplex" candidate: wired the VERSION 1.51 plusEq(MatrixComplex)
@@ -1946,12 +1964,18 @@ public class MatrixComplex {
 	 * ***********************************************
 	 * IN-PLACE (MUTATING) ARITHMETIC OPERATIONS
 	 * For accumulator-style hot loops (e.g. the Taylor/Mercator series summations in
-	 * MatrixComplexFunctions.java) where reassigning to a freshly allocated MatrixComplex on every
-	 * iteration is the dominant cost. These mutate 'this' cell by cell via Complex.plusEq()/minusEq()
-	 * and return 'this' for fluent chaining; they do NOT allocate a new MatrixComplex or a new
-	 * complexMatrix array. Unlike plus/minus, calling these on a shared/cached MatrixComplex would
-	 * corrupt it for every other caller - only use them on a private accumulator instance. Only
-	 * 'this' is mutated; the argument matrix is read but never modified.
+	 * MatrixComplexFunctions.java) where reassigning to a freshly allocated MatrixComplex variable on
+	 * every iteration is the dominant cost. These mutate 'this' and return 'this' for fluent chaining.
+	 * plusEq()/minusEq() are true zero-allocation elementwise ops (cell by cell via
+	 * Complex.plusEq()/minusEq(), never touch this.complexMatrix itself). timesEq() is syntactic sugar
+	 * only: a real in-place matrix product can't overwrite a cell of 'this' while other cells of the
+	 * same row/column are still needed for the rest of the product, so it still allocates a full
+	 * replacement complexMatrix internally (via times()) -- it saves the caller's own MatrixComplex
+	 * variable reassignment and wrapper-object churn, not the underlying array allocation; a true
+	 * buffer-reusing in-place product is a possible future step, not this one. Unlike plus/minus/times,
+	 * calling any of these on a shared/cached MatrixComplex would corrupt it for every other caller -
+	 * only use them on a private accumulator instance. Only 'this' is mutated; the argument matrix is
+	 * read but never modified.
 	 * ***********************************************
 	 */
 
@@ -2000,6 +2024,23 @@ public class MatrixComplex {
 				this.complexMatrix[row][col].minusEq(cMatrix.complexMatrix[row][col]);
 			}
 		}
+		return this;
+	}
+
+	/**
+	 * In-place matrix product: mutates 'this' to 'this' * 'cMatrix'. Syntactic sugar over times() --
+	 * swaps 'this.complexMatrix' for the freshly computed product's backing array, so the caller's
+	 * MatrixComplex variable no longer needs reassigning and no new wrapper object is returned. Still
+	 * allocates a full replacement complexMatrix internally (a true buffer-reusing in-place product
+	 * would need a temporary row/matrix, since a cell of 'this' can't safely be overwritten while other
+	 * cells of the same row/column are still needed for the rest of the product) -- not a zero-allocation
+	 * operation like plusEq()/minusEq(). Safe even when 'cMatrix' is 'this' itself (squaring in place):
+	 * times() fully computes the product from the original complexMatrix before this method reassigns it.
+	 * @param cMatrix The multiplier matrix.
+	 * @return 'this', for chaining.
+	 */
+	public MatrixComplex timesEq(MatrixComplex cMatrix) {
+		this.complexMatrix = this.times(cMatrix).complexMatrix;
 		return this;
 	}
 
