@@ -10,9 +10,20 @@ import com.ipserc.arith.complex.Complex;
 public class Sigfunc {
 
 	private final static String HEADINFO = "Sigfunc --- INFO: ";
-	private final static String VERSION = "1.1 (2021_0228_0045)";
+	private final static String VERSION = "1.2 (2026_0807_2030)";
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.2 (2026_0807_2030)
+	 * step(Complex,double,double) (the non-periodic "rectangular function", 3-arg): used
+	 * Math.abs(z.rep()), making it symmetric around 0 -- apparently copied from its periodic
+	 * sibling step(Complex,int,double,double), which explicitly documents "simmetric respect 0"
+	 * (this one's own Javadoc never mentions symmetry). Confirmed: step(-4,3,6) returned 1 (ON)
+	 * even though -4 is nowhere near the documented [3,6] interval, because |-4|=4 falls in it.
+	 * Fixed by dropping Math.abs() -- now a plain one-sided pulse, matching its own Javadoc. No
+	 * active caller in the project uses this exact 3-arg overload (the TestFourier01/TestSigfunc01
+	 * calls that look similar all pass an extra int argument, resolving to the 4-arg periodic
+	 * overload instead) -- zero regression risk.
+	 *
 	 * 1.1 (2021_0228_0045)
 	 */
 
@@ -87,7 +98,7 @@ public class Sigfunc {
 	 * @return Complex Zero or One
 	 */
 	public static Complex step(Complex z, double ton, double toff) {
-		return (Math.abs(z.rep()) >= ton && Math.abs(z.rep()) <= toff) ? Complex.ONE : Complex.ZERO;
+		return (z.rep() >= ton && z.rep() <= toff) ? Complex.ONE : Complex.ZERO;
 	}
 
 	/**

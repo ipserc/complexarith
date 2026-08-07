@@ -2060,7 +2060,22 @@ El `N-i-1` hacía que el último tramo (`i=N2-1`) cayera exactamente en el bin d
 
 `Fourier.VERSION`: `1.3→1.4`.
 
-**EXACTO PUNTO DE RETOMADA**: `slopeFilter()` y `bandPassFilter()` con pendiente, **ambos CERRADOS y verificados**, sin commitear todavía. Quedan sin resolver, por orden de confianza/severidad: `Laplace.CLT()` (estructuralmente sospechosa, alcance grande — probablemente necesite diseñar de cero la malla de valores `s`, similar en envergadura a la reescritura de `Z.java`), `Sigfunc.step()` (acotado, una línea, quitar el `Math.abs()` no documentado), `convolution()`'s `.times(2)` (sin confirmar, marcado como sospechoso por el propio autor original). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+**EXACTO PUNTO DE RETOMADA (previo)**: `slopeFilter()` y `bandPassFilter()` con pendiente, ambos cerrados. Quedaban sin resolver: `Laplace.CLT()`, `Sigfunc.step()`, `convolution()`'s `.times(2)`.
+
+### Arreglado: `Sigfunc.step(Complex,double,double)` (VERSION 1.1→1.2)
+
+A petición del usuario ("Arregla Sigfunc.step también"). Quitado el `Math.abs()` no documentado — la función rectangular de 3 argumentos vuelve a ser un pulso de un solo lado, tal como dice su propio Javadoc:
+```java
+public static Complex step(Complex z, double ton, double toff) {
+    return (z.rep() >= ton && z.rep() <= toff) ? Complex.ONE : Complex.ZERO;
+}
+```
+
+**Verificación** (`ScratchSigfuncAudit01.java`, reescrito a regresión permanente, 4/4 OK): `step(-4,3,6)=0` (antes daba `1`, por el espejo no pretendido), `step(4,3,6)=1`, `step(2,3,6)=0` (por debajo de `ton`), `step(7,3,6)=0` (por encima de `toff`). `TestSigfunc01`/`TestFourier01` compilan limpio — confirmado que ningún llamador activo del proyecto usa esta variante exacta de 3 argumentos (las llamadas de esos tests que parecían coincidir en realidad pasan un `int` extra y resuelven a la sobrecarga periódica de 4 argumentos) — cero riesgo de regresión.
+
+`Sigfunc.VERSION`: `1.1→1.2`.
+
+**EXACTO PUNTO DE RETOMADA**: `slopeFilter()`, `bandPassFilter()` con pendiente y `Sigfunc.step()`, **los tres CERRADOS y verificados**, sin commitear todavía. Quedan sin resolver, por orden de confianza/severidad: `Laplace.CLT()` (estructuralmente sospechosa, alcance grande — probablemente necesite diseñar de cero la malla de valores `s`, similar en envergadura a la reescritura de `Z.java`), `convolution()`'s `.times(2)` (sin confirmar, marcado como sospechoso por el propio autor original). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 
