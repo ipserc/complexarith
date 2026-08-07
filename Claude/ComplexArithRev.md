@@ -2003,7 +2003,19 @@ Retomado a petición del usuario ("Sigamos con com.ipserc.arith.geom sin auditar
 
 `VectorComplex.VERSION`: `1.9→1.10`.
 
-**EXACTO PUNTO DE RETOMADA**: hallazgo 1 (raíz en `VectorComplex.angle()`) **CERRADO**, arreglado y verificado, sin commitear todavía. Hallazgo 2 (`Line.normalPoint()` bilineal vs. Hermitiano) queda **pendiente de decisión** — confirmado real, sin arreglar, demostrado en `ScratchGeomAudit02.java`. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+**EXACTO PUNTO DE RETOMADA (previo)**: hallazgo 1 (raíz en `VectorComplex.angle()`) **CERRADO**, hallazgo 2 (`Line.normalPoint()` bilineal vs. Hermitiano) pendiente de decisión.
+
+## Decimoctava sesión, continuación — arregla el hallazgo 2 de la segunda pasada (7 agosto 2026)
+
+A petición del usuario ("Sí, arréglalo también"), cerrado el hallazgo 2 pendiente.
+
+**`Line.normalPoint(Point)`** (VERSION 1.2→1.3): conjugado `direction[i]` tanto en el numerador como en el denominador del cálculo de `t` — `den` pasa de `sum(direction[i]²)` (bilineal) a `sum(direction[i]·conj(direction[i]))` (Hermitiano, = `|direction[i]|²`), igual que el resto del proyecto (`dotprod`/`adjoint()`, `Plane.projection(Point)`). Cambio mínimo (2 líneas), invisible para líneas reales (`conj(real)=real`).
+
+**Verificación** (`ScratchGeomAudit02.java`, actualizado a regresión permanente, 8/8 OK): `distance(Point)` y `distance2(Point)` ahora coinciden para el caso de dirección compleja que antes divergía un 33% (`1.2909944487358058` vs `1.2909944487358056`, diferencia de precisión de máquina); el caso real-valorado sigue coincidiendo exactamente como antes (guarda de regresión). Batería completa (`TestLine01`, `TestLineW01`, `TestLine02`, `TestPlane01`, `TestPlaneAudit01`, `TestPoint01`) contra un build de referencia en `git worktree` desde `HEAD` (commit `b5ea417`): **cero diferencias numéricas** en los 6 — el fix es un no-op para todo lo que ya se testeaba (ningún test existente construye una `Line` con dirección genuinamente compleja y llama a `normalPoint()`/`distance2()`/`perpendicular()`, por eso el bug era invisible hasta esta auditoría).
+
+`Line.VERSION`: `1.2→1.3`.
+
+**EXACTO PUNTO DE RETOMADA**: segunda pasada de `com.ipserc.arith.geom` **CERRADA del todo** (hallazgos 1 y 2, ambos arreglados y verificados), sin commitear todavía. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 

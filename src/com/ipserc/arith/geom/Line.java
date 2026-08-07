@@ -8,9 +8,21 @@ public class Line {
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0807_1330)";
+	private final static String VERSION = "1.3 (2026_0807_1800)";
 	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0807_1800)
+	 * normalPoint(Point): used the bilinear inner product (direction[i] with no conjugate, and
+	 * direction[i]^2 for the denominator) instead of the Hermitian one (direction[i]*conj(direction[i])
+	 * = |direction[i]|^2) used consistently everywhere else in the project (dotprod()/adjoint(),
+	 * Plane.projection(Point)). Invisible for real-valued lines (conj(real)=real, no difference),
+	 * but for a genuinely complex direction vector it computed a different "foot of the
+	 * perpendicular" than distance(Point) (crossprod-based, already Hermitian-consistent) --
+	 * confirmed with a ~33% discrepancy between distance(Point) and distance2(Point) (which is
+	 * documented to compute the exact same distance via normalPoint(), see the two methods'
+	 * Javadoc). perpendicular(Point) is built from normalPoint() and inherits the same fix. Fixed
+	 * by conjugating direction[i] in both the numerator and the denominator.
 	 *
 	 * 1.2 (2026_0807_1330)
 	 * Audit of com.ipserc.arith.geom (ver Claude/ComplexArithRev.md), continuacion de la sesion
@@ -281,12 +293,13 @@ public class Line {
 		Complex t = new Complex(0);
 		Complex num = new Complex(0);
 		Complex den = new Complex(0);
-		
+
 		for (int i = 0; i < this.point.dim(); ++i) {
+			Complex dConj = this.direction.complexMatrix[0][i].conjugate();
 			Complex C = this.point.complexMatrix[0][i].minus(point.complexMatrix[0][i]);
-			C = C.times(this.direction.complexMatrix[0][i]);
+			C = C.times(dConj);
 			num = num.plus(C);
-			den = den.plus(this.direction.complexMatrix[0][i].power(2));
+			den = den.plus(this.direction.complexMatrix[0][i].times(dConj));
 		}
 		t = num.divides(den).opposite();
 		return this.point(t);

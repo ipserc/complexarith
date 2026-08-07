@@ -14,10 +14,9 @@ import com.ipserc.arith.vectorcomplex.VectorComplex;
  * distance(Plane)/intersection(Plane). This section is now a regression check (OK/FAIL), verifying
  * the fix.
  *
- * Finding B (confirmed, NOT fixed yet -- awaiting a decision): Line.normalPoint() uses the
- * bilinear inner product (direction[i].power(2)) instead of the Hermitian one (|direction[i]|^2,
- * via dotprod/adjoint) used consistently elsewhere in the project. Kept here as a live
- * demonstration for whenever that gets addressed.
+ * Finding B (FIXED, Line.VERSION 1.3): Line.normalPoint() used the bilinear inner product
+ * (direction[i].power(2)) instead of the Hermitian one (direction[i]*conj(direction[i]) via
+ * dotprod/adjoint) used consistently elsewhere in the project. Now a regression check too.
  */
 public class ScratchGeomAudit02 {
 
@@ -54,11 +53,19 @@ public class ScratchGeomAudit02 {
 		check("distance(parallel, distinct planes) = " + dist, dist > 1e-9, "must be > 0, was silently 0.0 before the fix");
 
 		System.out.println();
-		System.out.println("--- Finding B (confirmed, NOT fixed): Line.normalPoint() bilinear vs Hermitian ---");
+		System.out.println("--- Finding B (FIXED): Line.normalPoint(), distance(Point) vs distance2(Point) must agree ---");
 		Line line2 = new Line("1+1i,2", "0,0");
 		com.ipserc.arith.geom.Point q2 = new com.ipserc.arith.geom.Point("1,3");
-		System.out.println("distance : " + line2.distance(q2) + "  (crossprod-based, Hermitian-consistent)");
-		System.out.println("distance2: " + line2.distance2(q2) + "  (via normalPoint(), bilinear -- diverges, ~33% off)");
+		double distA = line2.distance(q2);
+		double distB = line2.distance2(q2);
+		check("distance=" + distA + " vs distance2=" + distB, Math.abs(distA - distB) < 1e-9, "complex-direction line, used to diverge ~33%");
+
+		// Real-valued line: distance/distance2 must still agree exactly as before (regression guard).
+		Line realLine = new Line("2,1,-2", "2,1,-1");
+		com.ipserc.arith.geom.Point realPoint = new com.ipserc.arith.geom.Point("1,-2,-3");
+		double distC = realLine.distance(realPoint);
+		double distD = realLine.distance2(realPoint);
+		check("real-valued line: distance=" + distC + " vs distance2=" + distD, Math.abs(distC - distD) < 1e-9, "");
 
 		System.out.println();
 		System.out.println("TOTAL pass=" + pass + " fail=" + fail);
