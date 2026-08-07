@@ -34,8 +34,21 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0807_1900)";
+	private final static String VERSION = "1.4 (2026_0807_2000)";
 	/* VERSION Release Note
+	 *
+	 * 1.4 (2026_0807_2000)
+	 * bandPassFilter(gain,fIni,bandwidth,slope,samplefreq) (5 argumentos, "con pendientes"): mismo
+	 * patron de off-by-one que slopeFilter() (ver 1.3 abajo), implementado de forma distinta --
+	 * "transform.setItem(0, N-i-1, fVal)" dentro del propio bucle de i=0..N2-1. Ese "N-i-1" hacia
+	 * que el ultimo tramo (i=N2-1) cayera exactamente en el bin de Nyquist (N2), pero como efecto
+	 * colateral desplazaba un bin TODO lo demas -- p.ej. el valor de DC (i=0) acababa espejado en el
+	 * bin N-1 (frecuencia -1, no "DC negativo", que no existe). Confirmado en ejecucion: 15% de
+	 * contaminacion imaginaria en la señal reconstruida (max|Im|=0.047 vs max|Re|=0.3125), mas alta
+	 * que la de slopeFilter() antes de su fix. Arreglado con el mismo criterio: DC (i=0) no se
+	 * espeja (no tiene bin de frecuencia negativa valido); para i=1..N2-1 el espejo va a N-i (no
+	 * N-i-1); el bin de Nyquist se rellena aparte, fuera del bucle, con el ultimo valor calculado
+	 * (transform[N2-1]) -- mismo convenio de frontera que slopeFilter().
 	 *
 	 * 1.3 (2026_0807_1900)
 	 * slopeFilter() (y por herencia lowPassFilter()/highPassFilter(), que solo la delegan): el
@@ -1566,9 +1579,16 @@ public class Fourier extends MatrixComplex {
 				}
 			}
 			transform.setItem(0, i, fVal);
-			transform.setItem(0, N-i-1, fVal);
+			// DC (i=0) is self-paired -- no negative-frequency bin to mirror into. For i>0, bin N-i
+			// (frequency -i) must equal bin i (frequency +i) for a real-valued filter.
+			if (i > 0) {
+				transform.setItem(0, N-i, fVal);
+			}
 			point += incr;
 		}
+		// Nyquist bin (N2) is self-paired (its own conjugate) -- no mirror source exists for it,
+		// so it carries the last computed value, same boundary convention as slopeFilter().
+		transform.setItem(0, (int) N2, transform.getItem(0, (int) N2 - 1));
 		isTransformed = true;
 		this.IDFT();
 		filterData = "Band Pass Slope: " + (slope*100) + "% - G:"+ gain + " Fcentral:" + (fIni+bandwidth/2) + " Hz Bw:" + bandwidth + " Hz" + " Nbr.Samp.:" + samplefreq;

@@ -2045,7 +2045,22 @@ Derivado a mano: esto asigna `transform[N2+k] = transform[N2-1-k]`. Para una se�
 
 `Fourier.VERSION`: `1.2→1.3`.
 
-**EXACTO PUNTO DE RETOMADA**: `slopeFilter()` **CERRADO** y verificado, sin commitear todavía. Quedan sin resolver, por orden de confianza/severidad: `bandPassFilter()` con pendiente (mismo patrón, ya confirmado con el 15% de contaminación), `Laplace.CLT()` (estructuralmente sospechosa, alcance grande), `Sigfunc.step()` (acotado, una línea), `convolution()`'s `.times(2)` (sin confirmar). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+**EXACTO PUNTO DE RETOMADA (previo)**: `slopeFilter()` **CERRADO**. Quedaban sin resolver: `bandPassFilter()` con pendiente, `Laplace.CLT()`, `Sigfunc.step()`, `convolution()`'s `.times(2)`.
+
+### Arreglado: `Fourier.bandPassFilter(gain,fIni,bandwidth,slope,samplefreq)` (VERSION 1.3→1.4)
+
+A petición del usuario ("Arregla bandPassFilter con pendiente también"). Mismo patrón de bug que `slopeFilter()`, implementado de forma distinta — dentro del propio bucle de `i=0..N2-1`:
+```java
+transform.setItem(0, i, fVal);
+transform.setItem(0, N-i-1, fVal);
+```
+El `N-i-1` hacía que el último tramo (`i=N2-1`) cayera exactamente en el bin de Nyquist (`N2`) — una coincidencia de frontera, no un diseño correcto — pero como efecto colateral desplazaba un bin *todo* lo demás: el valor de DC (`i=0`) acababa espejado en el bin `N-1` (frecuencia `-1`, que no es "DC negativo" — DC no tiene pareja de frecuencia negativa). Arreglado con el mismo criterio que `slopeFilter()`: DC (`i=0`) no se espeja; para `i=1..N2-1` el espejo va a `N-i` (no `N-i-1`); el bin de Nyquist se rellena aparte, fuera del bucle, con el último valor calculado (`transform[N2-1]`).
+
+**Verificación** (`ScratchFourierFilterAudit03.java`, reescrito a regresión permanente, 1/1 OK): parte imaginaria de la señal reconstruida pasa de `0.047` (≈15% de `0.3125`) a `2×10⁻¹⁷`. `ScratchFourierFilterAudit02.java` (regresión de `slopeFilter()`, 1/1) y `ScratchFourierFFTVerify01.java` (regresión de la FFT, 18/18) siguen pasando — confirma que el fix no afectó a nada más. `TestFilter01/02/03/05/06`/`TestFourier01` compilan limpio; ninguno ejercita `bandPassFilter()` con pendiente en vivo (las llamadas activas del proyecto usan la variante sin pendiente, ya confirmada correcta) — cero riesgo de regresión ahí.
+
+`Fourier.VERSION`: `1.3→1.4`.
+
+**EXACTO PUNTO DE RETOMADA**: `slopeFilter()` y `bandPassFilter()` con pendiente, **ambos CERRADOS y verificados**, sin commitear todavía. Quedan sin resolver, por orden de confianza/severidad: `Laplace.CLT()` (estructuralmente sospechosa, alcance grande — probablemente necesite diseñar de cero la malla de valores `s`, similar en envergadura a la reescritura de `Z.java`), `Sigfunc.step()` (acotado, una línea, quitar el `Math.abs()` no documentado), `convolution()`'s `.times(2)` (sin confirmar, marcado como sospechoso por el propio autor original). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 
