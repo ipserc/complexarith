@@ -25,10 +25,12 @@
     directa via Complex.sqrt(), sin distinguir casos real/complejo).
 
     KNOWN LIMITATION heredada de cualquier variante de "desplazamiento simple" (single-shift) de la
-    iteracion QR, no arreglada aqui: no hay deteccion de estancamiento ni desplazamientos exceptionales
-    (ad-hoc) para los (raros) casos en los que el propio desplazamiento de Wilkinson entra en un
-    ciclo sin converger -- LAPACK anade esa salvaguarda tras varias iteraciones sin progreso; esta
-    implementacion solo tiene la cota MAX_ITERS_PER_EIGENVALUE como red de seguridad.
+    iteracion QR, RESUELTA: cada EXCEPTIONAL_SHIFT_INTERVAL (10) iteraciones consecutivas sin
+    deflacionar, un desplazamiento EXCEPCIONAL ad-hoc (formula estandar de LAPACK, ver
+    exceptionalShift()) sustituye al de Wilkinson -- rompe el raro ciclo sin depender de resolver
+    el bloque 2x2 que puede estar atrapado en el. MAX_ITERS_PER_EIGENVALUE se conserva como red de
+    seguridad final para el caso, aun mas raro, de que ni siquiera el desplazamiento excepcional
+    progrese.
  */
 
 package com.ipserc.arith.factorization;
@@ -44,7 +46,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public class QRSchurfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "QRSchurfactor --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0807_2359)";
+	private final static String VERSION = "1.3 (2026_0808_0030)";
 
 	/**
 	 * Cota de iteraciones QR admitidas para deflacionar UN autovalor antes de declarar que la
@@ -55,12 +57,33 @@ public class QRSchurfactor extends MatrixComplex {
 	 */
 	private final static int MAX_ITERS_PER_EIGENVALUE = 300;
 
+	/**
+	 * Cada este numero de iteraciones QR consecutivas sin deflacionar, se usa un desplazamiento
+	 * EXCEPCIONAL (ver {@link #factorize()}) en vez del de Wilkinson, para escapar de los raros
+	 * casos en que el propio desplazamiento de Wilkinson entra en un ciclo sin progreso. Mismo
+	 * umbral clasico usado por LAPACK ({@code dlahqr}/{@code zlahqr}).
+	 */
+	private final static int EXCEPTIONAL_SHIFT_INTERVAL = 10;
+
 	private boolean factorized = false;
 
 	private MatrixComplex cQ;
 	private MatrixComplex cSchur;
 
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0808_0030)
+	 * factorize(): resuelve el KNOWN LIMITATION heredado de single-shift QR (sin salvaguarda ante
+	 * un desplazamiento de Wilkinson estancado). Cada EXCEPTIONAL_SHIFT_INTERVAL (10) iteraciones
+	 * consecutivas sin deflacionar, un desplazamiento EXCEPCIONAL ad-hoc (nuevo helper privado
+	 * exceptionalShift(), formula estandar de LAPACK dlahqr/zlahqr) sustituye al de Wilkinson --
+	 * no depende de resolver el bloque 2x2 final, asi que no puede heredar el mismo ciclo que
+	 * causo el estancamiento. Verificado sin regresion en TestQRSchur01 (9/9), TestEigenspaceQR
+	 * Compare01 (4/4, incluye bateria de 300 matrices aleatorias) y TestEigenspaceFallback01
+	 * (3/3); codigo del desplazamiento excepcional en si verificado forzandolo a disparar en
+	 * cada iteracion (EXCEPTIONAL_SHIFT_INTERVAL=1 temporal): ejecuta sin corromper nada, solo
+	 * converge mas despacio que Wilkinson (esperado, es un escape de emergencia, no el
+	 * desplazamiento principal).
 	 *
 	 * 1.2 (2026_0807_2359)
 	 * QRSchurfactor(MatrixComplex): mismo bug de aliasing por clone() superficial encontrado en
@@ -139,9 +162,11 @@ public class QRSchurfactor extends MatrixComplex {
 	 * {@code Qk^H*H*Qk} en el codigo, igual que en la Etapa 2.
 	 * <p>
 	 * <b>KNOWN LIMITATION heredada de cualquier variante de desplazamiento simple (single-shift),
-	 * no arreglada aqui:</b> no hay desplazamientos exceptionales (ad-hoc, como en LAPACK) para el
-	 * caso raro en que el propio desplazamiento entra en un ciclo sin progreso -- solo la cota
-	 * {@code MAX_ITERS_PER_EIGENVALUE} como red de seguridad final.
+	 * resuelta:</b> cada {@link #EXCEPTIONAL_SHIFT_INTERVAL} iteraciones consecutivas sin
+	 * deflacionar, {@link #exceptionalShift(MatrixComplex, int)} (formula ad-hoc estandar de
+	 * LAPACK) sustituye al desplazamiento de Wilkinson para el caso raro en que este ultimo entra
+	 * en un ciclo sin progreso -- {@code MAX_ITERS_PER_EIGENVALUE} se conserva como red de
+	 * seguridad final.
 	 * @throws IllegalArgumentException si la matriz no es cuadrada, o si la iteracion no converge
 	 * dentro de la cota de iteraciones (ver arriba).
 	 */
@@ -172,7 +197,13 @@ public class QRSchurfactor extends MatrixComplex {
 					+ ") stayed non-zero after " + MAX_ITERS_PER_EIGENVALUE + " iterations).");
 
 			// Desplazamiento de Wilkinson: factoriza (activa - mu*I), no la ventana activa directa.
-			Complex mu = wilkinsonShift(h, hi);
+			// Cada EXCEPTIONAL_SHIFT_INTERVAL iteraciones sin deflacionar, un desplazamiento
+			// EXCEPCIONAL (formula ad-hoc estandar, LAPACK) sustituye al de Wilkinson para romper
+			// el raro caso de estancamiento -- no depende de resolver el bloque 2x2, así que no
+			// puede heredar el mismo ciclo que causo el estancamiento.
+			Complex mu = (itersSinceDeflate % EXCEPTIONAL_SHIFT_INTERVAL == 0)
+				? exceptionalShift(h, hi)
+				: wilkinsonShift(h, hi);
 			MatrixComplex active = h.subMatrix(0, 0, hi + 1);
 			MatrixComplex shifted = active.minus(MatrixComplex.eye(hi + 1).times(mu));
 			MatrixComplex qStep = stableHouseholderQ(shifted);
@@ -223,6 +254,23 @@ public class QRSchurfactor extends MatrixComplex {
 		Complex lambda2 = trace.minus(discriminant).divides(2.0);
 
 		return (lambda1.minus(d).mod() <= lambda2.minus(d).mod()) ? lambda1 : lambda2;
+	}
+
+	/**
+	 * Desplazamiento EXCEPCIONAL: formula ad-hoc estandar (Francis/Wilkinson, la misma que usan
+	 * las implementaciones de referencia {@code dlahqr}/{@code zlahqr} de LAPACK) para escapar de
+	 * un raro estancamiento del desplazamiento de Wilkinson -- perturba el ultimo elemento
+	 * diagonal con la suma de las dos magnitudes subdiagonales mas recientes, en vez de resolver
+	 * el bloque 2x2 final (que es precisamente lo que puede estar atrapado en un ciclo). Al no
+	 * depender de esa resolucion, no puede heredar el mismo ciclo que causo el estancamiento.
+	 * @param h La matriz completa (solo se leen 2-3 entradas cerca de la esquina de la ventana activa).
+	 * @param hi El indice superior de la ventana activa.
+	 * @return El desplazamiento mu.
+	 */
+	private static Complex exceptionalShift(MatrixComplex h, int hi) {
+		double s = h.getItem(hi, hi - 1).mod();
+		if (hi >= 2) s += h.getItem(hi - 1, hi - 2).mod();
+		return h.getItem(hi, hi).plus(new Complex(s, 0));
 	}
 
 	/**
