@@ -34,8 +34,17 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0807_1600)";
+	private final static String VERSION = "1.7 (2026_0807_2330)";
 	/* VERSION Release Note
+	 *
+	 * 1.7 (2026_0807_2330)
+	 * DFT(int): el fallback O(n^2) (N no potencia de 2) calculaba solo la primera mitad de las
+	 * frecuencias y rellenaba el resto via X[N-k]=conj(X[k]) -- simetria valida solo para señal de
+	 * entrada real, incorrecta en silencio para una señal genuinamente compleja. Arreglado
+	 * calculando las N frecuencias de forma directa, sin el atajo de simetria. Verificado con
+	 * ScratchFourierComplexDFT01.java (señal compleja e^{it}, N=6) contra una DFT de fuerza bruta
+	 * independiente: coincide a precision de maquina. Sin regresion para señal real
+	 * (ScratchFourierRealDFT01.java, N=7, tambien a precision de maquina).
 	 *
 	 * 1.6 (2026_0807_1600)
 	 * All 6 plot()-calling methods: a peticion del usuario, antes de cada "p.plot()" se anade
@@ -1230,11 +1239,16 @@ public class Fourier extends MatrixComplex {
 
 	/**
 	 * Calculates the DFT. When N is a power of two, uses a radix-2 FFT (O(n log n), exact for any
-	 * complex-valued signal, no symmetry assumption). Otherwise falls back to the existing O(n^2)
-	 * path below, which exploits the real-signal symmetry X[N-k]=conj(X[k]) -- only valid for a
-	 * real-valued input signal. This means, for a genuinely complex-valued signal, the result is
-	 * only guaranteed correct when N is a power of two; this is a preexisting limitation of the
-	 * O(n^2) path, not introduced by the FFT addition, and out of scope here (not audited/decided).
+	 * complex-valued signal, no symmetry assumption). Otherwise falls back to the direct O(n^2)
+	 * definition below, computed for every frequency index -- no symmetry shortcut, so it stays
+	 * correct for a genuinely complex-valued input signal, not just real-valued ones.
+	 * <p>
+	 * <b>KNOWN LIMITATION, resolved:</b> this path used to compute only the first half of the
+	 * frequencies directly and fill in the rest via {@code X[N-k]=conj(X[k])}, a symmetry that only
+	 * holds for a real-valued input signal -- wrong in silence for a complex-valued one whenever N
+	 * isn't a power of two. Confirmed and fixed by dropping the shortcut; the ~2x speedup it gave
+	 * for real signals isn't worth a silently wrong result for complex ones on this already-slow
+	 * fallback path.
 	 * @param sampleFreq The frequency used to sample the function.
 	 */
 	public void DFT(int sampleFreq) {
@@ -1258,19 +1272,13 @@ public class Fourier extends MatrixComplex {
 		} else {
 			Complex idospiN = Complex.i.times(-Complex.DOS_PI/N); // -2*pi*i/N
 			Complex expkn = new Complex();
-			int N2 = N/2;
-			int k0 = N%2 == 0 ? 0: 1;
-			for (int k = 0; k <= N2; ++k) { // freq index
+			for (int k = 0; k < N; ++k) { // freq index
 				Complex Ak = new Complex();
 				for (int n = 0; n < N; ++n) { // time index
 					expkn = Complex.exp(idospiN.times(k*n));
 					Ak = Ak.plus(expkn.times(this.samples.getItem(1,n)));
 				}
 				transform.setItem(0, k, Ak);
-			}
-
-			for (int k = k0; k < N2+k0; ++k) {
-				transform.setItem(0, k+N2, transform.getItem(0, N2-k+k0).conjugate());
 			}
 		}
 
