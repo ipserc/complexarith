@@ -18,8 +18,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.57 (2026_0807_1600)";
+	private final static String VERSION = "1.58 (2026_0808_0000)";
 	/* VERSION Release Note
+	 *
+	 * 1.58 (2026_0808_0000)
+	 * MatrixComplexFunctions.sqrtTriangular(): el caso limite documentado (bloque nilpotente de
+	 * autovalor cero repetido, sin raiz cuadrada triangular por ningun metodo -- hecho matematico,
+	 * no limitacion del algoritmo) ahora falla explicito con un mensaje especifico en cuanto la
+	 * division degenerada esta a punto de ocurrir, en vez de propagar NaN/Infinity hasta el tope
+	 * generico de 100 iteraciones de logm(). Verificado con ScratchLogmNilpotentProbe01.java (nuevo)
+	 * y TestLogmAudit01.java (15/15, sin regresion, incluye el caso nilpotente ya esperado).
 	 *
 	 * 1.57 (2026_0807_1600)
 	 * MatrixComplexFunctions.doPlot(): a peticion del usuario, antes de "p.plot()" se anade

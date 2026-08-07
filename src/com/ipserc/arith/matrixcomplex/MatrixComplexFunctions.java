@@ -1073,24 +1073,35 @@ class MatrixComplexFunctions {
 	 * {@code S_ik}/{@code S_kj} needed by the sum (strictly between {@code i} and {@code j}) has
 	 * already been filled in, since those have a smaller {@code d}.
 	 * <p>
-	 * <b>KNOWN LIMITATION, documented not fixed:</b> the recurrence divides by {@code S_ii+S_jj},
-	 * which is (numerically) zero only in one genuine case under this project's principal-branch
-	 * convention: two DIAGONAL entries of {@code T} that are BOTH exactly zero and adjacent within
-	 * the same Jordan chain (a repeated zero eigenvalue with a nontrivial nilpotent block).
-	 * Verified empirically that "two eigenvalues that are each other's negative" -- the case one
-	 * would expect from the generic Parlett-recurrence literature -- does NOT actually trigger
-	 * this here: {@code Complex.sqrt()}'s principal branch always has {@code Re>=0} (confirmed
-	 * with {@code T=diag(4,-4)}: {@code S_00=2}, {@code S_11=2i}, sum {@code =2+2i}, nowhere near
-	 * zero), so {@code S_ii+S_jj} can only vanish when both terms are individually zero. A
-	 * nontrivial nilpotent block genuinely has NO triangular square root (a mathematical fact, not
-	 * a numerical artifact) -- confirmed to fail cleanly (`NaN`/`Infinity` via `Complex`'s already
-	 * established zero-division handling), not a hang or an unrelated crash. Same scope decision
-	 * already applied elsewhere in this codebase (e.g. {@code VectorComplex.vectorprod()}'s
-	 * 3D-only limitation) for a documented mathematical edge case rather than a code defect to
-	 * guard against.
+	 * <b>KNOWN LIMITATION, irresoluble, now fails explicitly instead of NaN/timeout:</b> the
+	 * recurrence divides by {@code S_ii+S_jj}, which is (numerically) zero only in one genuine
+	 * case under this project's principal-branch convention: two DIAGONAL entries of {@code T}
+	 * that are BOTH exactly zero and adjacent within the same Jordan chain (a repeated zero
+	 * eigenvalue with a nontrivial nilpotent block). Verified empirically that "two eigenvalues
+	 * that are each other's negative" -- the case one would expect from the generic
+	 * Parlett-recurrence literature -- does NOT actually trigger this here: {@code Complex.sqrt()}'s
+	 * principal branch always has {@code Re>=0} (confirmed with {@code T=diag(4,-4)}: {@code S_00=2},
+	 * {@code S_11=2i}, sum {@code =2+2i}, nowhere near zero), so {@code S_ii+S_jj} can only vanish
+	 * when both terms are individually zero. A nontrivial nilpotent Jordan block genuinely has NO
+	 * square root at all -- triangular or otherwise, by ANY method, not just this recurrence (a
+	 * mathematical fact: {@code sqrt} isn't differentiable at {@code 0}, so the usual Jordan-chain
+	 * function calculus that defines {@code f(J)} for an analytic {@code f} simply doesn't apply
+	 * here). This is not a gap to fill with a smarter algorithm (e.g. block Schur-Parlett, which
+	 * only helps for REPEATED NONZERO eigenvalues, where {@code sqrt} is analytic) -- a
+	 * mathematically honest {@code sqrtTriangular} cannot return a value for this input. Confirmed
+	 * this case is unreachable except when the ORIGINAL matrix already has an exact zero eigenvalue
+	 * with geometric deficiency (singular AND defective at {@code 0}) -- repeated square-rooting
+	 * never creates a zero eigenvalue that wasn't already there. Since {@code e^L} can never have
+	 * eigenvalue {@code 0}, {@code log} of such a matrix does not exist either, so failing here is
+	 * the mathematically correct outcome, not a missing feature. Now throws explicitly with a
+	 * specific message the moment the degenerate division is about to happen, instead of silently
+	 * producing {@code NaN}/{@code Infinity} that used to propagate through {@link #logm}'s scaling
+	 * loop until its generic 100-iteration safety cap gave a much less specific error.
 	 * @param tMat An upper triangular matrix (trusted as such by the caller -- not re-verified
 	 * here, see {@link #logm}, the only caller, which always passes a genuine Schur factor).
 	 * @return The principal square root of tMat, upper triangular.
+	 * @throws IllegalArgumentException if tMat has a repeated zero eigenvalue inside a nontrivial
+	 * Jordan chain -- see above, no triangular square root exists for that input.
 	 */
 	private static MatrixComplex sqrtTriangular(MatrixComplex tMat) {
 		int n = tMat.rows();
@@ -1111,6 +1122,15 @@ class MatrixComplexFunctions {
 				}
 				Complex numerator = tMat.getItem(i, j).minus(sum);
 				Complex denominator = sMat.getItem(i, i).plus(sMat.getItem(j, j));
+				if (denominator.mod() < Complex.zero_threshold_approx()) {
+					throw new IllegalArgumentException("sqrtTriangular: S_" + i + i + "+S_" + j + j
+						+ " is (numerically) zero -- this means T has a repeated ZERO eigenvalue "
+						+ "inside a nontrivial Jordan chain (a genuine nilpotent block of size>=2), "
+						+ "which has NO triangular square root at all, for any method (a mathematical "
+						+ "fact, not a numerical shortcoming of this recurrence) -- and since e^L can "
+						+ "never have eigenvalue 0, the matrix logarithm of the original matrix does "
+						+ "not exist either.");
+				}
 				sMat.setItem(i, j, numerator.divides(denominator));
 			}
 		}
