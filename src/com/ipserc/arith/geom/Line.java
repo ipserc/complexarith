@@ -8,9 +8,14 @@ public class Line {
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.5 (2026_0807_2230)";
+	private final static String VERSION = "1.6 (2026_0807_2300)";
 	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
+	 *
+	 * 1.6 (2026_0807_2300)
+	 * intersection(Line): limpia una referencia cruzada obsoleta en el Javadoc -- citaba "el KNOWN
+	 * LIMITATION documentado arriba para distance(Line)" como si siguiera vigente, pero esa
+	 * limitacion ya se resolvio en VERSION 1.4. Sin cambio de comportamiento.
 	 *
 	 * 1.5 (2026_0807_2230)
 	 * distance(Point): resuelve el hallazgo colateral anotado en VERSION 1.4. Usaba
@@ -424,8 +429,8 @@ public class Line {
 	 * this.point+t1*this.direction = line.point+t2*line.direction using the best-conditioned pair
 	 * of coordinates (largest 2x2 minor of the two direction vectors), then validates the
 	 * candidate point against ALL coordinates via the existing distance(Point) -- this generalizes
-	 * correctly to any dimension, since it never relies on crossprod()/mixedprod() (which, per the
-	 * KNOWN LIMITATION documented above for distance(Line), are only well-founded in 3D).
+	 * correctly to any dimension, since it never relies on crossprod()/mixedprod() (which are only
+	 * well-founded in 3D; distance(Line) used to share that limitation too, resolved in VERSION 1.4).
 	 * @param line The given line
 	 * @return The point of intersection
 	 * @throws IllegalArgumentException if the lines have different dimensions, are parallel (no
