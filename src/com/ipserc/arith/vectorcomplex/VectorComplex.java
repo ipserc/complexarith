@@ -8,8 +8,26 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.9 (2026_0802_1600)";
+	private final static String VERSION = "1.10 (2026_0807_1700)";
 	/* VERSION Release Note
+	 * 1.10 (2026_0807_1700)
+	 * angle(VectorComplex): fixed the same acos-domain fragility already found and removed from
+	 * Line.java's own distance(Line)/intersection(Line) (see Line.VERSION 1.1, sesion del 1 agosto)
+	 * -- but never fixed here, in the shared method those callers used to depend on and that
+	 * Plane.java still calls (angle(Plane)/angle(Line)/angle(VectorComplex), reached from
+	 * distance(Line)/distance(Plane)/intersection(Plane)). Math.acos(dotprod.mod()/normA/normB):
+	 * for genuinely parallel vectors, independent rounding in the two norm computations can push
+	 * the ratio 1 ULP above 1.0 (e.g. sqrt(13)*sqrt(52) -> 1.0000000000000002), making acos()
+	 * return NaN. Confirmed with the same parallel test data Plane.distance(Plane) silently
+	 * returned 0.0 for two distinct parallel planes (should be > 0) because the NaN propagated
+	 * through unnoticed. Fixed by clamping the ratio to [-1,1] before calling acos() -- the
+	 * mathematically correct value for a ratio that rounding pushed a tiny epsilon past 1.0 (a
+	 * ratio which can only ever be exactly 1.0 for genuinely parallel vectors) is exactly acos(1)=0,
+	 * not NaN. Kept the general acos-based formula (valid for any dimension) rather than switching
+	 * to the crossprod-based sin/cos approach Line.angle(Line) uses internally, since crossprod()
+	 * is capped at 7 dimensions (Hurwitz's theorem, see 1.9 above) and angle() is a general-purpose
+	 * method with callers outside 3D geometry.
+	 *
 	 * 1.9 (2026_0802_1600)
 	 * New public vectorprodN(VectorComplex...): the mathematically correct n-dimensional
 	 * generalization deferred since VERSION 1.8. A BINARY vector product with the classical
@@ -1131,7 +1149,13 @@ public class VectorComplex extends MatrixComplex {
 		if (modThis == 0 || modVector == 0) {
 			throw new IllegalArgumentException(HEADINFO + "angle: undefined between a null vector and another vector");
 		}
-		return Math.acos(this.dotprod(vector).mod()/modThis/modVector);
+		double ratio = this.dotprod(vector).mod()/modThis/modVector;
+		// Clamp before acos(): independent rounding in modThis/modVector can push ratio a tiny
+		// epsilon past 1.0 for genuinely parallel vectors, which would otherwise make acos() return
+		// NaN (ratio can never legitimately exceed 1 -- Cauchy-Schwarz).
+		if (ratio > 1.0) ratio = 1.0;
+		else if (ratio < -1.0) ratio = -1.0;
+		return Math.acos(ratio);
 	}
 
 	/**
