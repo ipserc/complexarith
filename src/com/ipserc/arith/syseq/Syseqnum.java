@@ -10,9 +10,25 @@ public class Syseqnum extends MatrixComplex {
 	private int numIters = -1;
 	
 	private final static String HEADINFO = "Syseqnum --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0807_1700)";
+	private final static String VERSION = "1.5 (2026_0807_1800)";
 	/* VERSION Release Note
 	 * 	Syseqnum: System Equation Solver by Numerical Methods
+	 *
+	 * 1.5 (2026_0807_1800)
+	 * congrad(): 3 sitios multiplicaban una matriz-escalar (1x1, resultado de un producto interno)
+	 * por la IZQUIERDA de un vector (n,1) -- (ro1.divides(ro2)).times(pi), alpha.times(pi),
+	 * alpha.times(qi) -- invalido para times(MatrixComplex) (exige cols(izq)=rows(der)) en
+	 * cualquier sistema de mas de 1 incognita. MatrixComplex.times() no lanza excepcion ante
+	 * formas incompatibles, asi que el fallo no explotaba ahi sino un paso despues, en el primer
+	 * plus() que si comprueba formas -- confirmado reproduciendo con una matriz SPD 3x3 limpia,
+	 * crashea en la primera iteracion. Confirmado con git log que la linea no ha cambiado desde el
+	 * commit original de 2021 (97997c4, Syseqnum 1.1): congrad() no ha funcionado nunca para
+	 * ningun sistema de mas de 1 incognita en toda la historia del proyecto. Arreglado invirtiendo
+	 * el orden de los 3 productos (vector.times(escalar), la unica forma valida). Verificado con
+	 * ScratchCongradProbe01.java (conservado): converge a la solucion exacta en un sistema SPD de
+	 * prueba. Con el crash ya arreglado, congrad() sobre una matriz NO simetrica (el CG clasico
+	 * solo esta garantizado para simetricas definidas positivas) falla limpiamente ("FAILS", no
+	 * converge) en vez de crashear -- comportamiento correcto, no un bug nuevo.
 	 *
 	 * 1.4 (2026_0807_1700)
 	 * genminres(): era un esqueleto sin terminar -- calculaba vectores de Arnoldi y una matriz de
@@ -576,10 +592,20 @@ public class Syseqnum extends MatrixComplex {
 	 */
 
 	/**
-	 * Conjugate Gradient Method: congrad
-	 * @param initGuess
-	 * @param iterations
-	 * @return
+	 * Conjugate Gradient Method (CG): metodo iterativo de Krylov para resolver A*x=b, valido solo
+	 * cuando A es simetrica definida positiva (si no lo es, cae a triangleUp() como aproximacion,
+	 * pero CG no esta garantizado que converja ahi -- ver genminres() para el caso general).
+	 *
+	 * En cada iteracion construye una direccion de busqueda p conjugada (A-ortogonal) respecto a
+	 * las anteriores, en vez de una base de Krylov completa como GMRES -- por eso no necesita
+	 * guardar toda la base ni resolver un minimo cuadrado: cada paso tiene una formula cerrada
+	 * (alpha, el tamano de paso optimo a lo largo de p; el cociente ro1/ro2, como mezclar la nueva
+	 * direccion con la anterior para mantener la conjugacion). Con aritmetica exacta converge en a
+	 * lo sumo n pasos (n = numero de incognitas); en la practica, con redondeo, puede necesitar mas.
+	 *
+	 * @param initGuess La estimacion inicial, repetida en todas las componentes del vector solucion
+	 * @param iterations Numero maximo de iteraciones
+	 * @return La solucion encontrada, o la mejor aproximacion alcanzada si se agotan las "iterations"
 	 */
 	public MatrixComplex congrad(Complex initGuess, int iterations) {
 		final boolean DEBUG_ON = false;
@@ -645,13 +671,13 @@ public class Syseqnum extends MatrixComplex {
 				//pi = zi1.plus((ro1.divides(ro2)).times(pi));
 				/**** BOOK CORRECTION Errata March 7, 2006 ****/
 				// Correction p(i)=r(i-1)+beta(i-1)*p(i-1)
-				pi = ri1.plus((ro1.divides(ro2)).times(pi));
+				pi = ri1.plus(pi.times(ro1.divides(ro2)));
 			}
 															//pi.println(HEADINFO + "pi");
 			qi = unkMatrix.times(pi);						//qi.println(HEADINFO + "qi");
 			alpha = ro1.divides(pi.transpose().times(qi));	//alpha.println(HEADINFO + "alpha");
-			xi = xi1.plus(alpha.times(pi)); 				//xi.println(HEADINFO + "xi");	xi1.println(HEADINFO + "xi1");
-			ri = ri1.minus(alpha.times(qi));				//ri.println(HEADINFO + "ri");
+			xi = xi1.plus(pi.times(alpha)); 				//xi.println(HEADINFO + "xi");	xi1.println(HEADINFO + "xi1");
+			ri = ri1.minus(qi.times(alpha));				//ri.println(HEADINFO + "ri");
 			/**** BOOK CORRECTION to add in pseudocode ****/
 			if (ri.isNullC()) {
 				//* -------------   DEBUGGING BLOCK   ------------- *
@@ -693,16 +719,26 @@ public class Syseqnum extends MatrixComplex {
 	}
 	
 	/**
-	 * Generalized Minimal Residual: genminres
-	 * Restarted GMRES(m): builds an orthonormal Krylov basis of dimension up to "m" via the
-	 * Arnoldi process (modified Gram-Schmidt, Hermitian inner product), solves the resulting
-	 * (usedDim+1) x usedDim upper-Hessenberg least-squares problem with complex Givens rotations,
-	 * and updates the solution. If a cycle doesn't converge, restarts the Arnoldi process from the
-	 * updated solution, up to "iterations" cycles.
-	 * @param initGuess The initial guess, broadcast to every component of the solution vector
-	 * @param m The Krylov subspace dimension used on each restart cycle (clamped internally to the system size)
-	 * @param iterations The maximum number of restart cycles
-	 * @return The solution found, or the best approximation reached if "iterations" is exhausted first
+	 * Generalized Minimal Residual (GMRES): metodo iterativo de Krylov para resolver A*x=b sin
+	 * exigir que A sea simetrica (a diferencia de congrad()/CG, que si lo exige) -- reiniciado
+	 * como GMRES(m).
+	 *
+	 * Construye, mediante el proceso de Arnoldi (Gram-Schmidt modificado con producto interno
+	 * hermitico, necesario porque las matrices aqui pueden ser complejas), una base ortonormal
+	 * V=[v1..vm] del subespacio de Krylov generado por el residuo inicial, y con los coeficientes
+	 * de esa ortogonalizacion una matriz de Hessenberg H que resume como actua A sobre esa base.
+	 * Gracias a la ortonormalidad, minimizar el residuo ||b-A*x|| dentro de ese subespacio se
+	 * reduce a un minimo cuadrado pequeno, de solo m incognitas: min||beta*e1-H*y||, resuelto con
+	 * rotaciones de Givens complejas + sustitucion hacia atras. La solucion se actualiza como
+	 * x=x0+V*y; si no basta para converger, se reinicia el proceso de Arnoldi con la x actualizada
+	 * como nuevo punto de partida, hasta "iterations" reinicios. "m" es el tamano del subespacio
+	 * por reinicio: mas grande converge en menos reinicios pero cuesta mas por reinicio
+	 * (memoria/ortogonalizacion ~O(m^2)).
+	 *
+	 * @param initGuess La estimacion inicial, repetida en todas las componentes del vector solucion
+	 * @param m Dimension del subespacio de Krylov en cada reinicio (se acota internamente al tamano del sistema)
+	 * @param iterations Numero maximo de reinicios
+	 * @return La solucion encontrada, o la mejor aproximacion alcanzada si se agotan las "iterations"
 	 */
 	public MatrixComplex genminres(Complex initGuess, int m, int iterations) {
 		final boolean DEBUG_ON = false;
