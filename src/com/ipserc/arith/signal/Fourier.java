@@ -34,8 +34,20 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0807_2000)";
+	private final static String VERSION = "1.5 (2026_0807_2100)";
 	/* VERSION Release Note
+	 *
+	 * 1.5 (2026_0807_2100)
+	 * convolution(): tenia un ".times(2)" incondicional sobre cada muestra de salida, con un
+	 * comentario del propio autor original admitiendo no saber por que estaba ahi ("times(2) don't
+	 * know why"). Confirmado como bug real, no una convencion de normalizacion legitima: convolucionar
+	 * cualquier señal con el filtro identidad (delta de Kronecker, h[0]=1, resto 0) debe devolver la
+	 * señal EXACTAMENTE igual (la suma de convolucion colapsa a un unico termino, x[t]*h[0]=x[t], sin
+	 * margen de ambiguedad matematica) -- el codigo devolvia el doble exacto en todos los puntos.
+	 * Arreglado quitando el ".times(2)".
+	 * Verificado (ScratchFourierConvolutionAudit01.java, conservado): con el filtro identidad, la
+	 * señal de salida coincide exactamente con la de entrada (ratio 1.0 en todos los puntos, antes
+	 * 2.0).
 	 *
 	 * 1.4 (2026_0807_2000)
 	 * bandPassFilter(gain,fIni,bandwidth,slope,samplefreq) (5 argumentos, "con pendientes"): mismo
@@ -1780,7 +1792,7 @@ public class Fourier extends MatrixComplex {
 				//y(t) = y() + signal(n)*filter(t-n) 
 				yVal = yVal.plus(signal.samples.getItem(1, n).times(this.samples.getItem(1, t_n)));
 			}
-			signalF.samples.setItem(1, t, yVal.times(2)); // times(2) don't know why
+			signalF.samples.setItem(1, t, yVal);
 			point = point.plus(incr);
 		}
 

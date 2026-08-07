@@ -2096,7 +2096,21 @@ Javadoc corregido para describir lo que el método realmente calcula (Transforma
 
 `Laplace.java` no tiene campo `VERSION` (ni lo tenía antes de esta sesión) — sin cambio de versión, consistente con el fix de `DLT()`/`IDLT()` anterior.
 
-**EXACTO PUNTO DE RETOMADA**: `Laplace.CLT()` **CERRADO** y verificado, sin commitear todavía. Con esto, todos los hallazgos de la auditoría de `com.ipserc.arith.signal` de esta sesión quedan resueltos salvo uno: `Fourier.convolution()`'s `.times(2)` sin justificar (marcado como sospechoso por el propio autor original, no confirmado ni descartado). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+**EXACTO PUNTO DE RETOMADA (previo)**: `Laplace.CLT()` cerrado. Quedaba sin resolver `Fourier.convolution()`'s `.times(2)`.
+
+### Investigado y arreglado: `Fourier.convolution()` — el `.times(2)` era un bug real, confirmado con prueba concluyente
+
+A petición del usuario ("Investiga el .times(2) de convolution()"). Diseñado un caso de prueba limpio, sin ambigüedad matemática posible: convolucionar **cualquier** señal con el filtro identidad (delta de Kronecker, `h[0]=1`, resto `0`) debe devolver la señal **exactamente igual** — la suma de convolución `y[t]=Σx[n]·h[t-n]` colapsa a un único término no nulo (`x[t]·h[0]=x[t]`), sin margen para ningún factor de escala legítimo (ni `Δt`, ni normalización).
+
+**Resultado, contundente**: con el código tal cual estaba, la señal de salida era el doble exacto de la señal de entrada en **todos** los puntos (`1.0→2.0`, `2.0→4.0`, `3.0→6.0`...) — confirma que el `.times(2)` no tenía ninguna justificación oculta, era simplemente un error de duplicación incondicional, tal como sospechaba el propio autor original en su comentario.
+
+**Arreglado**: quitada la línea `.times(2)`, el resultado de la convolución se guarda directamente.
+
+**Verificación** (`ScratchFourierConvolutionAudit01.java`, reescrito a regresión permanente, 8/8 OK): con el filtro identidad, la señal reconstruida coincide **exactamente** con la original en los 8 puntos probados (antes daba el doble). `ScratchFourierFilterAudit02/03.java` (regresión de `slopeFilter()`/`bandPassFilter()` con pendiente, 1/1 cada uno) y `ScratchFourierFFTVerify01.java` (regresión de la FFT, 18/18) siguen pasando. `convolution()` **sí tiene llamadores activos** en el proyecto (`TestFilter03.java:163`, `TestFilter05.java:186`) — compilan limpio; no ejecutables de punta a punta aquí (rutas Linux hardcodeadas + `JavaPlot`/gnuplot), pero se beneficiarán directamente de este fix.
+
+`Fourier.VERSION`: `1.4→1.5`.
+
+**EXACTO PUNTO DE RETOMADA**: con esto, **todos** los hallazgos de la auditoría de `com.ipserc.arith.signal` de esta sesión quedan cerrados y arreglados (`Z.java` reescrito, `Fourier` FFT + 2 filtros + `convolution()`, `Laplace` `DLT`/`IDLT`/`CLT`, `Sigfunc.step()`). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final; `com.ipserc.arith.geom` (subpaquete) cerrado del todo en sesiones anteriores.
 
 ---
 
