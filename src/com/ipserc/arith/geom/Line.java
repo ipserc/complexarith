@@ -8,9 +8,39 @@ public class Line {
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0807_1800)";
+	private final static String VERSION = "1.4 (2026_0807_2200)";
 	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
+	 *
+	 * 1.4 (2026_0807_2200)
+	 * distance(Line): resuelve el KNOWN LIMITATION documentado en VERSION 1.1 (rama "no paralelas"
+	 * solo valida en 3D via mixedprod()/crossprod()). Reescrito con minimos cuadrados Hermitianos
+	 * de proposito general: el paralelismo se detecta con el determinante de Gram
+	 * det(d1,d2)=<d1,d1><d2,d2>-|<d1,d2>|^2 (dotprod-based), que por Cauchy-Schwarz es exactamente
+	 * 0 si y solo si d1,d2 son linealmente dependientes -- valido en cualquier dimension, a
+	 * diferencia de crossprod() (solo bien fundado hasta 7D, teorema de Hurwitz). Para rectas no
+	 * paralelas, la distancia minima es la norma del residuo de aproximacion mas cercana
+	 * v=this.point-line.point+t*d1-s*d2, con (t,s) solucion del sistema 2x2 Hermitiano
+	 * <d1,v>=<d2,v>=0 -- valido en cualquier dimension.
+	 * Verificado: los 5 casos 3D coinciden con el build de referencia (formula antigua) a
+	 * precision de maquina; el caso 2D no paralelo sigue dando exactamente 0.0 (caso especial
+	 * conservado); los casos 4D/5D/10D (antes lanzaban excepcion o "funcionaban por coincidencia")
+	 * ahora dan el valor correcto, verificado a mano resolviendo el sistema real equivalente; el
+	 * caso 7D antiguo daba 0.577 (documentado como "coincidencia dimensional", ahora confirmado
+	 * incorrecto) frente al 1.732 correcto de la nueva formula. De propina, TestLine01.java pasa de
+	 * exit=1 a exit=0: el crash preexistente resulto deberse a que crossprod() tampoco funcionaba
+	 * bien para un par 4D-4D (sin mismatch de dimension entre las dos rectas, el propio crossprod()
+	 * internamente delega a una construccion de 7D para dims 4-7 y fallaba) -- la nueva formula, al
+	 * no depender de crossprod() en absoluto, lo resuelve de raiz. El unico caso que sigue
+	 * lanzando excepcion es un par autenticamente 4D-vs-7D en los propios datos del test (bug de
+	 * datos preexistente, no relacionado) -- ahora con un mensaje claro en vez del error críptico
+	 * "4 != 7" desde dentro de VectorComplex.
+	 * Hallazgo colateral, NO arreglado: distance(Point) (y por tanto la rama "paralela" de
+	 * distance(Line), que delega en ella) sigue dependiendo de crossprod(), asi que para dim>7
+	 * (fuera incluso del propio techo de crossprod()) devuelve 0.0 en silencio sin importar la
+	 * distancia real -- confirmado con un caso 10D (distancia real 5.0, distance(Point) da 0.0,
+	 * distance2(Point), que no usa crossprod(), da el 5.0 correcto). Reportado al usuario, sin
+	 * decidir si se arregla.
 	 *
 	 * 1.3 (2026_0807_1800)
 	 * normalPoint(Point): used the bilinear inner product (direction[i] with no conjugate, and
@@ -331,21 +361,48 @@ public class Line {
 	}
 	
 	/**
-	 * Calculates the minimum distance between two lines
+	 * Calculates the minimum distance between two lines, in any dimension. Parallelism is
+	 * detected via the Gram determinant det(d1,d2) = &lt;d1,d1&gt;&lt;d2,d2&gt;-|&lt;d1,d2&gt;|^2
+	 * (dotprod-based, Hermitian) -- by Cauchy-Schwarz this is exactly 0 iff d1,d2 are linearly
+	 * dependent (parallel), for any dimension, unlike the previous crossprod()-based check (only
+	 * well-founded up to 7D, Hurwitz's theorem). For non-parallel lines, the minimum distance is
+	 * the norm of the closest-approach residual v=this.point-line.point+t*d1-s*d2, where (t,s)
+	 * solve the 2x2 Hermitian least-squares system &lt;d1,v&gt;=&lt;d2,v&gt;=0 -- valid in any
+	 * dimension, unlike the previous mixedprod()-based formula (only valid in 3D).
 	 * @param line The given line
-	 * @return The minimum distance 
+	 * @return The minimum distance
 	 */
 	public double distance(Line line) {
-		double crossNorm = this.direction.crossprod(line.direction).norm();
-		boolean parallel = crossNorm <= PARALLEL_TOLERANCE * this.direction.norm() * line.direction.norm();
+		if (this.direction.dim() != line.direction.dim()) {
+			throw new IllegalArgumentException(HEADINFO + "distance: Lines must have the same dimension.");
+		}
+
+		Complex d1d1 = this.direction.dotprod(this.direction);
+		Complex d2d2 = line.direction.dotprod(line.direction);
+		Complex d1d2 = this.direction.dotprod(line.direction);
+		double gramDet = (d1d1.times(d2d2).minus(d1d2.times(d1d2.conjugate()))).rep();
+
+		boolean parallel = gramDet <= PARALLEL_TOLERANCE * d1d1.rep() * d2d2.rep();
 		if (parallel) {
 			return this.distance(line.point());
 		}
-		if (this.direction.dim() == 2 && line.direction.dim() == 2) {
-			return 0.0;
+		if (this.direction.dim() == 2) {
+			return 0.0; // two non-parallel 2D lines always intersect
 		}
-		double num = this.point.minus(line.point).mixedprod(this.direction, line.direction).abs();
-		return num/crossNorm;
+
+		VectorComplex w = this.point.minus(line.point); // P1-P2
+		Complex m11 = d1d1;
+		Complex m12 = d1d2.opposite();
+		Complex m21 = d1d2.conjugate(); // <d2,d1> = conj(<d1,d2>)
+		Complex m22 = d2d2.opposite();
+		Complex rhs1 = this.direction.dotprod(w).opposite();
+		Complex rhs2 = line.direction.dotprod(w).opposite();
+		Complex det = m11.times(m22).minus(m12.times(m21));
+		Complex t = (rhs1.times(m22).minus(m12.times(rhs2))).divides(det);
+		Complex s = (m11.times(rhs2).minus(rhs1.times(m21))).divides(det);
+
+		VectorComplex v = w.plus(this.direction.prod(t)).minus(line.direction.prod(s));
+		return v.norm();
 	}
 
 	/**

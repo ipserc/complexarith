@@ -2110,7 +2110,31 @@ A petición del usuario ("Investiga el .times(2) de convolution()"). Diseñado u
 
 `Fourier.VERSION`: `1.4→1.5`.
 
-**EXACTO PUNTO DE RETOMADA**: con esto, **todos** los hallazgos de la auditoría de `com.ipserc.arith.signal` de esta sesión quedan cerrados y arreglados (`Z.java` reescrito, `Fourier` FFT + 2 filtros + `convolution()`, `Laplace` `DLT`/`IDLT`/`CLT`, `Sigfunc.step()`). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final; `com.ipserc.arith.geom` (subpaquete) cerrado del todo en sesiones anteriores.
+**EXACTO PUNTO DE RETOMADA (previo)**: con esto, todos los hallazgos de la auditoría de `com.ipserc.arith.signal` de esta sesión quedaban cerrados y arreglados.
+
+## Decimoctava sesión, continuación — `Line.distance(Line)`, resuelto el KNOWN LIMITATION (dim>3) (7 agosto 2026)
+
+A petición del usuario ("Sigamos con com.ipserc.arith.geom.Line KNOWN LIMITATION (dim>3)") — el usuario corrigió antes una confusión mía (seguía listando `com.ipserc.arith.geom` como "candidato heredado" en el pie de cada sección aunque ya estaba cerrado; dejo de hacerlo).
+
+**El límite documentado desde VERSION 1.1**: la rama "no paralelas" de `distance(Line)` usaba el producto mixto (`mixedprod`, vía `crossprod`), solo válido matemáticamente en 3D — dejado sin resolver explícitamente por decisión del usuario en una sesión anterior.
+
+**Resuelto con mínimos cuadrados Hermitianos de propósito general**, sin depender de `crossprod()`/`mixedprod()` en absoluto:
+- **Paralelismo**: determinante de Gram `det(d1,d2) = <d1,d1><d2,d2> - |<d1,d2>|²` (vía `dotprod`, ya Hermitiano) — por Cauchy-Schwarz, es exactamente `0` si y solo si `d1`,`d2` son linealmente dependientes, válido en **cualquier** dimensión (a diferencia de `crossprod()`, solo bien fundado hasta 7D por el teorema de Hurwitz).
+- **Distancia mínima (no paralelas)**: la norma del residuo de la aproximación más cercana `v = P1-P2+t·d1-s·d2`, con `(t,s)` solución del sistema 2×2 Hermitiano `<d1,v>=<d2,v>=0` — válido en cualquier dimensión.
+- Caso especial 2D (siempre se cortan, distancia exacta `0.0`) conservado tal cual, sin pasar por el sistema general.
+
+**Verificación exhaustiva**, comparando contra el build de referencia anterior al fix (`git worktree`) y contra soluciones derivadas a mano:
+- **5 casos 3D** (reales, paralelos, dirección compleja): coinciden con la fórmula antigua a precisión de máquina.
+- **Caso 2D**: sigue dando exactamente `0.0`.
+- **Casos 4D/5D/10D** (antes lanzaban excepción, ninguno funcionaba): ahora dan el valor correcto, verificado resolviendo a mano el sistema real equivalente para cada caso — coinciden exactamente.
+- **Caso 7D**: la fórmula antigua daba `0.577` (la propia documentación ya advertía "funciona solo por coincidencia dimensional") — confirmado ahora que ese valor era **incorrecto**; la fórmula nueva da `1.732`, verificado a mano.
+- **De propina**: `TestLine01.java` pasa de `exit=1` a `exit=0` — el crash preexistente en ese test resultó deberse a que `crossprod()` tampoco funcionaba para un par genuinamente 4D-4D (sin discrepancia de dimensión entre las dos rectas; `crossprod()` delega internamente a una construcción de 7D para dims 4-7 y fallaba igualmente) — la nueva fórmula, al no depender de `crossprod()`, lo resuelve de raíz. El único caso que sigue lanzando excepción en ese test es un par auténticamente 4D-vs-7D en los propios datos del test (bug de datos preexistente, ya documentado, no relacionado) — ahora con un mensaje claro en vez del error críptico `"4 != 7"` desde dentro de `VectorComplex`. Se envolvió la llamada a `distance(Line)`/`angle(Line)` en `TestLine01.java`'s `showResults(Line,Line)` en try/catch, mismo patrón ya aplicado a `intersection()`.
+
+`Line.VERSION`: `1.3→1.4`.
+
+**Hallazgo colateral, NUEVO, sin arreglar**: `Line.distance(Point)` (y por tanto la rama "paralela" de `distance(Line)`, que delega en ella) sigue dependiendo de `crossprod()`. Para dimensión >7 (más allá incluso del propio techo de `crossprod()`), `crossprod()` cae a un vector vacío por defecto cuyo `.norm()` es `0`, así que `distance(Point)` devuelve `0.0` **en silencio** sin importar la distancia real. Confirmado con un caso 10D: distancia real `5.0`, `distance(Point)` da `0.0`; `distance2(Point)` (vía `normalPoint()`, ya arreglado a Hermitiano, no usa `crossprod()`) da el `5.0` correcto — el workaround ya existe en la clase, solo `distance(Point)` (el método "principal") queda roto para dim>7. No arreglado, pendiente de decisión del usuario.
+
+**EXACTO PUNTO DE RETOMADA**: `Line.distance(Line)` KNOWN LIMITATION **CERRADO**, arreglado y verificado, sin commitear todavía. Queda el hallazgo colateral de `distance(Point)` (dim>7) sin resolver, pendiente de decisión. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 
