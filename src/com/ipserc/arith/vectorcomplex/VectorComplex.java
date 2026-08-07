@@ -8,8 +8,23 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.10 (2026_0807_1700)";
+	private final static String VERSION = "1.11 (2026_0808_0100)";
 	/* VERSION Release Note
+	 * 1.11 (2026_0808_0100)
+	 * vectorprod(VectorComplex): resuelve el KNOWN LIMITATION de 3D-only. No es un limite
+	 * algoritmico -- por el teorema de Eckmann, un producto vectorial BINARIO genuino solo puede
+	 * existir en dimension 3 o 7 (crossprod() ya cubre el caso 7D via octoniones), asi que el
+	 * simbolo de Levi-Civita de 3 indices de este metodo no se puede generalizar sin cambiar de
+	 * operacion (a (n-1)-aria, ver vectorprodN()). Se decidio NO deprecar (~20 call-sites, sigue
+	 * siendo la operacion correcta y estandar en su alcance 3D) sino cerrar el defecto real: fuera
+	 * de 3D devolvia basura en silencio (confirmado (0,0) en 2D) en vez de fallar. Ahora lanza
+	 * IllegalArgumentException explicito si this.dim()!=3 || aVector.dim()!=3.
+	 * Verificado sin regresion: TestVectorAudit01/02 (28+9 OK), TestVector03 (vectorprod() en 3D
+	 * intacto, maxDiff=0.0 contra crossprod()). TestVector03/04/05/06 (scripts exploratorios sin
+	 * aserciones que ya llamaban a vectorprod() en 5D/6D) ahora fallan explicito en vez de
+	 * calcular basura -- comportamiento correcto, no una regresion: nunca calcularon nada
+	 * matematicamente valido ahi.
+	 *
 	 * 1.10 (2026_0807_1700)
 	 * angle(VectorComplex): fixed the same acos-domain fragility already found and removed from
 	 * Line.java's own distance(Line)/intersection(Line) (see Line.VERSION 1.1, sesion del 1 agosto)
@@ -563,23 +578,33 @@ public class VectorComplex extends MatrixComplex {
 	 * Calculates the vector product of two vectors using the (3-index) Levi-Civita symbol:
 	 * result_i = sum over j,k of epsilon_ijk * this_j * aVector_k.
 	 * <p>
-	 * <b>KNOWN LIMITATION, documented not fixed (Octava sesion, auditoria de VectorComplex.java,
-	 * Hallazgo BAJO, fase D):</b> this formula, with a fixed 3-index Levi-Civita symbol
-	 * ({@code coef} is always {@code int[3]}), is only mathematically valid in exactly 3
-	 * dimensions. Looping col1/col2/col3 up to {@code aVector.dim()} for a different dimension
-	 * does not generalize the cross product -- it silently produces garbage (e.g. {@code (0,0)}
-	 * in 2D, confirmed empirically) rather than throwing, because {@link #leviCivita(int[])}
-	 * only ever receives 3-element arrays regardless of the vector's actual dimension.
-	 * {@link #crossprod(VectorComplex)} is the correct, already-generalized vector product (up
-	 * to 7 dimensions, via the Beno Eckmann construction) and matches this method exactly in 3D
-	 * (verified). <b>Pending, at the user's explicit request:</b> generalize this formula itself
-	 * to more dimensions (i.e. an n-index Levi-Civita symbol) as part of a future mathematical
-	 * consultancy/audit pass on VectorComplex/MatrixComplex, not scoped into this bug-fixing
-	 * session.
-	 * @param aVector the vector to multiply. Only meaningful for 3-dimensional vectors.
-	 * @return the vector product, valid only when both vectors have dimension 3.
+	 * <b>SCOPE, not a defect to generalize:</b> this formula, with a fixed 3-index Levi-Civita
+	 * symbol ({@code coef} is always {@code int[3]}), is only mathematically valid in exactly 3
+	 * dimensions -- the classical, binary (2 operands in, 1 out) cross product, same scope every
+	 * other math library gives this name. By Eckmann's theorem, a genuine BINARY vector product
+	 * with the usual properties (orthogonal to both operands, magnitude {@code |u||v|sinθ}) can
+	 * only exist in dimension 3 or 7 (tied to the division algebras: quaternions/octonions) -- so
+	 * this formula's own Levi-Civita symbol cannot be widened to more indices without changing
+	 * what the method computes (from binary to {@code (n-1)}-ary, a different operation, see
+	 * {@link #vectorprodN(VectorComplex...)} below). {@link #crossprod(VectorComplex)} already
+	 * covers the 7D binary case (via the Beno Eckmann/octonion construction, not a literal
+	 * 3-index Levi-Civita symbol) and matches this method exactly in 3D (verified).
+	 * <p>
+	 * <b>KNOWN LIMITATION, resolved:</b> for any dimension other than 3 this used to silently
+	 * produce garbage (e.g. {@code (0,0)} in 2D, confirmed empirically) instead of throwing,
+	 * because {@link #leviCivita(int[])} only ever receives 3-element arrays regardless of the
+	 * vector's actual dimension. Now throws explicitly instead.
+	 * @param aVector the vector to multiply. Must be 3-dimensional, same as {@code this}.
+	 * @return the vector product.
+	 * @throws IllegalArgumentException if either vector's dimension isn't exactly 3.
 	 */
 	public VectorComplex vectorprod(VectorComplex aVector) {
+		if (this.dim() != 3 || aVector.dim() != 3) {
+			throw new IllegalArgumentException("vectorprod: only defined for 3-dimensional vectors "
+				+ "(this.dim()=" + this.dim() + ", aVector.dim()=" + aVector.dim() + ") -- see this "
+				+ "method's own Javadoc for why the formula cannot be generalized to other "
+				+ "dimensions as a binary operation; use vectorprodN(VectorComplex...) instead.");
+		}
 		int coef[] = new int[3];
 		VectorComplex result = new VectorComplex(this.dim());
 		int lc; //Levi-Civita Symbol
