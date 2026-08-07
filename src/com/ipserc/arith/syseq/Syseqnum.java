@@ -10,9 +10,23 @@ public class Syseqnum extends MatrixComplex {
 	private int numIters = -1;
 	
 	private final static String HEADINFO = "Syseqnum --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0807_1500)";
+	private final static String VERSION = "1.4 (2026_0807_1700)";
 	/* VERSION Release Note
 	 * 	Syseqnum: System Equation Solver by Numerical Methods
+	 *
+	 * 1.4 (2026_0807_1700)
+	 * genminres(): era un esqueleto sin terminar -- calculaba vectores de Arnoldi y una matriz de
+	 * Hessenberg pero nunca actualizaba xi, asi que devolvia siempre initGuess sin tocar (confirmado
+	 * en vivo con ScratchGenminresProbe01.java antes de tocar codigo). Reescrito como GMRES(m) con
+	 * reinicio completo: base de Krylov guardada en V[], h dimensionada (kry+1)xkry (antes n x n),
+	 * producto interno hermitico (V[i].adjoint(), antes v[i]^T sin conjugar -- incorrecto para
+	 * matrices genuinamente complejas), resolucion del minimo cuadrado sobre la Hessenberg via
+	 * rotaciones de Givens complejas + sustitucion hacia atras, actualizacion xi+=V*y y chequeo de
+	 * convergencia por reinicio. Tambien: el paso interno de Arnoldi aplicaba el patron de residuo
+	 * (b-A*v) en vez de aplicar el operador (A*v) -- corregido. Se quita el guard isSymmetric()
+	 * (copiado de congrad(), con el aviso al reves: GMRES no requiere matriz simetrica, para eso
+	 * existe) -- ahora triangulariza siempre, igual que jacobi()/gaussSeidel()/sucor()/symsucor().
+	 * DEBUG_ON pasa a false y los println sueltos quedan condicionados, como en el resto de la clase.
 	 *
 	 * 1.3 (2026_0807_1500)
 	 * Syseqnum(MatrixComplex matrix) y clone(): complexMatrix.clone() era un clon superficial
@@ -680,57 +694,141 @@ public class Syseqnum extends MatrixComplex {
 	
 	/**
 	 * Generalized Minimal Residual: genminres
-	 * @param initGuess
-	 * @param iterations
-	 * @return
+	 * Restarted GMRES(m): builds an orthonormal Krylov basis of dimension up to "m" via the
+	 * Arnoldi process (modified Gram-Schmidt, Hermitian inner product), solves the resulting
+	 * (usedDim+1) x usedDim upper-Hessenberg least-squares problem with complex Givens rotations,
+	 * and updates the solution. If a cycle doesn't converge, restarts the Arnoldi process from the
+	 * updated solution, up to "iterations" cycles.
+	 * @param initGuess The initial guess, broadcast to every component of the solution vector
+	 * @param m The Krylov subspace dimension used on each restart cycle (clamped internally to the system size)
+	 * @param iterations The maximum number of restart cycles
+	 * @return The solution found, or the best approximation reached if "iterations" is exhausted first
 	 */
 	public MatrixComplex genminres(Complex initGuess, int m, int iterations) {
-		final boolean DEBUG_ON = true;
-		int k = -1;
+		final boolean DEBUG_ON = false;
+		int k;
+		int offset = 0; // Extra iterations spent inside the (identity) preconditioner solves
 		solved = false;
 
-		if (!this.isSymmetric()) {
-			System.out.println(HEADINFO + "WARNING: Conjugate Gradient Method (congrad) is intended for SYMMETRIC matrices. The matrix you're using is not symmetric.");
-			System.out.println(HEADINFO + "WARNING: Trying with the upper triangle version of the original matrix");
-			MatrixComplex syseqTriang = this.copy();
-			syseqTriang = syseqTriang.triangleUp();	// Required to find a solution almost always, I don't know why. It should be studied later.
-			indTerm = syseqTriang.indMatrix();
-			unkMatrix = syseqTriang.unkMatrix();
+		MatrixComplex syseqTriang = this.copy();
+		syseqTriang = syseqTriang.triangleUp();	// Required to find a solution almost always, I don't know why. It should be studied later.
+		indTerm = syseqTriang.indMatrix();
+		unkMatrix = syseqTriang.unkMatrix();
 
-		} else {
-			indTerm = this.indMatrix();
-			unkMatrix = this.unkMatrix();
-		}
-		MatrixComplex xi = new MatrixComplex(unkMatrix.rows(), 1); 		// x[i]
-		MatrixComplex r,vi, w;
-		MatrixComplex M = new MatrixComplex(unkMatrix.rows()).eye(); 	// M starts as I, the identity matrix
-		MatrixComplex h = new MatrixComplex(unkMatrix.rows()); 			// h
+		int n = unkMatrix.rows();
+		int kry = Math.max(1, Math.min(m, n)); // Krylov subspace dimension can't exceed the system size
 
+		MatrixComplex xi = new MatrixComplex(n, 1); // x[i]
 		xi.initMatrix(initGuess.rep(), initGuess.imp());
 
+		MatrixComplex M = new MatrixComplex(n).eye(); // M starts as I, the identity matrix
+		MatrixComplex nullResidual = new MatrixComplex(n, 1);
+		nullResidual.initMatrix(0, 0);
+
 		for (k = 0; k < iterations; ++k) {
-			(indTerm.minus(unkMatrix.times(xi))).println("ESO");
-			Syseqnum Mr = new Syseqnum(M.augment(indTerm.minus(unkMatrix.times(xi))));				//r.println(HEADINFO + "ri1");
-			Mr.println("Mr");
-			r = (Mr.jacobi(initGuess, iterations)).transpose();	//zi1.println(HEADINFO + "zi1");
-			r.println("r");
-			vi = r.divides(r.euc_norm());
-			vi.println("vi");
-			for (int i = 0; i < m; ++i) {
-				Syseqnum Mw = new Syseqnum(M.augment(indTerm.minus(unkMatrix.times(vi))));
-				Mw.println("Mw");
-				w = (Mw.jacobi(vi.transpose(), iterations)).transpose();
-				//w = (Mw.jacobi(initGuess, iterations)).transpose();
-				for (int j = 0; j < i; ++j) {
-					h.setItem(j, i, (w.times(vi)).complexMatrix[0][0]);
-					w = w.minus(vi.times(h.getItem(j, i))); 
+			Syseqnum Mr = new Syseqnum(M.augment(indTerm.minus(unkMatrix.times(xi))));
+			MatrixComplex r = (Mr.jacobi(initGuess, iterations)).transpose();
+			offset += Mr.getIterations();
+			double beta = r.euc_norm();
+
+			/* -------------   DEBUGGING BLOCK   ------------- */
+			if (DEBUG_ON) {
+				System.out.println(HEADINFO + "genminres cycle:" + k + " beta:" + beta);
+			}
+			/* ------------- END DEBUGGING BLOCK ------------- */
+
+			if (beta < Complex.zero_threshold_approx()) {
+				numIters = k + offset;
+				solved = true;
+				return xi.transpose();
+			}
+
+			MatrixComplex[] V = new MatrixComplex[kry + 1]; // Orthonormal Krylov basis, one column per entry
+			MatrixComplex h = new MatrixComplex(kry + 1, kry); // Upper-Hessenberg matrix built by Arnoldi
+			V[0] = r.divides(beta);
+
+			int usedDim = kry; // Shrinks on a lucky breakdown (exact solution reached inside the Krylov space)
+			for (int j = 0; j < kry; ++j) {
+				Syseqnum Mw = new Syseqnum(M.augment(unkMatrix.times(V[j])));
+				MatrixComplex w = (Mw.jacobi(V[j].transpose(), iterations)).transpose();
+				offset += Mw.getIterations();
+
+				for (int i = 0; i <= j; ++i) {
+					Complex hij = V[i].adjoint().times(w).getItem(0, 0); // Hermitian inner product <V[i],w>
+					h.setItem(i, j, hij);
+					w = w.minus(V[i].times(hij));
 				}
-				h.setItem(i+1, i, w.euc_norm());
-				vi = w.divides(h.getItem(i+1, i));
+				double hNext = w.euc_norm();
+				h.setItem(j + 1, j, new Complex(hNext, 0));
+
+				if (hNext < Complex.zero_threshold_approx()) {
+					usedDim = j + 1;
+					break;
+				}
+				V[j + 1] = w.divides(hNext);
+			}
+
+			// Solve min||beta*e1 - H*y|| (H is (usedDim+1) x usedDim upper-Hessenberg) via successive
+			// complex Givens rotations that reduce H to upper triangular, applied to the RHS too.
+			Complex[][] R = new Complex[usedDim + 1][usedDim];
+			for (int row = 0; row <= usedDim; ++row)
+				for (int col = 0; col < usedDim; ++col)
+					R[row][col] = h.getItem(row, col);
+
+			Complex[] g = new Complex[usedDim + 1];
+			g[0] = new Complex(beta, 0);
+			for (int i = 1; i <= usedDim; ++i) g[i] = Complex.ZERO;
+
+			for (int i = 0; i < usedDim; ++i) {
+				Complex a = R[i][i];
+				Complex b = R[i + 1][i];
+				double rot = Math.hypot(a.mod(), b.mod());
+				Complex c, s;
+				if (rot < Complex.zero_threshold_approx()) {
+					c = Complex.ONE;
+					s = Complex.ZERO;
+				} else {
+					c = a.conjugate().divides(new Complex(rot, 0));
+					s = b.conjugate().divides(new Complex(rot, 0));
+				}
+				for (int col = i; col < usedDim; ++col) {
+					Complex top = R[i][col];
+					Complex bot = R[i + 1][col];
+					R[i][col] = c.times(top).plus(s.times(bot));
+					R[i + 1][col] = c.conjugate().times(bot).plus(s.conjugate().times(Complex.mONE).times(top));
+				}
+				Complex gTop = g[i];
+				Complex gBot = g[i + 1];
+				g[i] = c.times(gTop).plus(s.times(gBot));
+				g[i + 1] = c.conjugate().times(gBot).plus(s.conjugate().times(Complex.mONE).times(gTop));
+			}
+
+			// Back-substitution over the (now upper triangular) R
+			Complex[] y = new Complex[usedDim];
+			for (int i = usedDim - 1; i >= 0; --i) {
+				Complex sum = g[i];
+				for (int col = i + 1; col < usedDim; ++col) {
+					sum = sum.minus(R[i][col].times(y[col]));
+				}
+				y[i] = sum.divides(R[i][i]);
+			}
+
+			MatrixComplex update = new MatrixComplex(n, 1);
+			update.initMatrix(0, 0);
+			for (int j = 0; j < usedDim; ++j) {
+				update = update.plus(V[j].times(y[j]));
+			}
+			xi = xi.plus(update);
+
+			MatrixComplex residual = indTerm.minus(unkMatrix.times(xi));
+			if (checkConvergence(residual, nullResidual, Complex.precision())) {
+				numIters = k + 1 + offset;
+				solved = true;
+				return xi.transpose();
 			}
 		}
-		
-		numIters = k+1;
+
+		numIters = k + offset;
 		return xi.transpose();
 	}
 
