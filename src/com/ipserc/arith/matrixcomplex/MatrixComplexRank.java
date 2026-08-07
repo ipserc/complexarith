@@ -43,6 +43,16 @@ import com.ipserc.arith.complex.Complex;
 class MatrixComplexRank {
 
 	/**
+	 * Converts a combination (as produced by {@code CombinationNoReps.getCollection()}) from
+	 * {@code long[]} to the {@code int[]} row/column index array that {@code subMatrix()} expects.
+	 */
+	private static int[] toIntArray(long[] combination) {
+		int[] result = new int[combination.length];
+		for (int idx = 0; idx < combination.length; ++idx) result[idx] = (int) combination[idx];
+		return result;
+	}
+
+	/**
 	 * Calculates the rank of an array. It is not reliable for ill-conditioned matrix due to lack of precision
 	 * Kept for testing proposes
 	 * @param m The matrix.
@@ -69,11 +79,9 @@ class MatrixComplexRank {
 			rows = combinat.getCollection(tempMatrix.rows(), order);
 			cols = combinat.getCollection(tempMatrix.cols(), order);
 			for (int row = 0; row < rows.length; ++row) {
-				int[] rowsi = new int[rows[row].length];
-				for (int idx = 0; idx < rowsi.length; ++idx ) rowsi[idx] = (int)rows[row][idx];
+				int[] rowsi = toIntArray(rows[row]);
 				for (int col = 0; col < cols.length; ++col) {
-					int[] colsi = new int[cols[col].length];
-					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
+					int[] colsi = toIntArray(cols[col]);
 					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
 					MatrixComplex.trace(incrMatrix, "**************** incrMatrix");
 					MatrixComplex.trace("**************** Determinant incrMatrix:" + incrMatrix.determinant());
@@ -118,11 +126,9 @@ class MatrixComplexRank {
 			rows = combinat.getCollection(tempMatrix.rows(), order);
 			cols = combinat.getCollection(tempMatrix.cols(), order);
 			for (int row = 0; row < rows.length; ++row) {
-				int[] rowsi = new int[rows[row].length];
-				for (int idx = 0; idx < rowsi.length; ++idx ) rowsi[idx] = (int)rows[row][idx];
+				int[] rowsi = toIntArray(rows[row]);
 				for (int col = 0; col < cols.length; ++col) {
-					int[] colsi = new int[cols[col].length];
-					for (int idx = 0; idx < rowsi.length; ++idx ) colsi[idx] = (int)cols[col][idx];
+					int[] colsi = toIntArray(cols[col]);
 					incrMatrix = tempMatrix.subMatrix(rowsi, colsi);
 					MatrixComplex.trace(incrMatrix, "**************** incrMatrix");
 					MatrixComplex.trace("**************** Determinant incrMatrix:" + incrMatrix.determinant());

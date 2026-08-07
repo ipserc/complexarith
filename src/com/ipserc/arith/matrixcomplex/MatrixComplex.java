@@ -18,8 +18,21 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.54 (2026_0806_0400)";
+	private final static String VERSION = "1.55 (2026_0807_1400)";
 	/* VERSION Release Note
+	 *
+	 * 1.55 (2026_0807_1400)
+	 * MatrixComplexRank.java (rank0()/majorIL(), extracted helper): fixed a copy-paste bug found
+	 * while auditing CombinationNoReps.java -- the loop that converts each cols[] combination
+	 * from long[] to int[] used "idx < rowsi.length" instead of "idx < colsi.length". Harmless in
+	 * practice (rowsi.length always equals colsi.length, since both come from the same "order"),
+	 * but wrong by construction. Extracted the duplicated long[]->int[] conversion (4 identical
+	 * copies across rank0()/majorIL()) into a single private toIntArray(long[]) helper, at the
+	 * user's explicit request to remove the duplication rather than just patch each copy.
+	 * See CombinationNoReps.VERSION 1.1 for the 2 real findings fixed in the class this depends on
+	 * (order>grade StackOverflowError, factorial() long overflow for grade>=21) -- neither was
+	 * reachable from rank0()/majorIL() today (order<=grade always holds here, grade rarely >=21),
+	 * so this entry is the dependent no-op-verification side, not a behavior change for MatrixComplex.
 	 *
 	 * 1.54 (2026_0806_0400)
 	 * Fase 4 of the "*Eq a nivel MatrixComplex" candidate: wired the VERSION 1.53 timesEq(MatrixComplex)

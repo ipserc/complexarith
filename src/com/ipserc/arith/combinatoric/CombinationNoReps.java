@@ -5,9 +5,17 @@ import java.util.*;
 
 public class CombinationNoReps {
 	private final static String HEADINFO = "Combinatoric --- INFO: ";
-	private final static String VERSION = "1.0 (2020_0627_1130)";
+	private final static String VERSION = "1.1 (2026_0807_1300)";
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.1 (2026_0807_1300)
+	 * - factorial(int): guarda num<0 -- antes recursaba infinitamente hasta StackOverflowError
+	 *   en vez de fallar con un mensaje claro (alcanzable via numberOf() con order>grade).
+	 * - numberOf(int,int): reescrito con la formula multiplicativa iterativa (sin pasar por
+	 *   factorial()) para evitar el desbordamiento silencioso de long que ya ocurria para
+	 *   grade>=21 (confirmado: numberOf(25,1) daba 0 en vez de 25); guarda order<0||order>grade
+	 *   y grade<0 con IllegalArgumentException.
+	 *
 	 * 1.0 (2020_0627_1130)
 	 */
 
@@ -20,14 +28,19 @@ public class CombinationNoReps {
 	}
 	
 	public long factorial(int num) {
+		if (num < 0) throw new IllegalArgumentException("factorial() no esta definido para negativos: " + num);
 		long factorial;
 		if (num == 0) return 1;
 		else factorial = num * factorial(--num);
 		return factorial;
 	}
-	
+
 	public int numberOf(int grade, int order) {
-		return (int) (factorial(grade)/factorial(order)/factorial(grade-order));
+		if (grade < 0) throw new IllegalArgumentException("numberOf(): grade debe ser >= 0 (grade=" + grade + ")");
+		if (order < 0 || order > grade) throw new IllegalArgumentException("numberOf(): order debe estar en [0, grade] (grade=" + grade + ", order=" + order + ")");
+		long result = 1;
+		for (int i = 0; i < order; ++i) result = result * (grade - i) / (i + 1);
+		return (int) result;
 	}
 	
 /****************
