@@ -20,8 +20,17 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.14 (2026_0807_1600)";
+	private final static String VERSION = "1.15 (2026_0808_0130)";
 	/* VERSION Release Note
+	 * 1.15 (2026_0808_0130)
+	 * solveAberth(double): el KNOWN LIMITATION del mal condicionamiento de raices repetidas se
+	 * cierra en firme como IRRESOLUBLE dentro de aritmetica de coma flotante (antes "documented
+	 * not fixed", ahora explicito que no es un hueco a rellenar con un algoritmo mas listo -- es
+	 * un hecho matematico del problema (resultado clasico de Wilkinson), cierto para cualquier
+	 * metodo de precision finita; la deflacion ya se investigo y descarto con rigor). Solo
+	 * aritmetica exacta/simbolica lo eliminaria, un paradigma computacional distinto por completo,
+	 * fuera de alcance por arquitectura. Sin cambio de comportamiento, solo doc.
+	 *
 	 * 1.14 (2026_0807_1600)
 	 * PolynomPlot.java (todos los 11 metodos que llaman JavaPlot.plot()): a peticion del usuario,
 	 * antes de cada plot() se anade "p.setPersist(true)" + "p.getPostInit().add(\"set terminal
@@ -826,14 +835,27 @@ public class Polynom extends MatrixComplex {
 	 * itself differs (needs {@link #evalNormDerivative(Complex)}, which {@code solveWeierstrass}
 	 * doesn't).
 	 * <p>
-	 * <b>KNOWN LIMITATION, documented not fixed:</b> like every simultaneous root-finding method,
-	 * this does NOT eliminate the inherent ill-conditioning of a genuinely repeated polynomial
-	 * root (sensitivity ~{@code O(ε^(1/m))} to coefficient perturbations for a root of multiplicity
-	 * {@code m} -- a mathematical fact about repeated roots, not an algorithm defect, already
-	 * documented for Durand-Kerner in {@code Jordan.java}). When two estimates converge toward the
-	 * same repeated root, {@code z_i-z_j→0} in the Σ term above -- Aberth's method tolerates this
-	 * reasonably (doesn't diverge), but convergence to a repeated root stays slower than to a
-	 * simple one.
+	 * <b>KNOWN LIMITATION, IRRESOLUBLE within floating-point root-finding (closed for good, not
+	 * just deferred):</b> like every simultaneous root-finding method, this does NOT eliminate the
+	 * inherent ill-conditioning of a genuinely repeated polynomial root (sensitivity
+	 * ~{@code O(ε^(1/m))} to coefficient perturbations for a root of multiplicity {@code m}). This
+	 * is a property of the MATHEMATICAL PROBLEM itself (Wilkinson's classic result on repeated-root
+	 * sensitivity), true for literally any method that represents numbers in finite-precision
+	 * floating point -- not a gap this algorithm, or a better one, could close. A block-deflation
+	 * candidate (dividing out each found root's monomial to sharpen the remaining ones) was
+	 * designed and measured with a 298+295-case sweep (see {@code Claude/ComplexArithRev.md},
+	 * "Candidato de deflación de Polynom") and confirmed to trade one failure mode for a worse one
+	 * (grosser false positives) with no threshold free of that trade-off -- concrete evidence this
+	 * isn't a matter of a smarter algorithm not having been tried yet. The only way to eliminate
+	 * this ill-conditioning in principle is exact/symbolic arithmetic (rational coefficients, no
+	 * rounding) instead of floating point -- a fundamentally different computational paradigm than
+	 * this entire library, out of scope by architecture, not by omission. When two estimates
+	 * converge toward the same repeated root, {@code z_i-z_j→0} in the Σ term above -- Aberth's
+	 * method tolerates this reasonably (doesn't diverge), but convergence to a repeated root stays
+	 * slower than to a simple one. {@code Jordan.java}/{@code Eigenspace} inherit this same limit
+	 * for repeated eigenvalues (same root cause, see their own Javadoc) -- QR-with-shifts
+	 * ({@code QRSchurfactor}) improved GROUPING nearby estimates into the same eigenvalue, which is
+	 * a genuinely different problem from the root ill-conditioning documented here.
 	 * @param theprecision The precision used to identify a zero.
 	 * @return The column array with the solutions found.
 	 */

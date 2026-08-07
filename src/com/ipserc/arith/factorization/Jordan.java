@@ -10,8 +10,14 @@ import java.util.List;
 public class Jordan extends Eigenspace {
 
 	private final static String HEADINFO = "Jordan --- INFO:";
-	private final static String VERSION = "1.4 (2026_0805_1200)";
+	private final static String VERSION = "1.5 (2026_0808_0130)";
 	/* VERSION Release Note
+	 *
+	 * 1.5 (2026_0808_0130)
+	 * factorize(): el KNOWN LIMITATION heredado del buscador de raices (autovalores repetidos de
+	 * alta multiplicidad) se cierra en firme como IRRESOLUBLE dentro de aritmetica de coma
+	 * flotante -- ver Polynom.VERSION 1.15 para el argumento completo. Sin cambio de
+	 * comportamiento, solo doc.
 	 *
 	 * 1.4 (2026_0805_1200)
 	 * New private checkReconstruction(), called at the end of factorize()/factorize2(): verifies
@@ -547,16 +553,26 @@ public class Jordan extends Eigenspace {
 	 * within machine precision.
 	 * <p>
 	 * <b>Remaining, independent limitation, inherent to the eigenvalue pipeline this class builds
-	 * on, not specific to Jordan factorization:</b> the Jordan form is a classically ill-posed
-	 * computation (not a continuous function of the matrix entries -- an arbitrarily small
-	 * perturbation can change which eigenvalues are exactly equal, and therefore the whole block
-	 * structure). For a genuinely high-multiplicity eigenvalue, the root finder ({@code Polynom}/
-	 * Durand-Kerner/Aberth-Ehrlich) can numerically split it into several distinct-looking roots
-	 * close to but not exactly equal to each other, and {@link MatrixComplex#rank()}'s tolerance-
-	 * based decisions (used throughout {@link #blockSizePartition(Complex, int)}/{@link
-	 * MatrixComplex#nullspaceBasis()}) can then misjudge the true block structure. This resolves
-	 * correctly for exact/well-separated cases (confirmed with several synthetic and the one real
-	 * example available); it is not promised to resolve every arbitrarily ill-conditioned case.
+	 * on, not specific to Jordan factorization -- IRRESOLUBLE within floating-point arithmetic,
+	 * closed for good (see {@link Polynom#solveAberth(double)}'s own Javadoc for the full
+	 * argument):</b> the Jordan form is a classically ill-posed computation (not a continuous
+	 * function of the matrix entries -- an arbitrarily small perturbation can change which
+	 * eigenvalues are exactly equal, and therefore the whole block structure). For a genuinely
+	 * high-multiplicity eigenvalue, the root finder ({@code Polynom}/Durand-Kerner/Aberth-Ehrlich)
+	 * can numerically split it into several distinct-looking roots close to but not exactly equal
+	 * to each other -- an inherent {@code O(ε^(1/m))} sensitivity of the MATHEMATICAL PROBLEM
+	 * itself (Wilkinson's classic result), true of any finite-precision method, not a gap a better
+	 * algorithm could close (a deflation candidate was designed and measured with rigor, and
+	 * discarded for trading one failure mode for a worse one -- see
+	 * {@code Claude/ComplexArithRev.md}) -- and {@link MatrixComplex#rank()}'s tolerance-based
+	 * decisions (used throughout {@link #blockSizePartition(Complex, int)}/{@link
+	 * MatrixComplex#nullspaceBasis()}) can then misjudge the true block structure. QR-with-shifts
+	 * ({@code QRSchurfactor}) improved GROUPING nearby root estimates into the same eigenvalue,
+	 * which is a genuinely different problem from the root-precision one documented here. This
+	 * resolves correctly for exact/well-separated cases (confirmed with several synthetic and the
+	 * one real example available); it is not promised to resolve every arbitrarily ill-conditioned
+	 * case, and no floating-point method could promise that -- only exact/symbolic arithmetic
+	 * would, a different computational paradigm entirely, out of scope by architecture.
 	 */
 	public void factorize() {
 		int rowLen = this.rows(); 
