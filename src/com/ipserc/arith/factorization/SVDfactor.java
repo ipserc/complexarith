@@ -38,13 +38,32 @@ public class SVDfactor extends MatrixComplex {
 	private MatrixComplex cU;
 
 	private final static String HEADINFO = "SVDfactor --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0807_2359)";
+	private final static String VERSION = "1.4 (2026_0808_0200)";
 	private boolean factorized = false;
 	private boolean oriented = false;
 	private SVDmethod method = SVDmethod.NONE;
 
 
 	/* VERSION Release Note
+	 * 1.4 (2026_0808_0200)
+	 * Auditoria completa (primera vez, hasta ahora solo habia recibido el fix mecanico de aliasing
+	 * de la VERSION 1.3). Bug real encontrado y arreglado: factorizeSVD() decidia si un valor
+	 * singular era cero mirando el valor YA con la raiz cuadrada aplicada, en vez del autovalor
+	 * crudo -- sqrt() amplifica el ruido de coma flotante (sqrt(1e-16)~2.7e-8), asi que un
+	 * autovalor genuinamente cero podia dar un valor singular por encima del umbral y pasar
+	 * desapercibido. Cuando pasaba, la columna correspondiente de U o V (segun orientacion) se
+	 * quedaba en su valor inicial (cero) en vez de completarse por Gram-Schmidt -- una matriz NO
+	 * unitaria que factorized() seguia reportando como true, porque la reconstruccion U*S*V*=A
+	 * seguia "cuadrando" (un valor singular casi nulo por una columna incorrecta da un error de
+	 * reconstruccion tambien casi nulo). Ver el Javadoc de factorizeSVD() para el detalle completo
+	 * con el caso de reproduccion exacto. Verificado con una bateria de 12 casos (cuadrada/alta/
+	 * ancha, real/compleja, rango completo/deficiente, casos degenerados 1xN/Nx1) comprobando
+	 * reconstruccion Y unitariedad de U/V por separado -- el propio autochequeo factorized de la
+	 * clase no bastaba para detectar este bug. De paso: eliminados 3 metodos privados muertos
+	 * (orientMatrixLE/GT/GE, cero llamadores en todo el proyecto, solo orientMatrix() se usa) y
+	 * limpiado un comentario de clase obsoleto que describia un "truco" de sustitucion por
+	 * ZERO_THRESHOLD_R que ya no existe en el codigo actual.
+	 *
 	 * 1.3 (2026_0807_2359)
 	 * SVDfactor(MatrixComplex)/SVDfactor(MatrixComplex,SVDmethod): mismo bug de aliasing por
 	 * clone() superficial encontrado en Schurfactor/LUfactor/QRfactor esta sesion --
@@ -147,8 +166,7 @@ public class SVDfactor extends MatrixComplex {
 
 	/**
 	 * Private method. If the matrix to decompose has less rows the columns this method returns the adjoint of the matrix to do the factorization over it.
-	 * NOTA: Usamos la convencion (rowLen < colLen) para caraterizar el metodo como orinted lo que da una matriz V unitaria
-	 * Sin embargo, funcion tambien con (rowLen <= colLen) aunque la matriz unitaria es la U, con lo que U·S·V^* no deberia funcionar PERO SÍ LO HACE!!!! 
+	 * NOTA: Usamos la convencion (rowLen < colLen) para caraterizar el metodo como orinted lo que da una matriz V unitaria.
 	 * @return The adjoint matrix to decompose with the SVD factorization.
 	 */
 	private MatrixComplex orientMatrix() {
@@ -157,45 +175,6 @@ public class SVDfactor extends MatrixComplex {
 
 		MatrixComplex oMatrix = this.copy();
 		if (rowLen < colLen) {
-			oMatrix = oMatrix.adjoint();
-			oriented = true;
-		}
-		else oriented = false;
-		return oMatrix;
-	}
-
-	private MatrixComplex orientMatrixLE() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex oMatrix = this.copy();
-		if (rowLen <= colLen) {
-			oMatrix = oMatrix.adjoint();
-			oriented = true;
-		}
-		else oriented = false;
-		return oMatrix;
-	}
-
-	private MatrixComplex orientMatrixGT() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex oMatrix = this.copy();
-		if (rowLen > colLen) {
-			oMatrix = oMatrix.adjoint();
-			oriented = true;
-		}
-		else oriented = false;
-		return oMatrix;
-	}
-
-	private MatrixComplex orientMatrixGE() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		MatrixComplex oMatrix = this.copy();
-		if (rowLen >= colLen) {
 			oMatrix = oMatrix.adjoint();
 			oriented = true;
 		}
@@ -249,8 +228,10 @@ public class SVDfactor extends MatrixComplex {
 	 * V is an n × n unitary matrix over K, and
 	 * V* is the conjugate transpose of V.
 	 * [Source Wikipedia]
-	 * IMPORTANT NOTE: Sigma Matrix (S) is calculated with approximation. A trick to manage roots of value zero is used. It is an approximation and it is not correct, cause in the case of having roots equals zero, 
-	 * the algorithm substitutes zero for ZERO_THRESHOLD_R (10E-9), with this is possible calculate the U Matrix row for this root. Zero roots don't have any management in this model of SVD
+	 * Zero (rank-deficient) singular values ARE handled: the corresponding U/V columns are
+	 * completed with an orthonormal basis (Gram-Schmidt over a random seed vector) instead of
+	 * being left undefined -- see {@link #factorizeSVD()}'s own Javadoc for the zero-detection
+	 * fix (VERSION 1.4) that makes this reliable.
 	 * Algorithm source https://www.mate.unlp.edu.ar/practicas/70_18_0911201012951.pdf
 	 * Algorithm source https://www.yanivplan.com/files/SVD-from-Lay.pdf
 	 */
@@ -385,10 +366,34 @@ public class SVDfactor extends MatrixComplex {
 	 * factorizeSVD()
 	 * /home/ipserc/Documentos/eBooks/Matematicas/SVD/simetricas_y_ortogonales.pdf  (Pag. 34)
 	 * Σ (mxn): Diagonal (A'·A) eigenvalues square root matrix, augmented with zeroes as required. Eigenvals zero are included.
-	 * U (mxm): (A'·A) eigenvectors matrix. 
+	 * U (mxm): (A'·A) eigenvectors matrix.
 	 * V (nxn): Matrix V is assembled by doing the matricial product of the original oriented matrix with the column-normalized matrix U.
 	 * El unico caso en que no da matrices unitarias es cuando no tiene ningun autovector asociado a los autovalores
 	 * por ejemplo: new MatrixComplex("+5,-9,-2;-2,+5,+2;+6,+2,+4");
+	 * <p>
+	 * <b>KNOWN LIMITATION, resolved (VERSION 1.4):</b> for a rank-deficient input, the code used to
+	 * decide "is this singular value zero" by checking the value AFTER taking its square root
+	 * ({@code cSS.getItem(colV,colV).isZero()}), instead of the raw eigenvalue -- {@code sqrt()}
+	 * amplifies floating-point noise ({@code sqrt(1e-16)~2.7e-8}), so a genuinely-zero eigenvalue
+	 * (correctly caught by {@code isZero()}) could produce a singular value landing ABOVE the same
+	 * threshold and get missed. When that happened, the corresponding column of {@code cVV} (which
+	 * becomes {@code U} or {@code V} depending on orientation) was silently left at its
+	 * zero-initialized default instead of being completed via Gram-Schmidt -- a non-unitary matrix
+	 * that {@code factorized()} still reported as {@code true}, since the reconstruction check
+	 * {@code U*S*V*≈A} still held (a near-zero singular value times a wrong column contributes a
+	 * near-zero reconstruction error too). Confirmed with {@code SVDfactor.debugON()} on
+	 * {@code new MatrixComplex("1,2,3;2,4,6;1,1,1")} (rank 2): the third column of {@code cVV}
+	 * printed as an exact zero column, and {@code U^H*U} was nowhere near the identity, despite
+	 * {@code factorized()==true}. Now checks the raw eigenvalue ({@code
+	 * AATeigen.roots().getItem(colV,0).isZero()}), matching how {@link #factorizeREDUCED()} already
+	 * did it correctly; also stops writing the noisy {@code sqrt()} value into {@code cSS} for a
+	 * zero eigenvalue (left at its exact-zero default instead), since otherwise the completed
+	 * orthonormal column still carried a small nonzero singular value, reintroducing a smaller
+	 * version of the same reconstruction error. Verified with a 12-case battery (square/tall/wide,
+	 * real/complex, full-rank/rank-deficient, degenerate 1xN/Nx1) checking reconstruction AND
+	 * unitarity of U/V independently -- not just the class's own {@code factorized} self-check,
+	 * which is exactly what missed this bug. 10 repeated runs on the same rank-deficient case
+	 * (the random-vector completion path) confirmed the fix isn't just lucky on one draw.
 	 */
 	private void factorizeSVD() {
 		final String METH_NAME = "factorizeSVD()";
@@ -453,7 +458,13 @@ public class SVDfactor extends MatrixComplex {
 		cSS = new MatrixComplex(rowLen, colLen);
 		for (int i = 0; i < colLen; ++i) {
 			Complex root = AATeigen.roots().getItem(i,0);
-			cSS.complexMatrix[i][i] = root.power(0.5);
+			// Leave this diagonal entry at its default exact 0 (not sqrt(root)) when the raw
+			// eigenvalue is zero -- sqrt() amplifies floating-point noise (sqrt(1e-16)~1e-8),
+			// so writing root.power(0.5) here for a "zero" eigenvalue would leave a small but
+			// nonzero value in a slot that should be exactly 0, producing a reconstruction
+			// residual of that same magnitude. Same fix rationale as the cVV loop below; matches
+			// how factorizeREDUCED() already builds its own cSS.
+			if (!root.isZero()) cSS.complexMatrix[i][i] = root.power(0.5);
 		}
 		
 		// Seccion de calculo de la Matriz U {nxn}
@@ -543,7 +554,11 @@ public class SVDfactor extends MatrixComplex {
 		cVV = new MatrixComplex(rowLen, rowLen);
 		int colV;
 		for (colV = 0; colV < colLen; ++colV) {
-			if (cSS.getItem(colV, colV).isZero()) break;
+			// Check the RAW eigenvalue for zero-ness, not the already-square-rooted singular value
+			// in cSS: sqrt() amplifies small numbers (sqrt(1e-16)~1e-8), so a genuinely-zero
+			// eigenvalue (correctly caught by isZero()) can produce a singular value that lands
+			// ABOVE the same threshold and is missed -- see this method's own Javadoc.
+			if (AATeigen.roots().getItem(colV, 0).isZero()) break;
 			cVV.copyCol(colV, (aMatrix.times(cUU.getCol(colV))).divides(cSS.getItem(colV, colV)), 0);
 		}
 		/* */
