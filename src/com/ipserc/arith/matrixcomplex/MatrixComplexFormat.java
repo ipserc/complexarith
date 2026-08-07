@@ -64,6 +64,14 @@ class MatrixComplexFormat {
 	 * Private method that presents the matrix enclosed in brackets.
 	 * Each line corresponds to a row of the array.
 	 * The columns are separated by commas.
+	 * <p>
+	 * Every item is right-padded to the width of the single longest item's string representation
+	 * across the WHOLE matrix (not per-column) -- a peticion del usuario (8 agosto 2026), para que
+	 * la presentacion salga "cuadrada": todas las celdas del mismo ancho, columnas apiladas en la
+	 * misma posicion en cada fila, sin necesidad de que el terminal use una fuente monoespaciada
+	 * distinta por columna. Un ancho por columna habria desperdiciado menos espacio en columnas de
+	 * numeros pequenos junto a columnas de numeros grandes, pero no habria dado una cuadricula
+	 * uniforme -- ver el hilo de la conversacion para la decision explicita.
 	 * @param m The matrix.
 	 * @return The string representation of the matrix.
 	 */
@@ -71,13 +79,21 @@ class MatrixComplexFormat {
 		if (m.isEmpty()) return "[]";
 		int rowLen = m.rows();
 		int colLen = m.cols();
+
+		String[][] itemStrs = new String[rowLen][colLen];
+		int width = 0;
+		for (int row = 0; row < rowLen; ++row) {
+			for (int col = 0; col < colLen; ++col) {
+				itemStrs[row][col] = m.complexMatrix[row][col].toString();
+				width = Math.max(width, itemStrs[row][col].length());
+			}
+		}
+
 		String toString = new String();
-		String itemStr;
 		for (int row = 0; row < rowLen; ++row) {
 			toString += "[ ";
 			for (int col = 0; col < colLen; ++col) {
-				itemStr = m.complexMatrix[row][col].toString();
-				toString += itemStr;
+				toString += String.format("%" + width + "s", itemStrs[row][col]);
 				toString += (col == colLen-1 ? " ]" : " , ");
 			}
 			toString += (row == rowLen-1 ? "" : "\n");

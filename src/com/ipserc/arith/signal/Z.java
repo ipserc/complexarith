@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
 import com.ipserc.chronometer.*;
 import com.panayotis.gnuplot.JavaPlot;
 
@@ -691,33 +692,16 @@ public class Z extends MatrixComplex {
 	 * @param title The title of the graphic.
 	 * @param data The points to be plotted.
 	 * @param showIm If true plots the imaginary part in the graphic.
+	 * <p>
+	 * Delegates to {@link MatrixComplexPlot#plot(String, int, MatrixComplex, boolean,
+	 * MatrixComplexPlot.e_lineStyle)} (8 agosto 2026) -- this method used to carry its own,
+	 * byte-for-byte identical copy of that logic (also duplicated in {@code Fourier}/{@code
+	 * Laplace}). This class's own {@code e_lineStyle} keeps its exact public signature; only the
+	 * implementation moved, converted to {@code MatrixComplexPlot.e_lineStyle} at the boundary.
 	 */
 	private void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
-		//Split the data into Re and Im parts
-		double dataRe[][]  = new double[nbrSamples][2];
-		double dataIm[][]  = new double[nbrSamples][2];
-
-		for (int t = 0; t < nbrSamples ; ++t) {
-			dataRe[t][0] = data.complexMatrix[0][t].rep();
-			dataIm[t][0] = data.complexMatrix[0][t].rep();
-			dataRe[t][1] = data.complexMatrix[1][t].rep();
-			dataIm[t][1] = data.complexMatrix[1][t].imp();
-		}
-
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(title);
-		p.addPlot(dataRe);
-		if (showIm) p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
+		MatrixComplexPlot.plot(title, nbrSamples, data, showIm,
+			lineStyle == e_lineStyle.IMPULSES ? MatrixComplexPlot.e_lineStyle.IMPULSES : MatrixComplexPlot.e_lineStyle.LINES);
 	}
 
 	public void plotFunction(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {

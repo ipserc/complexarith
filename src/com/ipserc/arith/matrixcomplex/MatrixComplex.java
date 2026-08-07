@@ -18,8 +18,26 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.58 (2026_0808_0000)";
+	private final static String VERSION = "1.59 (2026_0808_0300)";
 	/* VERSION Release Note
+	 *
+	 * 1.59 (2026_0808_0300)
+	 * A peticion del usuario, 2 cambios:
+	 * (1) Nueva clase MatrixComplexPlot (publica, no package-private como el resto de las
+	 * extracciones de esta reestructuracion, porque Fourier/Laplace/Z -- paquete distinto -- la
+	 * llaman): recoge plot(String,int,MatrixComplex,boolean,e_lineStyle) y setLineStyle(), que
+	 * Fourier/Laplace/Z llevaban cada una por triplicado (copia byte a byte); y doPlot(), movido
+	 * desde MatrixComplexFunctions (el plot de desviacion usado en los bucles de convergencia
+	 * Taylor/Mercator). Fourier/Laplace/Z mantienen su propio enum e_lineStyle y su firma publica
+	 * intacta -- solo la implementacion delega, convirtiendo el enum en la frontera. Alcance
+	 * deliberadamente acotado a lo genuinamente duplicado; los metodos de plot especificos de cada
+	 * clase (plotFunction/plotSamples/plotDFTxxx/plotDLTxxx/plotZTxxx, que leen estado privado
+	 * propio) se quedan donde estaban, ampliacion aplazada a peticion del usuario.
+	 * (2) MatrixComplexFormat.toString(): cada celda se rellena ahora al ancho del item mas largo
+	 * de TODA la matriz (no por columna), para que la presentacion salga "cuadrada" -- todas las
+	 * columnas quedan apiladas en la misma posicion en cada fila.
+	 * Verificado sin regresion: TestQRSchur01 (9/9), TestSVD*, TestVectorAudit01 (28/28),
+	 * TestJordanAudit01 (3/3), TestLogmAudit01 (15/15), TestTaylorSeries05/08 (sin fallo).
 	 *
 	 * 1.58 (2026_0808_0000)
 	 * MatrixComplexFunctions.sqrtTriangular(): el caso limite documentado (bloque nilpotente de

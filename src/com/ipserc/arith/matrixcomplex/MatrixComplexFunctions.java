@@ -14,10 +14,13 @@ import com.ipserc.arith.factorization.Schurfactor;
  * {@code Claude/ComplexArithRev.md}) -- same pattern as {@code MatrixComplexFormat} (Etapa 1):
  * every method here is {@code static}, takes the {@link MatrixComplex} instance as an explicit
  * parameter, and reads it only through already-public members plus {@code MatrixComplex}'s debug
- * helpers ({@code trace(...)}, {@code doPlot()}, widened from {@code private} to package-private
- * for this exact purpose) and {@code __log10__} (widened the same way). {@code MatrixComplex.java}'s
- * own public methods keep their exact signatures, delegating to these in one line each -- the
- * public API is unchanged.
+ * helper {@code trace(...)} (widened from {@code private} to package-private for this exact
+ * purpose) and {@code __log10__} (widened the same way). The convergence-deviation plot used by
+ * the Taylor/Mercator loops now delegates to {@link MatrixComplexPlot#doPlot(String, double[][],
+ * int)} (8 agosto 2026, moved there to deduplicate against {@code Fourier}/{@code Laplace}/{@code
+ * Z}'s own plotting code -- see that class's Javadoc). {@code MatrixComplex.java}'s own public
+ * methods keep their exact signatures, delegating to these in one line each -- the public API is
+ * unchanged.
  */
 class MatrixComplexFunctions {
 
@@ -822,7 +825,7 @@ class MatrixComplexFunctions {
 						System.out.println("- - - DEBUG · Iteration:"+ k +" - The logarithm is divergent");
 						System.out.println("- - - DEBUG · accumulator:" + accumulator);
 						System.out.println("- - - DEBUG · last deviation:" + deviation);
-						doPlot("-- DEVIATION --", dataTable, --c);
+						MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
 					}
 					/* */
 					throw new IllegalArgumentException("logTaylor: The Taylor series log(1-x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
@@ -856,7 +859,7 @@ class MatrixComplexFunctions {
 			System.out.println("- - - DEBUG · Iterations to converge:" + k);
 			System.out.println("- - - DEBUG · accumulator:" + accumulator);
 			System.out.println("- - - DEBUG · last deviation:" + deviation);
-			doPlot("-- DEVIATION --", dataTable, --c);
+			MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
 		}
 		/* */
 
@@ -965,7 +968,7 @@ class MatrixComplexFunctions {
 					if (MatrixComplex.debug()) {
 						MatrixComplex.trace("Iteration:"+ k +" - The logarithm is divergent");
 						MatrixComplex.trace("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable, --c);
+						MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
 					}
 					throw new IllegalArgumentException("logMercator: The Mercator series log(1+x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
 				}
@@ -986,7 +989,7 @@ class MatrixComplexFunctions {
 		if (MatrixComplex.debug()) {
 			MatrixComplex.trace("Iterations to converge:" + k);
 			MatrixComplex.trace("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable, --c);
+			MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
 		}
 		return logMatrix.plusMat(Math.log(factor));
 	}
@@ -1042,7 +1045,7 @@ class MatrixComplexFunctions {
 					if (MatrixComplex.debug()) {
 						MatrixComplex.trace("Iteration:"+ k +" - The logarithm is divergent");
 						MatrixComplex.trace("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable, --c);
+						MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
 					}
 					throw new IllegalArgumentException("logHat: The Hyperbolic Arc Tangent series is divergent for this matrix.");
 				}
@@ -1053,7 +1056,7 @@ class MatrixComplexFunctions {
 		if (MatrixComplex.debug()) {
 			MatrixComplex.trace("Iterations to converge:" + k);
 			MatrixComplex.trace("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable, --c);
+			MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
 		}
 		return sumMat;
 	}
@@ -1254,7 +1257,7 @@ class MatrixComplexFunctions {
 					if (MatrixComplex.debug()) {
 						MatrixComplex.trace("logm(): Mercator series iteration:" + k + " - unexpectedly divergent after scaling");
 						MatrixComplex.trace("accumulator:" + accumulator);
-						doPlot("-- DEVIATION --", dataTable, --c);
+						MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
 					}
 					throw new IllegalArgumentException(
 						"logm: the Mercator series failed to converge even after scaling close to identity.");
@@ -1265,7 +1268,7 @@ class MatrixComplexFunctions {
 		if (MatrixComplex.debug()) {
 			MatrixComplex.trace("logm(): Mercator iterations to converge:" + k);
 			MatrixComplex.trace("accumulator:" + accumulator);
-			doPlot("-- DEVIATION --", dataTable, --c);
+			MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
 		}
 
 		/* undo the scaling: log(T) = 2^s * log(S) */
@@ -1418,29 +1421,6 @@ class MatrixComplexFunctions {
 	 */
 	static MatrixComplex logbase(MatrixComplex m, MatrixComplex baseMat) {
 		return log(m).divides(log(baseMat));
-	}
-
-	/**
-	 * Private method to plot a table (moved here from GENERAL PORPOUSE METHODS -- all 8 of its
-	 * call sites are in this class). Used to bring more info at debug.
-	 * @param dataTable the table to plot
-	 */
-	private static void doPlot(String Title, double[][] dataTable, int dataLen) {
-		if (!MatrixComplex.doPlot()) return;
-		//Plot the data
-		com.panayotis.gnuplot.JavaPlot p = new com.panayotis.gnuplot.JavaPlot();
-		p.setTitle(Title);
-		double[][] fullDataTable = new double[dataLen][2];
-		for (int i = 0; i < dataLen; ++i) fullDataTable[i] = dataTable[i];
-		p.addPlot(fullDataTable);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
 	}
 
 }
