@@ -16,8 +16,30 @@ public class Plane {
 	private Point point;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0801_1530)";
+	private final static String VERSION = "1.3 (2026_0807_1330)";
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0807_1330)
+	 * Audit of com.ipserc.arith.geom (ver Claude/ComplexArithRev.md), continuacion de la sesion
+	 * anterior. Plane(VectorComplex,Point)/Plane(String,String)/Plane(VectorComplex,VectorComplex,
+	 * Point)/Plane(String,String,String) tenian el mismo patron de "sentinela muerto" ya arreglado
+	 * en distance(Point)/intersection(Plane) (ver 1.1/1.2 abajo): construian un VectorComplex(0)
+	 * para senalizar "dimensiones incompatibles", que ahora lanza excepcion antes de llegar al
+	 * mensaje informativo propio, dejandolo muerto. Las 4 ahora lanzan IllegalArgumentException
+	 * directamente con su mensaje.
+	 * intersection(Line): el caso "sin interseccion" (recta paralela al plano) devolvia new Point(0)
+	 * como sentinela -- pero Point(int dim) tenia un bug de raiz (ver Point.VERSION 1.1) que le
+	 * sumaba una columna de mas, asi que ese sentinela nunca llegaba a reportar dim()==0 (daba 1),
+	 * inutilizable por cualquier caller que quisiera detectar "sin interseccion" comprobando la
+	 * dimension. Ahora lanza IllegalArgumentException, mismo patron ya usado en
+	 * intersection(Plane)/distance(Point).
+	 * Colateral del fix de Point(int dim) (Point.VERSION 1.1): Plane(VectorComplex,VectorComplex,
+	 * Point)/Plane(String,String,String) construian this.point con new Point(this.normal.dim()) y
+	 * copiaban solo point.dim() coordenadas -- con el bug de Point(int), eso dejaba una coordenada
+	 * final sin copiar (basura/cero) en this.point, una dimension de mas que el resto del plano.
+	 * Confirmado que rompia generalEq() con una excepcion de dimension-mismatch real
+	 * (this.normal.dim() columnas vs this.point.dim() contaminado). Arreglado automaticamente al
+	 * corregir Point(int dim), sin tocar Plane.java en este punto.
 	 *
 	 * 1.2 (2026_0801_1530)
 	 * intersection(Plane): the parallelism guard was inverted -- Math.cos(angle)!=0.0 detects
@@ -86,14 +108,11 @@ public class Plane {
 	 * @param point A point of the plane as Point
 	 */
 	public Plane(VectorComplex normal, Point point) {
+		if (normal.dim() != point.dim()) {
+			throw new IllegalArgumentException(HEADINFO + "Normal vector and point must have the same dimension.");
+		}
 		this.normal = normal;
 		this.point = point;
-		if (this.normal.dim() != point.dim()) {
-			this.normal = new VectorComplex(0);
-			this.point = new Point(0);
-			System.err.println(HEADINFO + "Normal vector and point must have the same dimension.");
-			return;
-		}		
 	}
 	
 	/**
@@ -103,13 +122,10 @@ public class Plane {
 	 */
 	public Plane(String sNormal, String sPoint) {
 		this.normal = new VectorComplex(sNormal);
-		this.point = new Point(sPoint);		
+		this.point = new Point(sPoint);
 		if (normal.dim() != point.dim()) {
-			this.normal = new VectorComplex(0);
-			this.point = new Point(0);
-			System.err.println(HEADINFO + "Normal vector and point must have the same dimension.");
-			return;
-		}		
+			throw new IllegalArgumentException(HEADINFO + "Normal vector and point must have the same dimension.");
+		}
 	}
 	
 	/**
@@ -120,11 +136,8 @@ public class Plane {
 	 */
 	public Plane(VectorComplex v1, VectorComplex v2, Point point) {
 		if ((v1.dim() != v2.dim()) || (v1.dim() != point.dim()) || (v2.dim() != point.dim())) {
-			this.normal = new VectorComplex(0);
-			this.point = new Point(0);
-			System.err.println(HEADINFO + "Both vectors and point must have the same dimension.");
-			return;
-		}		
+			throw new IllegalArgumentException(HEADINFO + "Both vectors and point must have the same dimension.");
+		}
 		this.normal = v1.crossprod(v2);
 		this.point = new Point(this.normal.dim());
 		this.point.initMatrix(0, 0);
@@ -144,11 +157,8 @@ public class Plane {
 		VectorComplex v2 = new VectorComplex(sV2);
 		Point point = new Point(sPoint);
 		if ((v1.dim() != v2.dim()) || (v1.dim() != point.dim()) || (v2.dim() != point.dim())) {
-			this.normal = new VectorComplex(0);
-			this.point = new Point(0);
-			System.err.println(HEADINFO + "Both vectors and point must have the same dimension.");
-			return;
-		}		
+			throw new IllegalArgumentException(HEADINFO + "Both vectors and point must have the same dimension.");
+		}
 		this.normal = v1.crossprod(v2);
 		this.point = new Point(this.normal.dim());
 		this.point.initMatrix(0, 0);
@@ -436,8 +446,9 @@ public class Plane {
 	 * @return The intersection point as Point
 	 */
 	public Point intersection(Line line) {
-		// **** if (this.normal.dotprod(line.direction()).equalsred(0,0)) return new Point(0);
-		if (this.normal.dotprod(line.direction()).equals(0,0)) return new Point(0);
+		if (this.normal.dotprod(line.direction()).equals(0,0)) {
+			throw new IllegalArgumentException(HEADINFO + "intersection: Line is parallel to the plane, no intersection point exists.");
+		}
 		VectorComplex vectorP1 = new VectorComplex();
 		VectorComplex vectorP2 = new VectorComplex();
 		vectorP1.complexMatrix = this.point.complexMatrix;

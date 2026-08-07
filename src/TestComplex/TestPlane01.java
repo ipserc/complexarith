@@ -28,7 +28,11 @@ public class TestPlane01 {
 		System.out.printf("Angulo recta plano:%f\n", planeA.angle(lineA));
 		System.out.printf("Angulo recta plano:%f\n", Math.toDegrees(planeA.angle(lineA)));
 		System.out.printf("Angulo recta plano:%s\n", Complex.rad_DMS(planeA.angle(lineA)));
-		planeA.intersection(lineA).println("Intersección recta con plano: ");
+		try {
+			planeA.intersection(lineA).println("Intersección recta con plano: ");
+		} catch (IllegalArgumentException excp) {
+			System.out.println("Intersección recta con plano: " + excp.getMessage());
+		}
 	}
 
 	public static void showResults(Plane planeA, Plane planeB) {

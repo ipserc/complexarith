@@ -26,10 +26,14 @@ public class TestLine01 {
 		System.out.println(Complex.boxTextRandom(boxSize, "Two Line Test"));
 		lineA.println("line A:");
 		lineB.println("line B:");
-		System.out.printf("distance lineA lineB:%f\n", lineA.distance(lineB));	
+		System.out.printf("distance lineA lineB:%f\n", lineA.distance(lineB));
 		System.out.printf("Angle lineA lineB:%f\n", lineA.angle(lineB));
 		System.out.printf("Angle lineA lineB:%s\n", Complex.rad_DMS(lineA.angle(lineB)));
-		lineA.intersection(lineB).println("Intersection:");
+		try {
+			lineA.intersection(lineB).println("Intersection:");
+		} catch (IllegalArgumentException excp) {
+			System.out.println("Intersection: " + excp.getMessage());
+		}
 	}
 
 	public static void showResults(Point pointA, Point pointB) {

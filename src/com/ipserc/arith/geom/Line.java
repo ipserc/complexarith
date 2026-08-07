@@ -8,9 +8,35 @@ public class Line {
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.1 (2026_0801_1530)";
+	private final static String VERSION = "1.2 (2026_0807_1330)";
 	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0807_1330)
+	 * Audit of com.ipserc.arith.geom (ver Claude/ComplexArithRev.md), continuacion de la sesion
+	 * anterior. intersection(Line) tenia dos bugs reales, no cubiertos por el KNOWN LIMITATION de
+	 * distance(Line) de arriba (que documentaba solo la rama "no paralelas"):
+	 * (1) el caso paralelo no se detectaba en absoluto -- devolvia en silencio el punto (this.point
+	 * + this.direction*0), es decir this.point sin mover, disfrazado de "interseccion" (confirmado
+	 * con el propio par de datos paralelos de TestLine01.java). Ahora lanza IllegalArgumentException,
+	 * mismo patron ya usado en distance(Line)/Plane.intersection(Plane).
+	 * (2) la formula resolvia el sistema 2x2 con las componentes 0 y 1 fijas (regla de Cramer 2D) y
+	 * nunca comprobaba que el punto resultante estuviera tambien en la otra recta -- para rectas
+	 * cruzadas (skew) en 3D+ (el caso generico, no un borde raro) devolvia con confianza un punto que
+	 * no esta en ninguna de las dos rectas. Reescrito: busca el par de coordenadas con el menor 2x2
+	 * mejor condicionado (mayor determinante) entre las dos direcciones -- funciona en cualquier
+	 * dimension sin depender de crossprod()/mixedprod() (limitados a 3D, ver nota de 1.1) -- y valida
+	 * el candidato contra distance(Point) antes de devolverlo; si no esta sobre la otra recta, lanza
+	 * IllegalArgumentException ("skew lines") en vez de devolver un resultado incorrecto.
+	 * Ademas: Line(VectorComplex,Point)/Line(String,String)/Line(Point,Point) tenian el mismo patron
+	 * de "sentinela muerto" ya identificado y arreglado en Plane.distance()/Plane.intersection(Plane)
+	 * la sesion anterior -- construian un VectorComplex(0) para senalizar "dimensiones incompatibles",
+	 * pero VectorComplex(0) ahora lanza excepcion antes de llegar al mensaje informativo propio,
+	 * dejandolo muerto. Las 3 ahora lanzan IllegalArgumentException directamente con su mensaje.
+	 * line(String,String) (metodo de instancia, cero llamadores en el proyecto) se elimina: ademas de
+	 * heredar el mismo bug (llamaba a new Line(0), que siempre lanzaba antes de mirar los argumentos),
+	 * su propia logica estaba rota de forma independiente -- mutaba "this" pero devolvia un objeto
+	 * "line" local sin poblar, vestigial desde antes de que existiera el constructor Line(Point,Point).
 	 *
 	 * 1.1 (2026_0801_1530)
 	 * distance(Line)/intersection(Line): parallelism was detected by comparing an acos-derived
@@ -79,14 +105,11 @@ public class Line {
 	 * @param point Point The point
 	 */
 	public Line(VectorComplex direction, Point point) {
+		if (direction.dim() != point.dim()) {
+			throw new IllegalArgumentException(HEADINFO + "Direction vector and point must have the same dimension.");
+		}
 		this.direction = direction;
 		this.point = point;
-		if (direction.dim() != point.dim()) {
-			this.direction = new VectorComplex(0);
-			this.point = new Point(0);
-			System.err.println(HEADINFO + "Direction vector and point must have the same dimension.");
-			return;
-		}		
 	}
 
 	/**
@@ -98,12 +121,9 @@ public class Line {
 		this.direction = new VectorComplex(sDirection);
 		this.point = new Point(sPoint);
 		if (direction.dim() != point.dim()) {
-			this.direction = new VectorComplex(0);
-			this.point = new Point(0);
-			System.err.println(HEADINFO + "Direction vector and point must have the same dimension.");
-			return;
-		}		
-	}	
+			throw new IllegalArgumentException(HEADINFO + "Direction vector and point must have the same dimension.");
+		}
+	}
 	
 	/**
 	 * Instantiates a line from two points
@@ -111,39 +131,13 @@ public class Line {
 	 * @param pointB Point The point B
 	 */
 	public Line(Point pointA, Point pointB) {
-		if (pointA.dim() == pointB.dim()) {
-			//this.direction.complexMatrix = pointB.minus(pointA).complexMatrix;
-			this.direction = pointB.minus(pointA);
-			this.point = pointA;
+		if (pointA.dim() != pointB.dim()) {
+			throw new IllegalArgumentException(HEADINFO + "Both points must have the same dimension.");
 		}
-		else {
-			this.direction = new VectorComplex(0);
-			this.point = new Point(0);
-			System.err.println(HEADINFO + "Both points must have the same dimension.");
-		}
+		this.direction = pointB.minus(pointA);
+		this.point = pointA;
 	}
-	
-	/**
-	 * Instantiates a line from two points in string representation
-	 * @param sPointA The point A in string format
-	 * @param sPointB The point B in string format
-	 * @return The Line object
-	 */
-	public Line line(String sPointA, String sPointB) {
-		Point pointA = new Point(sPointA); 
-		Point pointB = new Point(sPointB); 
-		Line line = new Line(0);
-		if (pointA.dim() == pointB.dim()) {
-			//Line line = new Line(pointA.dim());
-			this.direction.complexMatrix = pointB.minus(pointA).complexMatrix;
-			this.point = pointA;
-		}
-		else {
-			System.err.println(HEADINFO + "Both points must have the same dimension.");
-		}
-		return line;
-	}
-	
+
 	/*
 	 * ***********************************************
 	 * GETTERS
@@ -342,23 +336,60 @@ public class Line {
 	}
 
 	/**
-	 * Calculates the intersection between two lines
+	 * Calculates the intersection between two lines. Solves the 2-unknown (t1,t2) linear system
+	 * this.point+t1*this.direction = line.point+t2*line.direction using the best-conditioned pair
+	 * of coordinates (largest 2x2 minor of the two direction vectors), then validates the
+	 * candidate point against ALL coordinates via the existing distance(Point) -- this generalizes
+	 * correctly to any dimension, since it never relies on crossprod()/mixedprod() (which, per the
+	 * KNOWN LIMITATION documented above for distance(Line), are only well-founded in 3D).
 	 * @param line The given line
 	 * @return The point of intersection
+	 * @throws IllegalArgumentException if the lines have different dimensions, are parallel (no
+	 * unique intersection, whether distinct or coincident), or are skew (non-parallel but with no
+	 * common point).
 	 */
 	public Point intersection(Line line) {
-		Point intersection = new Point(this.direction.dim()-1);
+		if (this.direction.dim() != line.direction.dim() || this.point.dim() != line.point.dim()) {
+			throw new IllegalArgumentException(HEADINFO + "intersection: Lines must have the same dimension.");
+		}
+
 		double crossNorm = this.direction.crossprod(line.direction).norm();
 		boolean parallel = crossNorm <= PARALLEL_TOLERANCE * this.direction.norm() * line.direction.norm();
-		if (!parallel) {
-			Complex t1 = (this.point.complexMatrix[0][1].minus(line.point.complexMatrix[0][1]).times(line.direction.complexMatrix[0][0]));
-			t1 = t1.minus(this.point.complexMatrix[0][0].minus(line.point.complexMatrix[0][0]).times(line.direction.complexMatrix[0][1]));
-			t1 = t1.divides((this.direction.complexMatrix[0][0].times(line.direction.complexMatrix[0][1])).
-					  minus((this.direction.complexMatrix[0][1].times(line.direction.complexMatrix[0][0]))));
-			for (int i = 0; i < this.point.dim(); ++i) {
-				intersection.complexMatrix[0][i] = this.point.complexMatrix[0][i].plus(this.direction.complexMatrix[0][i].times(t1));
-			}			
+		if (parallel) {
+			throw new IllegalArgumentException(HEADINFO + "intersection: Lines are parallel, no unique intersection point exists.");
 		}
-		return intersection;
+
+		int dim = this.direction.dim();
+		int idxI = -1, idxJ = -1;
+		Complex det = new Complex(0);
+		double bestMod = 0;
+		for (int i = 0; i < dim; ++i) {
+			for (int j = i+1; j < dim; ++j) {
+				Complex candidateDet = this.direction.complexMatrix[0][i].times(line.direction.complexMatrix[0][j])
+						.minus(this.direction.complexMatrix[0][j].times(line.direction.complexMatrix[0][i]));
+				if (candidateDet.mod() > bestMod) {
+					bestMod = candidateDet.mod();
+					idxI = i;
+					idxJ = j;
+					det = candidateDet;
+				}
+			}
+		}
+		// Unreachable: two non-parallel direction vectors always have at least one non-zero 2x2 minor.
+		if (idxI < 0) {
+			throw new IllegalArgumentException(HEADINFO + "intersection: Unable to solve for the intersection parameter.");
+		}
+
+		Complex t1 = (this.point.complexMatrix[0][idxJ].minus(line.point.complexMatrix[0][idxJ])).times(line.direction.complexMatrix[0][idxI]);
+		t1 = t1.minus((this.point.complexMatrix[0][idxI].minus(line.point.complexMatrix[0][idxI])).times(line.direction.complexMatrix[0][idxJ]));
+		t1 = t1.divides(det);
+
+		Point candidate = this.point(t1);
+		double residual = line.distance(candidate);
+		double scale = Math.max(this.direction.norm(), line.direction.norm());
+		if (residual > PARALLEL_TOLERANCE * scale) {
+			throw new IllegalArgumentException(HEADINFO + "intersection: Lines do not intersect (skew lines).");
+		}
+		return candidate;
 	}
 }
