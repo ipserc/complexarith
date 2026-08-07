@@ -1416,6 +1416,10 @@ class MatrixComplexFunctions {
 		p.set("zeroaxis", "");
 		p.set("style","data lines");
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 

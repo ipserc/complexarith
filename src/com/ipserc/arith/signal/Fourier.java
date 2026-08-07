@@ -34,8 +34,14 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.5 (2026_0807_2100)";
+	private final static String VERSION = "1.6 (2026_0807_1600)";
 	/* VERSION Release Note
+	 *
+	 * 1.6 (2026_0807_1600)
+	 * All 6 plot()-calling methods: a peticion del usuario, antes de cada "p.plot()" se anade
+	 * "p.setPersist(true)" + "p.getPostInit().add(\"set terminal windows\")" -- evita que la ventana
+	 * de gnuplot se quede congelada al hacer zoom. Ver Polynom.VERSION 1.14 para el detalle completo
+	 * y el resto de ficheros con el mismo parche.
 	 *
 	 * 1.5 (2026_0807_2100)
 	 * convolution(): tenia un ".times(2)" incondicional sobre cada muestra de salida, con un
@@ -599,6 +605,10 @@ public class Fourier extends MatrixComplex {
 		//p.set("style","data lines");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 
@@ -647,6 +657,10 @@ public class Fourier extends MatrixComplex {
 		//p.set("style","data lines");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 
@@ -685,6 +699,10 @@ public class Fourier extends MatrixComplex {
 		//p.set("style","data lines");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 
@@ -724,6 +742,10 @@ public class Fourier extends MatrixComplex {
 		//p.set("style","data lines");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 
@@ -1452,6 +1474,10 @@ public class Fourier extends MatrixComplex {
 		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
 		if (logscale) p.set("logscale", "y");
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 		
@@ -1503,6 +1529,10 @@ public class Fourier extends MatrixComplex {
 		p.set("style", setLineStyle(lineStyle));
 		if (logscale) p.set("logscale", "y");
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 

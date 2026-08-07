@@ -18,8 +18,14 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.56 (2026_0807_1500)";
+	private final static String VERSION = "1.57 (2026_0807_1600)";
 	/* VERSION Release Note
+	 *
+	 * 1.57 (2026_0807_1600)
+	 * MatrixComplexFunctions.doPlot(): a peticion del usuario, antes de "p.plot()" se anade
+	 * "p.setPersist(true)" + "p.getPostInit().add(\"set terminal windows\")" -- evita que la ventana
+	 * de gnuplot se quede congelada al hacer zoom. Ver Polynom.VERSION 1.14 para el detalle completo
+	 * y el resto de ficheros con el mismo parche.
 	 *
 	 * 1.56 (2026_0807_1500)
 	 * dividesleft(MatrixComplex): fixed a copy-paste bug from dividesright(), found while auditing

@@ -32,6 +32,10 @@ class PolynomPlot {
 		plt.addPlot("[" + loLimit + ":" + upLimit + "] " + p.toGNUPlot_poly());
 		plt.set("zeroaxis", "");
 		plt.set("samples", Double.toString(samples));
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -43,6 +47,10 @@ class PolynomPlot {
 		plt.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot(p.toGNUPlot_poly());
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -55,6 +63,10 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("real("+ p.toGNUPlot_poly() + ")");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -67,6 +79,10 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("imag("+ p.toGNUPlot_poly() + ")");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -79,6 +95,10 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("real(" + p.toGNUPlot_poly() + "), imag("+ p.toGNUPlot_poly() + ")");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -91,6 +111,10 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("real(" + p.toGNUPlot_poly() + ") / imag("+ p.toGNUPlot_poly() + ")");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -103,6 +127,10 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("abs(" + p.toGNUPlot_poly() + ")");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -116,6 +144,10 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("atan(real(" + p.toGNUPlot_poly() + ")/imag("+ p.toGNUPlot_poly() + "))");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -136,6 +168,10 @@ class PolynomPlot {
 		plt.set("mxtics","10");
 		plt.set("mytics","10");
 		plt.set("grid","xtics mxtics ytics mytics");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -148,6 +184,10 @@ class PolynomPlot {
 		plt.set("mxtics","10");
 		plt.set("mytics","10");
 		plt.set("grid","xtics mxtics ytics mytics");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 
@@ -294,6 +334,10 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(Polynom.sampleBase));
 		plt.addPlot(points);
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		plt.setPersist(true);
+		plt.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		plt.plot();
 	}
 

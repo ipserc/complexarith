@@ -20,8 +20,20 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.13 (2026_0802_2100)";
+	private final static String VERSION = "1.14 (2026_0807_1600)";
 	/* VERSION Release Note
+	 * 1.14 (2026_0807_1600)
+	 * PolynomPlot.java (todos los 11 metodos que llaman JavaPlot.plot()): a peticion del usuario,
+	 * antes de cada plot() se anade "p.setPersist(true)" + "p.getPostInit().add(\"set terminal
+	 * windows\")" -- evita que la ventana de gnuplot se quede congelada al hacer zoom (el terminal
+	 * por defecto mata la ventana al cerrarse el stream de Java). Mismo parche aplicado por el
+	 * usuario primero en sus propios ficheros sueltos plotFunc01-09.java (src/TestComplex/), y
+	 * replicado aqui en el codigo de libreria real. Puramente aditivo, sin cambios de firma ni de
+	 * comportamiento salvo la ventana de gnuplot en si -- no verificable end-to-end en este entorno
+	 * (gnuplot no ejecutable de punta a punta aqui, ver limitaciones de entorno documentadas),
+	 * confirmado solo que compila limpio. Ver Fourier.VERSION 1.6, MatrixComplex.VERSION 1.57 para
+	 * el mismo parche en signal/ y matrixcomplex/ (Laplace.java/Z.java no tienen VERSION propio).
+	 *
 	 * 1.13 (2026_0802_2100)
 	 * Bug real arreglado en PolynomPlot.plotRe(Polynom,double[][]) (senalado, no tocado, en la Fase
 	 * 2): points[points.length][0] -> points[points.length-1][0]. Antes revertaba con

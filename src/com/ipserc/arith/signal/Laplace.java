@@ -937,6 +937,10 @@ public class Laplace extends MatrixComplex  {
 		//p.set("style","data lines");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 
@@ -986,6 +990,10 @@ public class Laplace extends MatrixComplex  {
 		//p.set("style","data lines");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 	 *************************************************************************************************** */
@@ -1040,6 +1048,10 @@ public class Laplace extends MatrixComplex  {
 		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
 		if (logscale) p.set("logscale", "y");
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 	************************************************************************************************************************************** */

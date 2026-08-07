@@ -713,6 +713,10 @@ public class Z extends MatrixComplex {
 		//p.set("style","data lines");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 
@@ -762,6 +766,10 @@ public class Z extends MatrixComplex {
 		//p.set("style","data lines");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid","");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
 		p.plot();
 	}
 	 *************************************************************************************************** */
