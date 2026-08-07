@@ -2015,7 +2015,37 @@ A petición del usuario ("Sí, arréglalo también"), cerrado el hallazgo 2 pend
 
 `Line.VERSION`: `1.2→1.3`.
 
-**EXACTO PUNTO DE RETOMADA**: segunda pasada de `com.ipserc.arith.geom` **CERRADA del todo** (hallazgos 1 y 2, ambos arreglados y verificados), sin commitear todavía. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+**EXACTO PUNTO DE RETOMADA (previo)**: segunda pasada de `com.ipserc.arith.geom` **CERRADA del todo**.
+
+## Decimoctava sesión, continuación — auditoría de `com.ipserc.arith.signal` (`Sigfunc`/filtros de `Fourier`/`Laplace`) (7 agosto 2026)
+
+Retomado a petición del usuario. Auditados `Sigfunc.java` completo (215 líneas, función por función: derivación algebraica de cada rama, continuidad en los bordes) y los métodos de filtrado/serie de `Fourier.java`/`Laplace.java` no cubiertos por el trabajo de FFT/DLT ya cerrado esta sesión.
+
+### Hallazgos, con verificación en ejecución antes de reportar
+
+1. **`Sigfunc.step(Complex z, double ton, double toff)` — simetría no documentada ni pretendida, MEDIUM, sin arreglar.** Usa `Math.abs(z.rep())`, copiado aparentemente de su hermana periódica (`step(z, T, ton, toff)`, que sí documenta "simmetric respect 0"). Confirmado: `step(-4, 3, 6) = 1.0` cuando debería ser `0` según su propia documentación (pulso de un solo lado). Resto de la clase (delta, ramp, ramp0, saw, saw0, sin, cos, sinc, cosc) revisado y autoconsistente.
+
+2. **`Fourier.slopeFilter()` (y `lowPassFilter()`/`highPassFilter()`, que la delegan) — off-by-one en el espejo de frecuencias negativas, HIGH, ARREGLADO.** Ver detalle abajo.
+
+3. **`Fourier.bandPassFilter(gain, fIni, bandwidth, slope, samplefreq)` (5 argumentos, "con pendientes") — mismo patrón de off-by-one, HIGH, sin arreglar.** El mirror `transform.setItem(0, N-i-1, fVal)` acopla correctamente el caso límite (i=N2-1 → bin Nyquist) pero desplaza un bin todo lo demás — confirmado con la misma prueba (parte imaginaria tras `IDFT()`): **15% de contaminación** (`max|Im|=0.047` vs `max|Re|=0.3125`), incluso mayor que la de `slopeFilter()` antes de su fix. Fuera del `slopeFilter()` que se pidió arreglar hoy; el usuario decidirá si aplicar el mismo tipo de fix aquí.
+4. **`bandPassFilter()`/`deltaFilter()` (sin pendiente) — CORRECTOS.** La sospecha inicial (que usaban un layout de espectro "shifted" distinto al que espera `IDFT()`) resultó ser incorrecta — verificado con un delta en frecuencia conocida, re-transformado con la propia `DFT()`: el pico cae exactamente donde debía. `filter(Fourier)` (multiplicación de espectros) también correcto.
+5. **`Fourier.convolution(Fourier)` — factor `.times(2)` sin justificar, MEDIUM, sin resolver.** El propio autor original dejó el comentario `// times(2) don't know why`. No verificado matemáticamente a fondo (requeriría un caso con solución cerrada conocida); marcado como sospechoso, no confirmado.
+6. **`Laplace.CLT(int nbrSamples, int decPrec)` — estructuralmente sospechosa, probablemente rota, HIGH, sin resolver.** El Javadoc ("Calculates the Fourier Series up to the coefficient number given by 'order'") no coincide con la firma del método (no existe parámetro `order`) — copiado de otro sitio sin actualizar. `cn = samples.getItem(0, n).opposite()` usa la abscisa temporal de la muestra n-ésima como si fuera el punto de evaluación `s` de la transformada de Laplace, mezclando dominio temporal y de frecuencia. Hay una alternativa comentada al lado (`//new Complex(-n, 0)`) — el mismo patrón de indecisión del autor que ya se encontró y arregló en `DLT()`/`IDLT()` esta sesión. A diferencia de `DLT()`, arreglar esto bien probablemente exija diseñar de cero qué malla de valores `s` evaluar — alcance más parecido a la reescritura completa de `Z.java` que a un parche acotado.
+
+### Arreglado: `Fourier.slopeFilter()` (VERSION 1.2→1.3)
+
+```java
+for (int i = N2, j = N2; i < N; ++i) {
+    transform.setItem(0, i, transform.getItem(0, --j));			
+}
+```
+Derivado a mano: esto asigna `transform[N2+k] = transform[N2-1-k]`. Para una señal real, la simetría conjugada correcta es `transform[N2+k] = transform[N2-k]` (el bin `N2+k` representa la frecuencia `-(N2-k)`, que para un filtro real debe igualar el valor en `+(N2-k)` = bin `N2-k`) — el código usaba un bin de menos. Confirmado con la señal reconstruida: parte imaginaria del ~5% de la real (debería ser ~0 para un espectro genuinamente simétrico). El bin de Nyquist (`N2`) no tiene pareja especular real — se deja igual que antes (hereda el último valor de la rampa, `transform[N2-1]`), solo se corrige el resto del espejo (`k=1..N2-1`).
+
+**Verificación** (`ScratchFourierFilterAudit02.java`, reescrito a regresión permanente, 1/1 OK): parte imaginaria de la señal reconstruida pasa de `0.0298` (≈5% de `0.594`) a `2×10⁻¹⁷` (ruido de precisión puro). `TestFilter01/02/03/05/06`/`TestFourier01` compilan limpio; ninguno ejercita `slopeFilter()`/`lowPassFilter()`/`highPassFilter()` en vivo (las únicas llamadas están comentadas) — cero riesgo de regresión ahí. El driver de verificación de la FFT (`ScratchFourierFFTVerify01.java`, 18/18) sigue pasando, confirma que `DFT()`/`IDFT()` no se han visto afectados.
+
+`Fourier.VERSION`: `1.2→1.3`.
+
+**EXACTO PUNTO DE RETOMADA**: `slopeFilter()` **CERRADO** y verificado, sin commitear todavía. Quedan sin resolver, por orden de confianza/severidad: `bandPassFilter()` con pendiente (mismo patrón, ya confirmado con el 15% de contaminación), `Laplace.CLT()` (estructuralmente sospechosa, alcance grande), `Sigfunc.step()` (acotado, una línea), `convolution()`'s `.times(2)` (sin confirmar). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 

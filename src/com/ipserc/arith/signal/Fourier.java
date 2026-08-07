@@ -34,8 +34,20 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0807_1500)";
+	private final static String VERSION = "1.3 (2026_0807_1900)";
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0807_1900)
+	 * slopeFilter() (y por herencia lowPassFilter()/highPassFilter(), que solo la delegan): el
+	 * bucle que reflejaba la mitad de frecuencias negativas tenia un off-by-one --
+	 * "for (i=N2,j=N2;i<N;++i) transform[i]=transform[--j]" acababa asignando
+	 * transform[N2+k]=transform[N2-1-k]. Para una senal real, la simetria conjugada correcta es
+	 * transform[N2+k]=transform[N2-k] (bin N2+k = frecuencia -(N2-k), que para un filtro real debe
+	 * igualar el valor en +(N2-k) = bin N2-k) -- el codigo usaba N2-1-k, un bin de menos.
+	 * Confirmado en ejecucion: la señal reconstruida via IDFT() tenia una parte imaginaria del
+	 * ~5% de la real (deberia ser ~0 para un espectro genuinamente simetrico). El bin de Nyquist
+	 * (N2) no tiene pareja especular real -- se deja igual que antes (hereda el ultimo valor de la
+	 * rampa, transform[N2-1]), solo se corrige el resto del espejo (k=1..N2-1).
 	 *
 	 * 1.2 (2026_0807_1500)
 	 * Anadida una FFT real (radix-2 Cooley-Tukey, iterativa con permutacion bit-reversal), a
@@ -1624,8 +1636,11 @@ public class Fourier extends MatrixComplex {
 			fVal.setComplexRec(gainp, 0.0);
 			transform.setItem(0, i, fVal);
 		}
-		for (int i = N2, j = N2; i < N; ++i) {
-			transform.setItem(0, i, transform.getItem(0, --j));			
+		// Nyquist bin (N2) is self-paired (its own conjugate) -- no mirror source exists for it,
+		// so it carries the last computed ramp value, same as before the fix below.
+		transform.setItem(0, N2, transform.getItem(0, N2 - 1));
+		for (int k = 1; k < N2; ++k) {
+			transform.setItem(0, N2 + k, transform.getItem(0, N2 - k));
 		}
 		isTransformed = true;
 		this.IDFT();
