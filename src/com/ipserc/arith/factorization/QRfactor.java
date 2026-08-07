@@ -29,8 +29,29 @@ public class QRfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "QRfactor --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0802_0824)";
+	private final static String VERSION = "1.3 (2026_0807_2330)";
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0807_2330)
+	 * Auditoria de com.ipserc.arith.factorization.QRfactor (ver Claude/ComplexArithRev.md), 3
+	 * hallazgos reales confirmados en ejecucion, todos arreglados:
+	 * (1) QRfactor(MatrixComplex): mismo bug de aliasing por clone() superficial ya arreglado en
+	 * Schurfactor/LUfactor esta sesion. Arreglado con matrix.copy().complexMatrix.
+	 * (2) qrHouseholder() lanzaba NullPointerException con una matriz de 1 fila: el bucle
+	 * "k<colLen && k<rowLen-1" nunca se ejecuta cuando rowLen==1 (rowLen-1==0), dejando q[0] sin
+	 * asignar antes de "cQ=q[0]". Una matriz de 1 fila tiene una QR trivial y valida (Q=identidad,
+	 * no hay nada por debajo de la diagonal que eliminar) -- arreglado con cQ=I (la identidad ya
+	 * construida) cuando k==0 tras el bucle.
+	 * (3) cleanCR() era codigo muerto -- cero llamadores en todo el proyecto, ni siquiera dentro de
+	 * la propia clase. Eliminado (tenia ademas un bug propio, solo limpiaba la ultima columna en
+	 * vez de todas las columnas de las filas por debajo de la diagonal -- irrelevante al ser
+	 * inalcanzable).
+	 * Investigado y descartado: la cancelacion catastrofica de qrHouseholder() (misma convencion de
+	 * signo ya diagnosticada y arreglada en QRSchurfactor/Hessenbergfactor, pero solo bajo
+	 * reaplicacion iterativa cerca de la convergencia). Probado con una columna deliberadamente
+	 * casi alineada con su propio eje (~1e-10 de desviacion): reconstruccion y ortogonalidad ambas
+	 * a precision de maquina (~1e-15) -- confirma que no es un problema real para el uso de una
+	 * sola pasada que esta clase hace de si misma.
 	 *
 	 * 1.2 (2026_0802_0824)
 	 * signHH(Complex) widened from private to package-private static so Hessenbergfactor can reuse it.
@@ -95,7 +116,7 @@ public class QRfactor extends MatrixComplex {
 	 */
 	public QRfactor(MatrixComplex matrix) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 	}
 
 	/*
@@ -183,7 +204,9 @@ public class QRfactor extends MatrixComplex {
 			q[k] = I.minus(e.times(e.adjoint()).times(2));
 			z = q[k].times(z);
 		}
-		cQ = q[0];	
+		// k stays 0 (no reflector ever built, q[0] left null) when rowLen==1: there is nothing
+		// below the diagonal to eliminate for a single-row matrix, so Q is trivially the identity.
+		cQ = (k == 0) ? I : q[0];
 		for (int i = 1; i < k; ++i) cQ = q[i].times(cQ) ;
 		this.QcheckSign(k); //Makes of Q an unitary "special" matrix --> det(Q) = 1
 		cR = cQ.times(this);
@@ -232,19 +255,6 @@ public class QRfactor extends MatrixComplex {
 		factorized = true;
 	}
 	
-	/**
-	 * Private Method to clean the class member variable cR which has the R matrix form the QR decomposition.
-	 */
-	private void cleanCR() {
-		int rowLen = this.cR.complexMatrix.length;
-		int colLen = this.cR.complexMatrix[0].length;
-		//Complex zero = new Complex(0,0);
-
-		if (rowLen <= colLen) return;
-		//for (int row = colLen, col = colLen-1; row < rowLen; ++row) this.cR.complexMatrix[row][col] = zero;
-		for (int row = colLen, col = colLen-1; row < rowLen; ++row) this.cR.complexMatrix[row][col].setComplexRec(0,0);
-	}
-
 	/*
 	 * ***********************************************
 	 * 	GETTERS
