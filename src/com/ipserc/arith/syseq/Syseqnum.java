@@ -10,10 +10,17 @@ public class Syseqnum extends MatrixComplex {
 	private int numIters = -1;
 	
 	private final static String HEADINFO = "Syseqnum --- INFO: ";
-	private final static String VERSION = "1.2 (2023_0527_1900)";
+	private final static String VERSION = "1.3 (2026_0807_1500)";
 	/* VERSION Release Note
 	 * 	Syseqnum: System Equation Solver by Numerical Methods
-	 * 
+	 *
+	 * 1.3 (2026_0807_1500)
+	 * Syseqnum(MatrixComplex matrix) y clone(): complexMatrix.clone() era un clon superficial
+	 * de Java (fila compartida con la matriz original) en vez de una copia profunda -- mismo
+	 * patron de aliasing ya arreglado repetidas veces en factorization/ esta sesion. Ahora
+	 * ambos usan copy().complexMatrix. Confirmado con ScratchSyseqnumAlias01.java
+	 * (src/TestComplex/): mutar el Syseqnum o su clon ya no corrompe la matriz original.
+	 *
 	 * 1.2 (2023_0527_1900)
 	 * 
 	 * 	public MatrixComplex congrad(Complex initGuess, int iterations)
@@ -101,7 +108,7 @@ public class Syseqnum extends MatrixComplex {
 	 * @param matrix The matrix with the equation system values
 	 */
 	public Syseqnum(MatrixComplex matrix) {
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 	}
 
 	/*
@@ -133,7 +140,7 @@ public class Syseqnum extends MatrixComplex {
 	public Syseqnum clone() {
 		Syseqnum newSyseqnum = new Syseqnum();
 		newSyseqnum.solved = solved;		
-		newSyseqnum.complexMatrix = this.complexMatrix.clone(); 
+		newSyseqnum.complexMatrix = this.copy().complexMatrix;
 		return newSyseqnum;
 	}
 

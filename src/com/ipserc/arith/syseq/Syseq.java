@@ -9,9 +9,16 @@ public class Syseq extends MatrixComplex {
 	private Boolean solved = false;
 
 	private final static String HEADINFO = "Syseq --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0801_0927)";
+	private final static String VERSION = "1.7 (2026_0807_1500)";
 
 	/* VERSION Release Note
+	 *
+	 * 1.7 (2026_0807_1500)
+	 * Syseq(MatrixComplex matrix): matrix.complexMatrix.clone() era un clon superficial de
+	 * Java (fila compartida con la matriz original) en vez de una copia profunda -- mismo
+	 * patron de aliasing ya arreglado repetidas veces en factorization/ esta sesion. Ahora
+	 * usa matrix.copy().complexMatrix. Confirmado con ScratchSyseqnumAlias01.java
+	 * (src/TestComplex/): mutar el Syseq ya no corrompe la MatrixComplex original.
 	 *
 	 * 1.6 (2026_0801_0927)
 	 * solveq() now checks typeEqSys() BEFORE calling solve(): for an INCONSISTENT system it no
@@ -80,7 +87,7 @@ public class Syseq extends MatrixComplex {
 	 * @param matrix The matrix with the equation system values
 	 */
 	public Syseq(MatrixComplex matrix) {
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 	}
 
 	/*
