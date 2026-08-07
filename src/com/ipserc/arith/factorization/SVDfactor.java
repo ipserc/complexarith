@@ -38,13 +38,19 @@ public class SVDfactor extends MatrixComplex {
 	private MatrixComplex cU;
 
 	private final static String HEADINFO = "SVDfactor --- INFO: ";
-	private final static String VERSION = "1.2 (2025_0417_1630)";
+	private final static String VERSION = "1.3 (2026_0807_2359)";
 	private boolean factorized = false;
 	private boolean oriented = false;
 	private SVDmethod method = SVDmethod.NONE;
 
-	
+
 	/* VERSION Release Note
+	 * 1.3 (2026_0807_2359)
+	 * SVDfactor(MatrixComplex)/SVDfactor(MatrixComplex,SVDmethod): mismo bug de aliasing por
+	 * clone() superficial encontrado en Schurfactor/LUfactor/QRfactor esta sesion --
+	 * "matrix.complexMatrix.clone()" comparte las filas del array con la matriz original del
+	 * llamador. Arreglado con matrix.copy().complexMatrix, en los 2 constructores afectados.
+	 *
 	 * 1.2 (2025_0417_1630)
 	 * private void factorizeSVD() {
 	 * public void factorize() {
@@ -117,7 +123,7 @@ public class SVDfactor extends MatrixComplex {
 	 */
 	public SVDfactor(MatrixComplex matrix) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 		factorize();
 	}
 
@@ -128,7 +134,7 @@ public class SVDfactor extends MatrixComplex {
 	 */
 	public SVDfactor(MatrixComplex matrix, final SVDmethod method) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 		this.method = method;
 		factorize(method);
 	}

@@ -2166,7 +2166,48 @@ A petición del usuario ("Sigamos con LUfactor.java"). **3 hallazgos reales, con
 
 `LUfactor.VERSION`: `1.4→1.5`.
 
-**EXACTO PUNTO DE RETOMADA**: `LUfactor.java` **CERRADO**, arreglado y verificado, sin commitear todavía. Quedan sin auditoría dedicada: `combinatoric/CombinationNoReps.java`, `QRfactor.java`, `SVDfactor.java`, `polynom/Spline.java`, `syseq/Syseqnum.java`. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+**EXACTO PUNTO DE RETOMADA (previo)**: `LUfactor.java` cerrado. Quedaban sin auditoría dedicada: `combinatoric/CombinationNoReps.java`, `QRfactor.java`, `SVDfactor.java`, `polynom/Spline.java`, `syseq/Syseqnum.java`.
+
+## Decimoctava sesión, continuación — auditoría de `QRfactor.java` + barrido de aliasing en todo `factorization/` (7 agosto 2026)
+
+A petición del usuario ("Sigamos con QRfactor.java"). **3 hallazgos reales en `QRfactor.java` mismo, confirmados en ejecución, todos arreglados**:
+
+1. **Aliasing por `clone()` superficial en el constructor** — mismo patrón exacto que `Schurfactor`/`LUfactor` (tercera aparición esta sesión). Arreglado con `matrix.copy().complexMatrix`.
+2. **`qrHouseholder()` lanzaba `NullPointerException` con una matriz de 1 fila** — el bucle `k<colLen && k<rowLen-1` nunca se ejecuta cuando `rowLen==1` (`rowLen-1==0`), dejando `q[0]` sin asignar antes de `cQ=q[0]`. Una matriz de 1 fila tiene una QR trivial y válida (`Q`=identidad, nada por debajo de la diagonal que eliminar). Arreglado con `cQ=I` (la identidad ya construida) cuando `k==0` tras el bucle. Verificado también con 1×1.
+3. **`cleanCR()` — código muerto** (cero llamadores en todo el proyecto). Eliminado. Tenía además un bug propio (solo limpiaba la última columna, no todas las de las filas por debajo de la diagonal) — irrelevante al ser inalcanzable.
+
+**Investigado y descartado**: la cancelación catastrófica de `qrHouseholder()` (misma convención de signo ya diagnosticada y arreglada en `QRSchurfactor`/`Hessenbergfactor`, pero solo bajo reaplicación iterativa cerca de la convergencia). Probado con una columna deliberadamente casi alineada con su propio eje (`~1e-10`): reconstrucción y ortogonalidad ambas a precisión de máquina — confirma que no es un problema real para el uso de una sola pasada que `QRfactor` hace de sí mismo. No se tocó.
+
+**Verificación** (`ScratchQRfactorAudit01.java`, conservado, 4/4 OK).
+
+`QRfactor.VERSION`: `1.2→1.3`.
+
+### Hallazgo sistémico: el mismo bug de aliasing en 4 clases más
+
+Al preguntar el usuario si el patrón se repetía en otras clases usadas hoy, un `grep` de `matrix.complexMatrix.clone()` en `factorization/` reveló **5 ocurrencias más sin arreglar**, en 4 clases que ya habían tenido su propia sesión de auditoría dedicada en el pasado — pero *antes* de que este patrón de aliasing se descubriera (empezó con `Schurfactor`, esta misma sesión):
+
+- `Diagfactor.java:111`
+- `Hessenbergfactor.java:91`
+- `QRSchurfactor.java:114`
+- `SVDfactor.java:120` y `SVDfactor.java:131` (dos constructores)
+
+(`Jordan.java:120` tiene el mismo patrón pero **comentado** — código aparcado, no activo, sin riesgo actual, no tocado.)
+
+**Arreglado el mismo fix de una línea en los 5 sitios activos**, a petición explícita del usuario: `matrix.complexMatrix.clone()` → `matrix.copy().complexMatrix`. `Diagfactor.VERSION` `1.4→1.5`, `Hessenbergfactor.VERSION` `1.1→1.2`, `QRSchurfactor.VERSION` `1.1→1.2`, `SVDfactor.VERSION` `1.2→1.3`.
+
+**Importante — alcance de este barrido**: estas 4 clases (`Diagfactor`, `Hessenbergfactor`, `QRSchurfactor`, `SVDfactor`) solo recibieron **este único fix mecánico de aliasing**, NO una auditoría completa a fondo como la que sí tuvieron `Schurfactor`/`LUfactor`/`QRfactor` esta sesión (formulas, off-by-ones, casos límite, etc.). Si se retoma alguna de estas 4 en el futuro con intención de auditoría profunda, el aliasing ya está resuelto pero el resto de cada clase sigue sin la misma revisión exhaustiva.
+
+**Verificación**: `ScratchFactorizationAliasSweep01.java` (nuevo, conservado) — 5/5 OK, mismo driver de mutación que confirmó el bug en `Schurfactor`/`LUfactor`/`QRfactor`, aplicado a las 5 combinaciones clase/constructor. Además, compilados y ejecutados 9 tests directos representativos (`TestHessenberg01`, `TestQRSchur01`, `TestQRfactor01/02/03`, `TestSVD01`, `TestDiag01`, `TestDiagonal01`, `TestEigenV01`) — los 9 con `exit=0`. Dado que el fix es un cambio puro de semántica de copia (matemáticamente un no-op salvo que alguien mute el objeto construido después, lo que ninguno de estos callers hace) y ya se verificó exhaustivamente contra build de referencia 3 veces esta sesión con el mismo patrón exacto (`Schurfactor`/`LUfactor`/`QRfactor`, cero regresiones en los tres), no se repitió el ciclo completo de `git worktree` + diff numérico para los 4 restantes — juicio de riesgo/beneficio explícito, dado que la sesión se pausó a petición del usuario por conectividad.
+
+## SESIÓN PAUSADA — Decimoctava sesión, continuación (7 agosto 2026), a petición del usuario ("Paramos por ahora... la conexión a internet apenas funciona")
+
+**EXACTO PUNTO DE RETOMADA**: todo el código de esta sub-sesión (`QRfactor.java` completo + el barrido de aliasing en las 4 clases) está **arreglado, compilado y verificado** — commiteado y pusheado antes de cerrar (ver commits más abajo si esta nota no se ha actualizado con los hashes reales todavía). Nada a medias a nivel de código.
+
+**Sin empezar, quedan 3 clases sin auditoría dedicada**: `combinatoric/CombinationNoReps.java`, `polynom/Spline.java`, `syseq/Syseqnum.java` — de la lista de 6 que salió al preguntar "¿hemos terminado la revisión JAVA de com.ipserc.arith?". `QRfactor.java`/`SVDfactor.java` de esa lista original ya están resueltos (`QRfactor` con auditoría completa, `SVDfactor` solo con el fix de aliasing — ver nota de alcance arriba).
+
+**Patrón de bug recurrente a tener en cuenta para cualquier clase nueva que se audite en `com.ipserc.arith.factorization`** (y potencialmente otros paquetes con el mismo estilo, aunque no confirmado fuera de `factorization/`): el constructor `Clase(MatrixComplex matrix)` que hace `this.complexMatrix = matrix.complexMatrix.clone()` es casi siempre un bug de aliasing (shallow `Complex[][].clone()`, comparte las filas con el original) — el arreglo es mecánico y ya probado 7 veces esta sesión: `matrix.copy().complexMatrix`. Vale la pena un `grep -rn "complexMatrix.clone()"` de rutina al empezar cualquier auditoría nueva.
+
+Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 

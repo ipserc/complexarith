@@ -31,7 +31,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public class Hessenbergfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "Hessenbergfactor --- INFO: ";
-	private final static String VERSION = "1.1 (2026_0802_0932)";
+	private final static String VERSION = "1.2 (2026_0807_2359)";
 
 	private boolean factorized = false;
 
@@ -39,6 +39,12 @@ public class Hessenbergfactor extends MatrixComplex {
 	private MatrixComplex cH;
 
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0807_2359)
+	 * Hessenbergfactor(MatrixComplex): mismo bug de aliasing por clone() superficial encontrado en
+	 * Schurfactor/LUfactor/QRfactor esta sesion -- "matrix.complexMatrix.clone()" comparte las
+	 * filas del array con la matriz original del llamador. Arreglado con
+	 * matrix.copy().complexMatrix.
 	 *
 	 * 1.1 (2026_0802_0932)
 	 * factorize(): reflector de Householder usa la convencion de signo numericamente estable
@@ -88,7 +94,7 @@ public class Hessenbergfactor extends MatrixComplex {
 	 */
 	public Hessenbergfactor(MatrixComplex matrix) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 		factorize();
 	}
 

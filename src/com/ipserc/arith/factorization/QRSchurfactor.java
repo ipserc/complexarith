@@ -44,7 +44,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public class QRSchurfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "QRSchurfactor --- INFO: ";
-	private final static String VERSION = "1.1 (2026_0802_1015)";
+	private final static String VERSION = "1.2 (2026_0807_2359)";
 
 	/**
 	 * Cota de iteraciones QR admitidas para deflacionar UN autovalor antes de declarar que la
@@ -61,6 +61,12 @@ public class QRSchurfactor extends MatrixComplex {
 	private MatrixComplex cSchur;
 
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0807_2359)
+	 * QRSchurfactor(MatrixComplex): mismo bug de aliasing por clone() superficial encontrado en
+	 * Schurfactor/LUfactor/QRfactor esta sesion -- "matrix.complexMatrix.clone()" comparte las
+	 * filas del array con la matriz original del llamador. Arreglado con
+	 * matrix.copy().complexMatrix.
 	 *
 	 * 1.1 (2026_0802_1015)
 	 * factorize(): anade el desplazamiento de Wilkinson (Etapa 3) al paso QR de cada iteracion,
@@ -111,7 +117,7 @@ public class QRSchurfactor extends MatrixComplex {
 	 */
 	public QRSchurfactor(MatrixComplex matrix) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 		factorize();
 	}
 

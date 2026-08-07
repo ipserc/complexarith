@@ -39,8 +39,15 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0805_1900)";
+	private final static String VERSION = "1.5 (2026_0807_2359)";
 	/* VERSION Release Note
+	 * 1.5 (2026_0807_2359)
+	 * Diagfactor(MatrixComplex): mismo bug de aliasing por clone() superficial encontrado en
+	 * Schurfactor/LUfactor/QRfactor esta sesion -- "matrix.complexMatrix.clone()" comparte las
+	 * filas del array con la matriz original del llamador. Arreglado con
+	 * matrix.copy().complexMatrix, a peticion del usuario tras revisar el resto de la
+	 * factorization/ y encontrar el mismo patron sin arreglar aqui.
+	 *
 	 * 1.4 (2026_0805_1900)
 	 * isDiagonalizable__(Eigenspace) borrado -- codigo muerto confirmado (cero llamadores en todo
 	 * el proyecto, ya marcado en su propio Javadoc como "DEPRECATED. USELESS"). Contenia la unica
@@ -108,7 +115,7 @@ public class Diagfactor extends MatrixComplex {
 	 */
 	public Diagfactor(MatrixComplex matrix) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 		diagonalize();
 	}
 
