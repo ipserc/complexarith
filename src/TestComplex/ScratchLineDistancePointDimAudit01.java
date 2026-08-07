@@ -4,28 +4,44 @@ import com.ipserc.arith.geom.Line;
 import com.ipserc.arith.geom.Point;
 
 /**
- * Audit driver for a NEW finding discovered while verifying the Line.distance(Line)
- * generalization (Decimoctava sesion, continuacion, ver Claude/ComplexArithRev.md): a related but
- * DISTINCT, deeper limitation in Line.distance(Point) (and therefore in distance(Line)'s "parallel"
- * branch, which delegates to it). Read-only reconnaissance, no production code touched.
- *
- * distance(Point) is implemented as PaPp.crossprod(this.direction).norm()/this.direction.norm().
- * crossprod() is only mathematically well-founded in 3D and 7D (Hurwitz's theorem) -- for any other
- * dimension (including "in between" ones like 4,5,6, and anything beyond 7), VectorComplex.crossprod()
- * falls through its own switch statement to a default empty VectorComplex(), whose norm() is 0. That
- * makes distance(Point) SILENTLY return 0.0 for ANY point/line pair outside {3,7} dimensions,
- * regardless of the true distance -- confirmed below with a 10D case where the true answer is 5.0.
- *
- * distance2(Point) (via the already-Hermitian-fixed normalPoint(), Line.VERSION 1.3) does NOT
- * depend on crossprod() at all, and is checked here as a working alternative for dimensions where
- * distance(Point) is broken.
+ * Regression driver for the Line.distance(Point) fix (Decimoctava sesion, continuacion, ver
+ * Claude/ComplexArithRev.md, Line.VERSION 1.5). distance(Point) used to be
+ * PaPp.crossprod(this.direction).norm()/this.direction.norm() -- crossprod() is only
+ * well-founded up to 7D (Hurwitz's theorem); for dim>7 it falls back to a degenerate empty
+ * vector whose norm() is 0, so distance(Point) silently returned 0.0 regardless of the true
+ * distance. Now uses the same Hermitian projection as normalPoint() (fixed in VERSION 1.3),
+ * valid in any dimension. distance2(Point) is now a thin delegate to distance(Point).
  */
 public class ScratchLineDistancePointDimAudit01 {
+
+	private static int pass = 0;
+	private static int fail = 0;
+
+	private static void check(String label, double actual, double expected) {
+		boolean ok = Math.abs(actual - expected) < 1e-9;
+		System.out.println((ok ? "OK   " : "FAIL ") + label + " actual=" + actual + " expected=" + expected);
+		if (ok) ++pass; else ++fail;
+	}
+
 	public static void main(String[] args) {
-		Line line = new Line("1,0,0,0,0,0,0,0,0,0", "0,0,0,0,0,0,0,0,0,0");
-		Point p = new Point("0,5,0,0,0,0,0,0,0,0");
-		System.out.println("10D case, true answer = 5.0:");
-		System.out.println("  distance(Point)  = " + line.distance(p) + "  <-- silently wrong (crossprod() degenerates beyond 3D/7D)");
-		System.out.println("  distance2(Point) = " + line.distance2(p) + "  <-- via normalPoint(), does not use crossprod()");
+		// 3D case: must still match the classical crossprod-based answer.
+		Line line3d = new Line("1,0,0", "0,0,0");
+		Point p3d = new Point("0,5,0");
+		check("3D distance(Point)", line3d.distance(p3d), 5.0);
+		check("3D distance2(Point)", line3d.distance2(p3d), 5.0);
+
+		// 10D case: true answer 5.0, used to silently return 0.0.
+		Line line10d = new Line("1,0,0,0,0,0,0,0,0,0", "0,0,0,0,0,0,0,0,0,0");
+		Point p10d = new Point("0,5,0,0,0,0,0,0,0,0");
+		check("10D distance(Point) (was silently 0.0)", line10d.distance(p10d), 5.0);
+		check("10D distance2(Point)", line10d.distance2(p10d), 5.0);
+
+		// distance(Line)'s "parallel" branch delegates to distance(Point) -- must also be fixed for dim>7.
+		Line line10dParallel = new Line("2,0,0,0,0,0,0,0,0,0", "0,5,0,0,0,0,0,0,0,0");
+		check("10D distance(Line), parallel case (delegates to distance(Point))", line10d.distance(line10dParallel), 5.0);
+
+		System.out.println();
+		System.out.println("TOTAL pass=" + pass + " fail=" + fail);
+		if (fail > 0) System.exit(1);
 	}
 }

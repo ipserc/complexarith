@@ -8,9 +8,21 @@ public class Line {
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0807_2200)";
+	private final static String VERSION = "1.5 (2026_0807_2230)";
 	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
+	 *
+	 * 1.5 (2026_0807_2230)
+	 * distance(Point): resuelve el hallazgo colateral anotado en VERSION 1.4. Usaba
+	 * PaPp.crossprod(this.direction).norm()/this.direction.norm() -- crossprod() solo esta bien
+	 * fundado hasta 7D (teorema de Hurwitz); para dim>7 cae a un vector vacio por defecto cuyo
+	 * norm() es 0, asi que distance(Point) devolvia 0.0 en silencio sin importar la distancia real
+	 * (confirmado con un caso 10D: distancia real 5.0, devolvia 0.0). Reescrito para usar la misma
+	 * proyeccion Hermitiana que ya usa normalPoint() (arreglada en VERSION 1.3) -- valido en
+	 * cualquier dimension y para lineas de valor complejo. distance2(Point) simplificado a delegar
+	 * en distance(Point) (mismo cuerpo desde este fix, ya no hace falta la logica duplicada) --
+	 * conservado como metodo aparte por si algun caller lo usa por nombre. Como distance(Line)'s
+	 * rama "paralela" delega en distance(Point), tambien queda arreglada de rebote.
 	 *
 	 * 1.4 (2026_0807_2200)
 	 * distance(Line): resuelve el KNOWN LIMITATION documentado en VERSION 1.1 (rama "no paralelas"
@@ -275,25 +287,27 @@ public class Line {
 	}
 
 	/**
-	 * Calculate the distance of a line to a given point
-	 * PaPp = PaPq + PqPp --> PaPp x V = PaPq x V + PqPp x V, as PaPq and V are parallel --> PaPq x V = 0 -->
-	 * PaPp x V = PqPp X V, as PqPp and V are perpendicular --> |PpPq x V| = |PpPq|*|V| -->
-	 * d(r,Pp) = d(Pq,Pp) = |PpPq| = |PaPp x V|/|V|
+	 * Calculate the distance of a line to a given point, in any dimension: the norm of the vector
+	 * from the point to its Hermitian projection onto the line (normalPoint()) -- valid for any
+	 * dimension and for complex-valued lines, unlike the previous crossprod()-based formula
+	 * (|PaPp x direction|/|direction|), only well-founded up to 7D (Hurwitz's theorem). For
+	 * dim>7, crossprod() falls back to a degenerate empty vector whose norm() is 0, so the old
+	 * formula silently returned 0.0 regardless of the true distance.
 	 * @param point The given point
 	 * @return The distance
 	 */
 	public double distance(Point point) {
-		VectorComplex PaPp = this.point.minus(point);
-		return PaPp.crossprod(this.direction).norm()/this.direction.norm();
+		return this.normalPoint(point).distance(point);
 	}
 
 	/**
-	 * Calculate the distance of the line to a given point by the distance from the normal point of the line to the given point
+	 * Same as distance(Point) -- kept as a separate, independently-named method for readability
+	 * at call sites that want to make the "via the normal point" derivation explicit.
 	 * @param point The given point
 	 * @return The distance
 	 */
 	public double distance2(Point point) {
-		return this.normalPoint(point).distance(point);
+		return this.distance(point);
 	}
 
 	/*

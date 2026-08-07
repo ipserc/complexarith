@@ -2132,9 +2132,23 @@ A petición del usuario ("Sigamos con com.ipserc.arith.geom.Line KNOWN LIMITATIO
 
 `Line.VERSION`: `1.3→1.4`.
 
-**Hallazgo colateral, NUEVO, sin arreglar**: `Line.distance(Point)` (y por tanto la rama "paralela" de `distance(Line)`, que delega en ella) sigue dependiendo de `crossprod()`. Para dimensión >7 (más allá incluso del propio techo de `crossprod()`), `crossprod()` cae a un vector vacío por defecto cuyo `.norm()` es `0`, así que `distance(Point)` devuelve `0.0` **en silencio** sin importar la distancia real. Confirmado con un caso 10D: distancia real `5.0`, `distance(Point)` da `0.0`; `distance2(Point)` (vía `normalPoint()`, ya arreglado a Hermitiano, no usa `crossprod()`) da el `5.0` correcto — el workaround ya existe en la clase, solo `distance(Point)` (el método "principal") queda roto para dim>7. No arreglado, pendiente de decisión del usuario.
+**Hallazgo colateral, NUEVO, encontrado y arreglado en la misma sesión**: `Line.distance(Point)` (y por tanto la rama "paralela" de `distance(Line)`, que delega en ella) seguía dependiendo de `crossprod()`. Para dimensión >7 (más allá incluso del propio techo de `crossprod()`), `crossprod()` cae a un vector vacío por defecto cuyo `.norm()` es `0`, así que `distance(Point)` devolvía `0.0` **en silencio** sin importar la distancia real. Confirmado con un caso 10D: distancia real `5.0`, `distance(Point)` daba `0.0`; `distance2(Point)` (vía `normalPoint()`, ya arreglado a Hermitiano, no usa `crossprod()`) daba el `5.0` correcto — el workaround ya existía en la clase, solo `distance(Point)` (el método "principal") quedaba roto para dim>7.
 
-**EXACTO PUNTO DE RETOMADA**: `Line.distance(Line)` KNOWN LIMITATION **CERRADO**, arreglado y verificado, sin commitear todavía. Queda el hallazgo colateral de `distance(Point)` (dim>7) sin resolver, pendiente de decisión. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+### Arreglado: `Line.distance(Point)` (VERSION 1.4→1.5)
+
+A petición del usuario ("Sigamos con distance(Point)"). Reescrito para usar la misma proyección Hermitiana que ya usa `normalPoint()` (arreglada en VERSION 1.3) en vez de `crossprod()`:
+```java
+public double distance(Point point) {
+    return this.normalPoint(point).distance(point);
+}
+```
+`distance2(Point)` simplificado a delegar en `distance(Point)` (mismo cuerpo desde este fix, ya no hace falta la lógica duplicada) — conservado como método aparte por si algún caller lo usa por nombre.
+
+**Verificación** (`ScratchLineDistancePointDimAudit01.java`, reescrito a regresión permanente, 5/5 OK): 3D sigue dando el mismo resultado que la fórmula `crossprod`-antigua; el caso 10D (antes `0.0` en silencio) ahora da el `5.0` correcto, tanto vía `distance(Point)` como vía `distance(Line)` en su rama paralela. Batería completa (`TestLine01`, `TestLineW01`, `TestLine02`, `TestPlane01`, `TestPlaneAudit01`, `TestPoint01`) contra un build de referencia en `git worktree`: **cero diferencias numéricas** en los 6 — ningún test existente ejercita dim>7, así que el fix es transparente para todo lo ya verificado.
+
+`Line.VERSION`: `1.4→1.5`.
+
+**EXACTO PUNTO DE RETOMADA**: `Line.distance(Line)` (dim>3) y `Line.distance(Point)` (dim>7), **ambos CERRADOS y verificados**, sin commitear todavía. Con esto, todos los hallazgos conocidos de `com.ipserc.arith.geom` quedan resueltos. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 
