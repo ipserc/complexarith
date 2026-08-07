@@ -8,16 +8,27 @@ import com.ipserc.arith.vectorcomplex.VectorComplex;
 public class Schurfactor extends MatrixComplex {
 	
 	private final static String HEADINFO = "Schurfactor --- INFO: ";
-	private final static String VERSION = "1.0 (2025_0324_1930)";
+	private final static String VERSION = "1.1 (2026_0807_1600)";
 	private final static int boxSize = 65;
 
 	private boolean factorized = false;
-	
+
 	private MatrixComplex cU;
 	private MatrixComplex cSchur;
 
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.1 (2026_0807_1600)
+	 * Schurfactor(MatrixComplex matrix): "this.complexMatrix = matrix.complexMatrix.clone();" was
+	 * a shallow Complex[][].clone() (Java array clone -- copies the outer array, but the row
+	 * arrays stay the SAME objects as matrix's), not the deep-copy idiom used everywhere else in
+	 * the project (MatrixComplex.copy()/clone()). Confirmed with a live repro
+	 * (ScratchSchurfactorAliasCheck01.java, ver Claude/ComplexArithRev.md): mutating the
+	 * constructed Schurfactor instance (any inherited MatrixComplex mutator, e.g. setItem())
+	 * silently corrupted the caller's original matrix. Latent in the only production caller
+	 * (MatrixComplexFunctions.logm(), which only reads getU()/getSchur() and never mutates the
+	 * Schurfactor instance) but a real landmine for any future caller. Fixed to matrix.copy().
+	 *
 	 * 1.0 (2025_0324_1930)
 	 * public Schurfactor(String strMatrix) {
 	 * public Schurfactor(MatrixComplex matrix) {
@@ -31,8 +42,8 @@ public class Schurfactor extends MatrixComplex {
 	 * public MatrixComplex getU() {
 	 * public MatrixComplex getSchur() {
 	 * public boolean factorized() {
-	 * 
-	 * 
+	 *
+	 *
 	 */
 
 	/*
@@ -69,7 +80,7 @@ public class Schurfactor extends MatrixComplex {
 	 */
 	public Schurfactor(MatrixComplex matrix) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 		factorize();
 	}
 
