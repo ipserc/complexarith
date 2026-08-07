@@ -2378,9 +2378,32 @@ Verificado con una batería nueva de 12 casos (`ScratchSVDAudit01.java`: cuadrad
 
 De paso, limpiados 2 hallazgos menores: eliminados 3 métodos privados muertos (`orientMatrixLE`/`GT`/`GE`, cero llamadores en todo el proyecto, solo `orientMatrix()` se usa realmente) — incluían un comentario del propio autor original ("no debería funcionar PERO SÍ LO HACE!!!!") sobre la variante nunca usada; limpiado un comentario de clase obsoleto que describía un "truco" de sustitución por `ZERO_THRESHOLD_R` que ya no existe en el código actual.
 
-`SVDfactor.VERSION`: `1.3→1.4`. Commit `1743551`, pendiente de push.
+`SVDfactor.VERSION`: `1.3→1.4`. Commits `1743551`/`8eb66c6`, pusheados.
 
-**Con esto, todas las clases de `com.ipserc.arith` con algoritmo numérico real tienen al menos una auditoría dedicada.** Sin punto de retomada pendiente conocido — preguntar al usuario por dónde seguir.
+**Con esto, todas las clases de `com.ipserc.arith` con algoritmo numérico real tienen al menos una auditoría dedicada.**
+
+---
+
+## Decimoctava sesión, continuación — `MatrixComplexPlot.java` + presentación cuadrada de matrices (8 agosto 2026)
+
+A petición del usuario: (1) un módulo `MatrixComplexPlot.java` con los métodos de plot usados por clases derivadas de `MatrixComplex`; (2) que la presentación de matrices (`println()`/`toString()`) salga "cuadrada", con las columnas apiladas en la misma posición.
+
+**Investigación previa a escribir código**: `Fourier`/`Laplace`/`Z` (las 3 únicas clases derivadas de `MatrixComplex` con plotting propio, todas en `com.ipserc.arith.signal`) llevaban cada una una copia byte a byte idéntica de `plot(String,int,MatrixComplex,boolean,e_lineStyle)` y `setLineStyle(e_lineStyle)` — confirmado leyendo las 3 completas antes de tocar nada. El resto de sus métodos de plot (`plotFunction`/`plotSamples`/`plotSeries`/`plotCompare`/`plotDFT*`/`plotDLT*`/`plotZT*`) NO están duplicados entre sí — cada uno usa estado privado propio (`samples`, `transform`, `N`...).
+
+**Decisión de alcance, acordada explícitamente con el usuario** (se le presentaron 2 opciones vía pregunta directa): mover SOLO lo genuinamente duplicado (opción 1), no los métodos específicos de cada clase (opción 2, que habría exigido ensanchar campos privados y tocar la API pública de las 3 clases) — el usuario confirmó opción 1, con la ampliación aplazada explícitamente ("lo ampliaremos más adelante") para una pasada futura.
+
+**Implementado** (commit `f18217e`):
+1. Nueva clase `MatrixComplexPlot` (paquete `com.ipserc.arith.matrixcomplex`, **pública** — a diferencia del resto de extracciones de esta reestructuración, que son package-private, porque `Fourier`/`Laplace`/`Z` viven en un paquete distinto y necesitan llamarla desde ahí). Recoge `e_lineStyle`, `setLineStyle()`, `plot(...)` (el primitivo genérico) y `doPlot(String,double[][],int)` (movido desde `MatrixComplexFunctions`, el plot de desviación de los bucles de convergencia Taylor/Mercator, 8 call sites).
+2. `Fourier`/`Laplace`/`Z` mantienen su propio enum `e_lineStyle` y su firma pública exacta — solo la implementación de `plot()` delega, convirtiendo el enum en la frontera.
+3. `MatrixComplexFormat.toString()`: cada celda se rellena ahora al ancho del elemento más largo de TODA la matriz (ancho único, no por columna — el usuario confirmó explícitamente esta opción sobre la alternativa "ancho por columna"), para que la cuadrícula salga uniforme.
+
+**Percance durante la implementación**: un `*/` literal dentro de un comentario Javadoc (`plotDFT*/plotDLT*` — el propio texto contenía la secuencia de cierre de comentario de Java) cerró el bloque de VERSION Release Note antes de tiempo, causando ~100 errores de compilación en cascada. Detectado inmediatamente por el propio compilador, diagnosticado (la secuencia `*/` literal en el texto) y arreglado (reescrito sin esa secuencia) antes de verificar y commitear — nunca llegó a mezclarse con el commit real.
+
+**Verificación**: compilación limpia de los 7 ficheros tocados + `TestQRSchur01` (9/9), `TestSVD`, `TestVectorAudit01` (28/28), `TestJordanAudit01` (3/3), `TestLogmAudit01` (15/15), `TestTaylorSeries05/08`, `TestLogDispatch01`, `TestLogTaylorAudit01` — todos `exit=0`, sin regresión. Alineación de columnas verificada visualmente con `ScratchMatrixSquarePrint01.java` (nuevo, conservado). `MatrixComplex.VERSION`: `1.58→1.59`. `Fourier.VERSION`: `1.7→1.8`. Commit `f18217e`, pusheado.
+
+**Candidato futuro anotado explícitamente por el usuario**: ampliar `MatrixComplexPlot.java` para mover también los métodos de plot específicos de cada clase (`plotFunction`/`plotSamples`/`plotDFTxxx`/`plotDLTxxx`/`plotZTxxx`), no solo lo genérico ya movido — pendiente, sin decidir cómo (¿pasar la instancia como parámetro, igual que `PolynomPlot` con `Polynom`? ¿ensanchar campos privados?).
+
+**Sin punto de retomada pendiente conocido tras este cierre** — preguntar al usuario por dónde seguir.
 
 ---
 
