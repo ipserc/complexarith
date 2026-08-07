@@ -34,9 +34,24 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.1 (2022_1103_2002)";
+	private final static String VERSION = "1.2 (2026_0807_1500)";
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.2 (2026_0807_1500)
+	 * Anadida una FFT real (radix-2 Cooley-Tukey, iterativa con permutacion bit-reversal), a
+	 * peticion del usuario -- DFTL()/DFT() eran O(n^2) (DFT() con una simetria parcial para senales
+	 * reales, pero sigue siendo O(n^2) en el bucle interior; DFTL() sin ninguna optimizacion,
+	 * conservada como referencia honesta para verificar). DFT(int)/IDFT() ahora usan la FFT/IFFT
+	 * automaticamente cuando N es potencia de dos exacta (O(n log n)); para cualquier otro N caen
+	 * al mismo camino O(n^2) de siempre, sin cambios. La FFT no necesita la simetria de senal real
+	 * (calcula X[k]=SUM x[n]*e^(-2*pi*i*k*n/N) para cualquier entrada compleja), asi que es
+	 * ademas mas correcta que el camino O(n^2) de DFT() para senales genuinamente complejas --
+	 * pero solo cuando N es potencia de dos; para N que no lo es, DFT() sigue con la misma
+	 * asuncion de senal real de siempre (preexistente, fuera de alcance de este cambio).
+	 * Verificado (ver Claude/ComplexArithRev.md): DFT(N) con N potencia de dos coincide con
+	 * DFTL(N) (referencia O(n^2) sin simetria) a precision de maquina, para señales reales y
+	 * complejas, N=4..1024; IDFT() tras DFT() reconstruye la señal original igual de bien.
+	 *
 	 * 1.1 (2022_1103_2002)
 	 * private Boolean saveRAWFile(String filePath, MatrixComplex dataOrig)
 	 * public Boolean saveRAWSamples(String filePath)
@@ -201,6 +216,16 @@ public class Fourier extends MatrixComplex {
 	 */
 	public Complex getTransformItem(int idx) {
 		return this.transform.getItem(0, idx);
+	}
+
+	/**
+	 * Gets the value at index idx of the time-domain samples (row 1 -- row 0 holds the associated
+	 * abscissa point).
+	 * @param idx The sample index.
+	 * @return The sample value at idx.
+	 */
+	public Complex getSampleItem(int idx) {
+		return this.samples.getItem(1, idx);
 	}
 
 	/**
@@ -1081,16 +1106,82 @@ public class Fourier extends MatrixComplex {
 	}
 
 	/**
-	 * Calculates the DFT making use of the symmetry properties.
+	 * Returns true if n is a strictly positive power of two.
+	 * @param n The number to test.
+	 * @return true if n>0 and n is a power of two.
+	 */
+	private static boolean isPowerOfTwo(int n) {
+		return n > 0 && (n & (n - 1)) == 0;
+	}
+
+	/**
+	 * Radix-2 Cooley-Tukey FFT, iterative with a bit-reversal permutation. x.length MUST be a
+	 * power of two (checked by every caller via isPowerOfTwo() before calling this). Computes
+	 * X[k] = SUM_n x[n]*e^(-2*pi*i*k*n/N) exactly, for arbitrary complex input -- unlike DFT()'s
+	 * O(n^2) path below, it never assumes a real-valued signal.
+	 * @param x The input samples, length a power of two.
+	 * @return The N DFT coefficients, in natural (not bit-reversed) order.
+	 */
+	private static Complex[] fft(Complex[] x) {
+		int n = x.length;
+		Complex[] a = new Complex[n];
+		for (int i = 0; i < n; ++i) a[i] = x[i].copy();
+
+		int bits = Integer.numberOfTrailingZeros(n);
+		for (int i = 0; i < n; ++i) {
+			int j = Integer.reverse(i) >>> (32 - bits);
+			if (j > i) {
+				Complex tmp = a[i];
+				a[i] = a[j];
+				a[j] = tmp;
+			}
+		}
+
+		for (int len = 2; len <= n; len <<= 1) {
+			Complex wlen = Complex.exp(Complex.i.times(-Complex.DOS_PI / len));
+			for (int i = 0; i < n; i += len) {
+				Complex w = new Complex(1, 0);
+				for (int j = 0; j < len / 2; ++j) {
+					Complex u = a[i + j];
+					Complex v = a[i + j + len / 2].times(w);
+					a[i + j] = u.plus(v);
+					a[i + j + len / 2] = u.minus(v);
+					w = w.times(wlen);
+				}
+			}
+		}
+		return a;
+	}
+
+	/**
+	 * Inverse of fft(), via the standard conjugate trick (ifft(X) = conj(fft(conj(X)))/N) --
+	 * reuses the same butterfly network instead of a second one with the opposite twiddle sign.
+	 * @param X The N DFT coefficients, in natural order. X.length MUST be a power of two.
+	 * @return The N reconstructed time-domain samples.
+	 */
+	private static Complex[] ifft(Complex[] X) {
+		int n = X.length;
+		Complex[] conjX = new Complex[n];
+		for (int i = 0; i < n; ++i) conjX[i] = X[i].conjugate();
+		Complex[] y = fft(conjX);
+		Complex[] result = new Complex[n];
+		for (int i = 0; i < n; ++i) result[i] = y[i].conjugate().divides(n);
+		return result;
+	}
+
+	/**
+	 * Calculates the DFT. When N is a power of two, uses a radix-2 FFT (O(n log n), exact for any
+	 * complex-valued signal, no symmetry assumption). Otherwise falls back to the existing O(n^2)
+	 * path below, which exploits the real-signal symmetry X[N-k]=conj(X[k]) -- only valid for a
+	 * real-valued input signal. This means, for a genuinely complex-valued signal, the result is
+	 * only guaranteed correct when N is a power of two; this is a preexisting limitation of the
+	 * O(n^2) path, not introduced by the FFT addition, and out of scope here (not audited/decided).
 	 * @param sampleFreq The frequency used to sample the function.
 	 */
 	public void DFT(int sampleFreq) {
 		this.N = sampleFreq;
 		this.sampleFreq = sampleFreq;
-		
-		Complex idospiN = Complex.i.times(-Complex.DOS_PI/N); // -2*pi*i/N
-		Complex expkn = new Complex();
-		
+
 		System.out.println("Samples:" + this.N);
 		System.out.printf("sample frequency: %.3e Hz\n",(double)sampleFreq);
 
@@ -1100,19 +1191,28 @@ public class Fourier extends MatrixComplex {
 
 		/*CHRONO*/ Chronometer FTChrono = new Chronometer();
 
-		int N2 = N/2;
-		int k0 = N%2 == 0 ? 0: 1;
-		for (int k = 0; k <= N2; ++k) { // freq index
-			Complex Ak = new Complex();
-			for (int n = 0; n < N; ++n) { // time index
-				expkn = Complex.exp(idospiN.times(k*n));
-				Ak = Ak.plus(expkn.times(this.samples.getItem(1,n)));
+		if (isPowerOfTwo(N)) {
+			Complex[] x = new Complex[N];
+			for (int n = 0; n < N; ++n) x[n] = this.samples.getItem(1, n);
+			Complex[] X = fft(x);
+			for (int k = 0; k < N; ++k) transform.setItem(0, k, X[k]);
+		} else {
+			Complex idospiN = Complex.i.times(-Complex.DOS_PI/N); // -2*pi*i/N
+			Complex expkn = new Complex();
+			int N2 = N/2;
+			int k0 = N%2 == 0 ? 0: 1;
+			for (int k = 0; k <= N2; ++k) { // freq index
+				Complex Ak = new Complex();
+				for (int n = 0; n < N; ++n) { // time index
+					expkn = Complex.exp(idospiN.times(k*n));
+					Ak = Ak.plus(expkn.times(this.samples.getItem(1,n)));
+				}
+				transform.setItem(0, k, Ak);
 			}
-			transform.setItem(0, k, Ak);
-		}
 
-		for (int k = k0; k < N2+k0; ++k) {
-			transform.setItem(0, k+N2, transform.getItem(0, N2-k+k0).conjugate());
+			for (int k = k0; k < N2+k0; ++k) {
+				transform.setItem(0, k+N2, transform.getItem(0, N2-k+k0).conjugate());
+			}
 		}
 
 		/*CHRONO*/ FTChrono.stop();
@@ -1120,7 +1220,7 @@ public class Fourier extends MatrixComplex {
 
 		isTransformed = true;
 	}
-	
+
 	/**
 	 * Calculates the DFT using the signal definitions.
 	 */
@@ -1129,35 +1229,49 @@ public class Fourier extends MatrixComplex {
 	}
 
 	/**
-	 * Calculates the samples of the function using the Inverse DFT.
+	 * Calculates the samples of the function using the Inverse DFT. When N is a power of two,
+	 * uses the inverse radix-2 FFT (O(n log n)); otherwise falls back to the existing O(n^2) path.
+	 * Both paths are exact for arbitrary complex-valued transform coefficients (no symmetry
+	 * assumption on this side, unlike DFT()'s O(n^2) path).
 	 */
 	public void IDFT() {
 		if(!isTransformed) {
 			System.out.println("WARNING:DFT coeficients not calculated/loaded. Do the DFT or Load them first.");
 			return;
 		}
-		
+
 		System.out.println("Computing the Inverse DFT...");
-		Complex idospiN = Complex.i.times(Complex.DOS_PI/N); // +2*pi*i/N
-		Complex expkn = new Complex();
 		samples = new MatrixComplex(2,N);
 		Complex point = loLimit.copy();
     	Complex incr = upLimit.minus(loLimit).divides(N);
-		Complex Tk = new Complex();
 
 		/*CHRONO*/ Chronometer IDFTChrono = new Chronometer();
 
-		for (int k = 0; k < N; ++k) { // time index
-			Tk.setComplexRec(0,0);
-			for (int n = 0; n < N; ++n) { // freq index
-				expkn = Complex.exp(idospiN.times(k*n));
-				Tk = Tk.plus(expkn.times(this.transform.getItem(0, n)));
+		if (isPowerOfTwo(N)) {
+			Complex[] X = new Complex[N];
+			for (int k = 0; k < N; ++k) X[k] = this.transform.getItem(0, k);
+			Complex[] x = ifft(X);
+			for (int n = 0; n < N; ++n) {
+				samples.setItem(0, n, point);
+				samples.setItem(1, n, x[n]);
+				point = point.plus(incr);
 			}
-			samples.setItem(0, k, point);
-			samples.setItem(1, k, Tk.divides(N));
-			point = point.plus(incr);
+		} else {
+			Complex idospiN = Complex.i.times(Complex.DOS_PI/N); // +2*pi*i/N
+			Complex expkn = new Complex();
+			Complex Tk = new Complex();
+			for (int k = 0; k < N; ++k) { // time index
+				Tk.setComplexRec(0,0);
+				for (int n = 0; n < N; ++n) { // freq index
+					expkn = Complex.exp(idospiN.times(k*n));
+					Tk = Tk.plus(expkn.times(this.transform.getItem(0, n)));
+				}
+				samples.setItem(0, k, point);
+				samples.setItem(1, k, Tk.divides(N));
+				point = point.plus(incr);
+			}
 		}
-		
+
 		/*CHRONO*/ IDFTChrono.stop();
 		/*CHRONO*/ System.out.println("Computing Time IDFT:" + IDFTChrono.toString());
 		isSampled = true;
