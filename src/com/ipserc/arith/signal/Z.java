@@ -9,11 +9,12 @@ import java.util.function.Function;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
+import com.ipserc.chronometer.*;
 import com.panayotis.gnuplot.JavaPlot;
 
 public class Z extends MatrixComplex {
 	private Function<Complex, Complex> func;
-	private Complex loLimit; 
+	private Complex loLimit;
 	private Complex upLimit;
 	private Complex period;
 	private int N;
@@ -26,22 +27,24 @@ public class Z extends MatrixComplex {
 	private Boolean isSerialized = false;
 	private Boolean isTransformed = false;
 	private String filterData;
+	/** Radius r of the sampling ring z_k=r*e^(j*2*pi*k/N) used by DZT()/IDZT(). r=1 reduces exactly to the DFT. */
+	private double radius = 1.0;
 
 	/*
-	 * ****************	CONSTRUCTORS **************** 
+	 * ****************	CONSTRUCTORS ****************
 	 */
 	/**
 	 * Instantiates an empty Z object, ready to load Z Series Coefficients, or Discrete Z Transform items as function samples or DZT coefficients.
 	 */
 	public Z() {
-		loLimit = new Complex (); 
+		loLimit = new Complex ();
 		upLimit  = new Complex ();
 		period  = new Complex ();
 	}
-	
+
 	/**
 	 * Instantiates an empty Z object with the minimal components, ready to load Z Series Coefficients, or Discrete Z Transform items as function samples or DZT coefficients.
-	 * @param nbrSamples The number of samples taken in the interval 
+	 * @param nbrSamples The number of samples taken in the interval
 	 * @param DloLimit Lower limit of the points to use with the function.
 	 * @param DupLimit Upper limit of the points to use with the function.
 	 */
@@ -55,7 +58,7 @@ public class Z extends MatrixComplex {
 
 	/**
 	 * Instantiates an empty Z object with the minimal components, ready to load Z Series Coefficients, or Discrete Z Transform items as function samples or DZT coefficients.
-	 * @param nbrSamples The number of samples taken in the interval 
+	 * @param nbrSamples The number of samples taken in the interval
 	 * @param CloLimit Lower limit of the points to use with the function, as a Complex number. Only the real part will be used.
 	 * @param CupLimit Upper limit of the points to use with the function, as a Complex number. Only the real part will be used.
 	 */
@@ -94,7 +97,7 @@ public class Z extends MatrixComplex {
 		//this.isSerialized = false;
 		//this.isTransformed = false;
 	}
-	
+
 	/**
 	 * Creates an instance of the Z object, using the sampled values ​​of the function.
 	 * It requires the following information before to start with the values sampled:
@@ -127,7 +130,7 @@ public class Z extends MatrixComplex {
 	public Z(String pathSamples, String separator) {
 		readSamples(pathSamples, separator);
 	}
-	
+
 	/*
 	 * **************** GETTERS / SETTERS ****************
 	 */
@@ -146,7 +149,27 @@ public class Z extends MatrixComplex {
 	public int getN() {
 		return this.N;
 	}
-	
+
+	/**
+	 * Gets the value at index idx of the DZT transform (row 1 -- row 0 holds the associated
+	 * sample index/abscissa, see DZT()).
+	 * @param idx The coefficient index.
+	 * @return The DZT coefficient at idx.
+	 */
+	public Complex getTransformItem(int idx) {
+		return this.transform.getItem(1, idx);
+	}
+
+	/**
+	 * Gets the value at index idx of the time-domain samples (row 1 -- row 0 holds the associated
+	 * abscissa point).
+	 * @param idx The sample index.
+	 * @return The sample value at idx.
+	 */
+	public Complex getSampleItem(int idx) {
+		return this.samples.getItem(1, idx);
+	}
+
 	/**
 	 * Gets the lower limit of the abscissa axis as a complex number
 	 * @return The lower limit of the abscissa axis as a complex number
@@ -154,7 +177,7 @@ public class Z extends MatrixComplex {
 	public Complex getLoLimit() {
 		return this.loLimit;
 	}
-	
+
 	/**
 	 * Gets the upper limit of the abscissa axis as a complex number
 	 * @return The upper limit of the abscissa axis as a complex number
@@ -162,20 +185,38 @@ public class Z extends MatrixComplex {
 	public Complex getUpLimit() {
 		return this.upLimit;
 	}
-	
+
 	/**
 	 * Gets the length of the period of the function calculated as upper limit minus lower limit
-	 * @return The length of the period of the function 
+	 * @return The length of the period of the function
 	 */
 	public Complex getPeriod() {
 		return this.period;
+	}
+
+	/**
+	 * Gets the radius r of the sampling ring z_k=r*e^(j*2*pi*k/N) used by DZT()/IDZT().
+	 * @return radius
+	 */
+	public double getRadius() {
+		return this.radius;
+	}
+
+	/**
+	 * Sets the radius r of the sampling ring z_k=r*e^(j*2*pi*k/N) used by DZT()/IDZT(). r=1
+	 * samples exactly on the unit circle (equivalent to the DFT of the samples).
+	 * @param radius The radius to evaluate the DZT at. Must be strictly positive.
+	 */
+	public void setRadius(double radius) {
+		if (radius <= 0) throw new IllegalArgumentException("radius must be > 0, got " + radius);
+		this.radius = radius;
 	}
 
 	/*
 	 * **************** FUNCTION SAMPLER METHODS ****************
 	 */
 	/**
-	 * Does the sampling of the function for the Laplace Series Analysis. The samples are stored in the Laplace Object
+	 * Does the sampling of the function for the Z Series Analysis. The samples are stored in the Z Object
 	 */
 	public void doSrsSampling() {
 		//this.N = sampleFreq;
@@ -192,12 +233,12 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Does the sampling of the function for the Discrete Laplace Transform. The samples are stored in the Laplace Object
+	 * Does the sampling of the function for the Discrete Z Transform. The samples are stored in the Z Object
 	 */
 	public void doTrfSampling() {
 		doSrsSampling();
 	}
-	
+
 	/*
 	 * **************** SAVE AND READ METHODS TO STORE CALCULATIONS ****************
 	 */
@@ -214,7 +255,7 @@ public class Z extends MatrixComplex {
 		System.out.println("writing data into " + filePath);
 	    try {
 	        FileWriter fWriter = new FileWriter(filePath);
-	        fWriter.write(loLimit.toString()+System.lineSeparator()); 
+	        fWriter.write(loLimit.toString()+System.lineSeparator());
 	        fWriter.write(upLimit.toString()+System.lineSeparator());
 	        fWriter.write(period.toString()+System.lineSeparator());
 	        fWriter.write(N+System.lineSeparator());
@@ -223,7 +264,7 @@ public class Z extends MatrixComplex {
 			//for (int i = 0; i < transform.cols(); ++i) {
 			for (int i = 0; i < this.N; ++i) {
 				if (separator != "") {
-					fWriter.write(data.getItem(0,i).rep()+separator+data.getItem(0,i).imp()+System.lineSeparator());	
+					fWriter.write(data.getItem(0,i).rep()+separator+data.getItem(0,i).imp()+System.lineSeparator());
 				}
 				else fWriter.write(data.getItem(0,i).toString()+System.lineSeparator());
 			}
@@ -237,7 +278,7 @@ public class Z extends MatrixComplex {
 		Complex.restoreFormatStatus();
 	    return fsaved;
 	}
-	
+
 	/**
 	 * Saves the samples of the function analyzed as Re<separator>Im in a given file in text format.
 	 * @param filePath The path to the file in which the data are saved.
@@ -276,7 +317,7 @@ public class Z extends MatrixComplex {
 		}
 		return this.saveTFile(filePath, transform, separator);
 	}
-	
+
 	/**
 	 * Saves the coefficients of the DZT as a+bi in a given file in text format.
 	 * @param filePath The path to the file in which the data are saved.
@@ -285,7 +326,7 @@ public class Z extends MatrixComplex {
 	public Boolean saveDZT(String filePath) {
 		return saveDZT(filePath, "");
 	}
-	
+
 	/**
 	 * Reads the samples of the function as Re<separator>Im to be analyzed from a given file in text format.
 	 * The file requires the following information before to start with the values sampled:
@@ -308,7 +349,7 @@ public class Z extends MatrixComplex {
 	    try {
 	        File fileObj = new File(filePath);
 	        BufferedReader br = new BufferedReader(new FileReader(fileObj));
-	    	loLimit.setComplex(br.readLine()); 
+	    	loLimit.setComplex(br.readLine());
 	    	upLimit.setComplex(br.readLine());
 	    	period.setComplex(br.readLine());
 	    	N = Integer.parseInt(br.readLine());
@@ -380,7 +421,7 @@ public class Z extends MatrixComplex {
 	    try {
 	        File fileObj = new File(filePath);
 	        BufferedReader br = new BufferedReader(new FileReader(fileObj));
-	    	loLimit.setComplex(br.readLine()); 
+	    	loLimit.setComplex(br.readLine());
 	    	upLimit.setComplex(br.readLine());
 	    	period.setComplex(br.readLine());
 	    	N = Integer.parseInt(br.readLine());
@@ -428,100 +469,163 @@ public class Z extends MatrixComplex {
 	public Boolean readDZT(String filePath) {
 		return readDZT(filePath, "");
 	}
-	
+
 	/*
 	 * **************** DISCRETE Z TRANSFORM METHODS ****************
-	 * 
+	 *
+	 * Reescrito (Decimoctava sesion, ver Claude/ComplexArithRev.md): la version original no
+	 * compilaba ("z"/"duration" indefinidos), era una copia a medio adaptar de Laplace.DLT() antes
+	 * de que este se arreglase, y la formula del nucleo no dependia de "n" (solo de "k"), asi que
+	 * estructuralmente no calculaba una transformada Z de nada. Reescrito desde cero con
+	 * z_k = r*e^(j*2*pi*k/N), r (radius) parametrizado explicitamente -- r=1 reduce exactamente a
+	 * la DFT de las muestras (caso de referencia verificable contra Fourier.DFT()), igual que
+	 * sigma=0 en Laplace.DLT().
 	 */
 	/**
-	 * Calculates the DZT.
+	 * Calculates the DZT (Discrete Z Transform) at N points z_k = radius*e^(j*2*pi*k/N),
+	 * equivalent to evaluating X(z_k) = SUM_n x[n]*z_k^(-n). radius=1 samples exactly on the unit
+	 * circle, reducing exactly to the DFT of the samples (caso de referencia verificable contra
+	 * Fourier.DFT()).
 	 * @param sampleFreq The frequency used to sample the function.
+	 * @param radius The radius r of the sampling ring. Must be strictly positive.
 	 */
-	public void DZT(int sampleFreq) {
+	public void DZT(int sampleFreq, double radius) {
+		setRadius(radius);
 		this.sampleFreq = sampleFreq;
 		this.N = sampleFreq;
-		// Complex ONEidospiN = new Complex(-1/N, -Complex.DOS_PI/N); // -1/N-2*pi*i/N
-		
+		Complex idospiN = Complex.i.times(-Complex.DOS_PI/N); // -2*pi*i/N
+
 		System.out.println("Samples:" + this.N);
 		System.out.printf("sample frequency: %.3e Hz\n",(double)sampleFreq);
-		
+		System.out.printf("radius: %.3e\n", radius);
+
 		if (!isSampled) doTrfSampling();
-		
+
 		transform = new MatrixComplex(2,N);
 
-		/*DURATION*/ long time = System.currentTimeMillis();
-		
+		/*CHRONO*/ Chronometer chrono = new Chronometer();
+		/*CHRONO*/ chrono.start();
+
 		for (int k = 0; k < N; ++k) { // freq index
 			Complex Ak = new Complex();
 			for (int n = 0; n < N; ++n) { // time index
-				Ak = Ak.plus(this.samples.getItem(1,n).times(z.power(-k)));
+				// z_k^(-n) = radius^(-n) * e^(-j*2*pi*k*n/N)
+				double rInvN = Math.pow(radius, -n);
+				if (Double.isNaN(rInvN) || Double.isInfinite(rInvN)) {
+					throw new ArithmeticException("DZT: radius^(-n) overflowed for radius=" + radius + ", n=" + n);
+				}
+				Complex expkn = Complex.exp(idospiN.times(k*n)).times(rInvN);
+				Ak = Ak.plus(this.samples.getItem(1,n).times(expkn));
 			}
 			transform.setItem(0, k, this.samples.getItem(0,k));
 			transform.setItem(1, k, Ak);
-			//transform.setItem(1, k, Ak.divides(N));
 		}
-		
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ duration FTDuration = new duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time DLT:" + FTDuration.toString());
-		
+
+		/*CHRONO*/ chrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time DZT:" + chrono.toString());
+
 		isTransformed = true;
 	}
 
 	/**
-	 * Calculates the samples of the function using the Inverse DLT.
+	 * Calculates the DZT with radius=1 (samples exactly on the unit circle -- equivalent to the
+	 * DFT of the samples).
+	 * @param sampleFreq The frequency used to sample the function.
 	 */
-	public void IDLT() {
+	public void DZT(int sampleFreq) {
+		DZT(sampleFreq, 1.0);
+	}
+
+	/**
+	 * Calculates the DZT using the signal definitions.
+	 */
+	public void DZT() {
+		DZT(this.sampleFreq, this.radius);
+	}
+
+	/**
+	 * Calculates the samples of the function using the Inverse DZT:
+	 * x[n] = (1/N) * SUM_k X(z_k) * z_k^n, the exact inverse of DZT(sampleFreq, radius).
+	 */
+	public void IDZT() {
 		if(!isTransformed) {
-			System.out.println("WARNING:DLT coeficients not calculated/loaded. Do the DLT or Load them first.");
+			System.out.println("WARNING:DZT coeficients not calculated/loaded. Do the DZT or Load them first.");
 			return;
 		}
-		
-		System.out.println("Computing the Inverse DLT...");
-		double dospiN = Complex.DOS_PI/N; // +2*pi/N
-		Complex expkn = new Complex();
+
+		System.out.println("Computing the Inverse DZT...");
+		Complex idospiN = Complex.i.times(Complex.DOS_PI/N); // +2*pi*i/N
 		samples = new MatrixComplex(2,N);
 		Complex point = loLimit.copy();
     	Complex incr = upLimit.minus(loLimit).divides(N);
 		Complex Tk = new Complex();
 
-    	/*DURATION*/ long time = System.currentTimeMillis();
+		/*CHRONO*/ Chronometer chrono = new Chronometer();
+		/*CHRONO*/ chrono.start();
 
-		for (int k = 0; k < N; ++k) { // time index
+		for (int n = 0; n < N; ++n) { // time index
 			Tk.setComplexRec(0,0);
-			for (int n = 0; n < N; ++n) { // freq index
-				expkn = Complex.exp(dospiN*k*n);
-				Tk = Tk.plus(expkn.times(this.transform.getItem(0, n)));
+			for (int k = 0; k < N; ++k) { // freq index
+				// z_k^n = radius^n * e^(j*2*pi*k*n/N)
+				double rN = Math.pow(radius, n);
+				if (Double.isNaN(rN) || Double.isInfinite(rN)) {
+					throw new ArithmeticException("IDZT: radius^n overflowed for radius=" + radius + ", n=" + n);
+				}
+				Complex expkn = Complex.exp(idospiN.times(k*n)).times(rN);
+				Tk = Tk.plus(expkn.times(this.transform.getItem(1, k)));
 			}
-			samples.setItem(0, k, point);
-			samples.setItem(1, k, Tk.divides(N));
+			samples.setItem(0, n, point);
+			samples.setItem(1, n, Tk.divides(N));
 			point = point.plus(incr);
 		}
-		/*DURATION*/ time = System.currentTimeMillis() - time;
-		/*DURATION*/ duration IDLTDuration = new duration(time, "ms");
-		/*DURATION*/ System.out.println("Computing Time IDLT:" + IDLTDuration.toString());
+
+		/*CHRONO*/ chrono.stop();
+		/*CHRONO*/ System.out.println("Computing Time IDZT:" + chrono.toString());
 		isSampled = true;
 	}
 
 	/**
-	 * Prints in the console the DLT coefficients.
+	 * Evaluates the Z series X(z) = SUM_n x[n]*z^(-n) at any point z of the Z plane (not
+	 * restricted to the DZT sampling ring), using the time samples x[n] as the Laurent series
+	 * coefficients. Computed via Horner's method on w=1/z. Useful for pole/zero and stability
+	 * analysis away from the discrete grid.
+	 * @param z The point of the Z plane in which the series is evaluated. Must be non-zero.
+	 * @return The value of the Z series at z.
+	 */
+	public Complex calc(Complex z) {
+		if(!isSampled) {
+			System.out.println("WARNING (calc):Function not sampled yet. Sample it first.");
+			return new Complex();
+		}
+		if (z.isZero()) throw new IllegalArgumentException("calc: z must be non-zero (z^-1 is undefined at z=0)");
+
+		Complex w = z.power(-1); // 1/z
+		Complex result = samples.getItem(1, N-1).copy();
+		for (int n = N-2; n >= 0; --n) {
+			result = result.times(w).plus(samples.getItem(1, n));
+		}
+		return result;
+	}
+
+	/**
+	 * Prints in the console the DZT coefficients.
 	 */
 	public void printTCoefs() {
 		if(!isTransformed) {
 			System.out.println("WARNING:Function not transformed yet. Transform it first.");
 			return;
 		}
-		//series.transpose().println("Laplace Series Coefs ");
-		System.out.println("Laplace Transform Coefs ");
+		//series.transpose().println("Z Series Coefs ");
+		System.out.println("Z Transform Coefs ");
 		int idxDig = (N+"").length();
 		String strFormat = "A%0"+idxDig+"d = %s\n";
 		for (int i = 0; i < transform.cols(); ++i) {
 			System.out.printf(strFormat, i, transform.getItem(0, i).toString());
 		}
 	}
-	
+
 	/**
-	 * Enumerative for plotting the DLT in different operators 
+	 * Enumerative for plotting the DZT in different operators
 	 * COMPLEX. Plots the values of the coefficients in Rectangular representation.
 	 * MAGNITUDE. Plots the values of the coefficients in Polar representation.
 	 * SQUARE. Plots the square values of the coefficients in Rectangular representation.
@@ -529,7 +633,7 @@ public class Z extends MatrixComplex {
 	public static enum e_operator {
 		COMPLEX, MAGNITUDE, SQUARE;
 	}
-	
+
 	/**
 	 * Enumerative for the two kinds of x axis units
 	 * SAMP. x axis represents the index of the coefficients
@@ -538,25 +642,25 @@ public class Z extends MatrixComplex {
 	public static  enum e_domain {
 		SAMP, FREC;
 	}
-	
+
 	/**
 	 * Does the operations required for the different views
 	 * @param cNum The Complex number to operate with.
 	 * @param operator The operator as defined in e_operator
-	 * @param logscale True if the cNum should be non-negative to be plotted in logarithmic scale 
+	 * @param logscale True if the cNum should be non-negative to be plotted in logarithmic scale
 	 * @return  the number operated
 	 */
 	private Complex eval(Complex cNum, e_operator operator, boolean logscale) {
 		switch (operator) {
 		case COMPLEX: return logscale ? Complex.positive(cNum) : cNum;
-		case MAGNITUDE: return logscale ? Complex.positive(cNum) : cNum; 
+		case MAGNITUDE: return logscale ? Complex.positive(cNum) : cNum;
 		case SQUARE: return logscale ? Complex.positive(cNum.times(cNum)) : cNum.times(cNum);
 		}
 		return cNum;
 	}
 
 	/*
-	 * **************** DLT PLOTTING METHODS ****************
+	 * **************** DZT PLOTTING METHODS ****************
 	 */
 	/**
 	 * Enumerative to set the style for gnuplot
@@ -574,14 +678,14 @@ public class Z extends MatrixComplex {
 	 */
 	private String setLineStyle(e_lineStyle lineStyle) {
 		String strLineStyle = "data ";
-		
+
 		switch (lineStyle) {
 		case LINES: return strLineStyle+"lines";
 		case IMPULSES: return strLineStyle+"impulses";
 		}
 		return strLineStyle+"lines";
 	}
-	
+
 	/**
 	 * Plots a graphic with the points given in 'data'. Row 0 is for the x axis values, Row 1 is for the y axis values. The values to plot are in the columns.
 	 * @param title The title of the graphic.
@@ -599,7 +703,7 @@ public class Z extends MatrixComplex {
 			dataRe[t][1] = data.complexMatrix[1][t].rep();
 			dataIm[t][1] = data.complexMatrix[1][t].imp();
 		}
-		
+
 		//Plot the data
 		JavaPlot p = new JavaPlot();
 		p.setTitle(title);
@@ -621,14 +725,14 @@ public class Z extends MatrixComplex {
 
 		plot(title, nbrSamples, samples, showIm, lineStyle);
 	}
-	
+
 	/**
-	 * Plots the samples of the function used for the Laplace analysis
+	 * Plots the samples of the function used for the Z analysis
 	 * @param title The title of the graphic.
 	 * @param nbrSamples The number of the samples to draw the plot.
 	 * @param showIm True for plotting the imaginary part.
 	 */
-	
+
 	/* ***************************************************************************************************
 
 	public void plotSamples(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
@@ -637,7 +741,7 @@ public class Z extends MatrixComplex {
 			this.sampleFreq = nbrSamples;
 			doSrsSampling();
 		}
-		
+
 		//Split the data into Re and Im parts
 		double dataRe[][]  = new double[nbrSamples][2];
 		double dataIm[][]  = new double[nbrSamples][2];
@@ -648,7 +752,7 @@ public class Z extends MatrixComplex {
 			dataRe[t][1] = samples.complexMatrix[1][t].rep();
 			dataIm[t][1] = samples.complexMatrix[1][t].imp();
 		}
-		
+
 		//Plot the data
 		JavaPlot p = new JavaPlot();
 		p.setTitle(title);
@@ -663,27 +767,27 @@ public class Z extends MatrixComplex {
 	 *************************************************************************************************** */
 
 	/**
-	 * Plots the samples of the function used for the Fourier analysis
+	 * Plots the samples of the function used for the Z analysis
 	 * @param title The title of the graphic.
 	 * @param showIm True for plotting the imaginary part.
 	 */
 	public void plotSamples(String title, boolean showIm, e_lineStyle lineStyle) {
 		plot(title, N, samples, showIm, lineStyle);
 	}
-	
+
 	/**
-	 * Does the plot of the DLT graphic in the domain of Coefficients
+	 * Does the plot of the DZT graphic in the domain of Coefficients
 	 * @param Title The title of the polt
-	 * @param domain The domain in which plot the DLT
+	 * @param domain The domain in which plot the DZT
 	 * @param operator The operator used
 	 * @param logscale True in y axis should be set in logarithmic scale
 	 */
-	public void plotDLT(String Title, boolean showIm, e_lineStyle lineStyle) {
+	public void plotDZT(String Title, boolean showIm, e_lineStyle lineStyle) {
 		if(!isTransformed) {
-			System.out.println("WARNING:DFT coeficients not calculated/loaded. Do the DFT or Load them first.");
+			System.out.println("WARNING:DZT coeficients not calculated/loaded. Do the DZT or Load them first.");
 			return;
 		}
 		plot(Title, N, transform, showIm, lineStyle);
 	}
-	
+
 }
