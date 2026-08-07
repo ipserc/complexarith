@@ -40,9 +40,37 @@ public class LUfactor extends MatrixComplex {
 	private LUmethod method = LUmethod.NONE;
 
 	private final static String HEADINFO = "LUfactor --- INFO: ";
-	private final static String VERSION = "1.4 (2022_0209_2130)";
+	private final static String VERSION = "1.5 (2026_0807_2300)";
 	/* VERSION Release Note
-	 * 
+	 *
+	 * 1.5 (2026_0807_2300)
+	 * Auditoria de com.ipserc.arith.factorization.LUfactor (ver Claude/ComplexArithRev.md), 3
+	 * hallazgos reales confirmados en ejecucion, todos arreglados:
+	 * (1) LUfactor(MatrixComplex)/LUfactor(MatrixComplex,LUmethod): "matrix.complexMatrix.clone()"
+	 * era un clone() superficial de array (mismo bug ya arreglado en Schurfactor esta sesion) --
+	 * mutar la instancia construida corrompia la matriz original del llamador. Arreglado con
+	 * matrix.copy().complexMatrix.
+	 * (2) CROUTfactorize() (el metodo por defecto, probado primero por factorize()): el bootstrap
+	 * de fila 0/columna 0 dividia por A[0][0] sin guarda, y a diferencia de PIVOTfactorize()/
+	 * CHOLESKIfactorize() nunca hacia la comprobacion final de NaN/Infinite -- declaraba
+	 * factorized=true con L/U contaminados de NaN/Infinity para cualquier matriz perfectamente
+	 * invertible con un cero en (0,0) (p.ej. [[0,1],[1,0]], det=-1), impidiendo el fallback a
+	 * PIVOTfactorize() que factorize() intenta a continuacion. Arreglado con una guarda temprana
+	 * (bail out limpio si A[0][0]=0) mas la comprobacion final ya presente en los otros metodos.
+	 * (3) CHOLESKYcoef()/CHOLESKIfactorize(): usaba la forma bilineal (power(2), sin conjugar, y
+	 * cL.transpose() en vez de cL.adjoint()) en vez de la Hermitiana -- invisible para matrices
+	 * reales simetricas (mismo patron que el bug ya arreglado en Line.normalPoint() esta sesion),
+	 * pero incorrecto para Hermitianas genuinamente complejas (que el propio Javadoc de la clase
+	 * dice soportar). Confirmado con una Hermitiana PD compleja 2x2: L*L^H (el chequeo correcto)
+	 * no reconstruia A. Arreglado conjugando el segundo factor en las sumas de Steps 4/5/6 y
+	 * cambiando cU=cL.transpose() por cU=cL.adjoint(). De propina, encontrado y arreglado un
+	 * off-by-one independiente en el propio Step 6 (el bucle de la suma para el ultimo elemento
+	 * diagonal era "k<n-1" en vez de "k<n", omitiendo el ultimo termino -- invisible en matrices
+	 * 2x2 porque el Step 3 que lo habria expuesto no llega a ejecutarse para ese tamaño).
+	 * De propina: DOOLITTLEfactorize_()/DOOLITTLE_U()/DOOLITTLE_L() (con guion bajo) eran codigo
+	 * muerto -- cero llamadores, sustituidos por DOOLITTLEfactorize() (reutiliza CROUT sobre la
+	 * transpuesta). Eliminados los tres juntos.
+	 *
 	 * 1.4 (2022_0209_2130)
 	 * private MatrixComplex CHOLESKYcoef() sqrrot changed to sqrt
 	 * 
@@ -111,7 +139,7 @@ public class LUfactor extends MatrixComplex {
 	 */
 	public LUfactor(MatrixComplex matrix) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 		factorize();
 	}
 
@@ -122,7 +150,7 @@ public class LUfactor extends MatrixComplex {
 	 */
 	public LUfactor(MatrixComplex matrix, final LUmethod method) {
 		super();
-		this.complexMatrix = matrix.complexMatrix.clone();
+		this.complexMatrix = matrix.copy().complexMatrix;
 		factorize(method);
 	}
 
@@ -293,108 +321,24 @@ public class LUfactor extends MatrixComplex {
 		// -----------
 		// U Matrix
 		// -----------
-		// row 0
+		// row 0: needs L[0][0] != 0 -- unlike CROUT_U() for idx>=1, this bootstrap step has no
+		// pivoting available. A[0][0]=0 doesn't mean the matrix is singular (e.g. [[0,1],[1,0]],
+		// det=-1), just that plain (unpivoted) Crout can't proceed -- bail out cleanly so the
+		// caller (factorize()) falls back to PIVOTfactorize() instead of silently keeping a
+		// NaN/Infinity-contaminated L/U.
+		if (cL.getItem(0, 0).isZero()) return;
 		{
 			int row = 0;
 			for (int col = 1; col < rowLen; ++col ) {
 				cU.setItem(row, col, this.getItem(row, col).divides(cL.getItem(row, row)));
 			}
 		}
-		
+
 		for(int idx = 1; idx < rowLen; ++idx) {
 			CROUT_L(idx);
 			if (!CROUT_U(idx)) return;
 		}
-		factorized = true;
-	}
-
-	/**
-	 * Calculates the DOOLITTLE U column matrix for a given row
-	 * @param theRow The given row
-	 */
-	private void DOOLITTLE_U(int theRow) {
-		//Boolean dep = false;
-		//if(dep) System.out.println(Complex.repeat("-U", 25));
-		for (int col = theRow; col < this.cols(); ++col) {
-			Complex SLU = new Complex(0,0);
-			for (int idx = 0; idx < theRow; ++idx) {
-				//if(dep) System.out.print("L"+theRow+idx+"*U"+idx+col+"+");
-				SLU = SLU.plus(cU.getItem(theRow, idx).times(cL.getItem(idx, col)));
-			}
-			//if(dep) System.out.println("\na"+theRow+col);
-			SLU = this.getItem(theRow, col).minus(SLU);
-			cU.setItem(theRow, col, SLU);
-		}
-	}
-
-	/**
-	 * Calculates the DOOLITTLE U row matrix for a given column
-	 * @param theCol
-	 * @return true if the diagonalization can be done, else false
-	 */
-	private boolean DOOLITTLE_L(int theCol) {
-		//Boolean dep = false;
-		//if(dep) System.out.println(Complex.repeat("+L", 25));
-		for (int row = theCol; row < this.rows(); ++row) {
-			Complex SLU = new Complex(0,0);
-			for (int idx = 0; idx < theCol; ++idx) {
-				//if(dep) System.out.print("L"+row+idx+"*U"+idx+theCol+"+");
-				SLU = SLU.plus(cU.getItem(row, idx).times(cL.getItem(idx, theCol)));				
-			}
-			//if(dep) System.out.println("\na"+row+theCol+" U"+theCol+theCol);
-			SLU = (this.getItem(row, theCol).minus(SLU)).divides(cU.getItem(theCol, theCol));
-			if (SLU.isInfinite() || SLU.isNaN()) return false;
-			cL.setItem(row, theCol, SLU);
-		}
-		return true;
-	}
-
-	/**
-	 * In linear algebra, the Crout matrix decomposition is an LU decomposition which decomposes a matrix into a lower triangular matrix (L), 
-	 * an upper triangular matrix (U) and, although not always needed, a permutation matrix (P). It was developed by Prescott Durand Crout. [1]
-	 * The Crout matrix decomposition algorithm differs slightly from the Doolittle method. Doolittle's method returns a unit lower triangular matrix 
-	 * and an upper triangular matrix, while the Crout method returns a lower triangular matrix and a unit upper triangular matrix.
-	 * So, if a matrix decomposition of a matrix A is such that: A = LDU being L a unit lower triangular matrix, D a diagonal matrix 
-	 * and U a unit upper triangular matrix, then Doolittle's method produces A = L(DU) and Crout's method produces A = (LD)U.
-	 * source wikipedia https://en.wikipedia.org/wiki/Crout_matrix_decomposition
-	 */
-	private void DOOLITTLEfactorize_() {
-		int rowLen = this.rows();
-		int colLen = this.cols();
-
-		// **** if (this.determinant().equalsred(Complex.ZERO)) return;
-		if (this.determinant().equals(Complex.ZERO)) return;
-		
-		cP = new MatrixComplex(rowLen, colLen); cP.initMatrixDiag(1,0);
-		cL = new MatrixComplex(rowLen, colLen); cL.initMatrixDiag(1,0);
-		cU = new MatrixComplex(rowLen, colLen);
-		
-		// -----------
-		// U Matrix
-		// -----------
-		// row 0
-		{
-			int row = 0;
-			for (int col = 0; col < rowLen; ++col ) {
-				cU.setItem(row, col, this.getItem(row, col));
-			}
-		}
-		
-		// -----------
-		// L Matrix
-		// -----------
-		// col 0
-		{
-			int col = 0;
-			for (int row = 1; row < rowLen; ++row ) {
-				cL.setItem(row, col, this.getItem(row, col).divides(cU.getItem(col, col)));
-			}
-		}
-
-		for(int idx = 1; idx < rowLen; ++idx) {
-			DOOLITTLE_U(idx);
-			if (!DOOLITTLE_L(idx)) return;
-		}
+		if (cL.isNaN() || cL.isInfinite() || cU.isNaN() || cU.isInfinite()) return;
 		factorized = true;
 	}
 
@@ -429,29 +373,29 @@ public class LUfactor extends MatrixComplex {
 		
 		//Step 3
 		for (int col = 1; col < this.cols()-1; ++col) {
-		
+
 			//Step 4
 			coef = Complex.ZERO;
 			for (int k = 0; k < col; ++k) {
-				coef = coef.plus(coefMatrix.getItem(col,k).power(2));
+				coef = coef.plus(coefMatrix.getItem(col,k).times(coefMatrix.getItem(col,k).conjugate()));
 			}
 			coefMatrix.setItem(col,col,Complex.sqrt(this.getItem(col,col).minus(coef)));
-			
+
 			//Step 5
 			for (int row = col+1; row < this.rows(); ++row) {
 				coef = Complex.ZERO;
 				for (int k = 0; k < col; ++k) {
-					coef = coef.plus(coefMatrix.getItem(row,k).times(coefMatrix.getItem(col,k)));						
+					coef = coef.plus(coefMatrix.getItem(row,k).times(coefMatrix.getItem(col,k).conjugate()));
 				}
 				coefMatrix.setItem(row,col,(this.getItem(row,col).minus(coef)).divides(coefMatrix.getItem(col,col)));
 			}
 		}
-		
+
 		//Step 6
 		int n = this.rows()-1;
 		coef = Complex.ZERO;
-		for (int k = 0; k < n-1; ++k) {
-			coef = coef.plus(coefMatrix.getItem(n,k).power(2));						
+		for (int k = 0; k < n; ++k) {
+			coef = coef.plus(coefMatrix.getItem(n,k).times(coefMatrix.getItem(n,k).conjugate()));
 		}
 		coefMatrix.setItem(n,n,Complex.sqrt(this.getItem(n,n).minus(coef)));
 		
@@ -477,7 +421,7 @@ public class LUfactor extends MatrixComplex {
 		cU = new MatrixComplex(rowLen, colLen);
 
 		cL = CHOLESKYcoef();
-		cU = cL.transpose();
+		cU = cL.adjoint(); // A = L*L^H (conjugate transpose), not L*L^T -- L.transpose() only matches for real L
 		if (cL.isNaN() || cL.isInfinite() || cU.isNaN() || cU.isInfinite()) factorized = false;
 		else factorized = true;
 	}

@@ -2148,7 +2148,25 @@ public double distance(Point point) {
 
 `Line.VERSION`: `1.4→1.5`.
 
-**EXACTO PUNTO DE RETOMADA**: `Line.distance(Line)` (dim>3) y `Line.distance(Point)` (dim>7), **ambos CERRADOS y verificados**, sin commitear todavía. Con esto, todos los hallazgos conocidos de `com.ipserc.arith.geom` quedan resueltos. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+**EXACTO PUNTO DE RETOMADA (previo)**: `com.ipserc.arith.geom` cerrado del todo. El usuario preguntó si la revisión JAVA de `com.ipserc.arith` estaba completa — inventario cruzado contra el historial de commits reveló 6 clases sin auditoría dedicada: `LUfactor.java`/`combinatoric/CombinationNoReps.java` (cero mención en ninguna sesión), y `QRfactor.java`/`SVDfactor.java`/`polynom/Spline.java`/`syseq/Syseqnum.java` (algún roce, sin caza de bugs dedicada).
+
+## Decimoctava sesión, continuación — auditoría de `LUfactor.java` (7 agosto 2026)
+
+A petición del usuario ("Sigamos con LUfactor.java"). **3 hallazgos reales, confirmados en ejecución antes de arreglar, todos arreglados**:
+
+1. **Aliasing por `clone()` superficial en los 2 constructores `LUfactor(MatrixComplex[,LUmethod])`** — mismo bug exacto ya encontrado y arreglado en `Schurfactor` esta sesión. Confirmado con el mismo driver de mutación. Arreglado con `matrix.copy().complexMatrix`.
+
+2. **`CROUTfactorize()` (el método probado primero por el `factorize()` por defecto) declaraba éxito con `NaN`/`Infinity` dentro** — el bootstrap de fila 0/columna 0 dividía por `A[0][0]` sin guarda, y a diferencia de `PIVOTfactorize()`/`CHOLESKIfactorize()`, nunca hacía la comprobación final de `NaN`/`Infinite`. Confirmado con `[[0,1],[1,0]]` (determinante `-1`, perfectamente invertible): `factorized()=true` con `L`/`U` llenos de `NaN`/`Infinity`, impidiendo el fallback automático a `PIVOTfactorize()`. Arreglado con una guarda temprana (`A[0][0]==0` → `return` limpio) más la comprobación final ya presente en los otros métodos.
+
+3. **`CHOLESKYcoef()`/`CHOLESKIfactorize()` usaban la forma bilineal en vez de la Hermitiana** — mismo patrón que `Line.normalPoint()` (ya arreglado esta sesión): `.power(2)` sin conjugar en las sumas, y `cU = cL.transpose()` en vez de `cL.adjoint()`. Invisible para matrices reales simétricas, rota para Hermitianas genuinamente complejas (que el propio Javadoc de la clase dice soportar) — confirmado con una Hermitiana PD 2×2 compleja: `L·L^H` no reconstruía `A`. **De propina, encontrado al re-derivar la fórmula correcta**: un off-by-one independiente en el Paso 6 de `CHOLESKYcoef()` (`k<n-1` en vez de `k<n` en la suma del último elemento diagonal, invisible en matrices 2×2 porque el Paso 3 que lo habría expuesto no llega a ejecutarse para ese tamaño) — confirmado con una matriz real simétrica PD 3×3 aislando ese bug específico del de la conjugación. Arreglados los tres a la vez: conjugar el segundo factor en Steps 4/5/6, corregir el límite del bucle del Paso 6, y `cU = cL.adjoint()`.
+
+**De propina**: `DOOLITTLEfactorize_()`/`DOOLITTLE_U()`/`DOOLITTLE_L()` (con guion bajo) eran código muerto — cero llamadores, sustituidos por `DOOLITTLEfactorize()` (reutiliza CROUT sobre la transpuesta). Eliminados los tres juntos.
+
+**Verificación** (`ScratchLUfactorAudit01.java`, conservado, 6/6 OK): incluye casos diseñados para aislar cada hallazgo por separado — Hermitiana 2×2 (conjugación), real simétrica PD 3×3 (off-by-one del Paso 6, sin conjugación de por medio), Hermitiana PD 3×3 (ambos bugs combinados). Batería completa (`TestLU01`, `TestLU02`, `TestSolve09`) contra un build de referencia: los 3 exit=0 en ambos, con diffs de contenido — investigados y confirmados **enteramente explicados por matrices aleatorias sin semilla** en las secciones Hermitianas/Cholesky de esos tests (confirmado ejecutando el mismo build ya arreglado dos veces seguidas y viendo el mismo tipo de diferencia contra sí mismo, mismo patrón ya documentado repetidamente en el proyecto) — no hay ninguna sección con matriz fija cuyo resultado haya cambiado de forma inesperada.
+
+`LUfactor.VERSION`: `1.4→1.5`.
+
+**EXACTO PUNTO DE RETOMADA**: `LUfactor.java` **CERRADO**, arreglado y verificado, sin commitear todavía. Quedan sin auditoría dedicada: `combinatoric/CombinationNoReps.java`, `QRfactor.java`, `SVDfactor.java`, `polynom/Spline.java`, `syseq/Syseqnum.java`. Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 
