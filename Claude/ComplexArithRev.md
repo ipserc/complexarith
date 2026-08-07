@@ -2075,7 +2075,28 @@ public static Complex step(Complex z, double ton, double toff) {
 
 `Sigfunc.VERSION`: `1.1→1.2`.
 
-**EXACTO PUNTO DE RETOMADA**: `slopeFilter()`, `bandPassFilter()` con pendiente y `Sigfunc.step()`, **los tres CERRADOS y verificados**, sin commitear todavía. Quedan sin resolver, por orden de confianza/severidad: `Laplace.CLT()` (estructuralmente sospechosa, alcance grande — probablemente necesite diseñar de cero la malla de valores `s`, similar en envergadura a la reescritura de `Z.java`), `convolution()`'s `.times(2)` (sin confirmar, marcado como sospechoso por el propio autor original). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
+**EXACTO PUNTO DE RETOMADA (previo)**: `slopeFilter()`, `bandPassFilter()` con pendiente y `Sigfunc.step()`, cerrados. Quedaba sin resolver `Laplace.CLT()` (alcance grande, previsto) y `convolution()`'s `.times(2)` (sin confirmar).
+
+### Arreglado: `Laplace.CLT(int nbrSamples, int decPrec)` — reescrito con el mismo diseño de `s_n` que `DLT()`
+
+A petición del usuario ("Arregla Laplace.CLT también"). Resultó tener alcance más manejable de lo previsto: no hizo falta diseñar la malla de valores `s` desde cero, porque `DLT()` (ya arreglado esta sesión) **ya la definió y verificó** — `CLT()` solo necesitaba reutilizarla en lugar de reinventar algo distinto.
+
+**Diagnóstico confirmado**: `cn = samples.getItem(0, n).opposite()` usaba la abscisa temporal de la muestra `n`-ésima (un valor en el dominio `[loLimit,upLimit]`) como si fuera el punto de evaluación `s` de la transformada de Laplace — mezclando dominio temporal y de frecuencia. El Javadoc ("Calculates the Fourier Series up to the coefficient number given by 'order'") tampoco coincidía con la firma del método (sin parámetro `order`) — copiado de otro sitio sin actualizar.
+
+**Arreglado**: `CLT()` ahora evalúa `s_n = sigma + j·2π·n/T` (exactamente la misma rejilla que `DLT()`, reutilizando el campo `sigma` ya existente en la clase) vía integración numérica directa en vez de la suma discreta de `DLT()`:
+```java
+Complex sn = new Complex(sigma, 0).plus(Complex.i.times(Complex.DOS_PI * n).divides(period));
+Complex cn = sn.opposite(); // -s_n
+Function<Complex, Complex> expz = z -> Complex.exp(z.times(cn)); // e^(-s_n*z)
+coef = integrate(loLimit, upLimit, func, expz, decPrec);
+```
+Javadoc corregido para describir lo que el método realmente calcula (Transformada de Laplace continua, no serie de Fourier). Firma pública sin cambios — `sigma` se fija con `setSigma()` (ya existente desde el fix de `DLT()`), igual que en la propia `DLT()`.
+
+**Verificación** (`ScratchLaplaceCLTVerify01.java`, conservado en `src/TestComplex/`): comparado contra la fórmula cerrada conocida para `f(t)=1` (constante) en `[0,T]`, `X(s) = (1-e^(-sT))/s` — 4/4 puntos `s_n` (`n=0..3`, `sigma=0.3`, `T=2`, `decPrec=3`, la misma precisión que usa `TestLaplace01.java` en la práctica) coinciden con diferencia `~4.5×10⁻⁶` (dentro de lo esperable para una suma de Riemann cruda a esa precisión, no una cuadratura inteligente). `TestLaplace01.java` (único llamador del proyecto) compila limpio — no ejecutable de punta a punta aquí por `JavaPlot`/gnuplot, mismo patrón que el resto de la sesión. `ScratchLaplaceDLTVerify01.java` (regresión de `DLT()`/`IDLT()`, 3/3) sigue pasando — confirma que el fix no tocó nada de lo ya arreglado.
+
+`Laplace.java` no tiene campo `VERSION` (ni lo tenía antes de esta sesión) — sin cambio de versión, consistente con el fix de `DLT()`/`IDLT()` anterior.
+
+**EXACTO PUNTO DE RETOMADA**: `Laplace.CLT()` **CERRADO** y verificado, sin commitear todavía. Con esto, todos los hallazgos de la auditoría de `com.ipserc.arith.signal` de esta sesión quedan resueltos salvo uno: `Fourier.convolution()`'s `.times(2)` sin justificar (marcado como sospechoso por el propio autor original, no confirmado ni descartado). Candidatos grandes heredados, sin cambios: sustitución de GnuPlot/JavaPlot por Jzy3D/XChart; multiplicidad geométrica >1 en `Jordan.java`; decisión de infraestructura Java 1.8→16+/17+; pasada dedicada de Matemáticas Aplicadas y revisión de Física/Mecánica Cuántica reservadas para el final.
 
 ---
 

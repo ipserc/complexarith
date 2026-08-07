@@ -617,13 +617,20 @@ public class Laplace extends MatrixComplex  {
 	 * **************** CONTINUOUS LAPLACE TRANSFORM ****************
 	 */
 	/**
-	 * Calculates the Fourier Series up to the coefficient number given by 'order' and for an specific precision
-	 * @param order Maximum order of the coefficient calculated.
-	 * @param decPrec Precision of the coefficients
+	 * Calculates the CLT (Continuous Laplace Transform) at N points s_n = sigma + j*2*pi*n/T,
+	 * T = upLimit-loLimit (the window duration) -- the continuous-integral analog of DLT(), same
+	 * s_n grid, evaluated via direct numerical integration instead of a discrete sum:
+	 * X(s_n) = INTEGRAL_loLimit^upLimit f(z)*e^(-s_n*z) dz.
+	 * sigma (the field set by setSigma()/DLT()) is the real part of s; sigma=0 makes s_n purely
+	 * imaginary, matching the kernel serialize() uses for the Fourier series coefficients over the
+	 * same domain (up to serialize()'s own 2/T normalization).
+	 * @param nbrSamples The number of s_n points to evaluate (and, if not already sampled, the
+	 * number of time-domain samples taken for the abscissa bookkeeping in transform's row 0).
+	 * @param decPrec Precision passed to the underlying Riemann-sum integration.
 	 */
 	public void CLT(int nbrSamples, int decPrec) {
 		Complex coef;
-		
+
 		if(!isSampled) {
 			this.N = nbrSamples;
 			this.sampleFreq = nbrSamples;
@@ -636,16 +643,17 @@ public class Laplace extends MatrixComplex  {
 		/*CHRONO*/ chrono.start();
 
 		for (int n = 0; n < N ; ++n) {
-			Complex cn = samples.getItem(0, n).opposite(); //new Complex(-n, 0);
-			Function<Complex, Complex> expz = z -> Complex.exp(z.times(cn)); //EXP((-zn)
-			coef = integrate(loLimit, upLimit, func, expz, decPrec); 
+			Complex sn = new Complex(sigma, 0).plus(Complex.i.times(Complex.DOS_PI * n).divides(period)); // s_n = sigma + j*2*pi*n/T
+			Complex cn = sn.opposite(); // -s_n
+			Function<Complex, Complex> expz = z -> Complex.exp(z.times(cn)); // e^(-s_n*z)
+			coef = integrate(loLimit, upLimit, func, expz, decPrec);
 			transform.setItem(0, n, samples.getItem(0, n));
 			transform.setItem(1, n, coef);
 		}
-		
+
 		/*CHRONO*/ chrono.stop();
 		/*CHRONO*/ System.out.println("Computing Time CLT:" + chrono.toString());
-		
+
 		isTransformed = true;
 		//setOffset();
 	}
