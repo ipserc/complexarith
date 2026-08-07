@@ -40,8 +40,30 @@ class SplineComponent extends Polynom {
  */
 public class Spline extends SplineComponent {
 	private final static String HEADINFO = "Spline --- INFO: ";
-	private final static String VERSION = "1.0 (2023_1108_1330)";
+	private final static String VERSION = "1.1 (2026_0807_1500)";
 	/* VERSION Release Note
+	 *
+	 * 1.1 (2026_0807_1500)
+	 * Audited interpolate3Natural() -- the natural cubic spline formula/construction itself is
+	 * correct (verified against an independent Thomas-algorithm reference, ~1e-14 for 4/5/6-point
+	 * and irregular-spacing datasets). Two real bugs found and fixed, both in the shared
+	 * MatrixComplex/Syseq infrastructure this method drives into, exposed by minimal point counts:
+	 * (1) a Spline with exactly 2 points (0 interior unknowns) crashed with NegativeArraySizeException
+	 * building the degenerate Syseq(0) -- guarded with "if (this.intervals > 1)" around the system
+	 * build/solve, skipping straight to the (trivially correct, all M=0) polynomial construction,
+	 * since MatrixComplex.cols() can't recover a 0-row matrix's intended column count.
+	 * (2) a Spline with exactly 3 points (1 interior unknown) silently computed a wrong M_1 --
+	 * root cause was MatrixComplex.dividesleft(), see its VERSION 1.56 for detail; nothing to fix
+	 * here once that was corrected.
+	 * De propina, the loop building M's super-diagonal had a guard far looser than intended
+	 * ("j+1 <= this.intervals" instead of "j+1 < M.cols()-1") -- confirmed harmless in practice (the
+	 * unconditional RHS write on the next line always overwrote the errant value when the guard was
+	 * too loose), but tightened to the mathematically correct bound instead of relying on write-order
+	 * to paper over it.
+	 * Verified (ScratchSplineAudit01.java, conserved): 6/6 datasets now pass, including the
+	 * previously-failing 3-point (matches reference to ~1e-14, was off by 0.54) and 2-point
+	 * (degenerates to a straight line as expected, was a crash) cases -- 33/33 total checks OK.
+	 *
 	 * 1.0 (2023_1108_1330)
 	 * Initial release
 	 */
@@ -214,34 +236,40 @@ public class Spline extends SplineComponent {
 	 */
 	public void interpolate3Natural(boolean showinternals) {
 		Syseq M = new Syseq(this.intervals-1);
-		
+
 		/* -------------   showinternals BLOCK   ------------- */
 		if (showinternals)
 			System.out.println("******** Intervals: " + this.intervals);
 		/* ------------- END showinternals BLOCK ------------- */
 
-		
-		// Builds the equation systems to get the solution M (pag 19 (2.9))
-		for (int i = 1, j = 0; i < this.intervals; ++i, ++j) {
-			if (j-1 >= 0) M.setItem(j, j-1, h(i-1));
-			if(j >= 0) M.setItem(j, j, u(i));
-			if(j+1 <= this.intervals) M.setItem(j, j+1, h(i));
-			M.setItem(j, M.cols()-1, alpha(i));
+		// With fewer than 2 intervals there are no interior unknowns to solve (natural
+		// boundary conditions already fix M_0=M_n=0 -- see Mnatural()): building/solving M
+		// would hit a degenerate 0-unknown Syseq (NegativeArraySizeException, MatrixComplex.cols()
+		// can't recover the intended column count from a 0-row matrix). Skip straight to the
+		// (trivial, straight-line) polynomial construction below.
+		if (this.intervals > 1) {
+			// Builds the equation systems to get the solution M (pag 19 (2.9))
+			for (int i = 1, j = 0; i < this.intervals; ++i, ++j) {
+				if (j-1 >= 0) M.setItem(j, j-1, h(i-1));
+				if(j >= 0) M.setItem(j, j, u(i));
+				if(j+1 < M.cols()-1) M.setItem(j, j+1, h(i));
+				M.setItem(j, M.cols()-1, alpha(i));
+			}
+
+			/* -------------   showinternals BLOCK   ------------- */
+			if (showinternals)
+				M.print("******** Sistema M");
+			/* ------------- END showinternals BLOCK ------------- */
+
+			M.solveq();
+
+			/* -------------   showinternals BLOCK   ------------- */
+			if (showinternals) {
+				M.printSol("******** Soluciones Sistema M");
+				M.checkSol(M.partSol());
+			}
+			/* ------------- END showinternals BLOCK ------------- */
 		}
-
-		/* -------------   showinternals BLOCK   ------------- */
-		if (showinternals)
-			M.print("******** Sistema M");
-		/* ------------- END showinternals BLOCK ------------- */
-
-		M.solveq();
-
-		/* -------------   showinternals BLOCK   ------------- */	
-		if (showinternals) {
-			M.printSol("******** Soluciones Sistema M");
-			M.checkSol(M.partSol());
-		}
-		/* ------------- END showinternals BLOCK ------------- */
 
 		for (int i = 0; i < this.intervals; i++) {
 			Polynom P1 = new Polynom(1);

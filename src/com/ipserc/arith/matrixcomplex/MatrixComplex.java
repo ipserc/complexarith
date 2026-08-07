@@ -18,8 +18,31 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.55 (2026_0807_1400)";
+	private final static String VERSION = "1.56 (2026_0807_1500)";
 	/* VERSION Release Note
+	 *
+	 * 1.56 (2026_0807_1500)
+	 * dividesleft(MatrixComplex): fixed a copy-paste bug from dividesright(), found while auditing
+	 * Spline.java's natural cubic spline. dividesleft() documents "this^-1*cMatrix"; its 1x1 fast
+	 * path ("this.rows()==1 && this.cols()==1") returned "cMatrix.inverse().times(this.getItem(0,0))"
+	 * -- the exact formula that IS correct for dividesright()'s analogous branch ("this*cMatrix^-1"),
+	 * but wrong here: it inverts the wrong operand and swaps the roles, giving a/b instead of b/a for
+	 * a trivial 1-equation system "a*x=b". Confirmed with numberOf(): 6*x=-15 (expected x=-2.5) gave
+	 * x=-0.4 (=6/-15). This is exactly the path MatrixComplexEquationSystems.solveGauss()'s
+	 * DETERMINATE branch uses ("coefMatrix.dividesleft(indMatrix)") -- any 1-unknown linear system
+	 * solved via Syseq/solve()/solveGauss() anywhere in the project got the reciprocal-swapped
+	 * answer, silently (no exception, no NaN). Also reachable via VectorComplex.baseChg() for a
+	 * 1-D basis change. Fixed to "cMatrix.times(this.getItem(0,0).reciprocal())" (this^-1, a scalar,
+	 * broadcast-scales cMatrix -- matches dividesright()'s correct branch by symmetry). The second
+	 * fast path (cMatrix is 1x1) had the mirror problem -- "this.divides(cMatrix.getItem(0,0))" never
+	 * inverts 'this' at all, wrong for a left division -- fixed to
+	 * "this.inverse().times(cMatrix.getItem(0,0))"; currently unreachable from solveGauss() (that
+	 * branch and the first one coincide exactly when both operands are 1x1, and the first one wins),
+	 * fixed anyway since it's the same class of bug in the same method.
+	 * Verified against an independent reference (Thomas-algorithm natural cubic spline, no shared
+	 * code) via ScratchSplineAudit01.java: the 3-point dataset (1 interior unknown, the case that
+	 * exercises this exact path) now matches to ~1e-14 (was off by 0.54). See Spline.VERSION 1.1 for
+	 * the 2 fixes in the class that surfaced this.
 	 *
 	 * 1.55 (2026_0807_1400)
 	 * MatrixComplexRank.java (rank0()/majorIL(), extracted helper): fixed a copy-paste bug found
@@ -2006,8 +2029,8 @@ public class MatrixComplex {
 	 * @return The left division
 	 */
 	public MatrixComplex dividesleft(MatrixComplex cMatrix) {
-		if (this.rows() == 1 && this.cols() == 1) return cMatrix.inverse().times(this.getItem(0, 0));
-		if (cMatrix.rows() == 1 && cMatrix.cols() == 1) return this.divides(cMatrix.getItem(0, 0));
+		if (this.rows() == 1 && this.cols() == 1) return cMatrix.times(this.getItem(0, 0).reciprocal());
+		if (cMatrix.rows() == 1 && cMatrix.cols() == 1) return this.inverse().times(cMatrix.getItem(0, 0));
 		return this.inverse().times(cMatrix);
 	}
 
