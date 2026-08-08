@@ -11,7 +11,6 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
 import com.ipserc.chronometer.*;
-import com.panayotis.gnuplot.JavaPlot;
 
 public class Z extends MatrixComplex {
 	private Function<Complex, Complex> func;
@@ -673,21 +672,6 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Returns the "style" set required as "data " LINES or IMPULSES for gnuplot
-	 * @param lineStyle
-	 * @return The "style" set
-	 */
-	private String setLineStyle(e_lineStyle lineStyle) {
-		String strLineStyle = "data ";
-
-		switch (lineStyle) {
-		case LINES: return strLineStyle+"lines";
-		case IMPULSES: return strLineStyle+"impulses";
-		}
-		return strLineStyle+"lines";
-	}
-
-	/**
 	 * Plots a graphic with the points given in 'data'. Row 0 is for the x axis values, Row 1 is for the y axis values. The values to plot are in the columns.
 	 * @param title The title of the graphic.
 	 * @param data The points to be plotted.
@@ -713,50 +697,6 @@ public class Z extends MatrixComplex {
 
 		plot(title, nbrSamples, samples, showIm, lineStyle);
 	}
-
-	/**
-	 * Plots the samples of the function used for the Z analysis
-	 * @param title The title of the graphic.
-	 * @param nbrSamples The number of the samples to draw the plot.
-	 * @param showIm True for plotting the imaginary part.
-	 */
-
-	/* ***************************************************************************************************
-
-	public void plotSamples(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
-		if(!isSampled || this.N != nbrSamples) {
-			this.N = nbrSamples;
-			this.sampleFreq = nbrSamples;
-			doSrsSampling();
-		}
-
-		//Split the data into Re and Im parts
-		double dataRe[][]  = new double[nbrSamples][2];
-		double dataIm[][]  = new double[nbrSamples][2];
-
-		for (int t = 0; t < nbrSamples ; ++t) {
-			dataRe[t][0] = samples.complexMatrix[0][t].rep();
-			dataIm[t][0] = samples.complexMatrix[0][t].rep();
-			dataRe[t][1] = samples.complexMatrix[1][t].rep();
-			dataIm[t][1] = samples.complexMatrix[1][t].imp();
-		}
-
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(title);
-		p.addPlot(dataRe);
-		if (showIm) p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
-	}
-	 *************************************************************************************************** */
 
 	/**
 	 * Plots the samples of the function used for the Z analysis

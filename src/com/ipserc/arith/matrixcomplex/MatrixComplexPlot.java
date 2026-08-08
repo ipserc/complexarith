@@ -25,6 +25,17 @@ import com.panayotis.gnuplot.JavaPlot;
  * plotSeries}/{@code plotCompare}/{@code plotDFT*}/{@code plotDLT*}/{@code plotZT*}) read private
  * instance state ({@code samples}, {@code transform}, {@code N}...) and stay in their own classes --
  * moving them here as well was considered and deferred to a future pass, at the user's request.
+ * <p>
+ * Continuation (8 agosto 2026, same day): {@code Laplace}/{@code Z} turned out to already delegate
+ * their domain-specific methods into their own {@code plot(String, int, MatrixComplex, boolean,
+ * e_lineStyle)} (itself delegating here) -- only {@code Fourier} still carried raw, hand-duplicated
+ * {@code JavaPlot} boilerplate in {@code plotSamples}/{@code plotSeries}/{@code plotCompare}/{@code
+ * plotDFTsamp}/{@code plotDFTfrec}, because those plot pre-computed {@code double[][]} series (not
+ * a single {@code MatrixComplex}) and had no matching helper to delegate to. {@link
+ * #plotSeries(String, e_lineStyle, double[][]...)} (and its labeled/logscale overload) close that
+ * gap: they take already-computed series, so the domain-specific computation (which needs
+ * {@code Fourier}'s private state and its {@code eval()}) stays in {@code Fourier}, only the
+ * repeated {@code JavaPlot} construction/config tail moved here.
  */
 public class MatrixComplexPlot {
 
@@ -79,6 +90,47 @@ public class MatrixComplexPlot {
 		if (showIm) p.addPlot(dataIm);
 		p.set("zeroaxis", "");
 		p.set("style", setLineStyle(lineStyle));
+		p.set("grid", "");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
+		p.plot();
+	}
+
+	/**
+	 * Plots one or more already-computed {@code [x,y]} series on the same canvas, no axis labels
+	 * and no logarithmic scale. Shorthand for the labeled overload below.
+	 * @param title The plot title.
+	 * @param lineStyle The line style.
+	 * @param series One or more {@code double[nbrPoints][2]} series to plot together.
+	 */
+	public static void plotSeries(String title, e_lineStyle lineStyle, double[][]... series) {
+		plotSeries(title, null, null, false, lineStyle, series);
+	}
+
+	/**
+	 * Plots one or more already-computed {@code [x,y]} series on the same canvas. Consolidates the
+	 * {@code JavaPlot} construction/configuration tail that used to be hand-duplicated across
+	 * {@code Fourier.plotSamples}/{@code plotSeries}/{@code plotCompare}/{@code plotDFTsamp}/{@code
+	 * plotDFTfrec} -- the series themselves (which need each caller's own private state) are still
+	 * computed by the caller and passed in already built.
+	 * @param title The plot title.
+	 * @param x2label Secondary x-axis label ({@code gnuplot}'s {@code x2label}), or {@code null} to omit.
+	 * @param xlabel Primary x-axis label, or {@code null} to omit.
+	 * @param logscale If true sets the y axis to logarithmic scale.
+	 * @param lineStyle The line style.
+	 * @param series One or more {@code double[nbrPoints][2]} series to plot together.
+	 */
+	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, double[][]... series) {
+		JavaPlot p = new JavaPlot();
+		p.setTitle(title);
+		if (x2label != null) p.set("x2label", x2label);
+		for (double[][] s : series) p.addPlot(s);
+		p.set("zeroaxis", "");
+		if (xlabel != null) p.set("xlabel", xlabel);
+		p.set("style", setLineStyle(lineStyle));
+		if (logscale) p.set("logscale", "y");
 		p.set("grid", "");
 		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
 		p.setPersist(true);

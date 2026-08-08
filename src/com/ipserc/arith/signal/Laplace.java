@@ -13,7 +13,6 @@ import com.ipserc.arith.signal.Fourier.e_domain;
 import com.ipserc.arith.signal.Fourier.e_lineStyle;
 import com.ipserc.arith.signal.Fourier.e_operator;
 import com.ipserc.chronometer.*;
-import com.panayotis.gnuplot.JavaPlot;
 
 public class Laplace extends MatrixComplex  {
 	private Function<Complex, Complex> func;
@@ -896,21 +895,6 @@ public class Laplace extends MatrixComplex  {
 	}
 
 	/**
-	 * Returns the "style" set required as "data " LINES or IMPULSES for gnuplot
-	 * @param lineStyle
-	 * @return The "style" set
-	 */
-	private String setLineStyle(e_lineStyle lineStyle) {
-		String strLineStyle = "data ";
-		
-		switch (lineStyle) {
-		case LINES: return strLineStyle+"lines";
-		case IMPULSES: return strLineStyle+"impulses";
-		}
-		return strLineStyle+"lines";
-	}
-	
-	/**
 	 * Plots a graphic with the points given in 'data'. Row 0 is for the x axis values, Row 1 is for the y axis values. The values to plot are in the columns.
 	 * @param title The title of the graphic.
 	 * @param data The points to be plotted.
@@ -938,50 +922,6 @@ public class Laplace extends MatrixComplex  {
 	}
 	
 	/**
-	 * Plots the samples of the function used for the Laplace analysis
-	 * @param title The title of the graphic.
-	 * @param nbrSamples The number of the samples to draw the plot.
-	 * @param showIm True for plotting the imaginary part.
-	 */
-	
-	/* ***************************************************************************************************
-
-	public void plotSamples(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
-		if(!isSampled || this.N != nbrSamples) {
-			this.N = nbrSamples;
-			this.sampleFreq = nbrSamples;
-			doSrsSampling();
-		}
-		
-		//Split the data into Re and Im parts
-		double dataRe[][]  = new double[nbrSamples][2];
-		double dataIm[][]  = new double[nbrSamples][2];
-
-		for (int t = 0; t < nbrSamples ; ++t) {
-			dataRe[t][0] = samples.complexMatrix[0][t].rep();
-			dataIm[t][0] = samples.complexMatrix[0][t].rep();
-			dataRe[t][1] = samples.complexMatrix[1][t].rep();
-			dataIm[t][1] = samples.complexMatrix[1][t].imp();
-		}
-		
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(title);
-		p.addPlot(dataRe);
-		if (showIm) p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
-	}
-	 *************************************************************************************************** */
-
-	/**
 	 * Plots the samples of the function used for the Fourier analysis
 	 * @param title The title of the graphic.
 	 * @param showIm True for plotting the imaginary part.
@@ -1004,41 +944,6 @@ public class Laplace extends MatrixComplex  {
 		}
 		plot(Title, N, transform, showIm, lineStyle);
 	}
-	
-	
-	/* **************************************************************************************************************************************
-	private void plotDLTsamp(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle) {
-		//Split the data into Re/Mod and Im/Pha parts
-		double dataRe[][]  = new double[transform.cols()][1];
-		double dataIm[][]  = new double[transform.cols()][1];
-		Complex cNum= new Complex();
-		for (int t = 0; t < transform.cols(); ++t) {
-			cNum = eval(transform.getItem(0, t), operator, logscale);
-			dataRe[t][0] = operator == e_operator.COMPLEX ? cNum.rep() : cNum.mod();
-			dataIm[t][0] = operator == e_operator.COMPLEX ? cNum.imp() : cNum.pha();
-		}
-		
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(Title);
-		String x2label = (domain == e_domain.SAMP ? "\"Samples' Index\"" : "\"Spectrum in Hz\"");
-		p.set("x2label", x2label);
-		p.addPlot(dataRe);
-		p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
-		if (logscale) p.set("logscale", "y");
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
-	}
-	************************************************************************************************************************************** */
-		
 
 
 }

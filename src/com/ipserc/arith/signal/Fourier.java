@@ -5,7 +5,6 @@ import java.util.function.Function;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
-import com.panayotis.gnuplot.JavaPlot;
 import java.io.FileWriter;   // Import the FileWriter class
 import java.io.IOException;  // Import the IOException class to handle errors
 import java.io.File;  // Import the File class
@@ -35,8 +34,20 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.8 (2026_0808_0300)";
+	private final static String VERSION = "1.9 (2026_0808_0845)";
 	/* VERSION Release Note
+	 *
+	 * 1.9 (2026_0808_0845)
+	 * plotSamples(String,int,boolean,e_lineStyle): alineada con Laplace/Z -- delega en el plot()
+	 * privado en vez de duplicar a mano el bloque JavaPlot (tambien se quita un System.out.println
+	 * de depuracion suelto que no aportaba nada). plotSeries/plotCompare/plotDFTsamp/plotDFTfrec:
+	 * su cola de construccion JavaPlot (idéntica en las 4, solo cambiaban las series y las etiquetas
+	 * de eje) ahora delega en MatrixComplexPlot.plotSeries(String,String,String,boolean,e_lineStyle,
+	 * double[][]...) -- ver MatrixComplex.VERSION 1.60. El calculo de cada serie (usa `transform`/
+	 * `samples`/`eval()`, estado privado de esta clase) sigue aqui sin tocar. Añadido `toMCStyle()`
+	 * privado (antes un ternario inline repetido solo una vez, ahora 5) para no repetir la conversion
+	 * de enum en cada punto de llamada. `setLineStyle(e_lineStyle)` y el import de `JavaPlot` han
+	 * quedado sin uso tras esto y se han eliminado.
 	 *
 	 * 1.8 (2026_0808_0300)
 	 * plot(String,int,MatrixComplex,boolean,e_lineStyle): la implementacion (25 lineas, copiada
@@ -579,20 +590,16 @@ public class Fourier extends MatrixComplex {
 	}
 
 	/**
-	 * Returns the "style" set required as "data " LINES or IMPULSES for gnuplot
-	 * @param lineStyle
-	 * @return The "style" set
+	 * Converts this class's own {@code e_lineStyle} to {@code MatrixComplexPlot}'s, at the boundary
+	 * with the shared plotting helper -- extracted (8 agosto 2026) once a 5th call site needed it;
+	 * before that it was a single inline ternary in {@link #plot}.
+	 * @param lineStyle This class's line style.
+	 * @return The equivalent {@code MatrixComplexPlot.e_lineStyle}.
 	 */
-	private String setLineStyle(e_lineStyle lineStyle) {
-		String strLineStyle = "data ";
-		
-		switch (lineStyle) {
-		case LINES: return strLineStyle+"lines";
-		case IMPULSES: return strLineStyle+"impulses";
-		}
-		return strLineStyle+"lines";
+	private static MatrixComplexPlot.e_lineStyle toMCStyle(e_lineStyle lineStyle) {
+		return lineStyle == e_lineStyle.IMPULSES ? MatrixComplexPlot.e_lineStyle.IMPULSES : MatrixComplexPlot.e_lineStyle.LINES;
 	}
-	
+
 	/**
 	 * Plots a graphic with the points given in 'data'. Row 0 is for the x axis values, Row 1 is for the y axis values. The values to plot are in the columns.
 	 * @param title The title of the graphic.
@@ -606,8 +613,7 @@ public class Fourier extends MatrixComplex {
 	 * implementation moved, converted to {@code MatrixComplexPlot.e_lineStyle} at the boundary.
 	 */
 	public void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
-		MatrixComplexPlot.plot(title, nbrSamples, data, showIm,
-			lineStyle == e_lineStyle.IMPULSES ? MatrixComplexPlot.e_lineStyle.IMPULSES : MatrixComplexPlot.e_lineStyle.LINES);
+		MatrixComplexPlot.plot(title, nbrSamples, data, showIm, toMCStyle(lineStyle));
 	}
 
 	/**
@@ -632,34 +638,8 @@ public class Fourier extends MatrixComplex {
 			this.sampleFreq = nbrSamples;
 			doSrsSampling();
 		}
-		
-		//Split the data into Re and Im parts
-		double dataRe[][]  = new double[nbrSamples][2];
-		double dataIm[][]  = new double[nbrSamples][2];
 
-		for (int t = 0; t < nbrSamples ; ++t) {
-			dataRe[t][0] = samples.complexMatrix[0][t].rep();
-			dataIm[t][0] = samples.complexMatrix[0][t].rep();
-			dataRe[t][1] = samples.complexMatrix[1][t].rep();
-			dataIm[t][1] = samples.complexMatrix[1][t].imp();
-		}
-		
-		System.out.println("dataRe[nbrSamples-1][0]:"+dataRe[nbrSamples-1][0]);
-				
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(title);
-		p.addPlot(dataRe);
-		if (showIm) p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
+		plot(title, nbrSamples, samples, showIm, lineStyle);
 	}
 
 	/**
@@ -687,21 +667,12 @@ public class Fourier extends MatrixComplex {
 			dataRe[t][1] = cVal.rep();
 			dataIm[t][1] = cVal.imp();
 		}
-		
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(title);
-		p.addPlot(dataRe);
-		if (showIm) p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
+
+		if (showIm) {
+			MatrixComplexPlot.plotSeries(title, toMCStyle(lineStyle), dataRe, dataIm);
+		} else {
+			MatrixComplexPlot.plotSeries(title, toMCStyle(lineStyle), dataRe);
+		}
 	}
 
 	/**
@@ -730,21 +701,8 @@ public class Fourier extends MatrixComplex {
 			dataFF[t][1] = calc(samples.complexMatrix[0][t]).rep();
 			datafu[t][1] = samples.complexMatrix[1][t].rep();
 		}
-		
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle("Fourier Series vs Function");
-		p.addPlot(dataFF);
-		p.addPlot(datafu);
-		p.set("zeroaxis", "");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
+
+		MatrixComplexPlot.plotSeries("Fourier Series vs Function", toMCStyle(lineStyle), dataFF, datafu);
 	}
 
 	/*
@@ -1457,27 +1415,12 @@ public class Fourier extends MatrixComplex {
 			dataRe[t][0] = operator == e_operator.COMPLEX ? cNum.rep() : cNum.mod();
 			dataIm[t][0] = operator == e_operator.COMPLEX ? cNum.imp() : cNum.pha();
 		}
-		
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(Title);
+
 		String x2label = (domain == e_domain.SAMP ? "\"Samples' Index\"" : "\"Spectrum in Hz\"");
-		p.set("x2label", x2label);
-		p.addPlot(dataRe);
-		p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
-		if (logscale) p.set("logscale", "y");
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
+		String xlabel = domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"";
+		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), dataRe, dataIm);
 	}
-		
+
 	/**
 	 * Does the plot the DFT graphic in the domain of Frequency
 	 * @param Title The title of the polt
@@ -1513,24 +1456,9 @@ public class Fourier extends MatrixComplex {
 			dataIm[k][1] = operator == e_operator.COMPLEX ? Ak.imp() : Ak.pha();
 		}
 
-		//Plot the data
-		JavaPlot p = new JavaPlot();
-		p.setTitle(Title);
 		String x2label = (domain == e_domain.SAMP ? "\"Samples' Index\"" : "\"Spectrum in Hz\"");
-		p.set("x2label", x2label);
-		p.addPlot(dataRe);
-		p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		p.set("xlabel", domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"");
-		//p.set("style","data lines");
-		p.set("style", setLineStyle(lineStyle));
-		if (logscale) p.set("logscale", "y");
-		p.set("grid","");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
-		p.plot();
+		String xlabel = domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"";
+		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), dataRe, dataIm);
 	}
 
 	/*

@@ -18,8 +18,20 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.59 (2026_0808_0300)";
+	private final static String VERSION = "1.60 (2026_0808_0845)";
 	/* VERSION Release Note
+	 *
+	 * 1.60 (2026_0808_0845)
+	 * MatrixComplexPlot: nuevo plotSeries(String,e_lineStyle,double[][]...) y su sobrecarga con
+	 * etiquetas de eje/escala logaritmica (String,String,String,boolean,e_lineStyle,double[][]...),
+	 * a peticion del usuario, continuando la extraccion de VERSION 1.59. Consolida la cola de
+	 * construccion de JavaPlot (setTitle/addPlot por serie/zeroaxis/style/grid/persist/terminal
+	 * windows/plot()) que Fourier.plotSamples/plotSeries/plotCompare/plotDFTsamp/plotDFTfrec
+	 * llevaban duplicada a mano -- Laplace/Z ya delegaban correctamente, solo Fourier se habia
+	 * quedado atras. El calculo especifico de cada serie (necesita `transform`/`eval()`, estado
+	 * privado de Fourier) sigue en Fourier.java sin tocar. De paso, en Laplace.java/Z.java: borrado
+	 * codigo ya aparcado (comentado) que duplicaba esta misma logica, superado por la delegacion
+	 * existente -- confirmado con el usuario antes de borrar.
 	 *
 	 * 1.59 (2026_0808_0300)
 	 * A peticion del usuario, 2 cambios:
