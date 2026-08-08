@@ -526,6 +526,77 @@ class MatrixComplexUnary {
 	}
 
 	/**
+	 * Relative (scale-aware) singularity tolerance: a matrix is treated as numerically singular
+	 * when the smallest pivot found by a single {@code triangleUp()} pass is negligible RELATIVE
+	 * to the largest one, rather than comparing the aggregate determinant to a fixed absolute
+	 * epsilon ({@code Complex.equals(0,0)}'s ~1e-11). The absolute check is scale-blind: for an
+	 * n x n matrix the determinant is (roughly) the PRODUCT of all n pivots, so the other n-1
+	 * O(1-10) pivots amplify one genuinely-negligible pivot (e.g. the ~1e-11 residual of an
+	 * imprecise eigenvalue's (A-lambda*I)) into a determinant magnitude that clears a fixed
+	 * epsilon comfortably even though the matrix is, in every practical sense, singular --
+	 * confirmed exactly this failure mode with a real 7x7 Eigenspace case (determinant ~3e-7,
+	 * true smallest-pivot/largest-pivot ratio ~1.3e-12) where {@code inverse()} proceeded to
+	 * "invert" an effectively-singular matrix, overflowing to Infinity/NaN.
+	 * <p>
+	 * Calibrated (8 agosto 2026, ver Claude/ComplexArithRev.md) against 3 matrix families:
+	 * well-conditioned random matrices (ratio ~0.3-0.6), matrices singular by construction (ratio
+	 * 0.0), and near-singular matrices from real/synthetic imprecise eigenvalues (ratio up to
+	 * ~2.2e-11 in every case measured) -- a ~10-order-of-magnitude gap separates "genuinely
+	 * singular" from "genuinely well-conditioned" for the matrices this project actually produces.
+	 * 1e-9 sits in that gap with ~50x margin over the worst measured singular case, while staying
+	 * just below the ratio of a deliberately pathological but genuinely INVERTIBLE 8x8 Hilbert
+	 * matrix (~1.17e-9, condition number ~1.5e10) tested specifically to probe a false-positive
+	 * (no such matrix exists anywhere in this project today, but the margin was chosen with it in
+	 * mind rather than guessed).
+	 */
+	final static double SINGULARITY_REL_TOL = 1e-9;
+
+	/**
+	 * Scale-aware RANK via the relative-pivot criterion (see {@link #SINGULARITY_REL_TOL}): counts
+	 * how many pivots of a single {@code triangleUp()} pass are non-negligible relative to the
+	 * largest one.
+	 * <p>
+	 * Deliberately NOT a general-purpose replacement for {@code rank()}/{@code rank1()} (the
+	 * project's default rank, tuned via a double triangleLo/triangleUp/hollow/heap pipeline for
+	 * arbitrary matrices): a single matrix-wide relative threshold is only safe when every entry
+	 * genuinely shares one physical scale, e.g. {@code A-lambda*I} for an eigenvalue. Applying this
+	 * same technique to {@code rank1()} itself (tried first, 8 agosto 2026, ver
+	 * Claude/ComplexArithRev.md) broke {@code Eigenspace.setEigenvectors()}'s existing
+	 * inconsistency guard: its {@code solutions} matrix (eigenvector candidates) can legitimately
+	 * mix a normalized-to-1 component with genuinely tiny-but-real ones, so a single global scale
+	 * reference wrongly zeroed out real rows. Kept narrow: introduced specifically for
+	 * {@link MatrixComplex#rankNearSingular()} (used by {@code Eigenspace.geometricMultiplicity()}
+	 * on {@code A-lambda*I}, which DOES have a coherent scale) -- use {@code rank()} elsewhere.
+	 * @param m The matrix (must be square).
+	 * @return The relative-pivot rank (0 for a zero matrix).
+	 */
+	static int rankByRelativePivot(MatrixComplex m) {
+		MatrixComplex tri = m.triangleUp();
+		int n = tri.rows();
+		double maxPivot = 0;
+		for (int i = 0; i < n; ++i) {
+			double mod = tri.getItem(i, i).mod();
+			if (mod > maxPivot) maxPivot = mod;
+		}
+		if (maxPivot == 0) return 0;
+		int rank = 0;
+		for (int i = 0; i < n; ++i) {
+			if (tri.getItem(i, i).mod() / maxPivot > SINGULARITY_REL_TOL) ++rank;
+		}
+		return rank;
+	}
+
+	/**
+	 * Scale-aware singularity test (see {@link #SINGULARITY_REL_TOL}): true if the smallest pivot
+	 * of a single {@code triangleUp()} pass is negligible relative to the largest one.
+	 * @param m The matrix (must be square).
+	 * @return True if the matrix is numerically singular by the relative-pivot criterion.
+	 */
+	static boolean isNumericallySingular(MatrixComplex m) {
+		return rankByRelativePivot(m) < m.rows();
+	}
+
+	/**
 	 * The inverse of the matrix calculated by Gauss-Jordan elimination method
 	 * Gauss-Jordan elimination method can be used for finding the inverse of a matrix, if it exists.
 	 * If A is a n by n square matrix, then row reduction can be used to compute its inverse matrix, if it exists.
@@ -548,7 +619,7 @@ class MatrixComplexUnary {
 			return m.divides(0);
 		}
 
-		if (determinant(m).equals(0,0) ) {
+		if (isNumericallySingular(m)) {
 			//System.err.println(MatrixComplex.HEADINFO + "inverse: Not valid matrix: The matrix determinat is ZERO.");
 			return m.divides(0);
 		}

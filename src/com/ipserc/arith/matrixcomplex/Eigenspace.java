@@ -20,8 +20,37 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.13 (2026_0808_1019)";
+	private final static String VERSION = "1.14 (2026_0809_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.14 (2026_0809_1200)
+	 * Bug real reportado por el usuario (autovector NaN, "geom mult:0", "IS NOT DIAGONALIZABLE"
+	 * para una matriz que si lo era). Reproducido con un caso real 7x7 (autovalor -2.6769, residuo
+	 * de QRSchurfactor ~1e-11 en el pivote mas pequeno de A-lambda*I) y diagnosticado en 2 capas
+	 * independientes -- ver MatrixComplex.VERSION 1.63 para el mecanismo de fondo (epsilon absoluto
+	 * vs relativo):
+	 * (1) geometricMultiplicity(): "rows()-rank()" pasa a "rows()-rankNearSingular()" -- rank()
+	 * (epsilon absoluto) contaba esta A-lambda*I como rango pleno (7), dando multiplicidad
+	 * geometrica 0 para un autovalor genuino (que siempre debe ser >=1). rankNearSingular() (nuevo,
+	 * MatrixComplex.VERSION 1.63) usa el criterio relativo, seguro aqui porque A-lambda*I SIEMPRE
+	 * tiene escala coherente (todas sus entradas son la misma magnitud fisica).
+	 * (2) eigenvectors3(): arreglar (1) solo corrige lo que se REPORTA, no el autovector en si --
+	 * el CALCULO pasa por Syseq/typeEqSys() (tambien basado en rank() sin tocar), que seguia
+	 * clasificando el sistema homogeneo como DETERMINATE (siempre incorrecto para un autovalor
+	 * genuino, que por construccion siempre hace A-lambda*I singular). Con inverse() ya arreglado
+	 * (MatrixComplex.VERSION 1.63), esa rama DETERMINATE invierte correctamente-detectado-como-
+	 * singular -> Infinity, multiplicado por el termino independiente CERO (sistema homogeneo) ->
+	 * NaN. Arreglado: antes de confiar en dMatrix.typeEqSys(), se comprueba
+	 * cMatrix.rankNearSingular() -- si dice singular pero typeEqSys() diria DETERMINATE, se calcula
+	 * el autovector directamente via cMatrix.nullspaceBasisNearSingular() (nuevo, MatrixComplex.
+	 * VERSION 1.63) en vez de dMatrix.solution(1). typeEqSys()/Syseq.java SIN TOCAR -- el bypass es
+	 * local a este metodo, no cambia el comportamiento general de sistemas de ecuaciones.
+	 * Verificado con el caso real completo: autovector real y finito (antes NaN), A*v=lambda*v
+	 * exacto, matriz correctamente diagonalizable (antes "IS NOT DIAGONALIZABLE" por el NaN).
+	 * Bateria de 67+ ficheros sin regresion (ver MatrixComplex.VERSION 1.63) -- incluye
+	 * TestJordan01 (exit=1 preexistente, confirmado byte a byte identico al HEAD anterior).
+	 * Scripts conservados: ScratchEigenGeomMultBug01/02.java, ScratchInverseRankRelTolCalib01.java,
+	 * ScratchRankDocumentedCases01/02.java (src/TestComplex/).
 	 *
 	 * 1.13 (2026_0808_1019)
 	 * eigenval(): el agrupamiento de raices crudas paso de CADENA por orden de modulo (compara solo
@@ -628,9 +657,15 @@ public class Eigenspace extends MatrixComplex {
 	 * It relays on the accuracy of the rank method
 	 * @param eigenVal
 	 * @return
+	 * @apiNote Uses {@code rankNearSingular()} (relative-pivot rank), not the general-purpose
+	 * {@code rank()} -- {@code A-eigenVal*I} always shares one coherent physical scale across all
+	 * its entries, exactly the case {@code rankNearSingular()} is safe for. {@code rank()}'s fixed
+	 * absolute zero-epsilon can otherwise miss a residual pivot left behind by an imprecise
+	 * eigenvalue, silently undercounting the geometric multiplicity of a genuine eigenvalue to 0
+	 * (confirmed with a real 7x7 case, 8-9 agosto 2026, ver Claude/ComplexArithRev.md).
 	 */
 	public int geometricMultiplicity(Complex eigenVal) {
-		return this.rows() - (this.minus(eye(this.rows()).times(eigenVal))).rank();
+		return this.rows() - (this.minus(eye(this.rows()).times(eigenVal))).rankNearSingular();
 	}
 	
 	/**
@@ -819,8 +854,22 @@ public class Eigenspace extends MatrixComplex {
 				rowEig += this.arithmeticMultiplicity(eigenval);
 				continue;
 			}
-			eigensolve = dMatrix.solution(1);
-			
+
+			if (dMatrix.typeEqSys() == DETERMINATE && cMatrix.rankNearSingular() < cMatrix.rows()) {
+				// A-lambda*I is ALWAYS singular for a genuine eigenvalue (precise or not) -- a
+				// DETERMINATE classification here can only come from rank()'s fixed absolute
+				// epsilon missing a residual pivot left behind by an imprecise eigenvalue (same
+				// root cause as geometricMultiplicity(), see rankNearSingular()'s Javadoc).
+				// Syseq.solution()'s DETERMINATE branch would invert cMatrix and multiply by a
+				// ZERO right-hand side (this system is always homogeneous): inverse() now
+				// correctly refuses (isNumericallySingular()), so that product is Infinity*0 = NaN
+				// -- confirmed with a real 7x7 case (8-9 agosto 2026, ver Claude/ComplexArithRev.md).
+				// Bypass the broken branch and compute the eigenvector directly via the
+				// scale-aware nullspace instead.
+				eigensolve = cMatrix.nullspaceBasisNearSingular();
+			}
+			else eigensolve = dMatrix.solution(1);
+
 			/* -------------   DEBUGGING BLOCK   ------------- */
 			if (DEBUG_ON) {
 				System.out.println("Ec.Caract.["+rowEig+"]" + dMatrix.toMatrixComplex());

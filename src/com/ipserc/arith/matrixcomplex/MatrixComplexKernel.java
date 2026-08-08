@@ -164,4 +164,77 @@ class MatrixComplexKernel {
 		}
 		return basis;
 	}
+
+	/**
+	 * Same algorithm as {@link #nullspaceBasis(MatrixComplex)}, but the free-column test is
+	 * RELATIVE to the matrix's own scale ({@code MatrixComplexUnary.SINGULARITY_REL_TOL}) instead
+	 * of the fixed absolute {@code Complex.isZero()} epsilon -- needed for a near-singular matrix
+	 * whose negligible pivot sits right at that fixed epsilon (e.g. {@code A-lambda*I} for an
+	 * imprecise eigenvalue: {@code isZero()}'s ~1e-11 threshold can miss a residual pivot that is
+	 * unambiguously negligible RELATIVE to the matrix's own O(1-10) entries).
+	 * <p>
+	 * Kept as a SEPARATE method rather than changing {@link #nullspaceBasis(MatrixComplex)}
+	 * itself: this project's own regression testing (8-9 agosto 2026, ver
+	 * Claude/ComplexArithRev.md) showed the analogous relative-tolerance change applied to
+	 * {@code MatrixComplexRank.rank1()} breaks a DIFFERENT caller
+	 * ({@code Eigenspace.setEigenvectors()}'s {@code solutions} matrix, which legitimately mixes a
+	 * normalized-to-1 component with genuinely tiny-but-real ones -- no single coherent scale).
+	 * {@code nullspaceBasis()} has its own established caller ({@code Jordan.java}, verified
+	 * against its own regression battery) not worth risking here. Introduced specifically for
+	 * {@code Eigenspace.eigenvectors3()}'s DETERMINATE-vs-INDETERMINATE misclassification fix,
+	 * where the input is always {@code A-lambda*I} (coherent scale by construction).
+	 * @param m The matrix.
+	 * @return A matrix with one basis vector per row, using the relative-pivot criterion.
+	 */
+	static MatrixComplex nullspaceBasisNearSingular(MatrixComplex m) {
+		int n = m.cols();
+		int rowLen = m.rows();
+		MatrixComplex r = m.copy();
+
+		double refScale = 0;
+		for (int row = 0; row < rowLen; ++row)
+			for (int col = 0; col < n; ++col) {
+				double mod = m.getItem(row, col).mod();
+				if (mod > refScale) refScale = mod;
+			}
+
+		int[] pivotColOfRow = new int[rowLen];
+		boolean[] isPivotCol = new boolean[n];
+		int pivotRow = 0;
+
+		for (int col = 0; col < n && pivotRow < rowLen; ++col) {
+			int best = pivotRow;
+			double bestMod = r.getItem(pivotRow, col).mod();
+			for (int row = pivotRow + 1; row < rowLen; ++row) {
+				double mod = r.getItem(row, col).mod();
+				if (mod > bestMod) { bestMod = mod; best = row; }
+			}
+			if (refScale == 0 || bestMod / refScale <= MatrixComplexUnary.SINGULARITY_REL_TOL) continue; // no usable pivot in this column: free column
+
+			if (best != pivotRow) r.swapRows(pivotRow, best);
+			r.Ftransf(pivotRow, r.getItem(pivotRow, col).inverse()); // normalize pivot to 1
+			for (int row = 0; row < rowLen; ++row) {
+				if (row == pivotRow) continue;
+				Complex factor = r.getItem(row, col);
+				if (!factor.isZero()) r.Ftransf(row, pivotRow, factor.opposite());
+			}
+			pivotColOfRow[pivotRow] = col;
+			isPivotCol[col] = true;
+			++pivotRow;
+		}
+
+		int nullity = 0;
+		for (int col = 0; col < n; ++col) if (!isPivotCol[col]) ++nullity;
+
+		MatrixComplex basis = new MatrixComplex(nullity, n);
+		int basisRow = 0;
+		for (int freeCol = 0; freeCol < n; ++freeCol) {
+			if (isPivotCol[freeCol]) continue;
+			basis.setItem(basisRow, freeCol, Complex.ONE);
+			for (int prow = 0; prow < pivotRow; ++prow)
+				basis.setItem(basisRow, pivotColOfRow[prow], r.getItem(prow, freeCol).opposite());
+			++basisRow;
+		}
+		return basis;
+	}
 }

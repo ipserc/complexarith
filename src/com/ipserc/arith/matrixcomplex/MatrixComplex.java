@@ -18,8 +18,40 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.62 (2026_0808_1500)";
+	private final static String VERSION = "1.63 (2026_0809_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.63 (2026_0809_1200)
+	 * Bug real reportado por el usuario: para un autovalor imprecio (residuo de QRSchurfactor), un
+	 * autovector podia salir todo NaN, "geom mult:0" y "IS NOT DIAGONALIZABLE" para una matriz que
+	 * si lo era -- ver Eigenspace.VERSION 1.14 para el diagnostico completo (7x7 real, confirmado
+	 * reproducible). Causa raiz de fondo: inverse()/rank() deciden "es esto cero" comparando contra
+	 * un epsilon ABSOLUTO fijo (Complex.equals(0,0)'s ~1e-11) -- para un pivote residual de una
+	 * matriz A-lambda*I, el DETERMINANTE completo (producto de TODOS los pivotes) amplifica ese
+	 * residuo diminuto muy por encima del epsilon aunque la matriz sea, en la practica, singular;
+	 * inverse() entonces intentaba invertir de verdad, desbordando a Infinity/NaN.
+	 * inverse(): el chequeo previo "determinant(m).equals(0,0)" sustituido por
+	 * MatrixComplexUnary.isNumericallySingular(m) -- razon pivote-menor/pivote-mayor de una sola
+	 * pasada triangleUp() contra un umbral RELATIVO (SINGULARITY_REL_TOL=1e-9), calibrado (8 agosto
+	 * 2026, ver Claude/ComplexArithRev.md) contra 3 familias de matrices: bien condicionadas (razon
+	 * ~0.3-0.6), singulares por construccion (razon 0.0), y casi-singulares por autovalor impreciso
+	 * real/sintetico (razon hasta ~2.2e-11 en todos los casos medidos) -- ~10 ordenes de magnitud de
+	 * margen entre "genuinamente singular" y "genuinamente bien condicionada" para las matrices que
+	 * este proyecto produce en la practica. Verificado sin regresion en una bateria de 67+ ficheros
+	 * (Rank/Determinant/Jordan/QRSchur/Diag/Eigenspace/SVD/Schur/Spline/VectorAudit/
+	 * MatrixOperators) -- identico byte a byte donde ya funcionaba, incluidas las 2 fallas
+	 * preexistentes ya documentadas (TestJordan01 exit=1, TestDeterminant03/05 timeout O(n!)).
+	 * Aplicar la MISMA tecnica a rank()/rank1() GLOBALMENTE (probado primero, revertido): rompe
+	 * Eigenspace.setEigenvectors() -- su matriz `solutions` (autovectores candidatos) puede mezclar
+	 * legitimamente una componente normalizada a 1 con otras genuinamente pequenas, sin una escala
+	 * unica coherente; un unico umbral relativo por matriz zonificaba filas reales como "nulas".
+	 * rank()/rank1() se dejan SIN TOCAR (siguen sirviendo a sus ~30 llamadores como siempre).
+	 * En su lugar, 2 metodos nuevos, deliberadamente acotados a matrices con escala coherente
+	 * (A-lambda*I, no una mezcla heterogenea): rankNearSingular() (MatrixComplexUnary.
+	 * rankByRelativePivot()) y nullspaceBasisNearSingular() (MatrixComplexKernel.
+	 * nullspaceBasisNearSingular(), mismo algoritmo que nullspaceBasis() pero con el mismo test
+	 * relativo en vez del isZero() absoluto) -- usados solo por Eigenspace.geometricMultiplicity()/
+	 * eigenvectors3() (ver Eigenspace.VERSION 1.14).
 	 *
 	 * 1.62 (2026_0808_1500)
 	 * MatrixComplexPlot: plot()/plotSeries()/doPlot() sustituidos por pares xxxSync/xxxAsync (a
@@ -4036,6 +4068,24 @@ public class MatrixComplex {
 	}
 
 	/**
+	 * Scale-aware rank via a relative-pivot criterion (a single {@code triangleUp()} pass; a pivot
+	 * counts as non-negligible only if it is not vanishingly small RELATIVE to the largest pivot
+	 * found). NOT a general-purpose replacement for {@link #rank()}: safe only for a square matrix
+	 * whose entries genuinely share one physical scale throughout, such as {@code A-lambda*I} for
+	 * an eigenvalue -- {@code rank()}'s own fixed-absolute-epsilon zero test can otherwise miss a
+	 * residual pivot left behind by an imprecise eigenvalue (confirmed with a real 7x7 case,
+	 * 8 agosto 2026, ver Claude/ComplexArithRev.md: {@code geometricMultiplicity()} computed 0
+	 * instead of 1 for a genuine eigenvalue). Introduced specifically for
+	 * {@code Eigenspace.geometricMultiplicity()}; a matrix without a coherent scale (e.g. a set of
+	 * eigenvector candidates mixing normalized and genuinely-tiny components) should keep using
+	 * {@link #rank()}.
+	 * @return The relative-pivot rank.
+	 */
+	public int rankNearSingular() {
+		return MatrixComplexUnary.rankByRelativePivot(this);
+	}
+
+	/**
 	 * Calculates the rank of an array. It is not reliable for ill-conditioned matrix due to lack of precision
 	 * Kept for testing proposes
 	 * @return The rank of the matrix.
@@ -4317,6 +4367,20 @@ public class MatrixComplex {
 	 */
 	public MatrixComplex nullspaceBasis() {
 		return MatrixComplexKernel.nullspaceBasis(this);
+	}
+
+	/**
+	 * Same as {@link #nullspaceBasis()}, but the free-column test is relative to the matrix's own
+	 * scale instead of a fixed absolute epsilon. NOT a general-purpose replacement for
+	 * {@code nullspaceBasis()}: safe only for a matrix whose entries genuinely share one physical
+	 * scale, such as {@code A-lambda*I} for an eigenvalue -- see
+	 * {@code MatrixComplexKernel.nullspaceBasisNearSingular()} and
+	 * {@link #rankNearSingular()} for the full rationale (8-9 agosto 2026, ver
+	 * Claude/ComplexArithRev.md).
+	 * @return A matrix with one basis vector per row, using the relative-pivot criterion.
+	 */
+	public MatrixComplex nullspaceBasisNearSingular() {
+		return MatrixComplexKernel.nullspaceBasisNearSingular(this);
 	}
 
 	/*
