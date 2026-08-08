@@ -21,8 +21,20 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.19 (2026_0808_1037)";
+	private final static String VERSION = "1.20 (2026_0808_1046)";
 	/* VERSION Release Note
+	 * 1.20 (2026_0808_1046)
+	 * solveStatistic(): aplica ahora la misma purificacion maxPrec (parte real/imaginaria
+	 * despreciable -> 0) que ya aplicaban solveWeierstrass()/solveAberth()/solveQRCompanion() a su
+	 * propia salida -- se le habia quedado fuera al construirlo (Fase 1). Encontrado a peticion del
+	 * usuario mientras se investigaba por que el centroide de un cluster mostraba una parte
+	 * imaginaria de ruido (~1e-8, de la propia media aritmetica, no una parte imaginaria real) en vez
+	 * de un 0.0 limpio -- el mismo caso de TestRoots02.java del usuario (raices 1.12131415^3, 3^1,
+	 * -1^3) confirma el arreglo: STATISTIC pasa de imp=2.37e-8/7.03e-8 a imp=0.0 exacto en ambos
+	 * clusters, sin tocar DETERMINISTIC (verificado identico). Verificado ademas que el caso
+	 * multi-cluster de grado 11 (ScratchRootStatisticGroupC01.java) sigue agrupando exacto tras el
+	 * cambio, y que la bateria de 8 ficheros consumidores compila y ejecuta identico.
+	 *
 	 * 1.19 (2026_0808_1037)
 	 * Nuevo solveQRCompanion(double)/solveQRCompanion(): construye la matriz companion de este
 	 * polinomio (coeficientes normalizados/monicos) y halla sus autovalores con QRSchurfactor -- las
@@ -1351,6 +1363,11 @@ public class Polynom extends MatrixComplex {
 			}
 		}
 
+		// Same rounding/purification tail as solveWeierstrass()/solveAberth()/solveQRCompanion() --
+		// see those methods' comments for why maxPrec/numOfDecs are derived this way. Missing here
+		// until now (found while investigating why a clustered centroid's imaginary part showed up
+		// as ~1e-8 noise from the averaging arithmetic itself instead of a clean 0.0, 8 agosto 2026).
+		double maxPrec = Math.sqrt(precision * 10);
 		int numOfDecs = (int) Math.abs(Math.log10(Complex.precision()));
 		MatrixComplex clustered = new MatrixComplex(degree, 1);
 		boolean[] done = new boolean[degree];
@@ -1367,6 +1384,8 @@ public class Polynom extends MatrixComplex {
 				}
 			}
 			Complex centroid = new Complex(sumRe / count, sumIm / count);
+			if (Math.abs(centroid.rep()) < maxPrec) centroid.setComplexRec(0, centroid.imp());
+			if (Math.abs(centroid.imp()) < maxPrec) centroid.setComplexRec(centroid.rep(), 0);
 			if (Complex.exact()) centroid = Complex.round(centroid, numOfDecs);
 			for (int k = 0; k < degree; ++k) {
 				if (groupingFind(parent, k) == group) {
