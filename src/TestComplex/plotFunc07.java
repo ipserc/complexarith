@@ -3,7 +3,8 @@ package TestComplex;
 import java.util.function.Function;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
 
 public class plotFunc07 {
 	/**
@@ -12,16 +13,8 @@ public class plotFunc07 {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public static void plot(long samples, double dataRe[][], double dataIm[][], String Title) {
-		JavaPlot p = new JavaPlot();
-		p.setTitle(Title);
-		p.addPlot(dataRe);
-		p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		// p.set("xrange", "[-6:6]");
-		p.set("grid","");
-		p.plot();
+	public static void plot(String title, long samples, double dataRe[][], double dataIm[][]) {
+		MatrixComplexPlot.plotSeries(title, e_lineStyle.LINES, dataRe, dataIm);
 	}
 	
 	public static void doPlot(Function <Double,Complex> func, double start, double end, long samples, String Title) {
@@ -42,7 +35,7 @@ public class plotFunc07 {
 			dataRe[t][1] = data.complexMatrix[t][1].rep();
 			dataIm[t][1] = data.complexMatrix[t][1].imp();
 		}
-		plot(samples, dataRe, dataIm, Title);
+		plot(Title, samples, dataRe, dataIm);
 	}
 
 	public static Complex func1(double x) {

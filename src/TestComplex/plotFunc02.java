@@ -2,8 +2,9 @@ package TestComplex;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
 import com.ipserc.arith.polynom.Polynom;
-import com.panayotis.gnuplot.JavaPlot;
 
 public class plotFunc02 {
 	/**
@@ -13,16 +14,9 @@ public class plotFunc02 {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public static void plot(long samples, double dataRe[][], double dataIm[][]) {
-		JavaPlot p = new JavaPlot();
-		p.setTitle("PRUEBA");
-		p.addPlot(dataRe);
-		p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		// p.set("xrange", "[-6:6]");
-		p.set("grid","");
-		p.plot();
+		MatrixComplexPlot.plotSeries("PRUEBA", e_lineStyle.LINES, dataRe, dataIm);
 	}
+
 	
 	public static void plot(long samples,MatrixComplex data) {
 		double dataRe[][]  = new double[(int)samples+1][2];

@@ -1,6 +1,7 @@
 package TestComplex;
 
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
 import java.io.File;  // Import the File class
 import java.io.FileNotFoundException;  // Import this class to handle errors
 import java.util.Scanner; // Import the Scanner class to read text files
@@ -12,15 +13,9 @@ public class plotFunc09 {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
+
 	public static void plot(long samples, double points[][]) {
-		JavaPlot p = new JavaPlot();
-		p.setTitle("PRUEBA");
-		p.addPlot(points);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		//p.set("xrange", "[0:"+samples+"]");
-		p.set("grid","");
-		p.plot();
+		MatrixComplexPlot.plotSeries("PRUEBA", e_lineStyle.LINES, points);
 	}
 	
 

@@ -3,7 +3,8 @@ package TestComplex;
 import java.util.function.Function;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
 
 public class plotFunc04 {
 	/**
@@ -13,24 +14,18 @@ public class plotFunc04 {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public static void plot(String title, long samples, double dataRe[][], double dataIm[][]) {
-		JavaPlot p = new JavaPlot();
-		p.setTitle(title);
-		p.addPlot(dataRe);
-		p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		//p.set("xrange", "[0:"+samples+"]");
-		p.set("grid","");
-		p.plot();
+		MatrixComplexPlot.plotSeries(title, e_lineStyle.LINES, dataRe, dataIm);
 	}
-	
+
 	public static void plot(String title, long samples, MatrixComplex data) {
-		double dataRe[][]  = new double[(int)samples+1][1];
-		double dataIm[][]  = new double[(int)samples+1][1];
+		double dataRe[][]  = new double[(int)samples+1][2];
+		double dataIm[][]  = new double[(int)samples+1][2];
 
 		for (int t = 0; t <= samples; ++t) {
-			dataRe[t][0] = data.complexMatrix[t][0].rep();
-			dataIm[t][0] = data.complexMatrix[t][0].imp();
+			dataRe[t][0] = t;
+			dataIm[t][0] = t;
+			dataRe[t][1] = data.complexMatrix[t][0].rep();
+			dataIm[t][1] = data.complexMatrix[t][0].imp();
 		}
 		plot(title, samples, dataRe, dataIm);
 	}
