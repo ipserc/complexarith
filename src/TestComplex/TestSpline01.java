@@ -191,6 +191,6 @@ public final class TestSpline01 {
 			System.out.println(Math.floor(Complex.ChebyshevZero(19, i).times(v1).plus(v2).rep())) ;
 		}
 		*/
-		interpol.plotRe(pointsList, "Re Spline Prime Numbers Function : "+sigDigits+" Significatives Digits");
+		interpol.plotReSync(pointsList, "Re Spline Prime Numbers Function : "+sigDigits+" Significatives Digits");
 	}
 }

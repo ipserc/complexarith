@@ -9,7 +9,7 @@ import com.panayotis.gnuplot.JavaPlot;
 public class plotFunc05 {
 
 	public static void plot(long samples, double dataRe[][], double dataIm[][]) {
-		MatrixComplexPlot.plotSeries("PRUEBA", e_lineStyle.LINES, dataRe, dataIm);
+		MatrixComplexPlot.plotSeriesSync("PRUEBA", e_lineStyle.LINES, dataRe, dataIm);
 	}
 
 	

@@ -27,7 +27,7 @@ public class TestRoots02 {
 		System.out.println(aPolynom.toOctave_roots("OCTAVE :"));
 		System.out.println(aPolynom.toWolfram_roots("WOLFRAM:"));
 
-		aPolynom.plotExpression(-2, 4);
+		aPolynom.plotExpressionSync(-2, 4);
 		System.out.println(Complex.boxTextRandom(boxSize, "Roots - DETERMINISTIC"));
     	hMatrix = aPolynom.solve();
     	//hMatrix.println("Hay "+(aPolynom.complexMatrix[0].length-1)+" Soluciones");

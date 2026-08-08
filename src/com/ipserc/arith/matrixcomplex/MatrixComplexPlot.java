@@ -80,7 +80,20 @@ public class MatrixComplexPlot {
 	 * @param showIm If true plots the imaginary part in the graphic.
 	 * @param lineStyle The line style.
 	 */
-	public static void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
+	public static void plotSync(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
+		plot(title, nbrSamples, data, showIm, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	/** Same as {@link #plotSync(String, int, MatrixComplex, boolean, e_lineStyle)} but returns
+	 * immediately -- the plot window stays open independently, without blocking the caller. */
+	public static void plotAsync(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
+		plot(title, nbrSamples, data, showIm, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	/** Generic entry point every {@code plotSync}/{@code plotAsync} pair calls -- also public so
+	 * {@code Fourier}/{@code Laplace}/{@code Z} (a different package) can thread their OWN
+	 * {@code mode} straight through instead of re-implementing the sync/async branch themselves. */
+	public static void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		// Split the data into Re and Im parts
 		double dataRe[][] = new double[nbrSamples][2];
 		double dataIm[][] = new double[nbrSamples][2];
@@ -104,7 +117,7 @@ public class MatrixComplexPlot {
 		p.setPersist(true);
 		p.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		p.plot();
+		p.plot(mode);
 	}
 
 	/**
@@ -114,8 +127,14 @@ public class MatrixComplexPlot {
 	 * @param lineStyle The line style.
 	 * @param series One or more {@code double[nbrPoints][2]} series to plot together.
 	 */
-	public static void plotSeries(String title, e_lineStyle lineStyle, double[][]... series) {
-		plotSeries(title, null, null, false, lineStyle, series);
+	public static void plotSeriesSync(String title, e_lineStyle lineStyle, double[][]... series) {
+		plotSeriesSync(title, null, null, false, lineStyle, series);
+	}
+
+	/** Same as {@link #plotSeriesSync(String, e_lineStyle, double[][]...)} but returns immediately
+	 * -- the plot window stays open independently, without blocking the caller. */
+	public static void plotSeriesAsync(String title, e_lineStyle lineStyle, double[][]... series) {
+		plotSeriesAsync(title, null, null, false, lineStyle, series);
 	}
 
 	/**
@@ -131,7 +150,21 @@ public class MatrixComplexPlot {
 	 * @param lineStyle The line style.
 	 * @param series One or more {@code double[nbrPoints][2]} series to plot together.
 	 */
-	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, double[][]... series) {
+	public static void plotSeriesSync(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, double[][]... series) {
+		plotSeries(title, x2label, xlabel, logscale, lineStyle, SimpleGnuplot.e_syncMode.SYNC, series);
+	}
+
+	/** Same as {@link #plotSeriesSync(String, String, String, boolean, e_lineStyle, double[][]...)}
+	 * but returns immediately -- the plot window stays open independently, without blocking the
+	 * caller. */
+	public static void plotSeriesAsync(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, double[][]... series) {
+		plotSeries(title, x2label, xlabel, logscale, lineStyle, SimpleGnuplot.e_syncMode.ASYNC, series);
+	}
+
+	/** Generic entry point every {@code plotSeriesSync}/{@code plotSeriesAsync} pair calls -- also
+	 * public so {@code Fourier}/{@code Laplace}/{@code Z} can thread their OWN {@code mode} straight
+	 * through. */
+	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, double[][]... series) {
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.setTitle(title);
 		if (x2label != null) p.set("x2label", x2label);
@@ -145,7 +178,7 @@ public class MatrixComplexPlot {
 		p.setPersist(true);
 		p.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		p.plot();
+		p.plot(mode);
 	}
 
 	/**
@@ -156,7 +189,15 @@ public class MatrixComplexPlot {
 	 * @param dataTable The table to plot.
 	 * @param dataLen The number of valid rows in {@code dataTable}.
 	 */
-	static void doPlot(String title, double[][] dataTable, int dataLen) {
+	static void doPlotSync(String title, double[][] dataTable, int dataLen) {
+		doPlot(title, dataTable, dataLen, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	static void doPlotAsync(String title, double[][] dataTable, int dataLen) {
+		doPlot(title, dataTable, dataLen, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	private static void doPlot(String title, double[][] dataTable, int dataLen, SimpleGnuplot.e_syncMode mode) {
 		if (!MatrixComplex.doPlot()) return;
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.setTitle(title);
@@ -170,6 +211,6 @@ public class MatrixComplexPlot {
 		p.setPersist(true);
 		p.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		p.plot();
+		p.plot(mode);
 	}
 }

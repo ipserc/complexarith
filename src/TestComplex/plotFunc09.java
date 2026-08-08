@@ -15,7 +15,7 @@ public class plotFunc09 {
 	 */
 
 	public static void plot(long samples, double points[][]) {
-		MatrixComplexPlot.plotSeries("PRUEBA", e_lineStyle.LINES, points);
+		MatrixComplexPlot.plotSeriesSync("PRUEBA", e_lineStyle.LINES, points);
 	}
 	
 

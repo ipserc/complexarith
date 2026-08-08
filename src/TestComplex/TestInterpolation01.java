@@ -171,14 +171,14 @@ public class TestInterpolation01 {
 
 		myPolynom = myPolynom.interpolationNewton(points);
 		myPolynom.println("Newton Interpolation Polynom");
-		myPolynom.plotExpression(points.getItem(0, 0).rep(), points.getItem(points.rows()-1, 0).rep());
+		myPolynom.plotExpressionSync(points.getItem(0, 0).rep(), points.getItem(points.rows()-1, 0).rep());
 		
 		myPolynom = myPolynom.interpolationLagrange(points);
 		myPolynom.println("Lagrange Interpolation Polynom");
-		myPolynom.plotExpression(points.getItem(0, 0).rep(), points.getItem(points.rows()-1, 0).rep());
+		myPolynom.plotExpressionSync(points.getItem(0, 0).rep(), points.getItem(points.rows()-1, 0).rep());
 
 		myPolynom = myPolynom.interpolationVandermonde(points, false);
 		myPolynom.println("Vandermonde Interpolation Polynom");
-		myPolynom.plotExpression(points.getItem(0, 0).rep(), points.getItem(points.rows()-1, 0).rep());
+		myPolynom.plotExpressionSync(points.getItem(0, 0).rep(), points.getItem(points.rows()-1, 0).rep());
 	}
 }

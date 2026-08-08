@@ -165,10 +165,10 @@ public final class TestSpline02 {
 		/**/
 		
 		/* */
-		interpol.plotRe(pointsList, "Re Polynomial Comparison Exact and Approx "+sigDigits+" Significatives Digits");
-		interpol.plotIm(pointsList, "Im Polynomial Comparison Exact and Approx "+sigDigits+" Significatives Digits");
-		interpol.plotMod(pointsList, "Mod Polynomial Comparison Exact and Approx "+sigDigits+" Significatives Digits");
-		interpol.plotPha(pointsList, "Pha Polynomial Comparison Exact and Approx "+sigDigits+" Significatives Digits");
+		interpol.plotReSync(pointsList, "Re Polynomial Comparison Exact and Approx "+sigDigits+" Significatives Digits");
+		interpol.plotImSync(pointsList, "Im Polynomial Comparison Exact and Approx "+sigDigits+" Significatives Digits");
+		interpol.plotModSync(pointsList, "Mod Polynomial Comparison Exact and Approx "+sigDigits+" Significatives Digits");
+		interpol.plotPhaSync(pointsList, "Pha Polynomial Comparison Exact and Approx "+sigDigits+" Significatives Digits");
 		/* */
 		
 

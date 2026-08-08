@@ -18,8 +18,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.61 (2026_0808_1400)";
+	private final static String VERSION = "1.62 (2026_0808_1500)";
 	/* VERSION Release Note
+	 *
+	 * 1.62 (2026_0808_1500)
+	 * MatrixComplexPlot: plot()/plotSeries()/doPlot() sustituidos por pares xxxSync/xxxAsync (a
+	 * peticion del usuario) -- cada uno llama a un metodo generico, ahora PUBLIC (antes private,
+	 * para que Fourier/Laplace/Z puedan llamarlo directamente desde otro paquete) con un parametro
+	 * SimpleGnuplot.e_syncMode explicito. Sin alias sin sufijo: los nombres viejos ya no existen,
+	 * todos los llamadores del proyecto actualizados (MatrixComplexFunctions.doPlot() -> doPlotSync,
+	 * Fourier/Laplace/Z y ~20 ficheros de TestComplex).
 	 *
 	 * 1.61 (2026_0808_1400)
 	 * MatrixComplexPlot: com.panayotis.gnuplot.JavaPlot sustituido por com.ipserc.arith.plot.

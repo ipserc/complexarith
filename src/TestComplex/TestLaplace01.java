@@ -191,7 +191,7 @@ public class TestLaplace01 {
 		Laplace tLaplace = new Laplace("/home/ipserc/saco/samples.txt");
 		tLaplace.DLT(tLaplace.getSampleFreq());
 		
-		tLaplace.plotFunction("Function", tLaplace.getSampleFreq(), true, e_lineStyle.LINES);
+		tLaplace.plotFunctionSync("Function", tLaplace.getSampleFreq(), true, e_lineStyle.LINES);
 		/** /
 		tLaplace.plotDLT("DLT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
 		tLaplace.plotDLT("DLT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
@@ -205,7 +205,7 @@ public class TestLaplace01 {
 		tLaplace.readDLT("/home/ipserc/saco/dft.txt", "");
 		tLaplace.IDLT();
 		
-		tLaplace.plotFunction("Function", tLaplace.getSampleFreq(), true, e_lineStyle.LINES);
+		tLaplace.plotFunctionSync("Function", tLaplace.getSampleFreq(), true, e_lineStyle.LINES);
 		/** /
 		tLaplace.plotDLT("DLT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
 		tLaplace.plotDLT("DLT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
@@ -221,8 +221,8 @@ public class TestLaplace01 {
 		sLaplace.CLT(sampleFreq, decPrc);
 		//sLaplace.printCoefs();
 		/* .println("ival(" + ival.toString() + ") = ") */
-		sLaplace.plotFunction("Function", sampleFreq, true, e_lineStyle.LINES);
-		sLaplace.plotDLT("Transform", true, e_lineStyle.LINES);
+		sLaplace.plotFunctionSync("Function", sampleFreq, true, e_lineStyle.LINES);
+		sLaplace.plotDLTSync("Transform", true, e_lineStyle.LINES);
 	}
 
 	public static void TestDiscLaplaceTrf(Function<Complex, Complex> func, int sampleFreq, double DloLimit, double DupLimit, int decPrc) {
@@ -232,8 +232,8 @@ public class TestLaplace01 {
 		sLaplace.DLT(sampleFreq);
 		//sLaplace.printCoefs();
 		/* .println("ival(" + ival.toString() + ") = ") */
-		sLaplace.plotFunction("Function", sampleFreq, true, e_lineStyle.LINES);
-		sLaplace.plotDLT("Transform", true, e_lineStyle.LINES);
+		sLaplace.plotFunctionSync("Function", sampleFreq, true, e_lineStyle.LINES);
+		sLaplace.plotDLTSync("Transform", true, e_lineStyle.LINES);
 	}
 
 	public static void main(String[] args) {

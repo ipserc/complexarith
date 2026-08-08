@@ -825,7 +825,7 @@ class MatrixComplexFunctions {
 						System.out.println("- - - DEBUG · Iteration:"+ k +" - The logarithm is divergent");
 						System.out.println("- - - DEBUG · accumulator:" + accumulator);
 						System.out.println("- - - DEBUG · last deviation:" + deviation);
-						MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
+						MatrixComplexPlot.doPlotSync("-- DEVIATION --", dataTable, --c);
 					}
 					/* */
 					throw new IllegalArgumentException("logTaylor: The Taylor series log(1-x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
@@ -859,7 +859,7 @@ class MatrixComplexFunctions {
 			System.out.println("- - - DEBUG · Iterations to converge:" + k);
 			System.out.println("- - - DEBUG · accumulator:" + accumulator);
 			System.out.println("- - - DEBUG · last deviation:" + deviation);
-			MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
+			MatrixComplexPlot.doPlotSync("-- DEVIATION --", dataTable, --c);
 		}
 		/* */
 
@@ -968,7 +968,7 @@ class MatrixComplexFunctions {
 					if (MatrixComplex.debug()) {
 						MatrixComplex.trace("Iteration:"+ k +" - The logarithm is divergent");
 						MatrixComplex.trace("accumulator:" + accumulator);
-						MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
+						MatrixComplexPlot.doPlotSync("-- DEVIATION --", dataTable, --c);
 					}
 					throw new IllegalArgumentException("logMercator: The Mercator series log(1+x) is divergent for this matrix (its dominant eigenvalue is not close enough to +||A|| after the norm reduction).");
 				}
@@ -989,7 +989,7 @@ class MatrixComplexFunctions {
 		if (MatrixComplex.debug()) {
 			MatrixComplex.trace("Iterations to converge:" + k);
 			MatrixComplex.trace("accumulator:" + accumulator);
-			MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
+			MatrixComplexPlot.doPlotSync("-- DEVIATION --", dataTable, --c);
 		}
 		return logMatrix.plusMat(Math.log(factor));
 	}
@@ -1045,7 +1045,7 @@ class MatrixComplexFunctions {
 					if (MatrixComplex.debug()) {
 						MatrixComplex.trace("Iteration:"+ k +" - The logarithm is divergent");
 						MatrixComplex.trace("accumulator:" + accumulator);
-						MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
+						MatrixComplexPlot.doPlotSync("-- DEVIATION --", dataTable, --c);
 					}
 					throw new IllegalArgumentException("logHat: The Hyperbolic Arc Tangent series is divergent for this matrix.");
 				}
@@ -1056,7 +1056,7 @@ class MatrixComplexFunctions {
 		if (MatrixComplex.debug()) {
 			MatrixComplex.trace("Iterations to converge:" + k);
 			MatrixComplex.trace("accumulator:" + accumulator);
-			MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
+			MatrixComplexPlot.doPlotSync("-- DEVIATION --", dataTable, --c);
 		}
 		return sumMat;
 	}
@@ -1257,7 +1257,7 @@ class MatrixComplexFunctions {
 					if (MatrixComplex.debug()) {
 						MatrixComplex.trace("logm(): Mercator series iteration:" + k + " - unexpectedly divergent after scaling");
 						MatrixComplex.trace("accumulator:" + accumulator);
-						MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
+						MatrixComplexPlot.doPlotSync("-- DEVIATION --", dataTable, --c);
 					}
 					throw new IllegalArgumentException(
 						"logm: the Mercator series failed to converge even after scaling close to identity.");
@@ -1268,7 +1268,7 @@ class MatrixComplexFunctions {
 		if (MatrixComplex.debug()) {
 			MatrixComplex.trace("logm(): Mercator iterations to converge:" + k);
 			MatrixComplex.trace("accumulator:" + accumulator);
-			MatrixComplexPlot.doPlot("-- DEVIATION --", dataTable, --c);
+			MatrixComplexPlot.doPlotSync("-- DEVIATION --", dataTable, --c);
 		}
 
 		/* undo the scaling: log(T) = 2^s * log(S) */

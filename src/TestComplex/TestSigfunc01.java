@@ -16,7 +16,7 @@ public class TestSigfunc01 {
 		// Used only for plotting purposes
 		Fourier sFourier = new Fourier(func, loLimit, upLimit);
 		sFourier.doSrsSampling();
-		sFourier.plotSamples(strFunction, sampleFreq, true, e_lineStyle.LINES);
+		sFourier.plotSamplesSync(strFunction, sampleFreq, true, e_lineStyle.LINES);
 	}
 
 	public TestSigfunc01() {

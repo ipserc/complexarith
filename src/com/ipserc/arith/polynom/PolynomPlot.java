@@ -6,6 +6,7 @@ import java.util.List;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.plot.SimpleGnuplot;
+import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
 
 /**
  * Package-private GNUPlot integration for {@link Polynom} -- isolates the {@link SimpleGnuplot}
@@ -30,10 +31,17 @@ import com.ipserc.arith.plot.SimpleGnuplot;
  * {@code plot}) kept identical on purpose, so this was a drop-in swap -- verified live before
  * applying (user-confirmed correct rendering, both the data-block and native-expression
  * {@code addPlot} paths this class actually uses).
+ * <p>
+ * Continuation (8 agosto 2026, a peticion del usuario): every method here now takes an explicit
+ * {@link e_syncMode} parameter (threaded straight to {@code SimpleGnuplot.plot(mode)}) instead of
+ * always blocking -- this class is package-private, so the {@code xxxSync}/{@code xxxAsync} naming
+ * pair the user asked for lives one layer up, on {@code Polynom.java}'s public methods (the actual
+ * call sites), which pick the {@code e_syncMode} literal and pass it down to a single generic
+ * method here. No back-compat aliases: the old always-blocking method names are gone.
  */
 class PolynomPlot {
 
-	static void plotExpression(Polynom p, String gnuPlotExpression, double loLimit, double upLimit) {
+	static void plotExpression(Polynom p, String gnuPlotExpression, double loLimit, double upLimit, e_syncMode mode) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.addPlot(gnuPlotExpression);
@@ -45,10 +53,10 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plotExpression(Polynom p, double loLimit, double upLimit) {
+	static void plotExpression(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(p.toString());
@@ -60,10 +68,10 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plotExpressionRe(Polynom p, double loLimit, double upLimit) {
+	static void plotExpressionRe(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re(" + p.toString() + ")");
@@ -76,10 +84,10 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plotExpressionIm(Polynom p, double loLimit, double upLimit) {
+	static void plotExpressionIm(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Im(" + p.toString() + ")");
@@ -92,10 +100,10 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plotExpressionReIm(Polynom p, double loLimit, double upLimit) {
+	static void plotExpressionReIm(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re() Im() " + p.toString());
@@ -108,10 +116,10 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plotExpressionRepIm(Polynom p, double loLimit, double upLimit) {
+	static void plotExpressionRepIm(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re() Im() " + p.toString());
@@ -124,10 +132,10 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plotExpressionAbs(Polynom p, double loLimit, double upLimit) {
+	static void plotExpressionAbs(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Abs("+p.toString()+")");
@@ -140,10 +148,10 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plotExpressionPhase(Polynom p, double loLimit, double upLimit) {
+	static void plotExpressionPhase(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Phase("+p.toString()+")");
@@ -157,7 +165,7 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
 	/**
@@ -166,7 +174,7 @@ class PolynomPlot {
 	 * @param pointsList The list with the points defined as List&lt;double[][]&gt;.
 	 * @param title the title of the graphic.
 	 */
-	static void plot(List<double[][]> pointsList, String title) {
+	static void plot(List<double[][]> pointsList, String title, e_syncMode mode) {
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(title);
 		for(int i = 0; i < pointsList.size(); ++i) {
@@ -181,10 +189,10 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plot(double[][] points, String title) {
+	static void plot(double[][] points, String title, e_syncMode mode) {
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(title);
 		plt.addPlot(points);
@@ -197,17 +205,17 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
-	static void plotRe(MatrixComplex points, String title) {
+	static void plotRe(MatrixComplex points, String title, e_syncMode mode) {
 		int samples = points.rows();
 		double[][] pointsRe = new double[samples][2];
 		for (int i = 0; i < samples; ++i) {
 			pointsRe[i][0] = points.getItem(i, 0).rep();
 			pointsRe[i][1] = points.getItem(i, 1).rep();
 		}
-		plot(pointsRe, title);
+		plot(pointsRe, title, mode);
 	}
 
 	/**
@@ -216,7 +224,7 @@ class PolynomPlot {
 	 * @param pointsList The list with the points defined as &lt;MatrixComplex&gt;.
 	 * @param title the title of the graphic.
 	 */
-	static void plotRe(List<MatrixComplex> pointsList, String title) {
+	static void plotRe(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -227,17 +235,17 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsRe);
 		}
-		plot(pointsListGraph, title);
+		plot(pointsListGraph, title, mode);
 	}
 
-	static void plotIm(MatrixComplex points, String title) {
+	static void plotIm(MatrixComplex points, String title, e_syncMode mode) {
 		int samples = points.rows();
 		double[][] pointsIm = new double[samples][2];
 		for (int i = 0; i < samples; ++i) {
 			pointsIm[i][0] = points.getItem(i, 0).imp();
 			pointsIm[i][1] = points.getItem(i, 1).imp();
 		}
-		plot(pointsIm, title);
+		plot(pointsIm, title, mode);
 	}
 
 	/**
@@ -246,7 +254,7 @@ class PolynomPlot {
 	 * @param pointsList The list with the points defined as &lt;MatrixComplex&gt;.
 	 * @param title the title of the graphic.
 	 */
-	static void plotIm(List<MatrixComplex> pointsList, String title) {
+	static void plotIm(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -257,20 +265,20 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, title);
+		plot(pointsListGraph, title, mode);
 	}
 
-	static void plotMod(MatrixComplex points, String title) {
+	static void plotMod(MatrixComplex points, String title, e_syncMode mode) {
 		int samples = points.rows();
 		double[][] pointsMod = new double[samples][2];
 		for (int i = 0; i < samples; ++i) {
 			pointsMod[i][0] = points.getItem(i, 0).mod();
 			pointsMod[i][1] = points.getItem(i, 1).mod();
 		}
-		plot(pointsMod, title);
+		plot(pointsMod, title, mode);
 	}
 
-	static void plotMod(List<MatrixComplex> pointsList, String title) {
+	static void plotMod(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -281,20 +289,20 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, title);
+		plot(pointsListGraph, title, mode);
 	}
 
-	static void plotPha(MatrixComplex points, String title) {
+	static void plotPha(MatrixComplex points, String title, e_syncMode mode) {
 		int samples = points.rows();
 		double[][] pointsPha = new double[samples][2];
 		for (int i = 0; i < samples; ++i) {
 			pointsPha[i][0] = points.getItem(i, 0).pha();
 			pointsPha[i][1] = points.getItem(i, 1).pha();
 		}
-		plot(pointsPha, title);
+		plot(pointsPha, title, mode);
 	}
 
-	static void plotPha(List<MatrixComplex> pointsList, String title) {
+	static void plotPha(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -305,7 +313,7 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, title);
+		plot(pointsListGraph, title, mode);
 	}
 
 	/**
@@ -332,7 +340,7 @@ class PolynomPlot {
 		return tupla;
 	}
 
-	static void plotRe(Polynom p, double[][] points) {
+	static void plotRe(Polynom p, double[][] points, e_syncMode mode) {
 		double lolimit = points[0][0];
 		double uplimit = points[points.length-1][0];
 		SimpleGnuplot plt = new SimpleGnuplot();
@@ -347,7 +355,7 @@ class PolynomPlot {
 		plt.setPersist(true);
 		plt.getPostInit().add("set terminal windows");
 		// -------------------------------------------------------------
-		plt.plot();
+		plt.plot(mode);
 	}
 
 }

@@ -14,7 +14,7 @@ public class plotFunc07 {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public static void plot(String title, long samples, double dataRe[][], double dataIm[][]) {
-		MatrixComplexPlot.plotSeries(title, e_lineStyle.LINES, dataRe, dataIm);
+		MatrixComplexPlot.plotSeriesSync(title, e_lineStyle.LINES, dataRe, dataIm);
 	}
 	
 	public static void doPlot(Function <Double,Complex> func, double start, double end, long samples, String Title) {

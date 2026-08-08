@@ -10,6 +10,7 @@ import java.util.function.Function;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.plot.SimpleGnuplot;
 import com.ipserc.chronometer.*;
 
 public class Z extends MatrixComplex {
@@ -683,19 +684,27 @@ public class Z extends MatrixComplex {
 	 * Laplace}). This class's own {@code e_lineStyle} keeps its exact public signature; only the
 	 * implementation moved, converted to {@code MatrixComplexPlot.e_lineStyle} at the boundary.
 	 */
-	private void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
+	private void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		MatrixComplexPlot.plot(title, nbrSamples, data, showIm,
-			lineStyle == e_lineStyle.IMPULSES ? MatrixComplexPlot.e_lineStyle.IMPULSES : MatrixComplexPlot.e_lineStyle.LINES);
+			lineStyle == e_lineStyle.IMPULSES ? MatrixComplexPlot.e_lineStyle.IMPULSES : MatrixComplexPlot.e_lineStyle.LINES, mode);
 	}
 
-	public void plotFunction(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+	public void plotFunctionSync(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+		plotFunction(title, nbrSamples, showIm, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	public void plotFunctionAsync(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+		plotFunction(title, nbrSamples, showIm, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	private void plotFunction(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		if(!isSampled || this.N != nbrSamples) {
 			this.N = nbrSamples;
 			this.sampleFreq = nbrSamples;
 			doSrsSampling();
 		}
 
-		plot(title, nbrSamples, samples, showIm, lineStyle);
+		plot(title, nbrSamples, samples, showIm, lineStyle, mode);
 	}
 
 	/**
@@ -703,8 +712,12 @@ public class Z extends MatrixComplex {
 	 * @param title The title of the graphic.
 	 * @param showIm True for plotting the imaginary part.
 	 */
-	public void plotSamples(String title, boolean showIm, e_lineStyle lineStyle) {
-		plot(title, N, samples, showIm, lineStyle);
+	public void plotSamplesSync(String title, boolean showIm, e_lineStyle lineStyle) {
+		plot(title, N, samples, showIm, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	public void plotSamplesAsync(String title, boolean showIm, e_lineStyle lineStyle) {
+		plot(title, N, samples, showIm, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
 	}
 
 	/**
@@ -714,12 +727,20 @@ public class Z extends MatrixComplex {
 	 * @param operator The operator used
 	 * @param logscale True in y axis should be set in logarithmic scale
 	 */
-	public void plotDZT(String Title, boolean showIm, e_lineStyle lineStyle) {
+	public void plotDZTSync(String Title, boolean showIm, e_lineStyle lineStyle) {
+		plotDZT(Title, showIm, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	public void plotDZTAsync(String Title, boolean showIm, e_lineStyle lineStyle) {
+		plotDZT(Title, showIm, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	private void plotDZT(String Title, boolean showIm, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		if(!isTransformed) {
 			System.out.println("WARNING:DZT coeficients not calculated/loaded. Do the DZT or Load them first.");
 			return;
 		}
-		plot(Title, N, transform, showIm, lineStyle);
+		plot(Title, N, transform, showIm, lineStyle, mode);
 	}
 
 }

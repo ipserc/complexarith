@@ -56,66 +56,66 @@ public class TestFilter04 {
 		signalOrig.readDFT("/home/ipserc/saco/fourier_20201023_2013/signal_dft.txt");
 		// PLOTING RESULTS
 		System.out.println("Original Signal Plotting results...");		
-		signalOrig.plotSamples("Original Signal (Time) ", true, e_lineStyle.IMPULSES);
-		signalOrig.plotDFT("Original Signal Spectrum ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);	
+		signalOrig.plotSamplesSync("Original Signal (Time) ", true, e_lineStyle.IMPULSES);
+		signalOrig.plotDFTSync("Original Signal Spectrum ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);	
 		
 		signalDFT1 = new Fourier("/home/ipserc/saco/fourier_20201023_2012/dft_filt_signal_samples.txt");
 		signalDFT1.readDFT("/home/ipserc/saco/fourier_20201023_2012/dft_filt_signal_dft.txt");
 		// PLOTING RESULTS
 		System.out.println("DFT1 Plotting results...");		
-		signalDFT1.plotSamples("DFT1 (Time) ", true, e_lineStyle.IMPULSES);
-		signalDFT1.plotDFT("DFT1 Spectrum ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);	
+		signalDFT1.plotSamplesSync("DFT1 (Time) ", true, e_lineStyle.IMPULSES);
+		signalDFT1.plotDFTSync("DFT1 Spectrum ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);	
 		
 		signalDFT2 = new Fourier("/home/ipserc/saco/fourier_20201023_2013/dft_filt_signal_samples.txt");
 		signalDFT2.readDFT("/home/ipserc/saco/fourier_20201023_2013/dft_filt_signal_dft.txt");
 		// PLOTING RESULTS
 		System.out.println("DFT2 Plotting results...");		
-		signalDFT2.plotSamples("DFT2 (Time) ", true, e_lineStyle.IMPULSES);
-		signalDFT2.plotDFT("DFT2 Spectrum ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);	
+		signalDFT2.plotSamplesSync("DFT2 (Time) ", true, e_lineStyle.IMPULSES);
+		signalDFT2.plotDFTSync("DFT2 Spectrum ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);	
 
 		signalDFT = signalDFT1.plus(signalDFT2);
 		// PLOTING RESULTS
 		System.out.println("DFT1+DFT2 Plotting results...");		
-		signalDFT.plotSamples("DFT1+DFT2 ", true, e_lineStyle.IMPULSES);
-		signalDFT.plotDFT("DFT1+DFT2 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalDFT.plotSamplesSync("DFT1+DFT2 ", true, e_lineStyle.IMPULSES);
+		signalDFT.plotDFTSync("DFT1+DFT2 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
 		signalConv1 = new Fourier("/home/ipserc/saco/fourier_20201023_2012/convolution_samples.txt");
 		signalConv1.readDFT("/home/ipserc/saco/fourier_20201023_2012/convolution_dft.txt");
 		// PLOTING RESULTS
 		System.out.println("CONV1 Plotting results...");		
-		signalConv1.plotSamples("CONV1 ", true, e_lineStyle.IMPULSES);
-		signalConv1.plotDFT("CONV1 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalConv1.plotSamplesSync("CONV1 ", true, e_lineStyle.IMPULSES);
+		signalConv1.plotDFTSync("CONV1 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		
 		signalConv2 = new Fourier("/home/ipserc/saco/fourier_20201023_2013/convolution_samples.txt");
 		signalConv2.readDFT("/home/ipserc/saco/fourier_20201023_2013/convolution_dft.txt");
 		// PLOTING RESULTS
 		System.out.println("CONV2 Plotting results...");		
-		signalConv2.plotSamples("CONV2 ", true, e_lineStyle.IMPULSES);
-		signalConv2.plotDFT("CONV2 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalConv2.plotSamplesSync("CONV2 ", true, e_lineStyle.IMPULSES);
+		signalConv2.plotDFTSync("CONV2 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
 		signalConv = signalConv1.plus(signalConv2);
 		// PLOTING RESULTS
 		System.out.println("CONV1+CONV2 Plotting results...");		
-		signalConv.plotSamples("CONV1+CONV2 ", true, e_lineStyle.IMPULSES);
-		signalConv.plotDFT("CONV1+CONV2 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalConv.plotSamplesSync("CONV1+CONV2 ", true, e_lineStyle.IMPULSES);
+		signalConv.plotDFTSync("CONV1+CONV2 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		
 		signalDiff = signalDFT.minus(signalConv);
 		// PLOTING RESULTS
 		System.out.println("DFT-CONV Plotting results...");		
-		signalDiff.plotSamples("DFT-CONV ", true, e_lineStyle.IMPULSES);
-		signalDiff.plotDFT("DFT-CONV ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalDiff.plotSamplesSync("DFT-CONV ", true, e_lineStyle.IMPULSES);
+		signalDiff.plotDFTSync("DFT-CONV ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		//signalDiff.saveSamples("/home/ipserc/saco/diff_samples.txt");
 
 		signalDiff = signalOrig.minus(signalDFT);
 		// PLOTING RESULTS
 		System.out.println("ORIGINAL-DFT Plotting results...");		
-		signalDiff.plotSamples("ORIGINAL-DFT ", true, e_lineStyle.IMPULSES);
-		signalDiff.plotDFT("ORIGINAL-DFT ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalDiff.plotSamplesSync("ORIGINAL-DFT ", true, e_lineStyle.IMPULSES);
+		signalDiff.plotDFTSync("ORIGINAL-DFT ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		
 		signalDiff = signalOrig.minus(signalConv);
 		// PLOTING RESULTS
 		System.out.println("ORIGINAL-CONV Plotting results...");		
-		signalDiff.plotSamples("ORIGINAL-CONV ", true, e_lineStyle.IMPULSES);
-		signalDiff.plotDFT("ORIGINAL-CONV ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalDiff.plotSamplesSync("ORIGINAL-CONV ", true, e_lineStyle.IMPULSES);
+		signalDiff.plotDFTSync("ORIGINAL-CONV ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 	}
 }

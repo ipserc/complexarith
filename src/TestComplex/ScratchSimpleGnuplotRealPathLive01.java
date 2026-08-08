@@ -13,10 +13,10 @@ public class ScratchSimpleGnuplotRealPathLive01 {
 	public static void main(String[] args) {
 		System.out.println("=== PolynomPlot real path: Polynom.plotExpressionAbs() ===");
 		Polynom p = new Polynom("1, -3, 2"); // (x-1)(x-2), natural order per Polynom(String) javadoc
-		p.plotExpressionAbs(-1, 4);
+		p.plotExpressionAbsSync(-1, 4);
 
-		System.out.println("=== MatrixComplexPlot real path: plotSeries() ===");
-		MatrixComplexPlot.plotSeries("MatrixComplexPlot real path", e_lineStyle.LINES,
+		System.out.println("=== MatrixComplexPlot real path: plotSeriesSync() ===");
+		MatrixComplexPlot.plotSeriesSync("MatrixComplexPlot real path", e_lineStyle.LINES,
 				new double[][] { { 0, 0 }, { 1, 2 }, { 2, 1 }, { 3, 3 } });
 		System.out.println("ambas llamadas devueltas (sync) -- si ves esto, las 2 ventanas ya se cerraron.");
 	}

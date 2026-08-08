@@ -5,6 +5,7 @@ import java.util.function.Function;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.plot.SimpleGnuplot;
 import java.io.FileWriter;   // Import the FileWriter class
 import java.io.IOException;  // Import the IOException class to handle errors
 import java.io.File;  // Import the File class
@@ -34,8 +35,17 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.9 (2026_0808_0845)";
+	private final static String VERSION = "1.10 (2026_0808_1500)";
 	/* VERSION Release Note
+	 *
+	 * 1.10 (2026_0808_1500)
+	 * Todos los metodos de plot publicos (plot/plotFunction/plotSamples x2/plotSeries/plotCompare/
+	 * plotDFT) sustituidos por pares xxxSync/xxxAsync (a peticion del usuario) -- cada par llama a
+	 * un metodo generico privado con un parametro SimpleGnuplot.e_syncMode, que a su vez llama a
+	 * los metodos genericos ahora publicos de MatrixComplexPlot.plot(...,mode)/plotSeries(...,mode).
+	 * Sin alias sin sufijo: los nombres viejos ya no existen, todos los llamadores del proyecto
+	 * actualizados. VERSION 1.9 (delegar en MatrixComplexPlot) sigue vigente, solo cambia la forma
+	 * de exponerlo.
 	 *
 	 * 1.9 (2026_0808_0845)
 	 * plotSamples(String,int,boolean,e_lineStyle): alineada con Laplace/Z -- delega en el plot()
@@ -612,8 +622,14 @@ public class Fourier extends MatrixComplex {
 	 * This class's own {@code e_lineStyle} keeps its exact public signature; only the
 	 * implementation moved, converted to {@code MatrixComplexPlot.e_lineStyle} at the boundary.
 	 */
-	public void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
-		MatrixComplexPlot.plot(title, nbrSamples, data, showIm, toMCStyle(lineStyle));
+	public void plotSync(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
+		MatrixComplexPlot.plot(title, nbrSamples, data, showIm, toMCStyle(lineStyle), SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	/** Same as {@link #plotSync(String, int, MatrixComplex, boolean, e_lineStyle)} but returns
+	 * immediately -- the plot window stays open independently, without blocking the caller. */
+	public void plotAsync(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle) {
+		MatrixComplexPlot.plot(title, nbrSamples, data, showIm, toMCStyle(lineStyle), SimpleGnuplot.e_syncMode.ASYNC);
 	}
 
 	/**
@@ -622,24 +638,36 @@ public class Fourier extends MatrixComplex {
 	 * @param nbrSamples The number of the samples to draw the plot.
 	 * @param showIm True for plotting the imaginary part.
 	 */
-	public void plotFunction(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
-		plotSamples(title, nbrSamples, showIm, lineStyle);
+	public void plotFunctionSync(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+		plotSamplesSync(title, nbrSamples, showIm, lineStyle);
 	}
-	
+
+	public void plotFunctionAsync(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+		plotSamplesAsync(title, nbrSamples, showIm, lineStyle);
+	}
+
 	/**
 	 * Plots the samples of the function used for the Fourier analysis
 	 * @param title The title of the graphic.
 	 * @param nbrSamples The number of the samples to draw the plot.
 	 * @param showIm True for plotting the imaginary part.
 	 */
-	public void plotSamples(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+	public void plotSamplesSync(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+		plotSamples(title, nbrSamples, showIm, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	public void plotSamplesAsync(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+		plotSamples(title, nbrSamples, showIm, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	private void plotSamples(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		if(!isSampled || this.N != nbrSamples) {
 			this.N = nbrSamples;
 			this.sampleFreq = nbrSamples;
 			doSrsSampling();
 		}
 
-		plot(title, nbrSamples, samples, showIm, lineStyle);
+		MatrixComplexPlot.plot(title, nbrSamples, samples, showIm, toMCStyle(lineStyle), mode);
 	}
 
 	/**
@@ -648,13 +676,21 @@ public class Fourier extends MatrixComplex {
 	 * @param nbrSamples The number of the samples to draw the plot.
 	 * @param showIm True for plotting the imaginary part.
 	 */
-	public void plotSeries(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+	public void plotSeriesSync(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+		plotSeries(title, nbrSamples, showIm, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	public void plotSeriesAsync(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle) {
+		plotSeries(title, nbrSamples, showIm, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	private void plotSeries(String title, int nbrSamples, boolean showIm, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		if(!isSampled || this.N != nbrSamples) {
 			this.N = nbrSamples;
 			this.sampleFreq = nbrSamples;
 			doSrsSampling();
 		}
-		
+
 		//Split the data into Re and Im parts
 		double dataRe[][]  = new double[nbrSamples][2];
 		double dataIm[][]  = new double[nbrSamples][2];
@@ -669,9 +705,9 @@ public class Fourier extends MatrixComplex {
 		}
 
 		if (showIm) {
-			MatrixComplexPlot.plotSeries(title, toMCStyle(lineStyle), dataRe, dataIm);
+			MatrixComplexPlot.plotSeries(title, null, null, false, toMCStyle(lineStyle), mode, dataRe, dataIm);
 		} else {
-			MatrixComplexPlot.plotSeries(title, toMCStyle(lineStyle), dataRe);
+			MatrixComplexPlot.plotSeries(title, null, null, false, toMCStyle(lineStyle), mode, dataRe);
 		}
 	}
 
@@ -679,7 +715,15 @@ public class Fourier extends MatrixComplex {
 	 * Plots a comparison graphic with the sampled points of the function and the values calculated from the Fourier Series.
 	 * @param nbrSamples The number of the samples to draw the plot.
 	 */
-	public void plotCompare(int nbrSamples, e_lineStyle lineStyle) {
+	public void plotCompareSync(int nbrSamples, e_lineStyle lineStyle) {
+		plotCompare(nbrSamples, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	public void plotCompareAsync(int nbrSamples, e_lineStyle lineStyle) {
+		plotCompare(nbrSamples, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	private void plotCompare(int nbrSamples, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		if(!isSerialized) {
 			System.out.println("WARNING (plotCompare):Function not serialized yet. Serialize it first.");
 			return;
@@ -702,7 +746,7 @@ public class Fourier extends MatrixComplex {
 			datafu[t][1] = samples.complexMatrix[1][t].rep();
 		}
 
-		MatrixComplexPlot.plotSeries("Fourier Series vs Function", toMCStyle(lineStyle), dataFF, datafu);
+		MatrixComplexPlot.plotSeries("Fourier Series vs Function", null, null, false, toMCStyle(lineStyle), mode, dataFF, datafu);
 	}
 
 	/*
@@ -1376,10 +1420,14 @@ public class Fourier extends MatrixComplex {
 	 * @param title The title of the graphic.
 	 * @param showIm True for plotting the imaginary part.
 	 */
-	public void plotSamples(String title, boolean showIm, e_lineStyle lineStyle) {
-		plotSamples(title, this.N, showIm, lineStyle);
+	public void plotSamplesSync(String title, boolean showIm, e_lineStyle lineStyle) {
+		plotSamplesSync(title, this.N, showIm, lineStyle);
 	}
-	
+
+	public void plotSamplesAsync(String title, boolean showIm, e_lineStyle lineStyle) {
+		plotSamplesAsync(title, this.N, showIm, lineStyle);
+	}
+
 	/**
 	 * Plots the DFT graphic in the domain of Coefficients or Frequency
 	 * @param Title The titel of the polt
@@ -1387,17 +1435,25 @@ public class Fourier extends MatrixComplex {
 	 * @param operator The operator used
 	 * @param logscale True in y axis should be set in logarithmic scale
 	 */
-	public void plotDFT(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle) {
+	public void plotDFTSync(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle) {
+		plotDFT(Title, domain, operator, logscale, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	public void plotDFTAsync(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle) {
+		plotDFT(Title, domain, operator, logscale, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	private void plotDFT(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		if(!isTransformed) {
 			System.out.println("WARNING:DFT coeficients not calculated/loaded. Do the DFT or Load them first.");
 			return;
 		}
 		switch (domain) {
-		case SAMP: plotDFTsamp(Title, domain, operator, logscale, lineStyle); break;
-		case FREC: plotDFTfrec(Title, domain , operator, logscale, lineStyle); break;
+		case SAMP: plotDFTsamp(Title, domain, operator, logscale, lineStyle, mode); break;
+		case FREC: plotDFTfrec(Title, domain , operator, logscale, lineStyle, mode); break;
 		}
 	}
-	
+
 	/**
 	 * Does the plot the DFT graphic in the domain of Coefficients
 	 * @param Title The title of the polt
@@ -1405,7 +1461,7 @@ public class Fourier extends MatrixComplex {
 	 * @param operator The operator used
 	 * @param logscale True in y axis should be set in logarithmic scale
 	 */
-	private void plotDFTsamp(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle) {
+	private void plotDFTsamp(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		//Split the data into Re/Mod and Im/Pha parts
 		double dataRe[][]  = new double[transform.cols()][1];
 		double dataIm[][]  = new double[transform.cols()][1];
@@ -1418,7 +1474,7 @@ public class Fourier extends MatrixComplex {
 
 		String x2label = (domain == e_domain.SAMP ? "\"Samples' Index\"" : "\"Spectrum in Hz\"");
 		String xlabel = domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"";
-		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), dataRe, dataIm);
+		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), mode, dataRe, dataIm);
 	}
 
 	/**
@@ -1428,20 +1484,20 @@ public class Fourier extends MatrixComplex {
 	 * @param operator The operator used
 	 * @param logscale True in y axis should be set in logarithmic scale
 	 */
-	private void plotDFTfrec(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle) {
+	private void plotDFTfrec(String Title, e_domain domain, e_operator operator, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
 		//Split the data into Re/Mod and Im/Pha parts
 		double dataRe[][]  = new double[transform.cols()][2];
 		double dataIm[][]  = new double[transform.cols()][2];
 		double incr = sampleFreq/N;
 		double point;
-		
+
 		point = -sampleFreq/2;
 		for (int t = 0; t < transform.cols(); ++t) {
 			dataRe[t][0] = point;
 			dataIm[t][0] = point;
-			point += incr;			
+			point += incr;
 		}
-		
+
 		Complex Ak = new Complex();
 		int N2 = N/2;
 		for (int k = 0; k < N2; ++k) { // freq index
@@ -1458,7 +1514,7 @@ public class Fourier extends MatrixComplex {
 
 		String x2label = (domain == e_domain.SAMP ? "\"Samples' Index\"" : "\"Spectrum in Hz\"");
 		String xlabel = domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"";
-		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), dataRe, dataIm);
+		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), mode, dataRe, dataIm);
 	}
 
 	/*

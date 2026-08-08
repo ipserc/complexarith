@@ -9,6 +9,7 @@ package com.ipserc.arith.polynom;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.QRSchurfactor;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
 import com.ipserc.arith.syseq.Syseq;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +22,15 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.23 (2026_0808_1400)";
+	private final static String VERSION = "1.24 (2026_0808_1500)";
 	/* VERSION Release Note
+	 * 1.24 (2026_0808_1500)
+	 * Los 19 metodos publicos de plot (plotExpression*, plot/plotRe/plotIm/plotMod/plotPha)
+	 * sustituidos por pares xxxSync/xxxAsync (a peticion del usuario) -- cada uno llama a
+	 * PolynomPlot con un SimpleGnuplot.e_syncMode explicito. PolynomPlot.java (package-private)
+	 * gano un parametro e_syncMode en sus 19 metodos en vez de duplicarse en pares, ya que solo
+	 * Polynom.java lo llama y es ahi donde vive la naming convention publica. Sin alias sin sufijo:
+	 * los nombres viejos ya no existen, todos los llamadores del proyecto actualizados.
 	 * 1.23 (2026_0808_1400)
 	 * PolynomPlot: com.panayotis.gnuplot.JavaPlot sustituido por com.ipserc.arith.plot.
 	 * SimpleGnuplot (nuevo, sin dependencias externas) en las 11 llamadas de la clase -- ver la
@@ -1723,8 +1731,12 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotExpression(String GNUplotExpression,double loLimit, double upLimit) {
-		PolynomPlot.plotExpression(this, GNUplotExpression, loLimit, upLimit);
+	public void plotExpressionSync(String GNUplotExpression,double loLimit, double upLimit) {
+		PolynomPlot.plotExpression(this, GNUplotExpression, loLimit, upLimit, e_syncMode.SYNC);
+	}
+
+	public void plotExpressionAsync(String GNUplotExpression,double loLimit, double upLimit) {
+		PolynomPlot.plotExpression(this, GNUplotExpression, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1732,8 +1744,12 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotExpression(double loLimit, double upLimit) {
-		PolynomPlot.plotExpression(this, loLimit, upLimit);
+	public void plotExpressionSync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpression(this, loLimit, upLimit, e_syncMode.SYNC);
+	}
+
+	public void plotExpressionAsync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpression(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1741,8 +1757,12 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotExpressionRe(double loLimit, double upLimit) {
-		PolynomPlot.plotExpressionRe(this, loLimit, upLimit);
+	public void plotExpressionReSync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionRe(this, loLimit, upLimit, e_syncMode.SYNC);
+	}
+
+	public void plotExpressionReAsync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionRe(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1750,8 +1770,12 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotExpressionIm(double loLimit, double upLimit) {
-		PolynomPlot.plotExpressionIm(this, loLimit, upLimit);
+	public void plotExpressionImSync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionIm(this, loLimit, upLimit, e_syncMode.SYNC);
+	}
+
+	public void plotExpressionImAsync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionIm(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1759,8 +1783,12 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotExpressionReIm(double loLimit, double upLimit) {
-		PolynomPlot.plotExpressionReIm(this, loLimit, upLimit);
+	public void plotExpressionReImSync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionReIm(this, loLimit, upLimit, e_syncMode.SYNC);
+	}
+
+	public void plotExpressionReImAsync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionReIm(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1768,8 +1796,12 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotExpressionRepIm(double loLimit, double upLimit) {
-		PolynomPlot.plotExpressionRepIm(this, loLimit, upLimit);
+	public void plotExpressionRepImSync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionRepIm(this, loLimit, upLimit, e_syncMode.SYNC);
+	}
+
+	public void plotExpressionRepImAsync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionRepIm(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1777,8 +1809,12 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotExpressionAbs(double loLimit, double upLimit) {
-		PolynomPlot.plotExpressionAbs(this, loLimit, upLimit);
+	public void plotExpressionAbsSync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionAbs(this, loLimit, upLimit, e_syncMode.SYNC);
+	}
+
+	public void plotExpressionAbsAsync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionAbs(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1786,8 +1822,12 @@ public class Polynom extends MatrixComplex {
 	 * @param loLimit Lower limit of the plot.
 	 * @param upLimit Upper limit of the plot.
 	 */
-	public void plotExpressionPhase(double loLimit, double upLimit) {
-		PolynomPlot.plotExpressionPhase(this, loLimit, upLimit);
+	public void plotExpressionPhaseSync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionPhase(this, loLimit, upLimit, e_syncMode.SYNC);
+	}
+
+	public void plotExpressionPhaseAsync(double loLimit, double upLimit) {
+		PolynomPlot.plotExpressionPhase(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1795,16 +1835,28 @@ public class Polynom extends MatrixComplex {
 	 * @param pointsList The list with the points defined as List<double[][]>
 	 * @param title the title of the graphic
 	 */
-	public void plot(List<double[][]> pointsList, String title) {
-		PolynomPlot.plot(pointsList, title);
+	public void plotSync(List<double[][]> pointsList, String title) {
+		PolynomPlot.plot(pointsList, title, e_syncMode.SYNC);
 	}
 
-	public void plot(double[][] points, String title) {
-		PolynomPlot.plot(points, title);
+	public void plotAsync(List<double[][]> pointsList, String title) {
+		PolynomPlot.plot(pointsList, title, e_syncMode.ASYNC);
 	}
 
-	public void plotRe(MatrixComplex points, String title) {
-		PolynomPlot.plotRe(points, title);
+	public void plotSync(double[][] points, String title) {
+		PolynomPlot.plot(points, title, e_syncMode.SYNC);
+	}
+
+	public void plotAsync(double[][] points, String title) {
+		PolynomPlot.plot(points, title, e_syncMode.ASYNC);
+	}
+
+	public void plotReSync(MatrixComplex points, String title) {
+		PolynomPlot.plotRe(points, title, e_syncMode.SYNC);
+	}
+
+	public void plotReAsync(MatrixComplex points, String title) {
+		PolynomPlot.plotRe(points, title, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1812,12 +1864,20 @@ public class Polynom extends MatrixComplex {
 	 * @param pointsList The list with the points defined as <MatrixComplex>
 	 * @param title the title of the graphic
 	 */
-	public void plotRe(List<MatrixComplex> pointsList, String title) {
-		PolynomPlot.plotRe(pointsList, title);
+	public void plotReSync(List<MatrixComplex> pointsList, String title) {
+		PolynomPlot.plotRe(pointsList, title, e_syncMode.SYNC);
 	}
 
-	public void plotIm(MatrixComplex points, String title) {
-		PolynomPlot.plotIm(points, title);
+	public void plotReAsync(List<MatrixComplex> pointsList, String title) {
+		PolynomPlot.plotRe(pointsList, title, e_syncMode.ASYNC);
+	}
+
+	public void plotImSync(MatrixComplex points, String title) {
+		PolynomPlot.plotIm(points, title, e_syncMode.SYNC);
+	}
+
+	public void plotImAsync(MatrixComplex points, String title) {
+		PolynomPlot.plotIm(points, title, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1825,25 +1885,20 @@ public class Polynom extends MatrixComplex {
 	 * @param pointsList The list with the points defined as <MatrixComplex>
 	 * @param title the title of the graphic
 	 */
-	public void plotIm(List<MatrixComplex> pointsList, String title) {
-		PolynomPlot.plotIm(pointsList, title);
+	public void plotImSync(List<MatrixComplex> pointsList, String title) {
+		PolynomPlot.plotIm(pointsList, title, e_syncMode.SYNC);
 	}
 
-	public void plotMod(MatrixComplex points, String title) {
-		PolynomPlot.plotMod(points, title);
+	public void plotImAsync(List<MatrixComplex> pointsList, String title) {
+		PolynomPlot.plotIm(pointsList, title, e_syncMode.ASYNC);
 	}
 
-	/**
-	 *
-	 * @param pointsList
-	 * @param title
-	 */
-	public void plotMod(List<MatrixComplex> pointsList, String title) {
-		PolynomPlot.plotMod(pointsList, title);
+	public void plotModSync(MatrixComplex points, String title) {
+		PolynomPlot.plotMod(points, title, e_syncMode.SYNC);
 	}
 
-	public void plotPha(MatrixComplex points, String title) {
-		PolynomPlot.plotPha(points, title);
+	public void plotModAsync(MatrixComplex points, String title) {
+		PolynomPlot.plotMod(points, title, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1851,8 +1906,33 @@ public class Polynom extends MatrixComplex {
 	 * @param pointsList
 	 * @param title
 	 */
-	public void plotPha(List<MatrixComplex> pointsList, String title) {
-		PolynomPlot.plotPha(pointsList, title);
+	public void plotModSync(List<MatrixComplex> pointsList, String title) {
+		PolynomPlot.plotMod(pointsList, title, e_syncMode.SYNC);
+	}
+
+	public void plotModAsync(List<MatrixComplex> pointsList, String title) {
+		PolynomPlot.plotMod(pointsList, title, e_syncMode.ASYNC);
+	}
+
+	public void plotPhaSync(MatrixComplex points, String title) {
+		PolynomPlot.plotPha(points, title, e_syncMode.SYNC);
+	}
+
+	public void plotPhaAsync(MatrixComplex points, String title) {
+		PolynomPlot.plotPha(points, title, e_syncMode.ASYNC);
+	}
+
+	/**
+	 *
+	 * @param pointsList
+	 * @param title
+	 */
+	public void plotPhaSync(List<MatrixComplex> pointsList, String title) {
+		PolynomPlot.plotPha(pointsList, title, e_syncMode.SYNC);
+	}
+
+	public void plotPhaAsync(List<MatrixComplex> pointsList, String title) {
+		PolynomPlot.plotPha(pointsList, title, e_syncMode.ASYNC);
 	}
 
 	/**
@@ -1878,8 +1958,12 @@ public class Polynom extends MatrixComplex {
 		return walkInterval(lolimit, uplimit);
 	}
 
-	public void plotRe(double[][] points) {
-		PolynomPlot.plotRe(this, points);
+	public void plotReSync(double[][] points) {
+		PolynomPlot.plotRe(this, points, e_syncMode.SYNC);
+	}
+
+	public void plotReAsync(double[][] points) {
+		PolynomPlot.plotRe(this, points, e_syncMode.ASYNC);
 	}
 
 

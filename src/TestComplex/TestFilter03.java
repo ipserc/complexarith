@@ -84,8 +84,8 @@ public class TestFilter03 {
 		
 		// PLOTING RESULTS
 		System.out.println("SIGNAL Plotting results...");		
-		signal.plotSamples("Original SIGNAL", true, e_lineStyle.IMPULSES);
-		signal.plotDFT("Original signal", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signal.plotSamplesSync("Original SIGNAL", true, e_lineStyle.IMPULSES);
+		signal.plotDFTSync("Original signal", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
 		/***********************
 		 * FILTER SECTION
@@ -122,9 +122,9 @@ public class TestFilter03 {
 		
 		// PLOTING RESULTS
 		System.out.println("FILTER Plotting results...");		
-		filter.plotSamples("FILTER " + filter.getFilterData(), true, e_lineStyle.IMPULSES);
-		filter.plotDFT("FILTER "+ filter.getFilterData(), e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		//filter.plotDFT("FILTER "+ filter.getFilterData(), e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		filter.plotSamplesSync("FILTER " + filter.getFilterData(), true, e_lineStyle.IMPULSES);
+		filter.plotDFTSync("FILTER "+ filter.getFilterData(), e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		//filter.plotDFTSync("FILTER "+ filter.getFilterData(), e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
 		
 		/***********************
 		 * DFT SECTION
@@ -147,9 +147,9 @@ public class TestFilter03 {
 
 		//PLOTING RESULTS
 		System.out.println("DFT Plotting results...");		
-		signalDFT.plotSamples("DFT Filtered signal " + filter.getFilterData(), true, e_lineStyle.IMPULSES);
-		signalDFT.plotDFT("DFT Filtered signal " + filter.getFilterData(), e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		signalDFT.plotDFT("DFT Filtered signal " + filter.getFilterData(), e_domain.SAMP, e_operator.MAGNITUDE, true, e_lineStyle.LINES);		
+		signalDFT.plotSamplesSync("DFT Filtered signal " + filter.getFilterData(), true, e_lineStyle.IMPULSES);
+		signalDFT.plotDFTSync("DFT Filtered signal " + filter.getFilterData(), e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		signalDFT.plotDFTSync("DFT Filtered signal " + filter.getFilterData(), e_domain.SAMP, e_operator.MAGNITUDE, true, e_lineStyle.LINES);		
 		/***/
 		
 		/***********************
@@ -174,16 +174,16 @@ public class TestFilter03 {
 
 		//PLOTING RESULTS
 		System.out.println("CONVOLUTION Plotting results...");		
-		signalCONV.plotSamples("CONVOLUTION Filtered signal " + filter.getFilterData(), true, e_lineStyle.IMPULSES);
-		signalCONV.plotDFT("CONVOLUTION Filtered signal " + filter.getFilterData(), e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		signalCONV.plotDFT("CONVOLUTION Filtered signal " + filter.getFilterData(), e_domain.SAMP, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalCONV.plotSamplesSync("CONVOLUTION Filtered signal " + filter.getFilterData(), true, e_lineStyle.IMPULSES);
+		signalCONV.plotDFTSync("CONVOLUTION Filtered signal " + filter.getFilterData(), e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		signalCONV.plotDFTSync("CONVOLUTION Filtered signal " + filter.getFilterData(), e_domain.SAMP, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
 		/*
 		signalDIFF = signal.minus(signalDFT);
 		// PLOTING RESULTS
 		System.out.println("ORIG-DFT Plotting results...");		
-		signalDIFF.plotSamples("ORIG-DFT", true, e_lineStyle.IMPULSES);
-		signalDIFF.plotDFT("ORIG-DFT", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalDIFF.plotSamplesSync("ORIG-DFT", true, e_lineStyle.IMPULSES);
+		signalDIFF.plotDFTSync("ORIG-DFT", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		//signalDiff.saveSamples("/home/ipserc/saco/diff_samples.txt");
 
 		signalDIFF.saveSamples("/home/ipserc/saco/orig_minus_dft_signal_samples.txt");
@@ -192,8 +192,8 @@ public class TestFilter03 {
 		signalDIFF = signal.minus(signalCONV);
 		// PLOTING RESULTS
 		System.out.println("ORIG-CONV Plotting results...");		
-		signalDIFF.plotSamples("ORIG-CONV", true, e_lineStyle.IMPULSES);
-		signalDIFF.plotDFT("ORIG-CONV", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalDIFF.plotSamplesSync("ORIG-CONV", true, e_lineStyle.IMPULSES);
+		signalDIFF.plotDFTSync("ORIG-CONV", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		//signalDiff.saveSamples("/home/ipserc/saco/diff_samples.txt");
 
 		signalDIFF.saveSamples("/home/ipserc/saco/orig_minus_conv_signal_samples.txt");
@@ -202,8 +202,8 @@ public class TestFilter03 {
 		signalDIFF = signalDFT.minus(signalCONV);
 		// PLOTING RESULTS
 		System.out.println("DFT-CONV Plotting results...");		
-		signalDIFF.plotSamples("DFT-CONV ", true, e_lineStyle.IMPULSES);
-		signalDIFF.plotDFT("DFT-CONV ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalDIFF.plotSamplesSync("DFT-CONV ", true, e_lineStyle.IMPULSES);
+		signalDIFF.plotDFTSync("DFT-CONV ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		//signalDiff.saveSamples("/home/ipserc/saco/diff_samples.txt");
 
 		signalDIFF.saveSamples("/home/ipserc/saco/dft_minus_conv_signal_samples.txt");

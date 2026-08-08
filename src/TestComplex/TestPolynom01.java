@@ -107,7 +107,7 @@ public class TestPolynom01 {
     	myPolynom = new Polynom("1,10,-30.49,-445.14,199.54,5727.08,-1890.73,-21585.78,6065.64,20638.8");
     	points = myPolynom.walkInterval(-7, 5);
     	pointsList.add(points);
-    	myPolynom.plotRe(pointsList, "");
+    	myPolynom.plotReSync(pointsList, "");
     	showResults(myPolynom);
     	
     	myPolynom = new Polynom("1,10,30.49,445.14,199.54,5727.08,1890.73,21585.78,6065.64,20638.8");
@@ -115,7 +115,7 @@ public class TestPolynom01 {
     	
     	myPolynom = new Polynom("-3+2i,-8+5i,5+4i,2-5i,9+6i,-8-3i,-2-2i,-3+7i,-5+1i,7+5i,6+8i,-1+2i,-8-5i,3-5i,-7-2i,1");
     	points = myPolynom.walkInterval(-1, 1);
-    	myPolynom.plotRe(pointsList, "");
+    	myPolynom.plotReSync(pointsList, "");
     	System.out.println(myPolynom.toMatrixComplex());
     	showResults(myPolynom);       	
 
@@ -150,7 +150,7 @@ public class TestPolynom01 {
     	myPolynom.println("chebyshev 1 grado 5");
     	points = myPolynom.walkInterval(-1, 1);
     	pointsList.add(points);
-    	myPolynom.plotRe(pointsList, "");
+    	myPolynom.plotReSync(pointsList, "");
     	showResults(myPolynom);
 
     	myPolynom = myPolynom.chebyshev2(5);

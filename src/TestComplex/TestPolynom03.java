@@ -36,7 +36,7 @@ public class TestPolynom03 {
     		pointsList.add(points);
     	}
     	
-    	myPolynom.plotRe(pointsList, "Chebyshev 1 Figures");
+    	myPolynom.plotReSync(pointsList, "Chebyshev 1 Figures");
        	pointsList = new ArrayList<MatrixComplex>();   	
     	System.out.println(Complex.boxTextRandom(boxSize, "Chebyshev Order 2 Polynomials"));
     	pointsList = new ArrayList<MatrixComplex>();
@@ -46,7 +46,7 @@ public class TestPolynom03 {
     		MatrixComplex points = myPolynom.walkInterval(-1, 1);
     		pointsList.add(points);
     	}
-    	myPolynom.plotRe(pointsList, "Chebyshev 2 Figures");
+    	myPolynom.plotReSync(pointsList, "Chebyshev 2 Figures");
 
     	System.out.println(Complex.boxTextRandom(boxSize, "Chebyshev Order 3 Polynomials"));
        	pointsList = new ArrayList<MatrixComplex>();
@@ -56,7 +56,7 @@ public class TestPolynom03 {
     		MatrixComplex points = myPolynom.walkInterval(-1, 1);
     		pointsList.add(points);
     	}
-    	myPolynom.plotRe(pointsList, "Chebyshev 3 Figures");
+    	myPolynom.plotReSync(pointsList, "Chebyshev 3 Figures");
     	
     	degree = 7;
     	System.out.println(Complex.boxTextRandom(boxSize, "Chebyshev Order 1 degree "+degree+" values comparision"));
@@ -78,7 +78,7 @@ public class TestPolynom03 {
     		MatrixComplex points = myPolynom.walkInterval(-1, 1);
     		pointsList.add(points);
     	}
-    	myPolynom.plotRe(pointsList, "Monic Chebyshev 1 Figures");
+    	myPolynom.plotReSync(pointsList, "Monic Chebyshev 1 Figures");
 
 	}
 }

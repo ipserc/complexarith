@@ -57,8 +57,8 @@ public class TestFilter02 {
 
 		// PLOTING RESULTS
 		System.out.println("SIGNAL Plotting results...");		
-		signal.plotSamples("Original SIGNAL", true, e_lineStyle.LINES);
-		signal.plotDFT("Original signal", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signal.plotSamplesSync("Original SIGNAL", true, e_lineStyle.LINES);
+		signal.plotDFTSync("Original signal", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
 		/***********************
 		 * FILTER SECTION
@@ -79,11 +79,11 @@ public class TestFilter02 {
 		
 		//PLOTING RESULTS
 		System.out.println("Plotting results...");		
-		filter.plotSamples("FILTER " + filterparams, true, e_lineStyle.LINES);
-		filter.plotDFT("FILTER " + filterparams, e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		filter.plotDFT("FILTER " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		signalFiltered.plotSamples("Filtered signal " + filterparams, true, e_lineStyle.LINES);
-		signalFiltered.plotDFT("Filtered signal "+ filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		filter.plotSamplesSync("FILTER " + filterparams, true, e_lineStyle.LINES);
+		filter.plotDFTSync("FILTER " + filterparams, e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		filter.plotDFTSync("FILTER " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		signalFiltered.plotSamplesSync("Filtered signal " + filterparams, true, e_lineStyle.LINES);
+		signalFiltered.plotDFTSync("Filtered signal "+ filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		
 		System.out.println("\n" + Complex.repeat("-", 20) + "\n");
 
@@ -106,9 +106,9 @@ public class TestFilter02 {
 		
 		//PLOTING RESULTS
 		System.out.println("Plotting results...");		
-		filter.plotDFT("Filter 2 " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		signalFiltered.plotSamples("Filtered signal " + filterparams, true, e_lineStyle.LINES);
-		signalFiltered.plotDFT("Filtered signal "+ filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		filter.plotDFTSync("Filter 2 " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		signalFiltered.plotSamplesSync("Filtered signal " + filterparams, true, e_lineStyle.LINES);
+		signalFiltered.plotDFTSync("Filtered signal "+ filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		
 		System.out.println("\n" + Complex.repeat("-", 20) + "\n");
 		
@@ -131,8 +131,8 @@ public class TestFilter02 {
 		
 		//PLOTING RESULTS
 		System.out.println("Plotting results...");		
-		filter.plotDFT("Filter 2 " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		signalFiltered.plotSamples("Filtered signal " + filterparams, true, e_lineStyle.LINES);
-		signalFiltered.plotDFT("Filtered signal "+ filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		filter.plotDFTSync("Filter 2 " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		signalFiltered.plotSamplesSync("Filtered signal " + filterparams, true, e_lineStyle.LINES);
+		signalFiltered.plotDFTSync("Filtered signal "+ filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 	}
 }

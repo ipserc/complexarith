@@ -21,9 +21,9 @@ public class ScratchSimpleGnuplotLive01 {
 		p2.setPersist(true);
 		p2.getPostInit().add("set terminal windows");
 		long t0 = System.currentTimeMillis();
-		p2.plotAsync();
+		p2.plot(SimpleGnuplot.e_syncMode.ASYNC);
 		long t1 = System.currentTimeMillis();
-		System.out.println("plotAsync() volvio en " + (t1 - t0) + " ms -- deberia ser casi instantaneo");
+		System.out.println("plot(ASYNC) volvio en " + (t1 - t0) + " ms -- deberia ser casi instantaneo");
 
 		System.out.println();
 		System.out.println("=== Caso 1 despues: estilo MatrixComplexPlot (dos series double[][], SYNC -- bloquea aqui) ===");
@@ -36,7 +36,7 @@ public class ScratchSimpleGnuplotLive01 {
 		p1.set("grid", "");
 		p1.setPersist(true);
 		p1.getPostInit().add("set terminal windows");
-		p1.plot();
+		p1.plot(SimpleGnuplot.e_syncMode.SYNC);
 		System.out.println("caso 1 (sync) devuelto -- deberia haber esperado a que cerraras esta ventana");
 	}
 }

@@ -13,7 +13,7 @@ public class plotFunc06 {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public static void plot(long samples, double dataRe[][], double dataIm[][]) {
-		MatrixComplexPlot.plotSeries("PRUEBA", e_lineStyle.LINES, dataRe, dataIm);
+		MatrixComplexPlot.plotSeriesSync("PRUEBA", e_lineStyle.LINES, dataRe, dataIm);
 	}
 	
 	public static void plot(long samples,MatrixComplex data) {

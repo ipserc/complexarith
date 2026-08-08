@@ -28,7 +28,7 @@ public class dnrPolynom {
 		loLimit = myPolynom.getMinRoot(roots);		
 		upLimit = myPolynom.getMaxRoot(roots);
 		myPolynom.setSampleBase(6000);
-		myPolynom.plotExpression(loLimit, upLimit);
+		myPolynom.plotExpressionSync(loLimit, upLimit);
 		//myPolynom.plotReIm(loLimit, upLimit);     	
      	//myPolynom.plotAbs(loLimit, upLimit);     	
      	//myPolynom.plotPhase(loLimit, upLimit);		

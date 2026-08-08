@@ -198,9 +198,9 @@ public class TestFourier01 {
 		sFourier.serialize(order, decPrc);
 		sFourier.printCoefs();
 		/* .println("ival(" + ival.toString() + ") = ") */
-		sFourier.plotSamples("Function", sampleFreq, true, e_lineStyle.LINES);
-		sFourier.plotSeries("Fourier Series", sampleFreq, true, e_lineStyle.LINES);
-		sFourier.plotCompare(sampleFreq, e_lineStyle.LINES);
+		sFourier.plotSamplesSync("Function", sampleFreq, true, e_lineStyle.LINES);
+		sFourier.plotSeriesSync("Fourier Series", sampleFreq, true, e_lineStyle.LINES);
+		sFourier.plotCompareSync(sampleFreq, e_lineStyle.LINES);
 	}
 
 	public static void TestDFTL(Function<Complex, Complex> func, int sampleFreq, double loLimit, double upLimit) {
@@ -218,19 +218,19 @@ public class TestFourier01 {
 			ival = ival.plus(increment);
 		}
 
-		tFourier.plot("Function", sampleFreq, dataf, true, e_lineStyle.LINES);
+		tFourier.plotSync("Function", sampleFreq, dataf, true, e_lineStyle.LINES);
 
-		tFourier.plotDFT("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, false, e_lineStyle.LINES);
 
-		tFourier.plotDFT("DFT COMPLEX", e_domain.FREC, e_operator.COMPLEX, true, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT MAGNITUDE", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT SQUARE", e_domain.FREC, e_operator.SQUARE, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT COMPLEX", e_domain.FREC, e_operator.COMPLEX, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT MAGNITUDE", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT SQUARE", e_domain.FREC, e_operator.SQUARE, true, e_lineStyle.LINES);
 
 		saveData(tFourier);
 		tFourier.IDFT();
-		tFourier.plot("IFT - Function", sampleFreq, dataf, true, e_lineStyle.LINES);
+		tFourier.plotSync("IFT - Function", sampleFreq, dataf, true, e_lineStyle.LINES);
 	}
 	
 	private static void saveData(Fourier tFourier) {
@@ -251,29 +251,29 @@ public class TestFourier01 {
 		tFourier.DFT(sampleFreq);
 
 		//tFourier.printTCoefs();
-		tFourier.plotFunction("Function", sampleFreq, true, e_lineStyle.LINES);
+		tFourier.plotFunctionSync("Function", sampleFreq, true, e_lineStyle.LINES);
 		/**/
-		tFourier.plotDFT("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, false, e_lineStyle.LINES);
 		/**/
 
 		/** /
-		tFourier.plotDFT("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, true, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, true, e_lineStyle.LINES);
 		/**/
 		
 		/**/
-		tFourier.plotDFT("DFT COMPLEX", e_domain.FREC, e_operator.COMPLEX, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT MAGNITUDE", e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT SQUARE", e_domain.FREC, e_operator.SQUARE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT COMPLEX", e_domain.FREC, e_operator.COMPLEX, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT MAGNITUDE", e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT SQUARE", e_domain.FREC, e_operator.SQUARE, false, e_lineStyle.LINES);
 		/**/
 
 		/** /
-		tFourier.plotDFT("DFT COMPLEX", e_domain.FREC, e_operator.COMPLEX, true, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT MAGNITUDE", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT SQUARE", e_domain.FREC, e_operator.SQUARE, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT COMPLEX", e_domain.FREC, e_operator.COMPLEX, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT MAGNITUDE", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT SQUARE", e_domain.FREC, e_operator.SQUARE, true, e_lineStyle.LINES);
 		/**/
 
 
@@ -281,7 +281,7 @@ public class TestFourier01 {
 
 		/** /
 		tFourier.IDFT();
-		tFourier.plotFunction("IFT - Function", sampleFreq, true, e_lineStyle.LINES);
+		tFourier.plotFunctionSync("IFT - Function", sampleFreq, true, e_lineStyle.LINES);
 
 		/**/
 	}
@@ -290,11 +290,11 @@ public class TestFourier01 {
 		Fourier tFourier = new Fourier("/home/ipserc/saco/samples.txt");
 		tFourier.DFT(tFourier.getSampleFreq());
 		
-		tFourier.plotFunction("Function", tFourier.getSampleFreq(), true, e_lineStyle.LINES);
+		tFourier.plotFunctionSync("Function", tFourier.getSampleFreq(), true, e_lineStyle.LINES);
 		/**/
-		tFourier.plotDFT("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, false, e_lineStyle.LINES);
 		/**/
 
 	}
@@ -304,11 +304,11 @@ public class TestFourier01 {
 		tFourier.readDFT("/home/ipserc/saco/dft.txt", "");
 		tFourier.IDFT();
 		
-		tFourier.plotFunction("Function", tFourier.getSampleFreq(), true, e_lineStyle.LINES);
+		tFourier.plotFunctionSync("Function", tFourier.getSampleFreq(), true, e_lineStyle.LINES);
 		/**/
-		tFourier.plotDFT("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
-		tFourier.plotDFT("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT COMPLEX", e_domain.SAMP ,e_operator.COMPLEX, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT MAGNITUDE", e_domain.SAMP, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
+		tFourier.plotDFTSync("DFT SQUARE", e_domain.SAMP, e_operator.SQUARE, false, e_lineStyle.LINES);
 		/**/
 
 	}

@@ -83,8 +83,8 @@ public class TestFilter06 {
 			samplefreq = signal1.getSampleFreq();			
 		}
 		System.out.println("SIGNAL 1 Plotting results...");		
-		signal1.plotSamples("Original SIGNAL 1", true, e_lineStyle.IMPULSES);
-		signal1.plotDFT("Original SIGNAL 1", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signal1.plotSamplesSync("Original SIGNAL 1", true, e_lineStyle.IMPULSES);
+		signal1.plotDFTSync("Original SIGNAL 1", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
 		boolean createSignal2 = true;
 		if (createSignal2) {
@@ -107,8 +107,8 @@ public class TestFilter06 {
 
 		// PLOTING RESULTS
 		System.out.println("SIGNAL 2 Plotting results...");		
-		signal2.plotSamples("Original SIGNAL 2", true, e_lineStyle.IMPULSES);
-		signal2.plotDFT("Original SIGNAL 2", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signal2.plotSamplesSync("Original SIGNAL 2", true, e_lineStyle.IMPULSES);
+		signal2.plotDFTSync("Original SIGNAL 2", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
 		boolean createSignal3 = true;
 		if (createSignal3) {
@@ -131,8 +131,8 @@ public class TestFilter06 {
 
 		// PLOTING RESULTS
 		System.out.println("SIGNAL 3 Plotting results...");		
-		signal3.plotSamples("Original SIGNAL 3", true, e_lineStyle.IMPULSES);
-		signal3.plotDFT("Original SIGNAL 3", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signal3.plotSamplesSync("Original SIGNAL 3", true, e_lineStyle.IMPULSES);
+		signal3.plotDFTSync("Original SIGNAL 3", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
 	}
 }

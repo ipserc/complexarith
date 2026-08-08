@@ -14,7 +14,7 @@ public class plotFunc04 {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public static void plot(String title, long samples, double dataRe[][], double dataIm[][]) {
-		MatrixComplexPlot.plotSeries(title, e_lineStyle.LINES, dataRe, dataIm);
+		MatrixComplexPlot.plotSeriesSync(title, e_lineStyle.LINES, dataRe, dataIm);
 	}
 
 	public static void plot(String title, long samples, MatrixComplex data) {

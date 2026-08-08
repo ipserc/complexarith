@@ -98,7 +98,7 @@ public class TestInterpolation05 {
 		myPolynom = myPolynom.interpolationNewton(points);
 		myPolynom.println("Newton Interpolation Polynom");
 		MatrixComplex table = myPolynom.walkInterval(points.getItem(0, 0), points.getItem(5, 0));
-		myPolynom.plotRe(table, "");
+		myPolynom.plotReSync(table, "");
 		
 		for (int i = 1; i < 100; ++i) {
 			System.out.println("Prime("+i+"):"+Math.ceil(myPolynom.eval(i).rep()));

@@ -19,8 +19,8 @@ import java.util.Map;
  * whole Panayotis chain) unconditionally calls {@code Process.waitFor()} after launching gnuplot --
  * confirmed by inspecting its bytecode (no source available for that dependency in this project).
  * On Windows, with a persistent window, that blocks the calling thread until the user closes the
- * plot. This class gives full control over that (see {@link #plotAsync()}), and drops the external
- * dependency entirely -- no more copying {@code classes/com/panayotis/*.class} to the output
+ * plot. This class gives full control over that (see {@link #plot(e_syncMode)}), and drops the
+ * external dependency entirely -- no more copying {@code classes/com/panayotis/*.class} to the output
  * directory to compile against it (a documented environment workaround, see project memory
  * "classpath ';' corrupto en Bash tool"/"javac trunca lotes grandes").
  * <p>
@@ -76,17 +76,22 @@ public class SimpleGnuplot {
 		plotTerms.add(expression);
 	}
 
-	/** Builds the script, launches gnuplot and BLOCKS until the process (window included, if
-	 * persistent) exits -- same blocking contract {@code JavaPlot.plot()} had, for drop-in
-	 * compatibility with existing call sites. */
-	public void plot() {
-		launch(true);
+	/**
+	 * Selects whether {@link #plot(e_syncMode)} blocks until gnuplot exits ({@code SYNC}, same
+	 * contract {@code JavaPlot.plot()} had) or returns immediately after launching it
+	 * ({@code ASYNC}, the plot window stays open independently, without blocking the caller).
+	 */
+	public enum e_syncMode {
+		SYNC, ASYNC;
 	}
 
-	/** Same as {@link #plot()} but returns immediately after launching -- the plot window stays
-	 * open independently, without blocking the calling thread. */
-	public void plotAsync() {
-		launch(false);
+	/** Builds the script and launches gnuplot, blocking or not per {@code mode}. The single entry
+	 * point every {@code xxxSync}/{@code xxxAsync} pair in the higher plotting layers
+	 * ({@code MatrixComplexPlot}, {@code PolynomPlot}, {@code Polynom}, {@code Fourier}/
+	 * {@code Laplace}/{@code Z}) ultimately calls, so the sync-vs-async decision lives in one
+	 * place. */
+	public void plot(e_syncMode mode) {
+		launch(mode == e_syncMode.SYNC);
 	}
 
 	private void launch(boolean wait) {

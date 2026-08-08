@@ -52,9 +52,9 @@ public class TestFilter01 {
 		
 		//PLOTING RESULTS
 		System.out.println("Plotting results...");		
-		filter.plotDFT("Filter " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.IMPULSES);
-		signalFiltered.plotSamples("Filtered signal " + filterparams, true, e_lineStyle.LINES);
-		signalFiltered.plotDFT("Filtered signal " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		filter.plotDFTSync("Filter " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.IMPULSES);
+		signalFiltered.plotSamplesSync("Filtered signal " + filterparams, true, e_lineStyle.LINES);
+		signalFiltered.plotDFTSync("Filtered signal " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		signalFiltered.saveRAWSamples("/home/ipserc/Saco/Fourier/signal_func"+samplefreq+"_"+fInit+"_"+bandwidth+".raw", __NORMALIZE__);
 
 		System.out.println("\n" + Complex.repeat("-", 20) + "\n");
@@ -90,7 +90,7 @@ public class TestFilter01 {
 			signal.saveRAWSamples(signalFileNamePath, __NORMALIZE__);
 			//signal.saveSamples("/home/ipserc/saco/signal_func44100.txt", "");
        	}
-		signal.plotSamples("Original Signal", signal.getN(), true, e_lineStyle.LINES);
+		signal.plotSamplesSync("Original Signal", signal.getN(), true, e_lineStyle.LINES);
 
 		/***********************
 		 * FILTER SECTION

@@ -127,7 +127,7 @@ public class TestInterpolation04 {
 		samples = polySpline.walkInterval(lolimit, uplimit);
 		samplesList.add(samples);
 
-		polyNewton.plotRe(samplesList, "INTERPOLATION " + numPoints + " NODES - " + (chebyNodes ? "CHEBYSHEV" : "EQUIDISTANT"));
+		polyNewton.plotReSync(samplesList, "INTERPOLATION " + numPoints + " NODES - " + (chebyNodes ? "CHEBYSHEV" : "EQUIDISTANT"));
 		
 	}
 }
