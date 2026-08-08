@@ -54,8 +54,9 @@ public class TestRoots01 {
     	showResults(aPolynom);
 
     	aPolynom = new Polynom("-2.0i,1.0i,1.0i,-3.0i,-2.0i,2.0i,-2.0i,-2.0i,-1.0i,-2.0i,2.0i,1.0i,2.0i,-3.0i,0.0,0.0,0.0");
-       	aPolynom = new Polynom(17); 
+       	aPolynom = new Polynom(17);
        	aPolynom.initMatrixRandomInt(9);
+       	//aPolynom.initMatrixRandomInt(9);
        	//aPolynom.initMatrixRandomPol(3);
        	System.out.println(aPolynom.toMatrixComplex());
     	showResults(aPolynom);       	

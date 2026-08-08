@@ -68,7 +68,7 @@ public class plotFunc06 {
 		Complex.setFixedON(3);
 		for (int t = 0; t <= samples; ++t) {
 			data.complexMatrix[t][0] = new Complex(start+step*t);
-			data.complexMatrix[t][1] = func6(start+step*t);
+			data.complexMatrix[t][1] = func1(start+step*t);
 			System.out.println("X:" + data.complexMatrix[t][0].toString() + " Y:" + data.complexMatrix[t][1].toString());
 		}
 		plot(samples, data);

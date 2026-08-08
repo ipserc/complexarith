@@ -72,6 +72,18 @@ public class TestFuncSerie01 {
 		p.set("style","data lines");
 		//p.set("xrange", "[0:"+samples+"]");
 		p.set("grid","");
+		
+	    // --- SOLUCIÓN PARA QUE NO SE CONGELE EL ZOOM (MÉTODOS NATIVOS) ---
+	    
+	    // 1. Forzamos a que el terminal sea persistente (la ventana no muere al cerrar el stream de Java)
+	    p.setPersist(true);
+	    
+	    // 2. Usamos getPostInit() para inyectar comandos crudos de Gnuplot al final
+	    p.getPostInit().add("set terminal windows");
+	    // p.getPostInit().add("pause mouse close");
+	    
+	    // -----------------------------------------------------------------
+	    
 		p.plot();
 
 		System.out.println("END");

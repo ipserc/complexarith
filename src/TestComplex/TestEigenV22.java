@@ -143,7 +143,7 @@ public class TestEigenV22 {
 	    		+ "+1.0,-3.0,-1.0,+3.0,+1.0;"
 	    		+ "-2.0,+2.0,+1.0,-2.0,+1.0");
 		/* */
-		aMatrix = new MatrixComplex(3); aMatrix.initMatrixRandomInt(99);
+		aMatrix = new MatrixComplex(7); aMatrix.initMatrixRandomInt(5);
 		//aMatrix = new MatrixComplex("+46.0000,+91.0000;+89.0000,-59.0000");
 		//aMatrix = new MatrixComplex(" 3.000E+00, 2.000E+00,-1.000E+00; 2.000E+00, 3.000E+00, 1.000E+00; 0.000E+00, 0.000E+00, 5.000E+00");
 		//aMatrix = new MatrixComplex("11,0,5;0,11,3;2,5,11");

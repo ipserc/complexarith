@@ -8,6 +8,8 @@ import com.ipserc.arith.signal.Sigfunc;
 import com.ipserc.arith.signal.Fourier.e_domain;
 import com.ipserc.arith.signal.Fourier.e_lineStyle;
 import com.ipserc.arith.signal.Fourier.e_operator;
+import java.nio.file.Paths;
+import java.io.File;
 
 public class TestFourier01 {
 
@@ -226,10 +228,22 @@ public class TestFourier01 {
 		tFourier.plotDFT("DFT MAGNITUDE", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		tFourier.plotDFT("DFT SQUARE", e_domain.FREC, e_operator.SQUARE, true, e_lineStyle.LINES);
 
-		tFourier.saveSamples("/home/ipserc/saco/samples.txt", "");
-		tFourier.saveDFT("/home/ipserc/saco/dft.txt", "");
+		saveData(tFourier);
 		tFourier.IDFT();
 		tFourier.plot("IFT - Function", sampleFreq, dataf, true, e_lineStyle.LINES);
+	}
+	
+	private static void saveData(Fourier tFourier) {
+		// Construye la ruta base usando el home del usuario
+		String userHome = System.getProperty("user.home");
+		String basePath = Paths.get(userHome, "ipserc", "saco").toString();
+
+		// Crea los directorios si no existen
+		new File(basePath).mkdirs();
+
+		// Llama a tus métodos
+		tFourier.saveSamples(Paths.get(basePath, "samples.txt").toString());
+		tFourier.saveDFT(Paths.get(basePath, "dft.txt").toString());
 	}
 
 	public static void TestDFT(Function<Complex, Complex> func, int sampleFreq, double loLimit, double upLimit) {
@@ -262,8 +276,8 @@ public class TestFourier01 {
 		tFourier.plotDFT("DFT SQUARE", e_domain.FREC, e_operator.SQUARE, true, e_lineStyle.LINES);
 		/**/
 
-		tFourier.saveSamples("/home/ipserc/saco/samples.txt");
-		tFourier.saveDFT("/home/ipserc/saco/dft.txt");
+
+		saveData(tFourier);
 
 		/** /
 		tFourier.IDFT();
