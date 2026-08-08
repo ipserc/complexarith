@@ -39,6 +39,7 @@ public class TestPolynom05 {
     	chron.stop();
     	System.out.println("Chrono Factor: " + chron.toString());
 
+    	myPolynom.normalize(); // populates polyNorm, precondition of evalNorm(Complex)
     	chron.start();
     	for (int i = 0; i < nbrPoitns; ++i) {
     		myPolynom.evalNorm(i);

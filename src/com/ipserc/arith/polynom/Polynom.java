@@ -21,8 +21,15 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.20 (2026_0808_1046)";
+	private final static String VERSION = "1.21 (2026_0808_1200)";
 	/* VERSION Release Note
+	 * 1.21 (2026_0808_1200)
+	 * evalNorm(double): bug de copia-pega arreglado -- llamaba a evalFact(cNum) (potencias sobre
+	 * complexMatrix SIN normalizar) en vez de evalNorm(cNum) (Horner sobre polyNorm, el polinomio
+	 * normalizado). Encontrado de rebote mientras se investigaba el candidato de eval() numericamente
+	 * estable (Decimonovena sesion, Parte E). Unico llamador interno: TestPolynom05.java, resultado
+	 * descartado sin asercion -- impacto real nulo hasta ahora, pero devolvia un valor incorrecto en
+	 * silencio para cualquier llamador futuro de evalNorm(double).
 	 * 1.20 (2026_0808_1046)
 	 * solveStatistic(): aplica ahora la misma purificacion maxPrec (parte real/imaginaria
 	 * despreciable -> 0) que ya aplicaban solveWeierstrass()/solveAberth()/solveQRCompanion() a su
@@ -719,7 +726,7 @@ public class Polynom extends MatrixComplex {
 
 	public Complex evalNorm(double value) {
 		Complex cNum = new Complex(value,0);
-		return evalFact(cNum);
+		return evalNorm(cNum);
 	}
 
 	/**
