@@ -20,8 +20,22 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.17 (2026_0808_0955)";
+	private final static String VERSION = "1.18 (2026_0808_1001)";
 	/* VERSION Release Note
+	 * 1.18 (2026_0808_1001)
+	 * Fase 3 (a peticion del usuario, cierra el hilo de e_rootCalcMode): decidido en firme que
+	 * DETERMINISTIC se queda como default PERMANENTE, no un "por ahora" pendiente de mas datos.
+	 * Confirmado por grep que solve()/solve(double) no tienen NINGUN llamador dentro de la propia
+	 * libreria (MatrixComplex.rank2() y Eigenspace.eigenval() ya llaman a solveRobust() de forma
+	 * directa, nunca a solve()) -- solo ficheros de test/demo en TestComplex/ alcanzan este punto de
+	 * entrada, asi que cambiar el default no podria corromper rank()/autovalores en ningun caso.
+	 * Mantenido DETERMINISTIC de todos modos: el riesgo de falso positivo de STATISTIC (fusionar 2
+	 * raices genuinamente distintas que coinciden en ~3 cifras significativas) es real y medido, no
+	 * hipotetico, y la multiplicidad >=5 sigue sin garantia -- un llamador de solve() que nunca pidio
+	 * agrupamiento no deberia recibirlo como sorpresa silenciosa. STATISTIC sigue disponible, con
+	 * soporte completo, via solve(e_rootCalcMode[,double]) para quien lo quiera conscientemente.
+	 * Sin cambio de codigo salvo el propio Javadoc del enum, que documenta esta decision en firme.
+	 *
 	 * 1.17 (2026_0808_0955)
 	 * Fase 2 (calibracion de e_rootCalcMode.STATISTIC, a peticion del usuario): 2 cambios reales
 	 * sobre solveStatistic(), ambos confirmados con barridos, no solo intuicion (ver
@@ -1110,8 +1124,20 @@ public class Polynom extends MatrixComplex {
 	 * that chain-by-sort never recovered at any tolerance, connected components fixed outright).
 	 * {@link #ROOT_GROUPING_TOL_FACTOR} reliably recovers multiplicity 2-4 at every magnitude
 	 * tested; multiplicity >=5 is not guaranteed (same kind of accepted residual {@code Eigenspace}
-	 * itself documents for multiplicity 3+) -- still not the default for that reason.</li>
+	 * itself documents for multiplicity 3+).</li>
 	 * </ul>
+	 * <b>DETERMINISTIC stays the default PERMANENTLY, a deliberate decision (Fase 3, 8 agosto 2026,
+	 * not a placeholder pending more data):</b> confirmed by grep that {@link #solve()}/{@link
+	 * #solve(double)} have ZERO callers inside the library itself ({@code MatrixComplex.rank2()} and
+	 * {@code Eigenspace.eigenval()} both already call {@link #solveRobust(double)} directly, never
+	 * {@link #solve(double)}) -- only {@code TestComplex/*} demo/test files reach this entry point,
+	 * so flipping the default cannot silently corrupt {@code rank()}/eigenvalue results either way.
+	 * Kept DETERMINISTIC anyway: {@code STATISTIC}'s false-positive risk (merging 2 genuinely
+	 * distinct roots that agree to ~3 significant digits) is real and measured, not hypothetical, and
+	 * multiplicity >=5 stays unresolved -- a caller of {@link #solve()} who never asked for root
+	 * clustering should never receive it as a silent surprise. {@code STATISTIC} remains available,
+	 * fully supported, via the explicit {@link #solve(e_rootCalcMode)}/{@link #solve(e_rootCalcMode,
+	 * double)} overloads for any caller that consciously wants repeated-root grouping.
 	 */
 	public static enum e_rootCalcMode {
 		DETERMINISTIC, STATISTIC;
