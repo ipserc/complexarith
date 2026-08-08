@@ -4,7 +4,6 @@ import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
-import com.panayotis.gnuplot.JavaPlot;
 
 public class plotFunc05 {
 
@@ -14,15 +13,7 @@ public class plotFunc05 {
 
 	
 	public static void plot__(long samples, double dataRe[][], double dataIm[][]) {
-		JavaPlot p = new JavaPlot();
-		p.setTitle("PRUEBA");
-		p.addPlot(dataRe);
-		p.addPlot(dataIm);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		//p.set("xrange", "[0:"+samples+"]");
-		p.set("grid","");
-		p.plot();
+		MatrixComplexPlot.plotSeriesSync("PRUEBA", e_lineStyle.LINES, dataRe, dataIm);
 	}
 	
 	public static void plot(long samples,MatrixComplex data) {

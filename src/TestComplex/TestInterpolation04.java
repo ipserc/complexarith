@@ -8,7 +8,6 @@ import java.util.function.ToIntFunction;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.polynom.*;
-import com.panayotis.gnuplot.JavaPlot;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

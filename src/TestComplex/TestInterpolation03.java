@@ -7,7 +7,7 @@ import java.util.function.ToIntFunction;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.polynom.*;
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,13 +66,7 @@ public class TestInterpolation03 {
 	}
 
 	private static void plotGraph(double[][] dataRe, String Title) {
-		JavaPlot p = new JavaPlot();
-		p.setTitle(Title);
-		p.addPlot(dataRe);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		p.set("grid","");
-		p.plot();
+		MatrixComplexPlot.plotSeriesSync(Title, e_lineStyle.LINES, dataRe);
 	}
 	
 	public static void plotResults(Polynom myPolynom, MatrixComplex points, boolean allSamples)

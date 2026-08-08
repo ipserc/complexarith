@@ -11,7 +11,6 @@ import javax.swing.text.html.HTMLDocument.Iterator;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.polynom.*;
-import com.panayotis.gnuplot.JavaPlot;
 
 /**
  * @author ipserc

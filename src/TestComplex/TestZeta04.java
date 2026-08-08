@@ -31,8 +31,7 @@ package TestComplex;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.panayotis.gnuplot.JavaPlot;
-import com.panayotis.gnuplot.plot.Graph;
+import com.ipserc.arith.plot.SimpleGnuplot;
 
 import java.awt.image.SampleModel;
 import java.io.BufferedReader;
@@ -50,7 +49,7 @@ import java.util.List;
 public class TestZeta04 {
 	
 	public static void plot(long samples, double points[][][]) {
-		JavaPlot p = new JavaPlot();
+		SimpleGnuplot p = new SimpleGnuplot();
 		p.newGraph3D();
 		p.setTitle("PRUEBA");
 		//p.addGraph(points);
@@ -63,7 +62,9 @@ public class TestZeta04 {
 		//p.set("style", "data isosurface");
 		//p.set("xrange", "[0:"+samples+"]");
 		p.set("grid","");
-		p.plot();
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		p.plot(SimpleGnuplot.e_syncMode.SYNC);
 	}
 
 	public static File newFile(String filename) {

@@ -3,7 +3,8 @@ package TestComplex;
 import java.util.function.Function;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
 
 public class TestFuncSerie01 {
 
@@ -26,17 +27,14 @@ public class TestFuncSerie01 {
 		//return 	z.times(n*n).divides(Complex.exp(z.times(n)));
 	}
 
-	public static void addPlot(JavaPlot p, String title, long samples, int idPlot, MatrixComplex data) {
+	public static double[][] toSeries(long samples, int idPlot, MatrixComplex data) {
 		double dataRe[][]  = new double[(int)samples+1][2];
-//		double dataIm[][]  = new double[(int)samples+1][2];
 
 		for (int t = 0; t <= samples; ++t) {
 			dataRe[t][0] = data.complexMatrix[0][t].rep();
 			dataRe[t][1] = data.complexMatrix[idPlot][t].rep();
-//			dataIm[t][0] = data.complexMatrix[0][t].imp();
 		}
-		p.addPlot(dataRe);
-//		p.addPlot(dataIm);
+		return dataRe;
 	}
 
 	public static void plotSerie(int n0, int nn, Double x0, Double xn) {
@@ -60,31 +58,14 @@ public class TestFuncSerie01 {
 		
 		data.println();
 
-		JavaPlot p = new JavaPlot();
 		String title = "";
+		double[][][] series = new double[(nn-n0)+1][][];
 		for (int n = n0; n <= nn; ++n) {
 			int idxFunc = (n-n0)+1;
-			addPlot(p, title, SAMPLES, idxFunc , data);
+			series[n-n0] = toSeries(SAMPLES, idxFunc, data);
 		}
 
-		p.setTitle(title);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		//p.set("xrange", "[0:"+samples+"]");
-		p.set("grid","");
-		
-	    // --- SOLUCIÓN PARA QUE NO SE CONGELE EL ZOOM (MÉTODOS NATIVOS) ---
-	    
-	    // 1. Forzamos a que el terminal sea persistente (la ventana no muere al cerrar el stream de Java)
-	    p.setPersist(true);
-	    
-	    // 2. Usamos getPostInit() para inyectar comandos crudos de Gnuplot al final
-	    p.getPostInit().add("set terminal windows");
-	    // p.getPostInit().add("pause mouse close");
-	    
-	    // -----------------------------------------------------------------
-	    
-		p.plot();
+		MatrixComplexPlot.plotSeriesSync(title, e_lineStyle.LINES, series);
 
 		System.out.println("END");
 	}

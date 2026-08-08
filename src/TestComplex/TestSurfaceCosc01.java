@@ -31,7 +31,7 @@ package TestComplex;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.plot.SimpleGnuplot;
 
 import java.awt.image.SampleModel;
 import java.io.BufferedReader;
@@ -43,7 +43,7 @@ import java.util.List;
 public class TestSurfaceCosc01 {
 	
 	public static void plot(String title, long samples, double points[][]) {
-		JavaPlot p = new JavaPlot();
+		SimpleGnuplot p = new SimpleGnuplot();
 		p.newGraph3D();
 		p.setTitle(title);
 		p.addPlot(points);
@@ -55,7 +55,7 @@ public class TestSurfaceCosc01 {
 		// p.set("style", "data rgbalpha");
 		//p.set("style", "data isosurface");
 		/*
-			p.set("style", "data pm3d"); 
+			p.set("style", "data pm3d");
 			//p.set("style", "boxes");
 			//set pm3d depthorder base
 			p.set("pm3d","depthorder base");
@@ -64,10 +64,14 @@ public class TestSurfaceCosc01 {
 			//set boxdepth 0.4
 			p.set("boxdepth","0.4");
 			//p.set("xrange", "[0:"+samples+"]");
-		 * 
+		 *
 		 */
 		p.set("grid","");
-		p.plot();
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
+		p.plot(SimpleGnuplot.e_syncMode.SYNC);
 	}
 
     public static void main(String[] args) {

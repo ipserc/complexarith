@@ -30,14 +30,14 @@
 package TestComplex;
 
 import com.ipserc.arith.complex.*;
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.plot.SimpleGnuplot;
 
 
 
 public class TestSurfacePolyn01 {
 	
 	public static void plot(String title, long samples, double points[][]) {
-		JavaPlot p = new JavaPlot();
+		SimpleGnuplot p = new SimpleGnuplot();
 		p.newGraph3D();
 		p.setTitle(title);
 		p.addPlot(points);
@@ -62,7 +62,9 @@ public class TestSurfacePolyn01 {
 		 * 
 		 */
 		p.set("grid","");
-		p.plot();
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		p.plot(SimpleGnuplot.e_syncMode.SYNC);
 	}
 
 	public static Complex func(Complex z) {

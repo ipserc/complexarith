@@ -9,7 +9,7 @@ import java.util.function.ToIntFunction;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.polynom.*;
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
 
 public class TestInterpolation02 {
 
@@ -60,15 +60,7 @@ public class TestInterpolation02 {
 		}
 		System.out.println("Slope:" + ((dataRe[samples-noSamples-1][1]-dataRe[noSamples+1][1])/(dataRe[samples-noSamples-1][1]-dataRe[noSamples+1][0])));
 		System.out.println("Point:" + dataRe[2*noSamples+1][0] + ":" + dataRe[2*noSamples+1][1]);
-		JavaPlot p = new JavaPlot();
-		//p.setTitle(myPolynom.toGNUPlot_poly());
-		p.setTitle("Polynomial Degree:"+degree);
-		p.addPlot(dataRe);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		// p.set("xrange", "[-6:6]");
-		p.set("grid","");
-		p.plot();
+		MatrixComplexPlot.plotSeriesSync("Polynomial Degree:"+degree, e_lineStyle.LINES, dataRe);
 	}
 
 	public static void calculate(Polynom myPolynom, int rows) {
@@ -87,16 +79,7 @@ public class TestInterpolation02 {
 			piRe[i][1] = pi3(piRe[i][0]);
 			//System.out.println(dataRe[i][0] + "," + dataRe[i][1]);
 		}
-		JavaPlot p = new JavaPlot();
-		//p.setTitle(myPolynom.toGNUPlot_poly());
-		p.setTitle("Polynomial Degree:"+degree);
-		//p.addPlot(dataRe);
-		p.addPlot(piRe);
-		p.set("zeroaxis", "");
-		p.set("style","data lines");
-		// p.set("xrange", "[-6:6]");
-		p.set("grid","");
-		p.plot();
+		MatrixComplexPlot.plotSeriesSync("Polynomial Degree:"+degree, e_lineStyle.LINES, piRe);
 
 
 	}
