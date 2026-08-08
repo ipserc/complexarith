@@ -2472,13 +2472,43 @@ Verificado con `ScratchRootStatisticProbe01.java` (conservado): mecanismo correc
 
 **Nota para el futuro**: `Eigenspace.eigenval()` hereda potencialmente la misma debilidad de la cadena por módulo (mismo patrón, no verificado allí en esta sesión) — candidato suelto para una futura auditoría de `Eigenspace`, no investigado aquí por estar fuera de alcance de esta tarea sobre `Polynom`.
 
-## Fase 3 — Decisión de modo por defecto (commit pendiente de esta nota)
+## Fase 3 — Decisión de modo por defecto (commit `e350d86`)
 
 Analizado con el usuario antes de decidir: confirmado por `grep` que `solve()`/`solve(double)` **no tienen ningún llamador dentro de la propia librería** (`MatrixComplex.rank2()` y `Eigenspace.eigenval()` ya llaman a `solveRobust()` directamente, nunca a `solve()`) — solo ficheros de test/demo en `TestComplex/` alcanzan ese punto de entrada, así que cambiar el default no podría corromper `rank()`/autovalores en ningún caso. Presentada la recomendación (mantener DETERMINISTIC, con el razonamiento explícito) y confirmada por el usuario vía `AskUserQuestion`: **DETERMINISTIC se queda como default PERMANENTE**, decisión en firme, no un "por ahora". Motivo: el riesgo de falso positivo de STATISTIC es real y medido, no hipotético, y la multiplicidad ≥5 sigue sin garantía — un llamador de `solve()` que nunca pidió agrupamiento no debería recibirlo como sorpresa silenciosa. `STATISTIC` sigue disponible, con soporte completo, vía `solve(e_rootCalcMode[,double])`. Sin cambio de código salvo el Javadoc del propio enum, que documenta esta decisión en firme. `Polynom.VERSION`: `1.18`.
 
 **CIERRA la propuesta completa del usuario** (cálculo estadístico de raíces con detección de multiplicidad) en sus 3 fases. Scripts conservados: `ScratchRootStatisticProbe01.java`, `ScratchRootStatisticCalibration01.java`, `ScratchRootStatisticCalibration02.java`, `ScratchRootStatisticGroupC01.java`.
 
-**Sin punto de retomada pendiente** — preguntar al usuario por dónde seguir. Candidato suelto anotado: revisar si `Eigenspace.eigenval()` se beneficiaría del mismo cambio de cadena→componentes conexas (no investigado, fuera de alcance de esta sesión).
+**Sin punto de retomada pendiente** — preguntar al usuario por dónde seguir. Candidato suelto anotado: revisar si `Eigenspace.eigenval()` se beneficiaría del mismo cambio de cadena→componentes conexas — **investigado y cerrado en la continuación de esta misma sesión, ver bloque siguiente**.
+
+---
+
+## Continuación — `Eigenspace.eigenval()` (componentes conexas) + `Polynom.solveQRCompanion()` (8 agosto 2026), CERRADA
+
+Dos investigaciones seguidas, ambas a petición del usuario, retomando candidatos sueltos de los bloques anteriores.
+
+### Parte A — `Eigenspace.eigenval()` ¿tiene el mismo fallo de la cadena? (commit `7da702e`)
+
+Investigado con el mismo método de calibración que en `Polynom`: matrices de autovalor conocido vía `A=P·D·P⁻¹` (multiplicidad 2-9, magnitud 1-30, más un caso multi-cluster de 3 multiplicidades simultáneas — mismos valores que el "Group C" de `Polynom`, para comparación directa).
+
+**El motor POR DEFECTO (`QRSchurfactor`) no tiene el fallo** — 28/28 casos correctos, incluida multiplicidad 9 en las 3 magnitudes y el caso multi-cluster. Razón: calcula autovalores por iteración QR directamente sobre la matriz, sin pasar nunca por el polinomio característico — evita la fuente de mal condicionamiento (`ε^(1/m)`) que produce el "anillo" de dispersión en `Polynom`. Consecuencia feliz de la arquitectura QR-con-desplazamientos ya decidida en la Décima sesión, no una casualidad.
+
+**El motor de RESERVA (`charactPoly().solveRobust()`, el mismo Durand-Kerner/Aberth que usa `Polynom`) SÍ lo tenía**, confirmado aplicando el criterio de agrupamiento exacto de `Eigenspace` sobre su salida cruda: la mayoría de casos con multiplicidad ≥3 no se agrupaban en absoluto, y el caso multi-cluster fragmentaba la multiplicidad 4 igual que le pasaba a `Polynom` antes del arreglo.
+
+**Arreglado**: mismo cambio que en `Polynom` — cadena por orden de módulo → componentes conexas (Union-Find sobre todos los pares dentro de tolerancia). El motor de reserva recupera ahora multiplicidad 2-4 (antes fallaba incluso en multiplicidad 2); multiplicidad ≥5 sigue sin garantía ahí, pero es el mismo techo de precisión ya aceptado y documentado en `BEST_NUM_DECS_CAP` ("multiplicidad 3+ sigue fallando aproximadamente igual"), no un hueco nuevo. Riesgo real pero estrecho: el motor de reserva solo se activa si `QRSchurfactor` lanza excepción (documentado como raro, 5 matrices en una búsqueda acotada, Décima sesión).
+
+Verificado con una batería de 19 ficheros: 18/19 `exit=0`, `TestJordan01` reproduce el mismo `exit=1` preexistente (confirmado idéntico byte a byte contra el `Eigenspace.java` de `HEAD` sin este cambio — fallo de `checkReconstruction()` no relacionado). Sin cambio en el motor por defecto (28/28 idénticos antes/después). `Eigenspace.VERSION`: `1.12→1.13`. Script conservado: `ScratchEigenspaceGroupC01.java`.
+
+### Parte B — ¿Sirve `QRSchurfactor` para calcular raíces de polinomios directamente? (commit `fdba674`)
+
+Investigado el enfoque estándar de matriz companion (la misma técnica que usa `roots()` de MATLAB internamente): construir la matriz companion de los coeficientes normalizados del polinomio y hallar sus autovalores con `QRSchurfactor` — las raíces de un polinomio mónico son exactamente los autovalores de su matriz companion.
+
+**Precisión en casos que ya funcionan: comparable, sin ganancia sistemática** (ratio medido 0.5x-1.3x frente a `solveWeierstrass`/`solveAberth`) — a diferencia de lo encontrado en la Parte A. Motivo: una matriz companion hereda matemáticamente el mismo mal condicionamiento que el propio polinomio (hecho conocido en álgebra lineal numérica), así que QR no esquiva aquí el problema de fondo como sí lo esquivaba para una matriz genérica.
+
+**Robustez en casos que fallaban: mejora real y limpia.** Probados los 8 casos exactos que hacían `solveAberth()` lanzar overflow en la Fase 2 de `Polynom` (pares conjugados complejos, multiplicidad ≥6, magnitud ≥8) — los 8 se resuelven sin excepción vía companion+`QRSchurfactor`, con precisión razonable para lo extremo del caso (~2.7% de error relativo en multiplicidad 9/magnitud 200, verificado contra la raíz real).
+
+**Implementado**: nuevo `Polynom.solveQRCompanion(double)`/`solveQRCompanion()`. `solveRobust(double)` gana un tercer escalón de reserva (`solveWeierstrass` → `solveAberth` → `solveQRCompanion`, solo si las 2 anteriores lanzan excepción) — mismo patrón "prueba lo conocido, cae a lo robusto solo ante excepción explícita" ya establecido, cero riesgo para el camino existente (verificado `solveRobust()==solveWeierstrass()` byte a byte en un caso normal; batería de 8 ficheros consumidores compila y ejecuta idéntico). `Polynom.VERSION`: `1.18→1.19`. Scripts conservados: `ScratchPolynomQRCompanion01.java`, `ScratchSolveRobustTier301/302.java`.
+
+**Sin punto de retomada pendiente** — preguntar al usuario por dónde seguir.
 
 ---
 
