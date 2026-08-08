@@ -20,8 +20,44 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.12 (2026_0806_0800)";
+	private final static String VERSION = "1.13 (2026_0808_1019)";
 	/* VERSION Release Note
+	 *
+	 * 1.13 (2026_0808_1019)
+	 * eigenval(): el agrupamiento de raices crudas paso de CADENA por orden de modulo (compara solo
+	 * contra el elemento inmediatamente anterior tras ordenar, VERSION 1.10) a COMPONENTES CONEXAS
+	 * (Union-Find sobre TODOS los pares dentro de tolerancia). Investigado a peticion del usuario
+	 * tras encontrar y arreglar la misma debilidad en Polynom.solveStatistic() (8 agosto 2026, ver
+	 * Claude/ComplexArithRev.md): 2 estimaciones crudas en lados opuestos del "anillo" de dispersion
+	 * de una raiz repetida pueden compartir modulo casi identico (y por tanto caer adyacentes tras
+	 * ordenar) pese a estar lejos entre si -- rompe la cadena justo donde no deberia, sin que ningun
+	 * umbral lo arregle.
+	 * Confirmado con el mismo metodo de calibracion que en Polynom (matrices de autovalor conocido
+	 * via A=P*D*P^-1, multiplicidad 2-9, magnitud 1-30, mas un caso multi-cluster de 3 multiplicidades
+	 * simultaneas): el motor POR DEFECTO (QRSchurfactor) nunca disparo el fallo en 28 casos (sus
+	 * estimaciones ya son mucho mas ajustadas que las de un buscador de raices sobre el polinomio
+	 * caracteristico -- consecuencia feliz de la propia arquitectura QR-con-desplazamientos, VERSION
+	 * 1.10). El motor de RESERVA (charactPoly().solveRobust(), el mismo Durand-Kerner/Aberth-Ehrlich
+	 * que usa Polynom) SI lo disparaba: con el mismo criterio de agrupamiento de siempre, la mayoria
+	 * de casos con multiplicidad >=3 no se agrupaban en absoluto. Con componentes conexas, el motor
+	 * de reserva recupera correctamente multiplicidad 2-4 (antes fallaba incluso en multiplicidad 2);
+	 * multiplicidad >=5 sigue sin recuperarse ahi, pero es el mismo techo de precision ya aceptado y
+	 * documentado en BEST_NUM_DECS_CAP ("multiplicidad 3+ sigue fallando aproximadamente igual"), no
+	 * un hueco nuevo que abra o deje este cambio.
+	 * Riesgo real pero estrecho: eigenval() solo cae al motor de reserva cuando QRSchurfactor lanza
+	 * excepcion (documentado como raro, 5 matrices encontradas en una busqueda acotada, Decima
+	 * sesion) -- si ademas esa matriz tiene un autovalor repetido, heredaba en silencio el mismo bug
+	 * de fragmentacion ya arreglado en Polynom.
+	 * Sin cambio en el motor por defecto (verificado: 28/28 casos identicos antes y despues). Añadido
+	 * groupingFind() (Union-Find con compresion de camino), mismo helper que Polynom.groupingFind().
+	 * arithmeticMultiplicity(Complex,int) sin cambios -- ya operaba sobre el array `eigenvalues` ya
+	 * agrupado, no sobre las raices crudas, asi que no formaba parte del bug.
+	 * Verificado: bateria de 19 ficheros (TestJordanAudit01, TestJordan01/02, TestJordanGeomMult01,
+	 * TestQRSchur01, TestDiag01, TestDiagonal01, TestEigenspaceQRCompare01, TestEigenspaceFallback01,
+	 * TestEigenV01-10) -- 18/19 exit=0, TestJordan01 reproduce exit=1 identico byte a byte contra el
+	 * Eigenspace.java de HEAD sin este cambio (fallo preexistente de checkReconstruction(), no
+	 * relacionado). ScratchEigenspaceGroupC01.java (conservado en src/TestComplex/) documenta el
+	 * hallazgo completo (motor por defecto vs reserva, antes/despues del arreglo).
 	 *
 	 * 1.12 (2026_0806_0800)
 	 * eigenvector(int): new fail-loud guard for a DIFFERENT "too few" failure mode than VERSION
@@ -515,7 +551,22 @@ public class Eigenspace extends MatrixComplex {
 	private static double groupingTolerance(int digits) {
 		return GROUPING_TOL_FACTOR * Math.pow(10, -digits);
 	}
-	
+
+	/**
+	 * Union-Find "find" with path compression, for {@link #eigenval()}'s clustering -- same helper
+	 * as {@code Polynom.groupingFind(int[], int)}.
+	 * @param parent The union-find parent array.
+	 * @param i The element to find the representative of.
+	 * @return The representative (root) index of {@code i}'s set.
+	 */
+	private static int groupingFind(int[] parent, int i) {
+		while (parent[i] != i) {
+			parent[i] = parent[parent[i]];
+			i = parent[i];
+		}
+		return i;
+	}
+
 	public int arithmeticMultiplicity__(Complex eigenVal, int digits) {
 		final boolean DEBUG_ON = false;
 		final String METH_NAME = "arithmeticMultiplicity";
@@ -609,7 +660,6 @@ public class Eigenspace extends MatrixComplex {
 	 * The eigenvalues as a column array
 	 */
 	public void eigenval() {
-		Complex prevRoot, actRoot;
 		// QRSchurfactor (Hessenberg + QR con desplazamiento de Wilkinson) es la fuente de
 		// autovalores por defecto desde VERSION 1.10 -- nunca forma el polinomio caracteristico
 		// (el paso que Wilkinson demostro numericamente traicionero), midiendo mejor precision Y
@@ -629,21 +679,39 @@ public class Eigenspace extends MatrixComplex {
 			case DOWN: roots.quicksortdown(0); break;
 		}
 
-		// Grouping consecutive roots into "the same eigenvalue" uses DISTANCE (groupingTolerance(),
-		// chain-based: compares against the immediately preceding root, updated every iteration),
-		// not component-wise rounding -- see VERSION 1.10 release note above for why. Kept
-		// consistent with arithmeticMultiplicity(Complex,int), which uses the same tolerance.
+		// Grouping raw roots into "the same eigenvalue" uses DISTANCE (groupingTolerance()), not
+		// component-wise rounding -- see VERSION 1.10 release note above for why. Kept consistent
+		// with arithmeticMultiplicity(Complex,int), which uses the same tolerance.
+		//
+		// CONNECTED COMPONENTS (Union-Find over every pair within tolerance), not a chain that only
+		// compares each root against the immediately preceding one after sorting (VERSION 1.10-1.13
+		// used the chain, ported from the same idea that motivated it here in the first place) --
+		// see VERSION 1.13 release note below for why: 2 raw estimates on opposite sides of a
+		// repeated root's "ring" of scatter can share near-identical modulus (and so land adjacent
+		// after sorting) despite being far apart, fragmenting a genuine cluster the chain can never
+		// re-join at any tolerance. Confirmed to reproduce here too (not just in Polynom, where it
+		// was first found and fixed) when this method's own fallback path (charactPoly.solveRobust(),
+		// same Durand-Kerner/Aberth-Ehrlich engine) supplies the raw roots -- the default QRSchurfactor
+		// path was never observed to trigger it in the same sweep (its eigenvalue estimates are far
+		// tighter, no meaningful "ring"), but connected components costs nothing extra there either.
 		int digits = this.bestNumDecs();
 		double tol = groupingTolerance(digits);
 
-		// calculates the number of different roots
-		int rootCount = 1;
-		prevRoot = roots.getItem(0, 0);
-		for (int i = 1; i < roots.rows(); ++i) {
-			actRoot = roots.getItem(i, 0);
-			if (prevRoot.minus(actRoot).mod() > tol) ++rootCount;
-			prevRoot = actRoot;
+		int n = roots.rows();
+		int[] parent = new int[n];
+		for (int i = 0; i < n; ++i) parent[i] = i;
+		for (int i = 0; i < n; ++i) {
+			for (int j = i + 1; j < n; ++j) {
+				if (roots.getItem(i, 0).minus(roots.getItem(j, 0)).mod() <= tol) {
+					int ri = groupingFind(parent, i), rj = groupingFind(parent, j);
+					if (ri != rj) parent[ri] = rj;
+				}
+			}
 		}
+
+		int rootCount = 0;
+		for (int i = 0; i < n; ++i) if (groupingFind(parent, i) == i) ++rootCount;
+
 		// With the number of different roots creates the eignevalues array
 		// Col 0 for the eigenvalue, Col 1 for the arithmetic multiplicity
 		// The representative eigenvalue stored per group is the AVERAGE of its grouped raw roots,
@@ -657,30 +725,33 @@ public class Eigenspace extends MatrixComplex {
 		// (Jordan.java) can make that matrix insufficiently close to singular, producing a
 		// degenerate (all-zero) generalized eigenvector instead of a real one.
 		eigenvalues = new MatrixComplex(rootCount, 2);
+		boolean[] done = new boolean[n];
 		int eigvalIdx = 0;
-		int arithMult = 1;
-		double sumRe = roots.getItem(0, 0).rep();
-		double sumIm = roots.getItem(0, 0).imp();
-		prevRoot = roots.getItem(0, 0);
-		for (int i = 1; i < roots.rows(); ++i) {
-			actRoot = roots.getItem(i, 0);
-			if (prevRoot.minus(actRoot).mod() <= tol) {
-				sumRe += actRoot.rep();
-				sumIm += actRoot.imp();
-				++arithMult;
+		for (int i = 0; i < n; ++i) {
+			if (done[i]) continue;
+			int group = groupingFind(parent, i);
+			double sumRe = 0, sumIm = 0;
+			int arithMult = 0;
+			for (int k = 0; k < n; ++k) {
+				if (groupingFind(parent, k) == group) {
+					sumRe += roots.getItem(k, 0).rep();
+					sumIm += roots.getItem(k, 0).imp();
+					++arithMult;
+					done[k] = true;
+				}
 			}
-			else {
-				eigenvalues.setItem(eigvalIdx, 0, new Complex(sumRe/arithMult, sumIm/arithMult));
-				eigenvalues.setItem(eigvalIdx, 1, new Complex(arithMult, 0));
-				++eigvalIdx;
-				sumRe = actRoot.rep();
-				sumIm = actRoot.imp();
-				arithMult = 1;
-			}
-			prevRoot = actRoot;
+			eigenvalues.setItem(eigvalIdx, 0, new Complex(sumRe / arithMult, sumIm / arithMult));
+			eigenvalues.setItem(eigvalIdx, 1, new Complex(arithMult, 0));
+			++eigvalIdx;
 		}
-		eigenvalues.setItem(eigvalIdx, 0, new Complex(sumRe/arithMult, sumIm/arithMult));
-		eigenvalues.setItem(eigvalIdx, 1, new Complex(arithMult, 0));
+
+		// Union-Find grouping order isn't guaranteed sorted (unlike the old chain, which preserved
+		// the sort above by construction) -- re-sort the collapsed array to keep the same UP/DOWN
+		// contract eigenvalues() has always had.
+		switch (order) {
+			case UP: eigenvalues.quicksortup(0); break;
+			case DOWN: eigenvalues.quicksortdown(0); break;
+		}
 	}
 
 	/**
