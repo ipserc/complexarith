@@ -20,8 +20,31 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.15 (2026_0808_0130)";
+	private final static String VERSION = "1.16 (2026_0808_0921)";
 	/* VERSION Release Note
+	 * 1.16 (2026_0808_0921)
+	 * Fase 1 (a peticion del usuario): nuevo modo de calculo de raices e_rootCalcMode.STATISTIC,
+	 * seleccionable via solve(e_rootCalcMode[,double]) sin tocar ni eliminar solveWeierstrass()/
+	 * solveAberth()/solveRobust()/solve()/solve(double) -- DETERMINISTIC (el comportamiento de
+	 * siempre) sigue siendo lo unico que usan esos metodos y el default. STATISTIC ejecuta
+	 * solveRobust() sin cambios y reinterpreta su salida ya convergida: ordena por modulo, agrupa
+	 * en cadena por DISTANCIA (no por redondeo de decimales, mismo patron ya medido y en produccion
+	 * en Eigenspace.eigenval(), VERSION 1.10 de esa clase) y sustituye cada miembro de un grupo por
+	 * la media del grupo -- mismo contrato de salida que siempre (columna de "degree" raices), la
+	 * multiplicidad queda legible contando filas identicas sin romper ningun llamador existente.
+	 * ROOT_GROUPING_TOL_FACTOR (0.5) y ROOT_GROUPING_DIGITS (2) son valores DE PARTIDA, no
+	 * calibrados aun para Polynom (ver Javadoc de ambas constantes) -- la calibracion es la Fase 2.
+	 * Verificado con ScratchRootStatisticProbe01.java (conservado): mecanismo correcto para
+	 * multiplicidad 2-3 (agrupa exacto, sin falsos positivos en un caso de raices distintas
+	 * separadas solo 0.05) y parcial en 4-5; a partir de multiplicidad ~6 el tol de partida no basta
+	 * (las m estimaciones de Durand-Kerner/Aberth para una raiz de multiplicidad alta forman un
+	 * anillo de radio creciente con m, no un racimo compacto -- consistente con el limite
+	 * O(ε^(1/m)) ya documentado en solveAberth()) -- dato real para calibrar en Fase 2, no una
+	 * sorpresa de ultima hora. Sin cambio de comportamiento en el camino DETERMINISTIC: los 9
+	 * ficheros consumidores existentes (TestFindRoots01, TestPolynom02-05, TestPolynomAudit01,
+	 * TestPolynomFromRoots01, TestRoots01/02) compilan y ejecutan identico (TestPolynom03's timeout
+	 * preexistente confirmado reproducible tambien con el Polynom.java de HEAD sin este cambio).
+	 *
 	 * 1.15 (2026_0808_0130)
 	 * solveAberth(double): el KNOWN LIMITATION del mal condicionamiento de raices repetidas se
 	 * cierra en firme como IRRESOLUBLE dentro de aritmetica de coma flotante (antes "documented
@@ -1025,6 +1048,146 @@ public class Polynom extends MatrixComplex {
 	 */
 	public MatrixComplex solve() {
 		return solveRobust(Complex.precision());
+	}
+
+	/**
+	 * Selects between the two root-finding OUTPUT STRATEGIES this class supports (8 agosto 2026, a
+	 * peticion del usuario) -- both sit on top of the same {@link #solveRobust(double)} (Durand-
+	 * Kerner with Aberth-Ehrlich fallback); neither this enum nor {@link #solveStatistic(double)}
+	 * change that iteration in any way, they only differ in how its already-converged output is
+	 * turned into the returned root list.
+	 * <ul>
+	 * <li>{@code DETERMINISTIC}: {@link #solveRobust(double)} as-is -- every root returned exactly
+	 * as the solver converged to it, no post-processing. The long-standing default and the only
+	 * mode {@link #solve()}/{@link #solve(double)} use.</li>
+	 * <li>{@code STATISTIC}: {@link #solveStatistic(double)} -- clusters the same raw roots by
+	 * DISTANCE (not decimal rounding) and replaces every member of a cluster with the cluster's
+	 * average, so a genuinely repeated root comes back as {@code n} IDENTICAL copies (multiplicity
+	 * readable as "how many rows share this value") instead of {@code n} merely-close estimates.
+	 * Same architecture already measured and shipped for eigenvalues in {@code
+	 * Eigenspace#eigenval()} (see {@code Claude/ComplexArithRev.md}, "Decimosexta sesion") --
+	 * ported here, not invented from scratch. {@link #ROOT_GROUPING_TOL_FACTOR} is a provisional
+	 * value (copied from {@code Eigenspace}'s own measured constant) pending its own calibration
+	 * sweep specific to {@code Polynom}; NOT yet the default for that reason.</li>
+	 * </ul>
+	 */
+	public static enum e_rootCalcMode {
+		DETERMINISTIC, STATISTIC;
+	}
+
+	/**
+	 * Tolerance factor for {@link #solveStatistic(double)}'s distance-based root clustering -- same
+	 * role as {@code Eigenspace.GROUPING_TOL_FACTOR}, copied at the same value (0.5) as a starting
+	 * point, not yet calibrated for {@code Polynom} specifically (that calibration, against known-
+	 * multiplicity polynomials built the same way as {@code TestRoots02.java}, is the next step
+	 * before this mode could become the default).
+	 */
+	private static final double ROOT_GROUPING_TOL_FACTOR = 0.5;
+
+	/**
+	 * Digits of precision {@link #groupingTolerance(int)} is derived from -- NOT the same digit
+	 * count as {@link #solveWeierstrass(double)}/{@link #solveAberth(double)}'s own final-rounding
+	 * {@code numOfDecs} (~13, tied to {@link Complex#precision()}, the solver's OWN convergence
+	 * tolerance -- far too tight to bridge the {@code ε^(1/m)} scatter between a repeated root's
+	 * several estimates, confirmed empirically: with that digit count {@link
+	 * #ROOT_GROUPING_TOL_FACTOR}'s tolerance failed to merge even a simple double root, whose two
+	 * estimates were only ~{@code 1e-8} apart). Copied instead from {@code Eigenspace}'s own
+	 * {@code BEST_NUM_DECS_FLOOR} (2) as a coarse, deliberately un-calibrated starting point in the
+	 * right order of magnitude -- {@code Eigenspace} derives its equivalent from the MATRIX's
+	 * condition number via {@code bestNumDecs()}, which has no equivalent for a bare coefficient row
+	 * ({@code Polynom} extends {@code MatrixComplex} but {@code cond()} on a 1xN row is not a
+	 * meaningful condition number); a {@code Polynom}-specific replacement (e.g. degree-aware, or
+	 * derived from {@code |1/p'(root)|} the way Wilkinson's own sensitivity analysis does) is exactly
+	 * what the Fase 2 calibration sweep needs to settle, together with {@link
+	 * #ROOT_GROUPING_TOL_FACTOR} itself.
+	 */
+	private static final int ROOT_GROUPING_DIGITS = 2;
+
+	/**
+	 * Distance tolerance equivalent to {@code digits} decimals, for {@link #solveStatistic(double)}'s
+	 * clustering. Same shape as {@code Eigenspace.groupingTolerance(int)}.
+	 * @param digits The number of decimals of precision.
+	 * @return The distance tolerance.
+	 */
+	private static double groupingTolerance(int digits) {
+		return ROOT_GROUPING_TOL_FACTOR * Math.pow(10, -digits);
+	}
+
+	/**
+	 * Finds the roots to a Nth degree equation, dispatching between {@link e_rootCalcMode#DETERMINISTIC}
+	 * ({@link #solveRobust(double)} as-is) and {@link e_rootCalcMode#STATISTIC} ({@link
+	 * #solveStatistic(double)}) -- see {@link e_rootCalcMode}'s own Javadoc for what each means.
+	 * @param mode Which output strategy to use.
+	 * @param precision The precision used to identify a zero.
+	 * @return The column array with the solutions found.
+	 */
+	public MatrixComplex solve(e_rootCalcMode mode, double precision) {
+		switch (mode) {
+			case STATISTIC: return solveStatistic(precision);
+			case DETERMINISTIC:
+			default: return solveRobust(precision);
+		}
+	}
+
+	/**
+	 * Shortcut for {@link #solve(e_rootCalcMode, double)} using the library's default precision.
+	 * @param mode Which output strategy to use.
+	 * @return The column array with the solutions found.
+	 */
+	public MatrixComplex solve(e_rootCalcMode mode) {
+		return solve(mode, Complex.precision());
+	}
+
+	/**
+	 * {@code STATISTIC} root-finding strategy: runs {@link #solveRobust(double)} unchanged (same
+	 * iteration, same convergence criterion, same final rounding under {@link Complex#exact()} --
+	 * deliberately NOT toggling that flag here, since it also feeds the Durand-Kerner/Aberth
+	 * convergence check itself, not just the final rounding; the ~13 decimals it already leaves are
+	 * far finer than the ~{@code ε^(1/m)} scatter this method is meant to clean up, so there is
+	 * nothing to gain from forcing raw unrounded output, only a wider blast radius to reason about),
+	 * then sorts the result by modulus and merges consecutive roots into the same cluster whenever
+	 * they are closer than {@link #groupingTolerance(int)} -- same chain-clustering-by-distance as
+	 * {@code Eigenspace.eigenval()}, adapted to keep this method's return shape identical to every
+	 * other {@code solve*} method here (one row per original root, {@code degree} rows total): every
+	 * member of a cluster is overwritten with the cluster's average instead of collapsing the array,
+	 * so multiplicity is recoverable by counting identical rows without changing the contract any
+	 * existing caller relies on.
+	 * @param precision The precision used to identify a zero.
+	 * @return The column array with the solutions found, degree rows, clustered roots identical.
+	 */
+	private MatrixComplex solveStatistic(double precision) {
+		MatrixComplex rawRoots = solveRobust(precision);
+		int degree = rawRoots.rows();
+		if (degree <= 1) return rawRoots;
+
+		MatrixComplex sorted = rawRoots.copy();
+		sorted.quicksort(0);
+
+		// Two DIFFERENT digit counts, deliberately not shared: tol (coarse, ROOT_GROUPING_DIGITS,
+		// see its own Javadoc) decides which raw roots belong to the same cluster; numOfDecs (fine,
+		// same formula as solveWeierstrass()/solveAberth()'s own rounding tail) only rounds the
+		// FINAL centroid for display once a cluster is already decided.
+		double tol = groupingTolerance(ROOT_GROUPING_DIGITS);
+		int numOfDecs = (int) Math.abs(Math.log10(Complex.precision()));
+
+		MatrixComplex clustered = new MatrixComplex(degree, 1);
+		int groupStart = 0;
+		for (int i = 1; i <= degree; ++i) {
+			boolean closeGroup = (i == degree) || sorted.getItem(i-1, 0).minus(sorted.getItem(i, 0)).mod() > tol;
+			if (closeGroup) {
+				double sumRe = 0, sumIm = 0;
+				for (int k = groupStart; k < i; ++k) {
+					sumRe += sorted.getItem(k, 0).rep();
+					sumIm += sorted.getItem(k, 0).imp();
+				}
+				int groupSize = i - groupStart;
+				Complex centroid = new Complex(sumRe/groupSize, sumIm/groupSize);
+				if (Complex.exact()) centroid = Complex.round(centroid, numOfDecs);
+				for (int k = groupStart; k < i; ++k) clustered.setItem(k, 0, centroid);
+				groupStart = i;
+			}
+		}
+		return clustered;
 	}
 
 	/**
