@@ -5,13 +5,11 @@ import java.util.List;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.plot.SimpleGnuplot;
 
 /**
- * Package-private GNUPlot integration for {@link Polynom} -- isolates the {@code
- * com.panayotis.gnuplot.JavaPlot} external dependency (not present in every environment, already
- * documented elsewhere in this project as a compilation blocker when missing from the classpath)
- * to this one class, instead of spreading it through the resolution/arithmetic core.
+ * Package-private GNUPlot integration for {@link Polynom} -- isolates the {@link SimpleGnuplot}
+ * dependency to this one class, instead of spreading it through the resolution/arithmetic core.
  * <p>
  * Extracted from {@code Polynom.java} (Décima sesión, ver {@code Claude/ComplexArithRev.md}),
  * Fase 2 of the same restructuring that moved presentation to {@link PolynomFormat} in Fase 1 --
@@ -21,12 +19,23 @@ import com.panayotis.gnuplot.JavaPlot;
  * plain static utilities here too) and read it only through already-public members. {@code
  * Polynom.java}'s own public methods keep their exact signatures, delegating to these in one line
  * each -- the public API is unchanged.
+ * <p>
+ * Migration (8 agosto 2026, a peticion del usuario): {@code com.panayotis.gnuplot.JavaPlot}
+ * (external dependency, not present in every environment, previously documented here as a
+ * compilation blocker when missing from the classpath) replaced by {@link SimpleGnuplot}, a
+ * dependency-free homegrown replacement -- same gnuplot engine underneath, only the Java wrapper
+ * changed. See {@link SimpleGnuplot}'s own Javadoc for the full motivation (blocking
+ * {@code Process.waitFor()} in the old dependency, confirmed by bytecode inspection). Method call
+ * shapes ({@code setTitle}/{@code addPlot}/{@code set}/{@code setPersist}/{@code getPostInit}/
+ * {@code plot}) kept identical on purpose, so this was a drop-in swap -- verified live before
+ * applying (user-confirmed correct rendering, both the data-block and native-expression
+ * {@code addPlot} paths this class actually uses).
  */
 class PolynomPlot {
 
 	static void plotExpression(Polynom p, String gnuPlotExpression, double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.addPlot(gnuPlotExpression);
 		plt.setTitle(p.toString());
 		plt.addPlot("[" + loLimit + ":" + upLimit + "] " + p.toGNUPlot_poly());
@@ -41,7 +50,7 @@ class PolynomPlot {
 
 	static void plotExpression(Polynom p, double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(p.toString());
 		plt.set("zeroaxis", "");
 		plt.set("xrange", "[" + loLimit + ":" + upLimit + "]");
@@ -56,7 +65,7 @@ class PolynomPlot {
 
 	static void plotExpressionRe(Polynom p, double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re(" + p.toString() + ")");
 		plt.set("zeroaxis", "");
 		plt.set("xrange", "[" + loLimit + ":" + upLimit + "]");
@@ -72,7 +81,7 @@ class PolynomPlot {
 
 	static void plotExpressionIm(Polynom p, double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Im(" + p.toString() + ")");
 		plt.set("zeroaxis", "");
 		plt.set("xrange", "[" + loLimit + ":" + upLimit + "]");
@@ -88,7 +97,7 @@ class PolynomPlot {
 
 	static void plotExpressionReIm(Polynom p, double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re() Im() " + p.toString());
 		plt.set("zeroaxis", "");
 		plt.set("xrange", "[" + loLimit + ":" + upLimit + "]");
@@ -104,7 +113,7 @@ class PolynomPlot {
 
 	static void plotExpressionRepIm(Polynom p, double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re() Im() " + p.toString());
 		plt.set("zeroaxis", "");
 		plt.set("xrange", "[" + loLimit + ":" + upLimit + "]");
@@ -120,7 +129,7 @@ class PolynomPlot {
 
 	static void plotExpressionAbs(Polynom p, double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Abs("+p.toString()+")");
 		plt.set("zeroaxis", "");
 		plt.set("xrange", "[" + loLimit + ":" + upLimit + "]");
@@ -136,7 +145,7 @@ class PolynomPlot {
 
 	static void plotExpressionPhase(Polynom p, double loLimit, double upLimit) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Phase("+p.toString()+")");
 		plt.set("grid", "");
 		plt.set("zeroaxis", "");
@@ -158,7 +167,7 @@ class PolynomPlot {
 	 * @param title the title of the graphic.
 	 */
 	static void plot(List<double[][]> pointsList, String title) {
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(title);
 		for(int i = 0; i < pointsList.size(); ++i) {
 			plt.addPlot(pointsList.get(i));
@@ -176,7 +185,7 @@ class PolynomPlot {
 	}
 
 	static void plot(double[][] points, String title) {
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(title);
 		plt.addPlot(points);
 		plt.set("zeroaxis", "");
@@ -326,7 +335,7 @@ class PolynomPlot {
 	static void plotRe(Polynom p, double[][] points) {
 		double lolimit = points[0][0];
 		double uplimit = points[points.length-1][0];
-		JavaPlot plt = new JavaPlot();
+		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Phase("+p.toString()+")");
 		plt.set("grid", "");
 		plt.set("zeroaxis", "");

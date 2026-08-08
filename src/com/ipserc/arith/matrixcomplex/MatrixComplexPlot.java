@@ -1,6 +1,6 @@
 package com.ipserc.arith.matrixcomplex;
 
-import com.panayotis.gnuplot.JavaPlot;
+import com.ipserc.arith.plot.SimpleGnuplot;
 
 /**
  * Shared GNUPlot integration for {@link MatrixComplex} and the classes derived from it that plot
@@ -36,6 +36,15 @@ import com.panayotis.gnuplot.JavaPlot;
  * gap: they take already-computed series, so the domain-specific computation (which needs
  * {@code Fourier}'s private state and its {@code eval()}) stays in {@code Fourier}, only the
  * repeated {@code JavaPlot} construction/config tail moved here.
+ * <p>
+ * Migration (8 agosto 2026, continuacion, a peticion del usuario): {@code com.panayotis.gnuplot.
+ * JavaPlot} replaced by {@link com.ipserc.arith.plot.SimpleGnuplot}, a dependency-free homegrown
+ * replacement (same gnuplot engine underneath, only the Java wrapper changed) -- motivated by
+ * {@code GNUPlotExec.plot()} unconditionally blocking on {@code Process.waitFor()} (confirmed by
+ * bytecode inspection, no source available for that dependency), which {@code SimpleGnuplot} gives
+ * full control over via {@code plot()} (sync, same contract as before) vs {@code plotAsync()} (new).
+ * Method call shapes ({@code setTitle}/{@code addPlot}/{@code set}/{@code setPersist}/
+ * {@code getPostInit}/{@code plot}) kept identical on purpose, so this was a drop-in swap.
  */
 public class MatrixComplexPlot {
 
@@ -84,7 +93,7 @@ public class MatrixComplexPlot {
 		}
 
 		// Plot the data
-		JavaPlot p = new JavaPlot();
+		SimpleGnuplot p = new SimpleGnuplot();
 		p.setTitle(title);
 		p.addPlot(dataRe);
 		if (showIm) p.addPlot(dataIm);
@@ -123,7 +132,7 @@ public class MatrixComplexPlot {
 	 * @param series One or more {@code double[nbrPoints][2]} series to plot together.
 	 */
 	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, double[][]... series) {
-		JavaPlot p = new JavaPlot();
+		SimpleGnuplot p = new SimpleGnuplot();
 		p.setTitle(title);
 		if (x2label != null) p.set("x2label", x2label);
 		for (double[][] s : series) p.addPlot(s);
@@ -149,7 +158,7 @@ public class MatrixComplexPlot {
 	 */
 	static void doPlot(String title, double[][] dataTable, int dataLen) {
 		if (!MatrixComplex.doPlot()) return;
-		JavaPlot p = new JavaPlot();
+		SimpleGnuplot p = new SimpleGnuplot();
 		p.setTitle(title);
 		double[][] fullDataTable = new double[dataLen][2];
 		for (int i = 0; i < dataLen; ++i) fullDataTable[i] = dataTable[i];

@@ -21,8 +21,15 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.22 (2026_0808_1300)";
+	private final static String VERSION = "1.23 (2026_0808_1400)";
 	/* VERSION Release Note
+	 * 1.23 (2026_0808_1400)
+	 * PolynomPlot: com.panayotis.gnuplot.JavaPlot sustituido por com.ipserc.arith.plot.
+	 * SimpleGnuplot (nuevo, sin dependencias externas) en las 11 llamadas de la clase -- ver la
+	 * clase nueva para el detalle completo. Migracion "drop-in": mismas firmas de metodo, mismo
+	 * motor gnuplot por debajo, verificado en vivo antes de aplicar (confirmado por el usuario:
+	 * ambas ventanas -- estilo MatrixComplexPlot sync y estilo PolynomPlot async -- renderizan
+	 * correctamente, sin procesos java/gnuplot residuales tras cerrar).
 	 * 1.22 (2026_0808_1300)
 	 * evalFromRoots(MatrixComplex,Complex/double): nuevo, evalua a traves de la forma factorizada
 	 * lider*Pi(z-raiz_i) en vez de los coeficientes monomiales expandidos. Cierra el candidato de

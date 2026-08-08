@@ -18,9 +18,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.60 (2026_0808_0845)";
+	private final static String VERSION = "1.61 (2026_0808_1400)";
 	/* VERSION Release Note
 	 *
+	 * 1.61 (2026_0808_1400)
+	 * MatrixComplexPlot: com.panayotis.gnuplot.JavaPlot sustituido por com.ipserc.arith.plot.
+	 * SimpleGnuplot (nuevo, sin dependencias externas) en plot()/plotSeries()/doPlot() -- ver la
+	 * clase nueva para el detalle completo. Migracion "drop-in": mismas firmas de metodo, mismo
+	 * motor gnuplot por debajo, verificado en vivo antes de aplicar (confirmado por el usuario:
+	 * ambas ventanas -- estilo MatrixComplexPlot sync y estilo PolynomPlot async -- renderizan
+	 * correctamente, sin procesos java/gnuplot residuales tras cerrar).
 	 * 1.60 (2026_0808_0845)
 	 * MatrixComplexPlot: nuevo plotSeries(String,e_lineStyle,double[][]...) y su sobrecarga con
 	 * etiquetas de eje/escala logaritmica (String,String,String,boolean,e_lineStyle,double[][]...),
