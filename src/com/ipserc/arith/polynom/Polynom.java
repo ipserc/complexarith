@@ -21,8 +21,22 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.21 (2026_0808_1200)";
+	private final static String VERSION = "1.22 (2026_0808_1300)";
 	/* VERSION Release Note
+	 * 1.22 (2026_0808_1300)
+	 * evalFromRoots(MatrixComplex,Complex/double): nuevo, evalua a traves de la forma factorizada
+	 * lider*Pi(z-raiz_i) en vez de los coeficientes monomiales expandidos. Cierra el candidato de
+	 * eval() numericamente estable (Decimonovena sesion, Parte E) -- medido con
+	 * ScratchEvalStabilityProbe01/02.java que el problema NO esta en la evaluacion (Horner en 60
+	 * digitos BigDecimal sobre los MISMOS coeficientes da el mismo orden de magnitud astronomico que
+	 * evalHorner() en double, no ~0) sino en la CONSTRUCCION: power()/times() en double corrompen
+	 * los coeficientes monomiales ya al expandir factores de raiz de magnitud/multiplicidad extrema
+	 * (dispersion de coeficientes >1e16-1e17). Sin arreglo posible sobre los coeficientes ya
+	 * corrompidos -- evalFromRoots() evita el problema evaluando directamente desde las raices
+	 * (p.ej. las que devuelve solve()), sin pasar nunca por la expansion. Metodo complementario de
+	 * evalHorner()/evalFact(), no sustituto: exige raices ya conocidas, pensado para verificar el
+	 * residuo de una raiz ya resuelta en casos de dispersion extrema, no para evaluar un punto
+	 * arbitrario de un polinomio conocido solo por coeficientes.
 	 * 1.21 (2026_0808_1200)
 	 * evalNorm(double): bug de copia-pega arreglado -- llamaba a evalFact(cNum) (potencias sobre
 	 * complexMatrix SIN normalizar) en vez de evalNorm(cNum) (Horner sobre polyNorm, el polinomio
@@ -702,6 +716,47 @@ public class Polynom extends MatrixComplex {
 	public Complex evalFact(double value) {
 		Complex cNum = new Complex(value,0);
 		return evalFact(cNum);
+	}
+
+	/**
+	 * Calculates the result of evaluating the polynomial for a specific complex value through its
+	 * FACTORED form (leading coefficient times the product of {@code (value - root)} for every
+	 * root), instead of the expanded monomial coefficients {@code evalHorner}/{@code evalFact} use.
+	 * <p>
+	 * Investigated (Decimonovena sesion, candidato de eval() numericamente estable) as the fix for
+	 * a case {@code evalHorner}/{@code evalFact} cannot recover from: a polynomial built from
+	 * roots of extreme magnitude and/or high multiplicity (e.g. {@code (z-140-180i)^9}) loses the
+	 * information needed to evaluate near its own roots already at CONSTRUCTION time -- expanding
+	 * such a factor into monomial coefficients via double-precision {@code power()}/{@code times()}
+	 * corrupts the stored coefficients themselves (confirmed by re-evaluating those same corrupted
+	 * coefficients with 60-digit {@code BigDecimal} Horner: it lands in the same astronomical
+	 * ballpark as {@code evalHorner}, not near zero) -- so no amount of extra EVALUATION precision
+	 * can fix it; only avoiding the expansion does, by evaluating directly from the roots. This is
+	 * therefore a companion to {@code evalHorner}/{@code evalFact}, not a general replacement: it
+	 * needs the roots already computed (e.g. via {@code solve()}), so it fits a residual check
+	 * ("does this solved root actually satisfy the polynomial?") rather than evaluating an
+	 * arbitrary point on a polynomial known only by its coefficients.
+	 * @param roots The roots of the polynomial (one column, {@link #degree()} rows -- e.g. the
+	 * {@code MatrixComplex} returned by {@code solve()}/{@code solveRobust()}/...).
+	 * @param value The value to use in the polynomial.
+	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 */
+	public Complex evalFromRoots(MatrixComplex roots, Complex value) {
+		int degree = this.degree();
+		if (roots.rows() != degree || roots.cols() != 1) {
+			throw new IllegalArgumentException(HEADINFO + "evalFromRoots: roots must be a single column with " + degree + " rows (this polynomial's degree), got " + roots.rows() + " rows, " + roots.cols() + " cols.");
+		}
+
+		Complex result = this.getItem(0, degree).copy();
+		for (int i = 0; i < degree; ++i) {
+			result = result.times(value.minus(roots.getItem(i, 0)));
+		}
+		return result;
+	}
+
+	public Complex evalFromRoots(MatrixComplex roots, double value) {
+		Complex cNum = new Complex(value, 0);
+		return evalFromRoots(roots, cNum);
 	}
 
 	/**
