@@ -2571,7 +2571,24 @@ Verificado con `ScratchEvalFromRootsVerify01.java` (conservado, ejercita el mét
 
 **CIERRA el candidato de `eval()` numéricamente estable** de la Decimonovena sesión, con diagnóstico medido (no solo teórico) y una vía de mitigación real implementada para el caso donde las raíces ya se conocen.
 
-**Punto de retomada**: preguntar al usuario si los 2 commits de este bloque (`70b721a`, `adbc9c1`) se pushean ahora o se acumulan con trabajo posterior.
+**Punto de retomada**: preguntar al usuario si los 2 commits de este bloque (`70b721a`, `adbc9c1`) se pushean ahora o se acumulan con trabajo posterior. (Resuelto: pusheados a continuación, junto con el commit de doc de este bloque.)
+
+## Candidato: multiplicidad vía derivadas sucesivas — investigado y medido, DESCARTADO (misma sesión)
+
+El usuario planteó una observación propia: las derivadas sucesivas de una función repiten una raíz múltiple hasta agotar su multiplicidad (`f(r)=f'(r)=...=f^(m-1)(r)=0`, `f^(m)(r)≠0` para una raíz de multiplicidad `m`) — ¿serviría eso para evitar la pérdida de precisión en el cálculo de raíces? Valorado primero por análisis (rol Matemáticas Aplicadas): la observación es correcta y es la base real de la factorización *squarefree* (`f/gcd(f,f')`) y del Newton modificado para raíces múltiples, pero **no evita la cota `ε^(1/m)` de Wilkinson** — esa cota es una propiedad del polinomio, no del algoritmo, exactamente la misma conclusión ya alcanzada con la deflación por división sintética (Decimosexta sesión). El usuario pidió medirlo de todas formas, con el mismo rigor que aquella investigación, antes de decidir.
+
+**Diseñadas 2 pruebas** sobre la misma rejilla ya calibrada (magnitud 1/8/30/200 × multiplicidad 2/3/5/7/9, 20 casos), usando coeficientes de Taylor `f^(k)(z)/k!` calculados por división sintética repetida (el "esquema de Horner para Taylor", mismo coste/estabilidad que `evalHorner()` iterado — NO la diferenciación ingenua coeficiente×factorial, que amplificaría la misma corrupción de coeficientes ya diagnosticada para `evalFromRoots()`):
+
+1. **Detección de multiplicidad**: en una estimación bruta real de `solveRobust()` (no la raíz exacta), los coeficientes de Taylor `taylor[k]` escalan como `δ^(m-k)` para `k<m` (con `δ`=distancia de la estimación a la raíz real) y se "aplanan" a partir de `k=m` — así que los cocientes consecutivos `|taylor[k]/taylor[k-1]|` se mantienen aproximadamente constantes hasta `k=m` y caen bruscamente después; detectado `m` como el índice del mayor salto proporcional entre cocientes consecutivos.
+2. **Pulido de precisión**: un paso de Newton con multiplicidad conocida (`z - m·f(z)/f'(z)`, convergencia cuadrática en una raíz múltiple conocida, frente a la lineal del Newton normal ahí) partiendo de la misma estimación bruta, comparado contra la propia estimación bruta y contra el centroide de `STATISTIC`.
+
+**Resultados** (`ScratchDerivativeMultiplicityProbe01.java`, conservado):
+- **Detección de multiplicidad**: 100% correcta (12/12) en multiplicidad 2, 3 y 5, en las 4 magnitudes — degrada a 50% (2/4) en multiplicidad 7 y falla del todo (0/4) en multiplicidad 9. La degradación coincide exactamente con el umbral de dispersión de coeficientes (`>1e16-1e17`) ya diagnosticado esta sesión para `evalFromRoots()` — mismo muro, visto desde otro ángulo, no un límite nuevo.
+- **Pulido de precisión**: solo mejora la estimación bruta en 7/20 casos y solo supera al centroide de `STATISTIC` en 4/20 — en varios casos empeora notablemente (hasta 70× peor en magnitud 30/multiplicidad 5). Sin patrón claro por magnitud o multiplicidad: hereda el mismo riesgo de corrupción de coeficientes que cualquier evaluación basada en ellos, pero al ser un único paso desde una única estimación no tiene el suavizado por promedio que sí aporta `STATISTIC` al mediar varias estimaciones ruidosas.
+
+**Decisión, confirmada por el usuario**: **NO se implementa como método nuevo**. La parte de detección de multiplicidad es matemáticamente elegante (sin parámetro de tolerancia libre) pero cubre el mismo rango donde el agrupamiento por componentes conexas ya funciona bien — no hay mejora medible sobre lo existente. El pulido de precisión no ayuda de forma fiable, mismo patrón que la deflación descartada en la Decimosexta sesión (cambia un modo de fallo por otro, sin ganancia neta). Ningún llamador interno necesita hoy detectar multiplicidad a partir de una única estimación (todos los sitios que la necesitan ya tienen varias estimaciones simultáneas que agrupar). Sin cambio de código en la librería. Script conservado por si en el futuro aparece un caso de uso genuino que hoy no existe.
+
+**CIERRA el hilo** de esta sesión (Vigésima). Sin punto de retomada pendiente — preguntar al usuario por dónde seguir.
 
 ---
 
