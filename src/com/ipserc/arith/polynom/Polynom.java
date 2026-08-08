@@ -7,6 +7,7 @@ package com.ipserc.arith.polynom;
  *
  */
 import com.ipserc.arith.complex.*;
+import com.ipserc.arith.factorization.QRSchurfactor;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.syseq.Syseq;
 import java.util.ArrayList;
@@ -20,8 +21,35 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.18 (2026_0808_1001)";
+	private final static String VERSION = "1.19 (2026_0808_1037)";
 	/* VERSION Release Note
+	 * 1.19 (2026_0808_1037)
+	 * Nuevo solveQRCompanion(double)/solveQRCompanion(): construye la matriz companion de este
+	 * polinomio (coeficientes normalizados/monicos) y halla sus autovalores con QRSchurfactor -- las
+	 * raices de un polinomio monico son exactamente los autovalores de su matriz companion, tecnica
+	 * estandar (la misma que usa, p.ej., roots() de MATLAB). Investigado a peticion del usuario tras
+	 * confirmar que QRSchurfactor da estimaciones mucho mas ajustadas que solveWeierstrass/
+	 * solveAberth para el MISMO problema de fondo (valor repetido en coma flotante), cuando se aplica
+	 * a una matriz GENERAL (Eigenspace.eigenval()). Esa mejora NO se traslada a una matriz companion
+	 * especificamente -- su condicionamiento de autovalores esta atado matematicamente a la propia
+	 * sensibilidad de coeficientes del polinomio (hecho conocido, no un fallo de esta implementacion)
+	 * -- precision medida comparable a solveWeierstrass/solveAberth en los casos donde ya funcionan
+	 * (ratio 0.5x-1.3x, sin ganancia sistematica). Lo que SI mejora, confirmado en los 8 casos exactos
+	 * que hacian solveAberth() lanzar overflow (pares conjugados complejos, multiplicidad >=6,
+	 * magnitud >=8): resuelve los 8 sin excepcion, con precision razonable para lo extremo del caso
+	 * (~2.7% de error relativo en multiplicidad 9/magnitud 200, verificado contra la raiz real, muy
+	 * por delante de un crash directo).
+	 * solveRobust(double): tercer escalon de reserva -- solveWeierstrass -> solveAberth ->
+	 * solveQRCompanion, solo si las 2 anteriores lanzan excepcion, mismo patron "prueba lo conocido,
+	 * cae a lo robusto solo ante excepcion explicita" ya establecido. Cero riesgo para el camino
+	 * existente: verificado que solveRobust()==solveWeierstrass() byte a byte en un caso normal, y
+	 * la bateria de 8 ficheros consumidores (TestFindRoots01, TestPolynom02/04/05, TestPolynomAudit01,
+	 * TestPolynomFromRoots01, TestRoots01/02) compila y ejecuta identico (los diffs de contenido en
+	 * TestRoots01 son ruido preexistente de un polinomio generado con initMatrixRandomRecInt, no
+	 * relacionado, confirmado sin lineas numericas afectadas).
+	 * Verificado con ScratchPolynomQRCompanion01.java y ScratchSolveRobustTier301/302.java
+	 * (conservados en src/TestComplex/).
+	 *
 	 * 1.18 (2026_0808_1001)
 	 * Fase 3 (a peticion del usuario, cierra el hilo de e_rootCalcMode): decidido en firme que
 	 * DETERMINISTIC se queda como default PERMANENTE, no un "por ahora" pendiente de mas datos.
@@ -1036,23 +1064,105 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
+	 * Finds the roots to a Nth degree equation via the COMPANION MATRIX eigenvalue method: builds
+	 * the {@code degree}x{@code degree} companion matrix of this polynomial's normalized (monic)
+	 * coefficients and finds its eigenvalues with {@link QRSchurfactor} (Hessenberg + Wilkinson-
+	 * shifted QR) -- the eigenvalues of a monic polynomial's companion matrix are exactly its roots,
+	 * a standard technique (the same one, e.g., MATLAB's {@code roots()} uses internally).
+	 * <p>
+	 * Investigated (8 agosto 2026, see {@code Claude/ComplexArithRev.md}) after confirming
+	 * {@code QRSchurfactor} gives dramatically tighter raw eigenvalue estimates than {@link
+	 * #solveWeierstrass(double)}/{@link #solveAberth(double)} give raw polynomial-root estimates,
+	 * for the same underlying repeated-value problem, when applied to a GENERAL matrix
+	 * ({@code Eigenspace.eigenval()}). That improvement does NOT carry over to a companion matrix
+	 * specifically -- a companion matrix's eigenvalue conditioning is mathematically tied to the
+	 * originating polynomial's own coefficient sensitivity (a well-known fact, not a bug in this
+	 * implementation), so precision here is comparable to {@link #solveWeierstrass(double)}/{@link
+	 * #solveAberth(double)} on every case where those already succeed (measured ratio 0.5x-1.3x,
+	 * no systematic win either way). What DOES improve, confirmed on the exact 8 cases that made
+	 * {@link #solveAberth(double)} throw an arithmetic-overflow exception in the same investigation
+	 * (complex conjugate root pairs, multiplicity >=6, magnitude >=8): this method resolved all 8
+	 * without exception. Not a coincidence -- the companion matrix's entries and {@code
+	 * QRSchurfactor}'s Hessenberg reduction avoid the specific intermediate-value blowup mechanism
+	 * documented in {@link #solveWeierstrass(double)}'s own comment (huge values divided by a
+	 * product-of-differences denominator early in a simultaneous-iteration method), a DIFFERENT
+	 * failure mode than the root-conditioning limit above.
+	 * <p>
+	 * Not meant to be called directly in the common case -- see {@link #solveRobust(double)}, which
+	 * uses this as a third, last-resort tier only after both {@link #solveWeierstrass(double)} and
+	 * {@link #solveAberth(double)} have already thrown.
+	 * @param precision The precision used to identify a zero.
+	 * @return The column array with the solutions found.
+	 */
+	public MatrixComplex solveQRCompanion(double precision) {
+		int rowLen = this.rows();
+		int colLen = this.cols();
+
+		if (rowLen != 1 || colLen < 2) {
+			throw new IllegalArgumentException(HEADINFO + "solveQRCompanion: Not valid matrix, doesn't represent a Nth degree equation: " + rowLen + " rows, " + colLen + " cols.");
+		}
+
+		if (colLen == 2) {
+			MatrixComplex cSol = new MatrixComplex(1, 1);
+			cSol.complexMatrix[0][0] = this.complexMatrix[0][0].opposite().divides(this.complexMatrix[0][1]);
+			return cSol;
+		}
+		if (colLen == 3) return this.solve2d();
+
+		this.normalizePol();
+		int degree = colLen - 1;
+		MatrixComplex companion = new MatrixComplex(degree, degree);
+		for (int i = 1; i < degree; ++i) companion.setItem(i, i - 1, Complex.ONE);
+		for (int i = 0; i < degree; ++i) companion.setItem(i, degree - 1, this.polyNorm[0][i].opposite());
+
+		MatrixComplex rawRoots = new QRSchurfactor(companion).getEigenvalues();
+
+		// Same rounding/purification tail as solveWeierstrass()/solveAberth() -- see those methods'
+		// comments for why numOfDecs is derived from Complex.precision().
+		double maxPrec = Math.sqrt(precision * 10);
+		int numOfDecs = (int) Math.abs(Math.log10(Complex.precision()));
+		MatrixComplex cSol = new MatrixComplex(degree, 1);
+		for (int i = 0; i < degree; ++i) {
+			Complex r = rawRoots.getItem(i, 0);
+			if (Math.abs(r.rep()) < maxPrec) r.setComplexRec(0, r.imp());
+			if (Math.abs(r.imp()) < maxPrec) r.setComplexRec(r.rep(), 0);
+			cSol.complexMatrix[i][0] = Complex.exact() ? Complex.round(r, numOfDecs) : r;
+		}
+		return cSol;
+	}
+
+	/**
+	 * Finds the roots to a Nth degree equation with the precision specified in the library using
+	 * the companion-matrix eigenvalue method.
+	 * @return The column array with the solutions found.
+	 */
+	public MatrixComplex solveQRCompanion() {
+		return solveQRCompanion(Complex.precision());
+	}
+
+	/**
 	 * Finds the roots to a Nth degree equation, trying {@link #solveWeierstrass(double)}
-	 * (Durand-Kerner) first and falling back to {@link #solveAberth(double)} (Aberth-Ehrlich) only
-	 * if that throws -- never the other way around. Deliberately NOT "pick whichever seems better
-	 * for this polynomial's conditioning": two conditioning-based heuristics were tried and
+	 * (Durand-Kerner) first, falling back to {@link #solveAberth(double)} (Aberth-Ehrlich) if that
+	 * throws, and to {@link #solveQRCompanion(double)} (companion matrix + {@link QRSchurfactor})
+	 * only if BOTH of those throw -- never any other order. Deliberately NOT "pick whichever seems
+	 * better for this polynomial's conditioning": two conditioning-based heuristics were tried and
 	 * verified unsafe this session (tracking the smallest per-root correction step, and estimating
 	 * multiplicity from the correction-size ratio) -- both looked reliable in isolation but caused
 	 * real regressions (a case that converged correctly with plain Durand-Kerner broke; a
 	 * simultaneous-iteration transient masqueraded as a genuine repeated root for 80+ iterations
 	 * before resolving to a simple one). A try/fallback needs no such heuristic and carries none of
 	 * that risk: for every case where {@code solveWeierstrass} already succeeds, behavior is
-	 * byte-for-byte identical to calling it directly (Aberth is never even invoked) -- the only
-	 * cases that change are the ones already throwing today. Durand-Kerner is also the cheaper of
-	 * the two per iteration (no derivative evaluation), so this pays Aberth's extra cost only when
-	 * actually needed. Verified against a 1200-random-matrix battery (the same one that exposed
-	 * {@code MatrixComplex.rank2()}'s ~74-100% failure rate for 5x5+ matrices): 0 exceptions, and
-	 * identical results to plain {@code solveWeierstrass()} on every case where that already
-	 * succeeded (no silent precision change on the already-working path).
+	 * byte-for-byte identical to calling it directly (Aberth and the companion-matrix tier are never
+	 * even invoked) -- the only cases that change are the ones already throwing today. Durand-Kerner
+	 * is also the cheapest of the three per iteration (no derivative evaluation, no companion-matrix
+	 * QR sweep), so the extra cost of each tier is paid only when actually needed. Verified against
+	 * a 1200-random-matrix battery (the same one that exposed {@code MatrixComplex.rank2()}'s
+	 * ~74-100% failure rate for 5x5+ matrices): 0 exceptions, and identical results to plain {@code
+	 * solveWeierstrass()} on every case where that already succeeded (no silent precision change on
+	 * the already-working path). The third tier ({@link #solveQRCompanion(double)}) was added (8
+	 * agosto 2026) after confirming it resolves 8/8 cases (complex conjugate root pairs, multiplicity
+	 * >=6, magnitude >=8) that made {@link #solveAberth(double)} throw -- see that method's own
+	 * Javadoc for why this tier helps there but is not a general precision upgrade.
 	 * @param theprecision The precision used to identify a zero.
 	 * @return The column array with the solutions found.
 	 */
@@ -1060,7 +1170,11 @@ public class Polynom extends MatrixComplex {
 		try {
 			return solveWeierstrass(theprecision);
 		} catch (IllegalArgumentException e) {
-			return solveAberth(theprecision);
+			try {
+				return solveAberth(theprecision);
+			} catch (IllegalArgumentException e2) {
+				return solveQRCompanion(theprecision);
+			}
 		}
 	}
 
