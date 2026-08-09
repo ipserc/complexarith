@@ -1,27 +1,77 @@
-complexarith es un intento de modelar la aritmética de campo complejo en Java para poder ser utilizado en desarrollos matemáticos.
-El paquete com.ipserc.arith.complex contiene la clase Complex.
-Complex.java es la clase que incorpora los métodos y operaciones para poder trabajar on complejos. La clase permite la introducción de números complejos de forma natural en formato texto, así el constructor de la calse admite la instanciación de numeros complejos de la forma "3-2i"
-Complex.java incorpra todas las operaciones aritméticas con complejos, así como numerosas funciones.
+complexarith es una librería Java para aritmética y álgebra lineal en el cuerpo complejo (ℂ), sin
+dependencias externas. Empezó en 2017 como un proyecto personal para modelar los números complejos
+en Java y ha ido creciendo hasta cubrir matrices complejas, las factorizaciones matriciales
+clásicas, polinomios, sistemas de ecuaciones, geometría y las transformadas de señal habituales
+(Fourier, Laplace, Z) — todo sobre el mismo tipo Complex de base.
 
-El paquete com.ipserc.arith.matrixcomplex contiene la clase MatrixComplex.
-MatrixComplex extiende los complejos para se incorporados en matrices. Proporciona métodos para crear matrices en campo complejo y sus operaciones.
-MatrixComplex calcula determnantes, resuelve sistemas de ecuaciones y otogonaliza mediante Gramm-Schmidt.
-MatrixComplex calcula el polinomio característico de la matriz, y sus autovalores y autovectores.
+El paquete com.ipserc.arith.complex contiene la clase Complex. Complex.java es la clase que
+incorpora los métodos y operaciones para poder trabajar con complejos. Tiene su propio parser: la
+clase admite la instanciación de números complejos de forma natural en formato texto ("3-2i")
+además de Complex(re, im). Complex.java incorpora todas las operaciones aritméticas con complejos,
+así como numerosas funciones (exponencial, logaritmo, trigonométricas e hiperbólicas y sus
+inversas, raíces n-ésimas).
 
-El paquete com.ipserc.arith.factorization contiene las clases
-	Diagfactor.java
-	LUfactor.java
-	QRfactor.java
-	SVDfactor.java
-Diagfactor.java Factoriza una matriz de la forma A=P·D·P⁻¹ donde D es una matriz diagonal.
-LUfactor.java Facturiza una matriz de la forma A = L U, donde L es una matriz triangular inferior y U es una matriz triangular superior.
-QRfactor.java Factoriza una matriz de la forma A = Q R donde Q es una matriz ortogonal m por m, y R es una matriz triangular superior m por n.
-SVDfactor.java Factoriza una matriz de la forma A = U Σ V T, donde Σ es una matriz diagonal mxn, y U y V son matrices ortogonales mxm y nxn respectivamente.
+El paquete com.ipserc.arith.matrixcomplex contiene la clase MatrixComplex, dividida en clases
+dedicadas para cada responsabilidad (MatrixComplexUnary, MatrixComplexRank, MatrixComplexKernel,
+MatrixComplexOrtho, MatrixComplexFunctions, MatrixComplexCharPoly, MatrixComplexEquationSystems...).
+Proporciona métodos para crear matrices en campo complejo y sus operaciones: determinante, inversa,
+rango, núcleo, polinomio característico. La singularidad numérica se detecta por tolerancia
+relativa (no por un epsilon absoluto), de forma que matrices grandes con residuos de redondeo
+pequeños en términos absolutos pero significativos en el determinante completo no se traten por
+error como no singulares. Las funciones matriciales (exp, log, sqrt, seno/coseno hiperbólico...)
+se calculan vía diagonalización o desarrollo en serie (Taylor/Mercator) cuando la matriz no es
+diagonalizable. Eigenspace calcula autovalores y autovectores, multiplicidad algebraica y
+geométrica, agrupando raíces repetidas por componentes conexas (no por redondeo por componente,
+que fragmenta clusters legítimos). MatrixComplexPlot representa gráficamente matrices, incluida
+una presentación "cuadrada".
 
-El paquete com.ipserc.arith.polynom contiene la clase Polynom.
-Polynom.java proporciona los métodos para operar con polinomios y calcular sus raices en campo complejo.
-Genera polinomios de Hermite, Legendre, Lagerre y Chebyshev.
-Incorpora métodos para presentar de forma gráfica los polinomios. Utiliza la librería JavaPlot de Panayotis (http://javaplot.panayotis.com/)
+El paquete com.ipserc.arith.factorization contiene las factorizaciones matriciales estándar,
+todas sobre matrices complejas:
+	LUfactor.java       A = L · U
+	QRfactor.java        A = Q · R  (Gram-Schmidt, Householder, Givens)
+	SVDfactor.java       A = U · Σ · Vᵀ
+	Diagfactor.java      A = P · D · P⁻¹
+	Hessenbergfactor.java  reducción a forma de Hessenberg superior por semejanza unitaria,
+		A = Q·H·Qᴴ
+	QRSchurfactor.java / Schurfactor.java  factorización de Schur A = Q·T·Qᴴ vía iteración QR
+		con desplazamiento de Wilkinson y deflación — el método tipo LAPACK/MATLAB para
+		autovalores sin formar nunca el polinomio característico explícito
+	Jordan.java          forma canónica de Jordan, incluida multiplicidad geométrica > 1
 
-El paquete com.ipserc.arith.vectorcomplex contiene la clase VectorComplex.
-VectorComplex.java introduce los métodos necesarios para operar con vectores en campo complejo.
+El paquete com.ipserc.arith.polynom contiene la clase Polynom. Polynom.java proporciona los
+métodos para operar con polinomios y calcular sus raíces en campo complejo. Genera polinomios de
+Hermite, Legendre, Laguerre y Chebyshev de cualquier grado. Las raíces se calculan vía matriz
+compañía + QRSchurfactor (solveQRCompanion), con un modo opcional de agrupamiento estadístico de
+raíces por multiplicidad (e_rootCalcMode). evalFromRoots() evalúa de forma numéricamente estable a
+través de la forma factorizada, evitando la pérdida de precisión de reconstruir coeficientes vía
+power()/times() para grado alto. Spline.java hace interpolación por splines, apoyada en Syseq para
+resolver el sistema.
+
+El paquete com.ipserc.arith.vectorcomplex contiene la clase VectorComplex. VectorComplex.java
+introduce los métodos necesarios para operar con vectores en campo complejo: producto escalar,
+norma, y un producto vectorial generalizado a n dimensiones (vectorprodN) además del binario 3D
+clásico.
+
+El paquete com.ipserc.arith.geom contiene Point, Line y Plane: geometría afín sobre ℂ — incidencia,
+paralelismo, distancias (incluida la distancia entre rectas en dimensión > 3).
+
+El paquete com.ipserc.arith.syseq contiene Syseq y Syseqnum: sistemas de ecuaciones lineales, tanto
+resolución directa (Syseq, homogéneos y no homogéneos) como métodos numéricos iterativos
+(Syseqnum) — gradiente conjugado (congrad) y GMRES (genminres).
+
+El paquete com.ipserc.arith.signal contiene Fourier, Laplace, Z y Sigfunc: las transformadas de
+señal clásicas y sus filtros, con representación gráfica de los resultados.
+
+El paquete com.ipserc.arith.combinatoric contiene CombinationNoReps: combinaciones sin repetición
+y su numeración asociada.
+
+El paquete com.ipserc.arith.plot contiene SimpleGnuplot, un lanzador de gnuplot propio, sin
+dependencias externas (sustituye a la antigua librería com.panayotis.gnuplot, que bloqueaba con
+Process.waitFor()). Cada operación de graficado del proyecto expone un par xxxSync()/xxxAsync()
+sobre un único método genérico parametrizado por SimpleGnuplot.e_syncMode.
+
+Finalmente TestComplex tiene numerosos ejemplos de uso de las clases anteriores y sus métodos,
+además de los drivers ScratchXxx/TestXxx usados para investigar y medir bugs durante el
+desarrollo — todos se conservan, también después de resolverse, como referencia.
+
+No hay dependencias de terceros: todo, incluido el graficado, es autocontenido.
