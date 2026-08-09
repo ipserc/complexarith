@@ -22,8 +22,17 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.25 (2026_0809_0938)";
+	private final static String VERSION = "1.26 (2026_0809_1124)";
 	/* VERSION Release Note
+	 * 1.26 (2026_0809_1124)
+	 * Revision a peticion del usuario del cambio de VERSION 1.25: solveWeierstrass()/solveAberth()
+	 * se quedaron con la variable numOfDecs (y ~18 lineas de comentario justificando como se
+	 * derivaba) calculada pero sin uso real, solo referenciada por un System.out.println dentro de
+	 * DEBUG_ON -- resto muerto tras quitar el redondeo que la consumia. Retirada junto con el
+	 * comentario obsoleto y un bloque ya comentado (isZeroRed()/Complex.round(), anterior al propio
+	 * numOfDecs) que tambien la referenciaba. Sin cambio de comportamiento: verificado
+	 * solveRobust()==solveWeierstrass() byte a byte (ScratchSolveRobustTier301) y bateria de 10
+	 * ficheros de Polynom/Roots sin regresion.
 	 * 1.25 (2026_0809_0938)
 	 * solveWeierstrass()/solveAberth()/solveQRCompanion()/el agrupamiento de raices (4 sitios):
 	 * el redondeo de la raiz devuelta a numOfDecs decimales, condicionado a Complex.exact()==true,
@@ -953,43 +962,19 @@ public class Polynom extends MatrixComplex {
 			if (iter++ > maxRootIter) finished = true;
 		} while (!finished);
 
-		//int numOfDecs = (int) Math.abs(Math.log10(precision)) / 2 + 1;
-		//numOfDecs = numOfDecs-1 > 0 ? --numOfDecs : numOfDecs;
+		// maxPrec purifies a root whose real or imaginary part is negligible relative to the
+		// other (snaps it to exactly 0) -- the root itself is returned at full computed
+		// precision, no rounding (see VERSION 1.25 note above for why).
 		double maxPrec = Math.sqrt(precision*10);
-		// numOfDecs used to be derived from maxPrec too (sqrt(precision*10) -> ~1e-6 for the
-		// default PRECISION=1e-13), giving only 5 decimals -- far coarser than the precision
-		// Durand-Kerner actually reaches (the loop above only stops once two successive
-		// iterates are bit-close, via Complex.equals(Complex.ZERO)), so the old formula threw
-		// away several already-converged digits on every call. First attempt at a fix tied
-		// numOfDecs to that same loop's convergence tolerance (zero_treshold()*CORRECTION_FACTOR,
-		// ~1e-11 by default) instead -- verified empirically (calibration script comparing
-		// rounded vs. raw roots against MatrixComplex.rank()'s singularity detection on ~10 test
-		// matrices) that this was still not reliably enough: det(A-lambda*I) with an
-		// 11-12-decimal-rounded lambda lands close enough to that same ~1e-11 boundary that it
-		// intermittently fails to register as singular, depending on the matrix's conditioning
-		// at that eigenvalue -- an 11-12 decimal budget has essentially no safety margin left
-		// once you subtract the very tolerance you are trying to clear. numOfDecs is now derived
-		// directly from Complex.precision() itself (13 decimals by default) with no extra margin
-		// subtraction -- verified to land 1-2 orders of magnitude below the singularity
-		// threshold across the same test matrices, every time. maxPrec itself is untouched -- it
-		// is still used below to purify a root whose real or imaginary part is negligible
-		// relative to the other, a different concern from how many decimals to trust.
-		// If the number of iterations to obtain the roots has been overpaswed, the precision is reduced drastically
-		int numOfDecs = iter > maxRootIter ? 4 : (int) Math.abs(Math.log10(Complex.precision()));
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
 			System.out.println(HEADINFO + "precision:" + precision);
 			System.out.println(HEADINFO + "maxPrec   :" + maxPrec);
-			System.out.println(HEADINFO + "numOfDecs :" + numOfDecs);
 		}
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
 		for (int i = 0; i < colLen; ++i) {
-			/*
-			if (cCoef.complexMatrix[0][i].isZeroRed()) cSol.complexMatrix[i][0] = Complex.ZERO;
-			else cSol.complexMatrix[i][0] = Complex.round(cCoef.complexMatrix[0][i],numOfDecs); //cCoef.complexMatrix[0][i]; //
-			*/
 			if (Math.abs(cCoef.complexMatrix[0][i].rep()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(0, cCoef.complexMatrix[0][i].imp());
 			if (Math.abs(cCoef.complexMatrix[0][i].imp()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(cCoef.complexMatrix[0][i].rep(), 0);
 			cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i];
@@ -1120,16 +1105,13 @@ public class Polynom extends MatrixComplex {
 			if (iter++ > maxRootIter) finished = true;
 		} while (!finished);
 
-		// Same rounding/purification tail as solveWeierstrass() -- see that method's own comment
-		// for why numOfDecs is derived directly from Complex.precision().
+		// Same purification tail as solveWeierstrass() -- see that method's own comment.
 		double maxPrec = Math.sqrt(precision*10);
-		int numOfDecs = iter > maxRootIter ? 4 : (int) Math.abs(Math.log10(Complex.precision()));
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
 		if (DEBUG_ON) {
 			System.out.println(HEADINFO + "precision:" + precision);
 			System.out.println(HEADINFO + "maxPrec   :" + maxPrec);
-			System.out.println(HEADINFO + "numOfDecs :" + numOfDecs);
 		}
 		/* ------------- END DEBUGGING BLOCK ------------- */
 
