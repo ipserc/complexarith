@@ -6,13 +6,20 @@ import java.util.Locale;
 import java.text.NumberFormat;
 
 /**
- * Per-thread calculation configuration for {@link Complex} (EXACT, PRECISION, zero thresholds,
- * number formatting flags, default representation) and the public static methods that read/write
- * it (exact/precision/significative/digits, setFormatON/OFF family, setRepres/getRepres/
- * restoreRepres, store/restore pairs). Package-private: {@code Complex} keeps every current public
- * method as a one-line delegator with the exact same signature, so external callers (7 library
- * classes -- {@code MatrixComplex}, {@code Eigenspace}, {@code Polynom}, {@code Laplace},
- * {@code Fourier}, {@code Z}, {@code Spline} -- and ~200 test files) need zero changes.
+ * Per-thread calculation configuration for {@link Complex} (PRECISION, zero thresholds, number
+ * formatting flags, default representation) and the public static methods that read/write it
+ * (precision/significative/digits, setFormatON/OFF family, setRepres/getRepres/restoreRepres,
+ * store/restore pairs). Package-private: {@code Complex} keeps every current public method as a
+ * one-line delegator with the exact same signature, so external callers (7 library classes --
+ * {@code MatrixComplex}, {@code Eigenspace}, {@code Polynom}, {@code Laplace}, {@code Fourier},
+ * {@code Z}, {@code Spline} -- and ~200 test files) need zero changes.
+ * <p>
+ * No longer has an EXACT/APPROXIMATED mode (removed 9 agosto 2026, Vigesimosegunda sesion,
+ * ver Claude/ComplexArithRev.md): {@code ZERO_THRESHOLD_EXACT} is now the sole "is this zero"
+ * threshold, used unconditionally everywhere (algorithms and display alike).
+ * {@code ZERO_THRESHOLD_APPROX} survives only as an independent, fixed loose tolerance used
+ * directly by a handful of convergence guards ({@code Syseqnum}, {@code sqrtTriangular()},
+ * {@code Complex.setCre()}) that always wanted a coarser value, never a switchable "mode".
  * <p>
  * Extracted from {@code Complex.java}'s "CONSTANTS"/"MEMBER VARS" and "PRECISION" sections plus
  * the format/representation methods that lived under its "PRESENTATION" banner (Sexta sesion,
@@ -24,8 +31,9 @@ import java.text.NumberFormat;
  * Backed by a {@link ThreadLocal} so each thread gets its own independent copy -- state is still
  * shared globally within a single thread (across all {@code Complex} instances created on it),
  * matching how {@code storePrecision()}/{@code restorePrecision()} and {@code setRepres()}/
- * {@code restoreRepres()} are actually used by callers: temporarily override the mode, run a
- * nested computation that creates many {@code Complex} instances, then restore.
+ * {@code restoreRepres()} are actually used by callers: temporarily override the precision/
+ * representation, run a nested computation that creates many {@code Complex} instances, then
+ * restore.
  * <p>
  * REENTRANCY: {@code storePrecision()}/{@code restorePrecision()}, {@code setRepres()}/
  * {@code restoreRepres()} and {@code storeFormatStatus()}/{@code restoreFormatStatus()} each
@@ -44,20 +52,16 @@ final class ComplexState {
 	static final double PRECISION_DEF = 1E-13;
 	static final double ZERO_THRESHOLD_EXACT_DEF = PRECISION_DEF*10;
 	static final double ZERO_THRESHOLD_APPROX_DEF = Math.sqrt(PRECISION_DEF);
-	static final double ZERO_THRESHOLD_DEF = ZERO_THRESHOLD_EXACT_DEF; // EXACT defaults to true
-	static final int SIGNIFICATIVE_DEF = (int)Math.abs(Math.log10(ZERO_THRESHOLD_DEF)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD_DEF));
+	static final int SIGNIFICATIVE_DEF = (int)Math.abs(Math.log10(ZERO_THRESHOLD_EXACT_DEF)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD_EXACT_DEF));
 	static final long DIGITS_DEF = (long)Math.pow(10, SIGNIFICATIVE_DEF);
 	static final int MAX_DECIMALS_DEFAULT = 8; //Member Variable
 
 	private static final class State {
-		boolean EXACT = true;
-
 		/* Precision Block */
 		double PRECISION = 1E-13; //1E-16; //1E-13;
-		double ZERO_THRESHOLD_EXACT = PRECISION*10;	//9.999999999999E-13; //Zero threshold for formatting numbers
-		double ZERO_THRESHOLD_APPROX = Math.sqrt(PRECISION);	//9.999999999999E-6; //Reduced Zero threshold for formatting numbers 9.999999999999E-3
-		double ZERO_THRESHOLD = EXACT ? ZERO_THRESHOLD_EXACT : ZERO_THRESHOLD_APPROX;	//Current in use Zero threshold for formatting numbers
-		int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD));
+		double ZERO_THRESHOLD_EXACT = PRECISION*10;	//9.999999999999E-13; //Zero threshold for "is this zero" decisions (algorithms) and display
+		double ZERO_THRESHOLD_APPROX = Math.sqrt(PRECISION);	//9.999999999999E-6; //Loose tolerance, used directly (not mode-switched) by a few convergence guards (Syseqnum, sqrtTriangular, setCre())
+		int SIGNIFICATIVE = (int)Math.abs(Math.log10(ZERO_THRESHOLD_EXACT)) > 8 ? 8 : (int)Math.abs(Math.log10(ZERO_THRESHOLD_EXACT));
 		long DIGITS = (long)Math.pow(10, SIGNIFICATIVE);
 
 		/* Stack of backups to allow restoring status, one push per storePrecision(), reentrant */
@@ -106,19 +110,6 @@ final class ComplexState {
 	private static final ThreadLocal<State> STATE = ThreadLocal.withInitial(State::new);
 	static State state() { return STATE.get(); }
 
-	static boolean exact() {
-	    return state().EXACT;
-	}
-
-	static String exact_str() {
-	    return state().EXACT ? "EXACT" : "APPROXIMATED";
-	}
-
-	static void exact(boolean value) {
-	    state().EXACT = value;
-	    state().ZERO_THRESHOLD = state().EXACT ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
-	}
-
 	static double precision() {
 	    return state().PRECISION;
 	}
@@ -132,13 +123,8 @@ final class ComplexState {
 	    state().PRECISION = value;
 	    state().ZERO_THRESHOLD_EXACT = state().PRECISION*10;
 	    state().ZERO_THRESHOLD_APPROX = Math.sqrt(state().PRECISION);
-	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
-	    state().SIGNIFICATIVE = (int)Math.abs(Math.log10(state().ZERO_THRESHOLD));
+	    state().SIGNIFICATIVE = (int)Math.abs(Math.log10(state().ZERO_THRESHOLD_EXACT));
 	    state().DIGITS = (long)Math.pow(10, state().SIGNIFICATIVE);
-	}
-
-	static double zero_treshold() {
-	    return state().ZERO_THRESHOLD;
 	}
 
 	static double zero_treshold_exact() {
@@ -147,14 +133,12 @@ final class ComplexState {
 
 	static void zero_threshold_exact(double value) {
 	    state().ZERO_THRESHOLD_EXACT = value;
-	    // ---- ZERO_THRESHOLD_APPROX = Math.sqrt(ZERO_THRESHOLD_EXACT);
-	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	}
 
 	static void zero_threshold_exact_prec(double value) {
 		storePrecision();
 		zero_threshold_exact(value);
-	    state().SIGNIFICATIVE = (int)Math.abs(Math.log10(state().ZERO_THRESHOLD));
+	    state().SIGNIFICATIVE = (int)Math.abs(Math.log10(state().ZERO_THRESHOLD_EXACT));
 	    state().DIGITS = (long)Math.pow(10, state().SIGNIFICATIVE);
 	}
 
@@ -164,12 +148,6 @@ final class ComplexState {
 
 	static void zero_threshold_approx(double value) {
 	    state().ZERO_THRESHOLD_APPROX = value;
-	    // ---- ZERO_THRESHOLD_EXACT = Math.power(ZERO_THRESHOLD_APPROX, 2);
-	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
-	}
-
-	static double zero() {
-		return exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	}
 
 	static int significative() {
@@ -212,7 +190,6 @@ final class ComplexState {
 	    state().PRECISION = snapshot.precision;
 	    state().ZERO_THRESHOLD_EXACT = snapshot.zeroThresholdExact;
 	    state().ZERO_THRESHOLD_APPROX = snapshot.zeroThresholdApprox;
-	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
 	    state().SIGNIFICATIVE = snapshot.significative;
 	    state().DIGITS = snapshot.digits;
 	}
@@ -224,8 +201,6 @@ final class ComplexState {
 	    state().PRECISION = PRECISION_DEF;
 	    state().ZERO_THRESHOLD_EXACT = ZERO_THRESHOLD_EXACT_DEF;
 	    state().ZERO_THRESHOLD_APPROX = ZERO_THRESHOLD_APPROX_DEF;
-	    state().ZERO_THRESHOLD = exact() ? state().ZERO_THRESHOLD_EXACT : state().ZERO_THRESHOLD_APPROX;
-	    //ZERO_THRESHOLD = ZERO_THRESHOLD_DEF;
 	    state().SIGNIFICATIVE = SIGNIFICATIVE_DEF;
 	    state().DIGITS = DIGITS_DEF;
 	}

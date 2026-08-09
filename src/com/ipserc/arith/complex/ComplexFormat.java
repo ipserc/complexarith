@@ -126,7 +126,7 @@ final class ComplexFormat {
 			// setRecCoord(), instead of only detecting "phase near zero" (pure positive real) as
 			// before -- this also recognizes pure negative real (phase near PI) and pure
 			// imaginary (phase near +-HALF_PI) numbers, which the previous check missed entirely.
-			if (fMod < ComplexState.zero_treshold()) {
+			if (fMod < ComplexState.zero_treshold_exact()) {
 				fMod = 0.0;
 				fPha = 0.0;
 			}
@@ -178,7 +178,7 @@ final class ComplexFormat {
 	 */
 	private static double formatNbr(double number) {
 		if (!ComplexState.getFortmatStatus()) return number;
-		if (Math.abs(number) < ComplexState.zero_treshold()) return 0.0;
+		if (Math.abs(number) < ComplexState.zero_treshold_exact()) return 0.0;
 		double newNumber = Math.rint(number * ComplexState.digits()) / ComplexState.digits();
 		return newNumber;
 	}

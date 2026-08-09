@@ -46,7 +46,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public class QRSchurfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "QRSchurfactor --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0808_0030)";
+	private final static String VERSION = "1.4 (2026_0809_1018)";
 
 	/**
 	 * Cota de iteraciones QR admitidas para deflacionar UN autovalor antes de declarar que la
@@ -72,6 +72,13 @@ public class QRSchurfactor extends MatrixComplex {
 
 	/* VERSION Release Note
 	 *
+	 * 1.4 (2026_0809_1018)
+	 * El chequeo de vector despreciable en la iteracion QR (stableHouseholderQ) usaba Complex.zero(),
+	 * otro sitio dependiente del modo EXACT/APPROXIMATED global (ahora retirado del todo, ver
+	 * Claude/ComplexArithRev.md, Vigesimosegunda sesion) -- sustituido por
+	 * Complex.zero_treshold_exact() (fijo). No es el mismo sitio que causo el bug original de esa
+	 * sesion (la deflacion en factorize(), linea ~188, ya quedo arreglada por herencia al fijar
+	 * Complex.isZero()) -- este es un segundo umbral independiente en la misma clase.
 	 * 1.3 (2026_0808_0030)
 	 * factorize(): resuelve el KNOWN LIMITATION heredado de single-shift QR (sin salvaguarda ante
 	 * un desplazamiento de Wilkinson estancado). Cada EXCEPTIONAL_SHIFT_INTERVAL (10) iteraciones
@@ -307,7 +314,7 @@ public class QRSchurfactor extends MatrixComplex {
 			MatrixComplex v = (e1.times(alpha)).minus(x);
 			double vNorm = v.norm();
 
-			if (vNorm < Complex.zero()) continue;
+			if (vNorm < Complex.zero_treshold_exact()) continue;
 
 			MatrixComplex u = v.divides(vNorm);
 			MatrixComplex reflector = MatrixComplex.eye(p).minus(u.times(u.adjoint()).times(2));

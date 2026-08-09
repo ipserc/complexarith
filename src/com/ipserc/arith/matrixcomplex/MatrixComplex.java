@@ -18,9 +18,18 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.64 (2026_0809_0938)";
+	private final static String VERSION = "1.65 (2026_0809_1018)";
 	/* VERSION Release Note
 	 *
+	 * 1.65 (2026_0809_1018)
+	 * MatrixComplexUnary.java (clasificacion de signo/tipo de autovalores, 8 sitios): Complex.zero()
+	 * -- otro sitio dependiente del modo EXACT/APPROXIMATED global que la investigacion previa (ver
+	 * VERSION 1.64) no habia detectado -- sustituido por Complex.zero_treshold_exact() (fijo).
+	 * Eliminacion completa (a peticion del usuario) del mecanismo EXACT/APPROXIMATED: Complex.exact()
+	 * /Complex.exact(boolean)/EXACT/ZERO_THRESHOLD (agregado conmutado) retirados de
+	 * com.ipserc.arith.complex; ZERO_THRESHOLD_APPROX sobrevive como constante fija e independiente
+	 * (Syseqnum/sqrtTriangular/setCre() la seguian usando directamente, sin pasar por el modo). Ver
+	 * Claude/ComplexArithRev.md, Vigesimosegunda sesion, para el detalle completo.
 	 * 1.64 (2026_0809_0938)
 	 * MatrixComplexOrtho.normalizeByCols()/normalizeByRows(): el umbral Complex.zero_treshold()
 	 * (dependiente del modo EXACT/APPROXIMATED global) sustituido por Complex.zero_treshold_exact()

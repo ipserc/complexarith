@@ -31,7 +31,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public class Hessenbergfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "Hessenbergfactor --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0807_2359)";
+	private final static String VERSION = "1.3 (2026_0809_1018)";
 
 	private boolean factorized = false;
 
@@ -40,6 +40,11 @@ public class Hessenbergfactor extends MatrixComplex {
 
 	/* VERSION Release Note
 	 *
+	 * 1.3 (2026_0809_1018)
+	 * El chequeo de vector despreciable en la reduccion de Householder usaba Complex.zero(), otro
+	 * sitio dependiente del modo EXACT/APPROXIMATED global (ahora retirado del todo, ver
+	 * Claude/ComplexArithRev.md, Vigesimosegunda sesion) -- sustituido por
+	 * Complex.zero_treshold_exact() (fijo).
 	 * 1.2 (2026_0807_2359)
 	 * Hessenbergfactor(MatrixComplex): mismo bug de aliasing por clone() superficial encontrado en
 	 * Schurfactor/LUfactor/QRfactor esta sesion -- "matrix.complexMatrix.clone()" comparte las
@@ -146,7 +151,7 @@ public class Hessenbergfactor extends MatrixComplex {
 			double vNorm = v.norm();
 
 			// Subcolumna ya nula por debajo de la subdiagonal: nada que reflejar en este paso.
-			if (vNorm < Complex.zero()) continue;
+			if (vNorm < Complex.zero_treshold_exact()) continue;
 
 			MatrixComplex u = v.divides(vNorm);
 			MatrixComplex reflector = MatrixComplex.eye(p).minus(u.times(u.adjoint()).times(2));

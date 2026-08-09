@@ -71,7 +71,7 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.31 (2026_0809_0938)";
+	private final static String VERSION = "1.32 (2026_0809_1018)";
 	/* VERSION Release Note
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {
@@ -812,9 +812,7 @@ public class Complex {
 	 * Shows the Precision parameters used
 	 */
 	public static void showPrecision() {
-		System.out.println(HEADINFO + "MODE.................:" + exact_str());
 		System.out.println(HEADINFO + "PRECISION............:" + precision());
-		System.out.println(HEADINFO + "ZERO_THRESHOLD.......:" + zero_treshold());
 		System.out.println(HEADINFO + "ZERO_THRESHOLD_EXACT.:" + zero_treshold_exact());
 		System.out.println(HEADINFO + "ZERO_THRESHOLD_APPROX:" + zero_threshold_approx());
 		System.out.println(HEADINFO + "SIGNIFICATIVE........:" + significative());
@@ -828,19 +826,14 @@ public class Complex {
 	 * Delegates to ComplexState (extracted Sexta sesion, paso 2, Fase 2.2): unchanged public
 	 * signatures.
 	 */
-	public static boolean exact() { return ComplexState.exact(); }
-	public static String exact_str() { return ComplexState.exact_str(); }
-	public static void exact(boolean value) { ComplexState.exact(value); }
 	public static double precision() { return ComplexState.precision(); }
 	public static void precision_(double value) { ComplexState.precision_(value); }
 	public static void precision(double value) { ComplexState.precision(value); }
-	public static double zero_treshold() { return ComplexState.zero_treshold(); }
 	public static double zero_treshold_exact() { return ComplexState.zero_treshold_exact(); }
 	public static void zero_threshold_exact(double value) { ComplexState.zero_threshold_exact(value); }
 	public static void zero_threshold_exact_prec(double value) { ComplexState.zero_threshold_exact_prec(value); }
 	public static double zero_threshold_approx() { return ComplexState.zero_threshold_approx(); }
 	public static void zero_threshold_approx(double value) { ComplexState.zero_threshold_approx(value); }
-	public static double zero() { return ComplexState.zero(); }
 	public static int significative() { return ComplexState.significative(); }
 	public static void significative_(int value) { ComplexState.significative_(value); }
 	public static void significative(int value) { ComplexState.significative(value); }
@@ -1185,26 +1178,10 @@ public class Complex {
 	 * @return true if this Complex value is zero, false otherwise.
 	 */
 	public boolean isZero() {
-		//if (this.mod() <= ZERO_THRESHOLD) return true;
 		if (Math.abs(this.rep()) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR && Math.abs(this.imp()) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
-	/**
-	 * Checks if the Complex is reduced zero.
-	 * @return true if this Complex value is reduced zero, false otherwise.
-	 * @apiNote Not called anywhere in this codebase (grepped across all of src/). Always uses the
-	 * loose ZERO_THRESHOLD_APPROX, unlike {@link #isZero()} (fixed to ZERO_THRESHOLD_EXACT, no
-	 * longer EXACT/APPROXIMATED-mode-dependent -- see {@link #isZero()}'s current body). Left as
-	 * dead code rather than removed, consistent with how other confirmed-dead methods in this
-	 * class (e.g. the rest of the {@code *Red__} family) were handled.
-	 */
-	public boolean isZeroRed__() {
-		//if (this.mod() <= ZERO_THRESHOLD_R) return true;
-		if (Math.abs(this.rep()) <= ComplexState.zero_threshold_approx() && Math.abs(this.imp()) <= ComplexState.zero_threshold_approx()) return true;
-		else return false;
-	}
-	
 	/**
 	 * Checks if the imaginary part is zero.
 	 * @return true if imaginary part is zero, false otherwise.
@@ -1216,36 +1193,12 @@ public class Complex {
 	}
 
 	/**
-	 * Checks if the imaginary part is reduced zero.
-	 * @return true if imaginary part is reduced zero, false otherwise.
-	 * @apiNote Not called anywhere in this codebase. Same rationale as {@link #isZeroRed__()}:
-	 * superseded by {@link #imPartNull()}, kept as documented dead code. Unlike imPartNull(),
-	 * also has no {@code rep==0.0} guard, so it can divide by zero.
-	 */
-	public boolean imPartNullRed__() {
-		if (Math.abs(imp/rep) <= ComplexState.zero_threshold_approx()) return true;
-		else return false;
-	}
-
-	/**
 	 * Checks if the real part is zero.
 	 * @return true if real part is zero, false otherwise.
 	 */
 	public boolean rePartNull() {
 		if (this.imp == 0.0) return this.rep == 0.0;
 		if (Math.abs(rep/imp) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR) return true;
-		else return false;
-	}
-
-	/**
-	 * Checks if the real part is reduced zero.
-	 * @return true if real part is reduced zero, false otherwise.
-	 * @apiNote Not called anywhere in this codebase. Same rationale as {@link #isZeroRed__()}:
-	 * superseded by {@link #rePartNull()}, kept as documented dead code. Unlike rePartNull(),
-	 * also has no {@code imp==0.0} guard, so it can divide by zero.
-	 */
-	public boolean rePartNullRed__() {
-		if (Math.abs(rep/imp) <= ComplexState.zero_threshold_approx()) return true;
 		else return false;
 	}
 
@@ -1288,19 +1241,6 @@ public class Complex {
 	}
 
 	/**
-	 * Compares the Complex Object with another using the equal operator.
-	 * @param cNum Complex to compare.
-	 * @return The result of the comparison.
-	 * @apiNote Not called anywhere in this codebase; only self-referential (delegates to
-	 * {@link #equalsred__(double, double)}). Superseded by {@link #equals(Complex)}, kept as
-	 * documented dead code.
-	 */
-	public boolean equalsred__(Complex cNum) {
-		return this.equalsred__(cNum.rep, cNum.imp);
-		//return this.equals(cNum.rep, cNum.imp);
-	}
-
-	/**
 	 * Compares the Complex Object with another given in Rectangular coordinates using the equal operator.
 	 * @param n1 The real part.
 	 * @param n2 The imaginary part.
@@ -1311,51 +1251,22 @@ public class Complex {
 	}
 
 	/**
-	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator.
+	 * Compares the Complex Object with another given in Rectangular coordinates using the equal
+	 * operator, ignoring {@code numDecs} (kept for signature compatibility with real callers --
+	 * {@code MatrixComplex}/{@code VectorComplex}/{@code MatrixComplexRank} -- but the comparison
+	 * always uses {@link #equals(double, double)}'s fixed threshold, same as before this method's
+	 * brief removal-then-restoral on 9 agosto 2026 confirmed it has live callers).
 	 * @param n1 The real part.
 	 * @param n2 The imaginary part.
-	 * @return The result of the comparison.
-	 * @apiNote Not called anywhere in this codebase except by {@link #equalsred__(Complex)},
-	 * which itself has no external callers either. Superseded by {@link #equals(double, double)},
-	 * kept as documented dead code.
-	 */
-	public boolean equalsred__(double n1, double n2) {
-		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
-		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ComplexState.zero_threshold_approx()) && (Math.abs(this.imp - n2) <= ComplexState.zero_threshold_approx()));
-	}
-
-	/**
-	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
-	 * @param n1 The real part.
-	 * @param n2 The imaginary part.
-	 * @param numDecs The number of precision decimals.
+	 * @param numDecs Unused.
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2, int numDecs) {
-		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
-		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ComplexState.zero_treshold()*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= ComplexState.zero_treshold()*CORRECTION_FACTOR));
+		return equals(n1, n2);
 	}
 
 	/**
-	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
-	 * @param n1 The real part.
-	 * @param n2 The imaginary part.
-	 * @param numDecs The number of precision decimals.
-	 * @return The result of the comparison.
-	 * @apiNote Not called anywhere in this codebase. Also, {@code numDecs} is accepted but never
-	 * used in the body (it compares with the fixed ZERO_THRESHOLD_APPROX regardless), which is
-	 * itself a latent bug independent of this method being dead. Kept as documented dead code.
-	 */
-	public boolean equalsred__(double n1, double n2, int numDecs) {
-		//System.out.println("equalsred REAL:" + Math.abs(this.rep - n1) + " - " + (Math.abs(this.rep - n1) <= ZERO_THRESHOLD_R));
-		//System.out.println("equalsred IMAG:" + Math.abs(this.imp - n2) + " - " + (Math.abs(this.imp - n2) <= ZERO_THRESHOLD_R));
-		return ((Math.abs(this.rep - n1) <= ComplexState.zero_threshold_approx()) && (Math.abs(this.imp - n2) <= ComplexState.zero_threshold_approx()));
-	}
-
-	/**
-	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
+	 * Compares the Complex Object with another, rounding both to {@code numDecs} decimals first.
 	 * @param cNum The complex number.
 	 * @param numDecs The number of precision decimals.
 	 * @return The result of the comparison.
@@ -1363,33 +1274,6 @@ public class Complex {
 	public boolean equals(Complex cNum, int numDecs) {
 		Complex _this_ = Complex.round(this, numDecs);
 		Complex _cNum_ = Complex.round(cNum, numDecs);
-		//System.out.println("this.rep  :" +  this.rep  + "  this.imp :" +  this .imp);
-		//System.out.println("_this_.rep:" + _this_.rep + " _this_.imp:" + _this_.imp);
-		//System.out.println(" cNum.rep :" +  cNum .rep + "  cNum.imp :" +  cNum .imp);
-		//System.out.println("_cNum_.rep:" + _cNum_.rep + " _cNum_.imp:" + _cNum_.imp);
-		return _this_.equals(_cNum_.rep, _cNum_.imp, numDecs);
-	}
-
-	/**
-	 * Compares with REDUCED THRESHOLD the Complex Object with another given in Rectangular coordinates using the equal operator with an specific number of precision decimals.
-	 * @param cNum The complex number.
-	 * @param numDecs The number of precision decimals.
-	 * @return The result of the comparison.
-	 * @apiNote Not called anywhere in this codebase. Despite the name and the commented-out line
-	 * above the return, its body no longer calls any {@code equalsred__} variant -- it delegates
-	 * to {@link #equals(double, double, int)}, so it is now a no-op wrapper around the
-	 * non-reduced comparison rather than an independent "reduced threshold" implementation.
-	 * Kept as documented dead code rather than removed or "corrected" back to reduced semantics,
-	 * since nothing calls it either way.
-	 */
-	public boolean equalsred__(Complex cNum, int numDecs) {
-		Complex _this_ = Complex.round(this, numDecs);
-		Complex _cNum_ = Complex.round(cNum, numDecs);
-		//System.out.println("this.rep  :" +  this.rep  + "  this.imp :" +  this .imp);
-		//System.out.println("_this_.rep:" + _this_.rep + " _this_.imp:" + _this_.imp);
-		//System.out.println(" cNum.rep :" +  cNum .rep + "  cNum.imp :" +  cNum .imp);
-		//System.out.println("_cNum_.rep:" + _cNum_.rep + " _cNum_.imp:" + _cNum_.imp);
-		//return _this_.equalsred(_cNum_.rep, _cNum_.imp, numDecs);
 		return _this_.equals(_cNum_.rep, _cNum_.imp, numDecs);
 	}
 

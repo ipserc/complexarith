@@ -912,8 +912,8 @@ class MatrixComplexUnary {
 			Eigenspace eigenSpace = new Eigenspace(m);
 			MatrixComplex eigenvals = eigenSpace.eigenvalues();
 			for (int row = 0; row < eigenvals.rows(); ++row) {
-				if (Math.abs(eigenvals.getItem(row, 0).imp()) < Complex.zero() &&
-						eigenvals.getItem(row, 0).rep() <= Complex.zero() )
+				if (Math.abs(eigenvals.getItem(row, 0).imp()) < Complex.zero_treshold_exact() &&
+						eigenvals.getItem(row, 0).rep() <= Complex.zero_treshold_exact() )
 					return false;
 			}
 			return true;
@@ -930,8 +930,8 @@ class MatrixComplexUnary {
 			Eigenspace eigenSpace = new Eigenspace(m);
 			MatrixComplex eigenvals = eigenSpace.eigenvalues();
 			for (int row = 0; row < eigenvals.rows(); ++row) {
-				if (Math.abs(eigenvals.getItem(row, 0).imp()) < Complex.zero() &&
-						eigenvals.getItem(row, 0).rep() < Complex.zero() )
+				if (Math.abs(eigenvals.getItem(row, 0).imp()) < Complex.zero_treshold_exact() &&
+						eigenvals.getItem(row, 0).rep() < Complex.zero_treshold_exact() )
 					return false;
 			}
 			return true;
@@ -948,8 +948,8 @@ class MatrixComplexUnary {
 			Eigenspace eigenSpace = new Eigenspace(m);
 			MatrixComplex eigenvals = eigenSpace.eigenvalues();
 			for (int row = 0; row < eigenvals.rows(); ++row) {
-				if (Math.abs(eigenvals.getItem(row, 0).imp()) > Complex.zero() &&
-						eigenvals.getItem(row, 0).rep() >= -Complex.zero() )
+				if (Math.abs(eigenvals.getItem(row, 0).imp()) > Complex.zero_treshold_exact() &&
+						eigenvals.getItem(row, 0).rep() >= -Complex.zero_treshold_exact() )
 					return false;
 			}
 			return true;
@@ -966,8 +966,8 @@ class MatrixComplexUnary {
 			Eigenspace eigenSpace = new Eigenspace(m);
 			MatrixComplex eigenvals = eigenSpace.eigenvalues();
 			for (int row = 0; row < eigenvals.rows(); ++row) {
-				if (Math.abs(eigenvals.getItem(row, 0).imp()) > Complex.zero() &&
-						eigenvals.getItem(row, 0).rep() > -Complex.zero() )
+				if (Math.abs(eigenvals.getItem(row, 0).imp()) > Complex.zero_treshold_exact() &&
+						eigenvals.getItem(row, 0).rep() > -Complex.zero_treshold_exact() )
 					return false;
 			}
 			return true;
