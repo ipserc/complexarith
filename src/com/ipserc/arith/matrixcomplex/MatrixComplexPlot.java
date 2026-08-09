@@ -269,6 +269,68 @@ public class MatrixComplexPlot {
 	}
 
 	/**
+	 * Plots one or more already-computed {@code [x,y,z]} GRIDS as a real, CONNECTED 3D surface
+	 * mesh -- unlike {@link #plotSeries3D(String, boolean, e_lineStyle3D, SimpleGnuplot.e_syncMode,
+	 * double[][]...)}, which treats every point as part of one disconnected cloud, this uses
+	 * {@link SimpleGnuplot#addPlotGrid(double[][][])} so gnuplot can tell where one "scan line"
+	 * ends and the next begins.
+	 * <p>
+	 * Deliberately does NOT take an {@link e_lineStyle3D}: {@code LINES} is the only one of the 3
+	 * that makes sense for gridded data ({@code BOXPLOT} would draw a disconnected box per point,
+	 * ignoring the grid; a hypothetical {@code SURFACE} style was the original, unverified guess
+	 * this method replaces -- see {@code Claude/ComplexArithRev.md}, 9 agosto 2026). {@code set
+	 * hidden3d} is enabled so the mesh reads as an actual solid-looking surface instead of a
+	 * see-through wireframe.
+	 * @param title The plot title.
+	 * @param logscaleZ If true sets the Z axis to logarithmic scale.
+	 * @param mode {@code SYNC} to block until gnuplot exits, {@code ASYNC} to return immediately.
+	 * @param grids One or more {@code double[rows][cols][3]} grids to plot together (every row of
+	 * a given grid must have the same number of columns).
+	 */
+	public static void plotGrid3D(String title, boolean logscaleZ, SimpleGnuplot.e_syncMode mode, double[][][]... grids) {
+		SimpleGnuplot p = new SimpleGnuplot();
+		p.newGraph3D();
+		p.setTitle(title);
+		for (double[][][] g : grids) p.addPlotGrid(g);
+		p.set("zeroaxis", "");
+		p.set("style", setLineStyle3D(e_lineStyle3D.LINES));
+		p.set("hidden3d", "");
+		if (logscaleZ) p.set("logscale", "z");
+		p.set("grid", "");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
+		p.plot(mode);
+	}
+
+	/**
+	 * Plots one or more already-computed {@code [x,y,z]} grids as a real surface, no logarithmic
+	 * Z scale. Shorthand for the logscale overload below.
+	 */
+	public static void plotGrid3DSync(String title, double[][][]... grids) {
+		plotGrid3D(title, false, SimpleGnuplot.e_syncMode.SYNC, grids);
+	}
+
+	/** Same as {@link #plotGrid3DSync(String, double[][][]...)} but returns immediately -- the
+	 * plot window stays open independently, without blocking the caller. */
+	public static void plotGrid3DAsync(String title, double[][][]... grids) {
+		plotGrid3D(title, false, SimpleGnuplot.e_syncMode.ASYNC, grids);
+	}
+
+	/** Same as {@link #plotGrid3DSync(String, double[][][]...)} but with an explicit logarithmic
+	 * Z axis flag. */
+	public static void plotGrid3DSync(String title, boolean logscaleZ, double[][][]... grids) {
+		plotGrid3D(title, logscaleZ, SimpleGnuplot.e_syncMode.SYNC, grids);
+	}
+
+	/** Same as {@link #plotGrid3DSync(String, boolean, double[][][]...)} but returns immediately
+	 * -- the plot window stays open independently, without blocking the caller. */
+	public static void plotGrid3DAsync(String title, boolean logscaleZ, double[][][]... grids) {
+		plotGrid3D(title, logscaleZ, SimpleGnuplot.e_syncMode.ASYNC, grids);
+	}
+
+	/**
 	 * Plots a table (moved from {@code MatrixComplexFunctions}, all 8 call sites are there). Used
 	 * to bring more info at debug for the Taylor/Mercator series convergence loops. No-op unless
 	 * {@link MatrixComplex#doPlot()} is on.

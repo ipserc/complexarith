@@ -18,8 +18,35 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.68 (2026_0809_1928)";
+	private final static String VERSION = "1.69 (2026_0809_1940)";
 	/* VERSION Release Note
+	 *
+	 * 1.69 (2026_0809_1940)
+	 * Superficie 3D REAL, a peticion del usuario ("puedes hacer que TestZeta05 haga un plot de
+	 * superficie real?"). Diagnostico: 2 problemas distintos, no uno. (1) SimpleGnuplot.addPlot()
+	 * volcaba TODOS los puntos como un unico bloque plano sin separadores -- splot no tiene forma
+	 * de saber donde termina una "linea de barrido" y empieza la siguiente, asi que conectaba (o
+	 * no) los puntos en un orden arbitrario en vez de una malla real, aunque los datos de
+	 * TestZeta05 ya se calculaban en orden de grid (x fuera, y dentro). (2) el estilo usado,
+	 * "data surface", no es (hasta donde se pudo razonar sin gnuplot fiable en este entorno para
+	 * confirmarlo en vivo) una palabra clave valida de "set style data" en gnuplot -- sospecha
+	 * razonada, no verificada, señalada al usuario antes de arreglar.
+	 * SimpleGnuplot.java: nuevo addPlotGrid(double[][][]) + buildScript() ampliado para insertar
+	 * una linea en blanco tras cada fila de un grid (la convencion que splot necesita para
+	 * conectar puntos DENTRO de una fila sin conectar a traves de filas -- confirmado el formato
+	 * exacto por inspeccion del script generado via reflexion, sin lanzar gnuplot,
+	 * ScratchSimpleGnuplotGridVerify01.java conservado). Sigue sin VERSION propio.
+	 * MatrixComplexPlot.java: nuevo plotGrid3D()/plotGrid3DSync/Async -- deliberadamente SIN
+	 * parametro de estilo (a diferencia de plotSeries3D()): LINES es la unica de las 3 opciones
+	 * de e_lineStyle3D que tiene sentido para datos en grid (BOXPLOT dibujaria una caja
+	 * desconectada por punto, ignorando el grid; "SURFACE" era precisamente la suposicion sin
+	 * verificar que este cambio sustituye). "set hidden3d" activado siempre, para que la malla se
+	 * vea como una superficie solida real, no un alambre transparente.
+	 * TestZeta05.java: reconstruido para pasar un grid double[sampleBase][sampleBase][3] en vez
+	 * de una lista plana -- los datos YA se calculaban en ese orden (fila=indice de x,
+	 * columna=indice de y), solo hacia falta reindexar la salida de coordPlot[k] a
+	 * pointsRe/Im[row][col] en vez de aplanarla. plot() pierde el parametro "samples" (ya estaba
+	 * muerto en la version original, solo referenciado en una linea comentada).
 	 *
 	 * 1.68 (2026_0809_1928)
 	 * MatrixComplexPlot.java: nuevos metodos 3D (e_lineStyle3D {LINES,BOXPLOT,SURFACE},

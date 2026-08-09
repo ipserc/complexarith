@@ -70,6 +70,21 @@ public class SimpleGnuplot {
 		plotTerms.add(data);
 	}
 
+	/**
+	 * Adds a GRIDDED 3D data series: {@code grid[row][col]} is one {@code [x,y,z]} point. Unlike
+	 * {@link #addPlot(double[][])} (a flat, unstructured point list -- gnuplot draws it as a
+	 * disconnected cloud, or connects EVERY point in sequence for {@code lines}), this emits a
+	 * blank line after each {@code row} in the data block, gnuplot's own convention for marking
+	 * the end of a "scan line" -- the format {@code splot} needs to connect points into an actual
+	 * surface mesh (each row forms one isoline; blank lines keep {@code lines}/{@code pm3d} from
+	 * connecting across rows). Only meaningful in 3D mode (see {@link #newGraph3D()}); every row
+	 * must have the same number of columns for the resulting mesh to be well-formed.
+	 * @param grid The grid of points, {@code grid[row][col] = {x, y, z}}.
+	 */
+	public void addPlotGrid(double[][][] grid) {
+		plotTerms.add(grid);
+	}
+
 	/** Adds a native gnuplot expression term (e.g. {@code "sin(x)"}, {@code "[-2:4] x**2+1"}) --
 	 * gnuplot evaluates it directly, no sampling in Java. */
 	public void addPlot(String expression) {
@@ -121,7 +136,7 @@ public class SimpleGnuplot {
 		for (String raw : postInit) sb.append(raw).append('\n');
 
 		List<String> termClauses = new ArrayList<>();
-		List<double[][]> dataBlocks = new ArrayList<>();
+		List<Object> dataBlocks = new ArrayList<>(); // each element: double[][] (flat) or double[][][] (grid)
 		int seriesN = 0;
 		for (Object term : plotTerms) {
 			if (term instanceof String) {
@@ -130,14 +145,27 @@ public class SimpleGnuplot {
 			} else {
 				++seriesN;
 				termClauses.add("'-' title 'Series " + seriesN + "'");
-				dataBlocks.add((double[][]) term);
+				dataBlocks.add(term);
 			}
 		}
 		sb.append(is3D ? "splot " : "plot ").append(String.join(", ", termClauses)).append('\n');
-		for (double[][] data : dataBlocks) {
-			for (double[] row : data) {
-				for (double v : row) sb.append(v).append(' ');
-				sb.append('\n');
+		for (Object block : dataBlocks) {
+			if (block instanceof double[][][]) {
+				// Gridded surface: a blank line after each row marks the end of a "scan line",
+				// so splot connects points WITHIN a row but not across rows -- the format needed
+				// for a real connected mesh instead of a disconnected point cloud.
+				for (double[][] row : (double[][][]) block) {
+					for (double[] point : row) {
+						for (double v : point) sb.append(v).append(' ');
+						sb.append('\n');
+					}
+					sb.append('\n');
+				}
+			} else {
+				for (double[] row : (double[][]) block) {
+					for (double v : row) sb.append(v).append(' ');
+					sb.append('\n');
+				}
 			}
 			sb.append("e\n");
 		}
