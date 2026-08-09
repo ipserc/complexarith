@@ -106,7 +106,6 @@ public class TestEigenV11 {
      	Complex.setFormatON();
      	Complex.setFixedON(6);
      	Eigenspace.version();
-     	Complex.exact(true);
      	Complex.facts();
 
      	/* */

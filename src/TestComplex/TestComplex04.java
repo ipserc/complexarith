@@ -41,7 +41,6 @@ public class TestComplex04 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "POWER OPERATIONS WITH Z"));
 		Complex.setFormatON();
 		//Complex.setFixedON(16);
-		Complex.exact(true);
 		Complex.facts();
 		Complex.printFormatStatus();
 		z.setComplexRec(5, 0);

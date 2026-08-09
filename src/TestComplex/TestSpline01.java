@@ -86,7 +86,6 @@ public final class TestSpline01 {
 		//Complex.setFormatOFF();
 		//Complex.precision(1E-150);
 		
-		Complex.exact(false);
 		Complex.setScientificON(sigDigits);
 		//Complex.setFixedON(5);
 		Polynom.sampleBase = 500;

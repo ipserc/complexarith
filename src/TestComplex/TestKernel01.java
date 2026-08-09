@@ -84,7 +84,6 @@ public class TestKernel01 {
 		
 		Complex.setFormatON();
 		Complex.setFixedON(3);
-		Complex.exact(true);
 		
 		/* * /
 		aMatrix = new MatrixComplex(""

@@ -169,7 +169,6 @@ public class TestSchur00 {
 		// Complex.resetFormatStatus();
 		// Complex.restorePrecisionFactorySettings();
     	Complex.setFormatON();
-    	Complex.exact(true);
     	MatrixComplex.debugOFF();
     	MatrixComplex.doPlotON();
     	// Complex.digits(10000000);

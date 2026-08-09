@@ -111,19 +111,20 @@ public class TestEigenV21 {
     	MatrixComplex aMatrix = new MatrixComplex();
      	int boxSize = 65;
 
-    	Complex.exact(true);
     	Complex.setFormatON();
      	Complex.setFixedON(4);
      	//Complex.setScientificON(4);
      	Complex.showPrecision();
      	Eigenspace.version();
 
+     	/*
 	    aMatrix = new MatrixComplex(""
 	    		+ "+1.0000E+00,+1.0000E+00,+2.0000E+00,-2.0000E+00,-3.0000E+00;"
 	    		+ "-1.0000E+00,+3.0000E+00,+3.0000E+00,-3.0000E+00,-3.0000E+00;"
 	    		+ "-3.0000E+00,-3.0000E+00,+2.0000E+00,-2.0000E+00,+1.0000E+00;"
 	    		+ "-3.0000E+00,-2.0000E+00,-2.0000E+00,+3.0000E+00,+2.0000E+00;"
 	    		+ "-1.0000E+00,+3.0000E+00,+1.0000E+00,+2.0000E+00,+2.0000E+00");
+	    */
 	    //aMatrix = aMatrix.skewHermitian();
 	    aMatrix = new MatrixComplex(""
 	    		+ "+2.0,-3.0,-2.0,+3.0,-1.0;"
@@ -131,16 +132,6 @@ public class TestEigenV21 {
 	    		+ "-1.0,+1.0,+1.0,+1.0,-1.0;"
 	    		+ "+1.0,-3.0,-1.0,+3.0,+1.0;"
 	    		+ "-2.0,+2.0,+1.0,-2.0,+1.0");
-
-		doEigenCalculations(aMatrix);
-		
-		/* ***********************************************
-		 *                 APROXIMATED
-		 *********************************************** */
-    	Complex.exact(false);
-       	System.out.println("");
-       	System.out.println(Complex.boxTitleRandom(boxSize, "APROXIMATED"));
-    	Complex.showPrecision();
 
 		doEigenCalculations(aMatrix);
 

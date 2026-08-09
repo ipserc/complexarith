@@ -71,7 +71,6 @@ public class TestTaylorSeries07 {
 		Complex.resetFormatStatus();
 		Complex.restorePrecisionFactorySettings();
     	Complex.setFormatON();
-    	Complex.exact(true);
     	MatrixComplex.debugOFF();
     	MatrixComplex.doPlotOFF();
     	Complex.digits(10000000);

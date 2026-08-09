@@ -31,7 +31,6 @@ public final class TestSpline02 {
 		Complex uplimit;
 
 		Complex.setFormatON();
-		Complex.exact(false);
 		Complex.setScientificON(sigDigits);
 		//Complex.setFixedON(5);
 		Polynom.sampleBase = 500;

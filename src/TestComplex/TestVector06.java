@@ -71,7 +71,6 @@ public class TestVector06 {
        	MatrixComplex baseSVect;
 		boolean isBase = true;
 
-		Complex.exact(false);
     	Complex.setFixedON(4);
     	Complex.setScientificOFF();
     	Complex.setFormatON();

@@ -39,7 +39,6 @@ public class ScratchInverseRankRelTolCalib01 {
 
 	public static void main(String[] args) {
 		Complex.setFormatOFF();
-		Complex.exact(true);
 
 		System.out.println("=== (1) WELL-CONDITIONED INVERTIBLE, several scales ===");
 		double[] scales = {1, 8, 30, 200};

@@ -90,7 +90,6 @@ public class TestTaylorSeries03 {
 		Complex.restorePrecisionFactorySettings();
     	Complex.setFixedON(4);
     	Complex.setFormatON();
-    	Complex.exact(true);
     	MatrixComplex.debugOFF();
     	Complex.digits(10000000);
     	

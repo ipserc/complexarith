@@ -116,28 +116,11 @@ public class TestEigenV19 {
      	//Complex.setFixedON(4);
      	//Complex.setScientificON(4);
      	
-		/* ***********************************************
-		 *                     EXACT
-		 *********************************************** */
-    	Complex.exact(true);
        	System.out.println("");
        	System.out.println(Complex.boxTitleRandom(boxSize, "EXACT"));
      	Complex.showPrecision();
-       	System.out.println(Complex.boxTextRandom(boxSize, "EXACT uses ZERO_THRESHOLDER_EXACT in ZERO_THRESHOLDER to decicde when a number is ZERO or not"));
 
      	aMatrix = new MatrixComplex("-4.0,1.0,-4.0;-1.0,5.0,-3.0;4.0,-3.0,-5.0");
-	    doEigenCalculations(aMatrix);
-
-		/* ***********************************************
-		 *                 APROXIMATED
-		 *********************************************** */
-    	Complex.exact(false);
-       	System.out.println("");
-       	System.out.println(Complex.boxTitleRandom(boxSize, "APROXIMATED"));
-    	Complex.showPrecision();
-       	System.out.println(Complex.boxTextRandom(boxSize, "APROXIMATED uses ZERO_THRESHOLDER_APPROX in ZERO_THRESHOLDER to decicde when a number is ZERO or not"));
-
-	    aMatrix = new MatrixComplex("-4.0,1.0,-4.0;-1.0,5.0,-3.0;4.0,-3.0,-5.0");
 	    doEigenCalculations(aMatrix);
 
 	}

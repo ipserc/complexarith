@@ -139,7 +139,6 @@ public class TestTaylorSeries05 {
 		Complex.restorePrecisionFactorySettings();
     	//Complex.setScientificON(8);;
     	Complex.setFormatON();
-    	Complex.exact(false);
     	MatrixComplex.debugOFF();
     	MatrixComplex.doPlotOFF();
     	Complex.digits(10000000);

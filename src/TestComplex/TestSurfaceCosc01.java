@@ -92,7 +92,6 @@ public class TestSurfaceCosc01 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "COMPLEX COSC TEST"));
 		Complex.setFormatON();
 		Complex.setScientificON(8);
-		Complex.exact(false);
 		Complex.precision(1E-18);
 		Complex.facts();
 		Complex.printFormatStatus();

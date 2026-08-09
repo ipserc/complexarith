@@ -19,7 +19,6 @@ public class TestSVD05 {
 		boolean UVproperties = true;
 		
 		Complex.printBoxTitleRandom(boxSize, "SVD FACTORIZATION TEST");
-		Complex.printBoxTextRandom(boxSize, "EXACT:" + Complex.exact());
 		Complex.printBoxTextRandom(boxSize, "Method:" + A.getMethodName());
 		if (!A.factorized())
 			Complex.printBoxTextRandom(boxSize, "F A I L ! ! ! ! ! ! !");
@@ -108,7 +107,6 @@ public class TestSVD05 {
 		// Complex.resetFormatStatus();
 		// Complex.restorePrecisionFactorySettings();
     	Complex.setFormatON();
-    	Complex.exact(true);
     	MatrixComplex.debugOFF();
     	MatrixComplex.doPlotON();
     	// Complex.digits(10000000);

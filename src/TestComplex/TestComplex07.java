@@ -45,7 +45,6 @@ public class TestComplex07 {
         Complex g = new Complex();
         
         Complex.setFormatON();
-        Complex.exact(false);
         Complex.setRepres(Complex.Representation.RECTANGULAR);
 
         Complex.facts();

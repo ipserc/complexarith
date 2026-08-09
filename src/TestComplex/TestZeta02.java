@@ -86,7 +86,6 @@ public class TestZeta02 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "COMPLEX RIEMANN ZETA TEST"));
 		Complex.setFormatON();
 		Complex.setScientificON(8);
-		Complex.exact(true);
 		Complex.facts();
 		Complex.printFormatStatus();
 		/*

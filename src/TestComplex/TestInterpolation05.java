@@ -69,7 +69,6 @@ public class TestInterpolation05 {
 		Complex.zero_threshold_exact(0);
 		Complex.zero_threshold_approx(1E-40);
 		Complex.setFormatON();
-		Complex.exact(true);
 		Complex.setScientificON(9);
 		//Complex.setFixedON(5);
 

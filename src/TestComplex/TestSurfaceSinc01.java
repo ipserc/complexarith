@@ -91,7 +91,6 @@ public class TestSurfaceSinc01 {
 		System.out.println(Complex.boxTitleRandom(boxSize, "COMPLEX SINC TEST"));
 		Complex.setFormatON();
 		Complex.setScientificON(8);
-		Complex.exact(false);
 		Complex.precision(1E-18);
 		Complex.facts();
 		Complex.printFormatStatus();

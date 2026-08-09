@@ -15,7 +15,6 @@ public class ScratchEigenGeomMultBug02 {
 	public static void main(String[] args) {
 		Complex.setFormatON();
 		Complex.setFixedON(4);
-		Complex.exact(true);
 
 		MatrixComplex aMatrix = new MatrixComplex(
 				"+5,+5,+3,+4,+4,+2,+1;" +

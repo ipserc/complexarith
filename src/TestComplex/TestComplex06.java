@@ -44,7 +44,6 @@ public class TestComplex06 {
         Complex g = new Complex();
         
         Complex.setFormatON();
-        Complex.exact(false);
         Complex.setRepres(Complex.Representation.POLAR);
 
         Complex.facts();

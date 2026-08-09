@@ -139,7 +139,6 @@ public class TestEigenV17 {
     	int size = 7;
     	int wide =11;
 
-    	Complex.exact(true);
     	Complex.setFormatON();
      	//Complex.setFixedON(4);
      	//Complex.setScientificON(4);

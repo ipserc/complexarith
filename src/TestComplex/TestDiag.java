@@ -47,7 +47,6 @@ public class TestDiag {
     	
     	Complex.setFormatON();
     	Complex.setFixedON(3);
-    	Complex.exact(false); // WHATCH THIS
 
     	diagMatrix = new Diagfactor("1,3,-1; 3,9,2; 3,6,-3");
     	showResults(diagMatrix);

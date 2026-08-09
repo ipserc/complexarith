@@ -30,7 +30,6 @@ public class ScratchPurificationProbe01 {
 
 		System.out.println("precision()=" + Complex.precision());
 		System.out.println("maxPrec=sqrt(precision*10)=" + Math.sqrt(Complex.precision() * 10));
-		System.out.println("exact()=" + Complex.exact());
 
 		System.out.println();
 		System.out.println("=== DETERMINISTIC (solve(), full precision display) ===");

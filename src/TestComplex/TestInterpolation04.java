@@ -38,7 +38,6 @@ public class TestInterpolation04 {
 		int boxSize = 65;
 		
 		Complex.setFormatON();
-		Complex.exact(false); // Use this to make all the operations with the default accuracy of the processor
 		Complex.setScientificON(8);
 		//Complex.setFixedON(5);
 		

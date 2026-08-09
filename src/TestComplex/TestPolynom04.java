@@ -74,17 +74,13 @@ public class TestPolynom04 {
 		Complex.setFormatOFF();
 		Complex.setScientificON(12, true);
 		//Complex.setFixedON(5);
-		System.out.printf("zero_treshold:%g\n", Complex.zero_treshold());
 		System.out.printf("zero_treshold_exact:%g\n", Complex.zero_treshold_exact());
 		Complex.zero_threshold_exact_prec(1E-120);
-		System.out.printf("zero_treshold:%g\n", Complex.zero_treshold());
 		System.out.printf("zero_treshold_exact:%g\n", Complex.zero_treshold_exact());
 		/*
 		Complex.restorePrecisionFactorySettings();
-		System.out.printf("zero_treshold:%g\n", Complex.zero_treshold());
 		System.out.printf("zero_treshold_exact:%g\n", Complex.zero_treshold_exact());
 		*/
-		Complex.exact(true);
 		
     	System.out.println(Complex.boxTitle1(boxSize, "APPROXIMATION INTERPOLATION TO FIND PRIME NUMBERS BASED IN ITS ORDINAL"));
     	/*

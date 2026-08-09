@@ -188,7 +188,6 @@ public class TestTaylorLogExp03a {
 		Complex.restorePrecisionFactorySettings();
     	//Complex.setScientificON(8);;
     	Complex.setFormatON();
-    	Complex.exact(true);
 		Complex.numpPadPLUS();
     	MatrixComplex.debugOFF();
     	Complex.digits(100000);

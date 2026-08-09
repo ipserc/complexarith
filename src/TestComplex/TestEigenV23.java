@@ -125,7 +125,6 @@ public class TestEigenV23 {
  		Eigenspace.setNormalize(true);
 		Eigenspace.setOrderDOWN();
 
-		boolean doApprox = false;
 		boolean doExact = true;
 		boolean found;
 		int iter = 1;
@@ -161,23 +160,12 @@ public class TestEigenV23 {
 		/* */
 
 		System.out.println("Iter:" + iter++);
-		if (doApprox) {
-			/* ***********************************************
-			*                 APROXIMATED
-			*********************************************** */
-			System.out.println(Complex.boxTitleRandom(boxSize, "APROXIMATED"));
-			Complex.exact(false);
-			found = doEigenCalculations(aMatrix);
-
-		}
-
 		if (doExact) {
 			System.out.println("");
 			/* ***********************************************
 			*                    EXACT
 			*********************************************** */
 			System.out.println(Complex.boxTitleRandom(boxSize, "EXACT"));
-			Complex.exact(true);
 			found = doEigenCalculations(aMatrix);
 		}
 

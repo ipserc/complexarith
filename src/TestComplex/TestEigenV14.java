@@ -12,8 +12,7 @@ import com.ipserc.arith.factorization.Diagfactor;
 
 public class TestEigenV14 {
 
-	public static void doEigenCalculations(MatrixComplex aMatrix, boolean exact) {
-		Complex.exact(exact);
+	public static void doEigenCalculations(MatrixComplex aMatrix) {
 		Complex seed = new Complex(1,0);
 		Complex.facts();
 		Eigenspace eigenSpace = new Eigenspace(seed, aMatrix);
@@ -146,7 +145,6 @@ public class TestEigenV14 {
      	// INCorrect EIGEN - enviar este ejempplo a Wolfram
      	//aMatrix = new MatrixComplex("3.0000,-6.0000,-4.0000;-1.0000,-4.0000,4.0000;6.0000,-3.0000,-6.0000");
 
-     	doEigenCalculations(aMatrix, true); //Exact
-      	doEigenCalculations(aMatrix, false); //Approx
+     	doEigenCalculations(aMatrix);
 	}
 }

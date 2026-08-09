@@ -103,7 +103,6 @@ public class TestEigenV16 {
 	public static void main(String[] args) {
     	MatrixComplex aMatrix = new MatrixComplex();
 
-    	Complex.exact(true);
     	Complex.setFormatON();
      	//Complex.setFixedON(4);
      	//Complex.setScientificON(4);

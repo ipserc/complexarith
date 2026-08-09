@@ -38,7 +38,6 @@ public class TestRoots01 {
     	
 		Complex.setFormatON();
 		Complex.setScientificON(9);
-		Complex.exact(false);
 		Complex.precision(1E-18);
 		Complex.facts();
 		Complex.printFormatStatus();
