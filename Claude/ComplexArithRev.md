@@ -2727,7 +2727,7 @@ Reproducido y medido con `ScratchApproxGeomMultDiag01.java` (conservado): `QRSch
 
 **Verificado sin regresión**: los 6 tests que comparan ambos modos (`TestEigenV19-23`, `TestSVD05`) dan ahora resultados idénticos entre EXACT y APPROXIMATED (antes divergían); batería de 38 tests de Polynom/Determinant/Diag/Jordan/LU/QR/Rank/SVD sin cambios de comportamiento (2 fallos preexistentes ya documentados, confirmados idénticos: `TestJordan01` exit=1, `TestRank04` — el único "fallo" fue un timeout de script de 30s, el test en sí tarda ~33s de forma inherente, no es una regresión). Script de diagnóstico conservado: `ScratchApproxGeomMultDiag01.java`.
 
-**Sin punto de retomada pendiente** — commit local hecho, sin pushear (pendiente de confirmación del usuario).
+Commits `75f8ffa`/`a5b4bf1` pusheados a `origin/master` (confirmado por el usuario tras esta parte).
 
 ## Continuación de la Vigesimosegunda sesión — eliminación completa del mecanismo EXACT/APPROXIMATED
 
@@ -2739,7 +2739,29 @@ El usuario, tras confirmar que el modo APPROXIMATED ya no afectaba a ningún cá
 
 **Verificado**: los 42 ficheros de `src/com` compilan limpios de forma aislada; los 312 ficheros de `src/TestComplex` compilan limpios salvo 2 con errores preexistentes sin relación (`matesJosete.java`, `Testproducts01.java`, confirmado vía `git log`/`git diff` que nunca se tocaron en esta sesión). Batería de 128 tests ejecutados, 124 exit 0; los 4 restantes investigados uno a uno y confirmados sin relación con el cambio (guardas deliberadas de `TestVector01/03/04`/`TestTaylorSeries0X`, ruta Linux hardcodeada de `TestZeta04`, gnuplot.exe poco fiable en este entorno para los `TestSurface*`, y `TestZeta06` reproducido colgándose igual en el commit original `71fa2ab`, de antes de toda la sesión). `TestJordan01`/`TestDeterminant03/05`/`TestRank04` excluidos por lentitud/fallo ya documentados en sesiones anteriores.
 
-**Sin punto de retomada pendiente** — 4 commits locales de la sesión (`75f8ffa`, `a5b4bf1`, `3fb5d5e`, `0e9ddcb`), sin pushear (pendiente de confirmación del usuario).
+Commits `3fb5d5e`/`0e9ddcb` + doc `f29ec01` pusheados a `origin/master`.
+
+## Continuación de la Vigesimosegunda sesión — revisión del cierre de `Polynom.java` (a petición del usuario)
+
+El usuario pidió revisar específicamente el punto "los 4 solvers de raíces dejan de redondear condicionalmente" del resumen anterior. Revisión: la lógica en sí es correcta y está verificada (`solveRobust()==solveWeierstrass()` byte a byte con `ScratchSolveRobustTier301.java`, sin tests que comparen raíces de `Polynom` con `equals()`/asserts que dependieran del redondeo retirado). Encontrado un resto menor: en `solveWeierstrass()`/`solveAberth()` la variable `numOfDecs` (y ~18 líneas de comentario justificando su cálculo, escritas para el redondeo ya retirado) seguía calculándose sin uso real, solo referenciada por un `System.out.println` dentro de `DEBUG_ON` — limpiada junto con un bloque ya comentado (`isZeroRed()`/`Complex.round()`, más antiguo que el propio `numOfDecs`) que también la mencionaba. Sin cambio de comportamiento, reverificado con la misma batería. `Polynom.VERSION` 1.25→1.26. Commit `1182631`, pusheado a `origin/master`.
+
+## SESIÓN PAUSADA — Vigesimosegunda sesión (9 agosto 2026), a petición del usuario ("Paramos por ahora")
+
+**EXACTO PUNTO DE RETOMADA**: todo lo de esta sesión está commiteado y pusheado a `origin/master` (último commit `1182631`). Nada a medias a nivel de código — verificado `git status`/`git rev-parse HEAD` == `git rev-parse origin/master` antes de pausar. Solo quedan sin trackear/commitear `Claude/ClaudeRevisionComplexArith.txt` (modificado) y `Claude/Commands.txt` (nuevo) — ambos ficheros propios del usuario, no tocados en ninguna sesión, fuera del alcance de este documento.
+
+**Resumen de la sesión completa** (arrancó retomando `Claude/ComplexArithRev.md` desde cero al inicio de la sesión, sin punto de retomada pendiente de la Vigesimoprimera):
+1. Trabajo previo a esta sesión (no relacionado con EXACT/APPROXIMATED): eliminación de la dependencia `com.panayotis.gnuplot` (clases compiladas + javadoc + el único script bloqueador aparcado con el convenio del "* /"), y `README.md`/`README.txt`/`LEEME.txt` reescritos con los highlights reales del proyecto (commits `1c6ed53`/`b551234`).
+2. El usuario reportó que su demostración histórica del "coladero" de `ZERO_THRESHOLD_APPROX` ya no reproducía — investigado hasta la causa raíz (`QRSchurfactor.factorize()` deflacionaba con un umbral dependiente de modo, dejando autovalores con más error residual en `APPROXIMATED`, que el `SINGULARITY_REL_TOL` fijo de la sesión anterior ya no consideraba "casi singular").
+3. Desacoplamiento inicial del primitivo `Complex.isZero()`/`equals()`/`imPartNull()`/`rePartNull()` del modo global (commits `75f8ffa`/`a5b4bf1`) — confirmado que `APPROXIMATED` deja de afectar a cualquier cálculo, solo quedaba un rastro cosmético en `ComplexFormat`.
+4. A petición explícita del usuario ("elimínalo del todo"), investigado el alcance completo (~70 sitios directos + 9 más descubiertos vía `Complex.zero()`, no detectados en el paso 3) y eliminado el mecanismo EXACT/APPROXIMATED por completo de `com.ipserc.arith.complex` — `Complex.exact()`/`exact(boolean)`/`exact_str()`/`EXACT`/`ZERO_THRESHOLD` (el agregado) retirados; `ZERO_THRESHOLD_APPROX` conservado como constante fija independiente (commit `3fb5d5e`).
+5. Los 75 ficheros de `TestComplex` que llamaban a esa API, editados (nunca borrados) vía un fork delegado — 3 categorías (boilerplate/getter embebido/comparación real de ambos modos retirada) — compilación completa + batería de 128 tests verificada (commit `0e9ddcb`).
+6. Documentación de continuidad actualizada en 2 pasadas (commits `a5b4bf1`/`f29ec01`).
+7. Revisión a petición del usuario del punto de `Polynom.java`, resto muerto (`numOfDecs`) encontrado y limpiado (commit `1182631`).
+8. Todo pusheado a `origin/master` a medida que se completaba cada parte.
+
+**Único candidato suelto, sin empezar, sin urgencia** (heredado de la Vigésima sesión, sin cambios): decidir si merece la pena borrar `classes/com/panayotis` — YA RESUELTO en esta sesión (ver punto 1 arriba), este candidato queda CERRADO.
+
+**Sin punto de retomada pendiente** — preguntar al usuario por dónde seguir la próxima vez.
 
 ---
 
