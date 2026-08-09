@@ -32,7 +32,6 @@ package TestComplex;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
-import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle3D;
 
 import java.awt.image.SampleModel;
 import java.io.BufferedReader;
@@ -43,8 +42,8 @@ import java.util.List;
 
 public class TestSurfaceCosc01 {
 
-	public static void plot(String title, long samples, double points[][]) {
-		MatrixComplexPlot.plotSeries3DSync(title, e_lineStyle3D.BOXPLOT, points);
+	public static void plot(String title, double[][][] grid) {
+		MatrixComplexPlot.plotGrid3DSync(title, grid);
 	}
 
     public static void main(String[] args) {
@@ -91,19 +90,26 @@ public class TestSurfaceCosc01 {
 		}
 		
 		Complex.printBoxText(2, boxSize, "Distributing...");
-	    double[][] pointsRe = new double[k][3];
-	    double[][] pointsIm = new double[k][3];
+		// Reshaped from the flat, k-indexed coordPlot into a proper [row][col] grid instead of a
+		// flat point list: the calculation loop above sweeps ALL of y (sampleBase iterations) for
+		// each x before moving to the next x, so row = i/sampleBase (x index), col = i%sampleBase
+		// (y index) recovers the exact grid the data was already computed in. A real connected
+		// surface mesh (MatrixComplexPlot.plotGrid3DSync()) needs that structure -- the flat list
+		// this used to build only supported a disconnected point cloud, never a real surface.
+	    double[][][] pointsRe = new double[sampleBase][sampleBase][3];
+	    double[][][] pointsIm = new double[sampleBase][sampleBase][3];
 	    for (int i = 0; i < k; ++i) {
-    		pointsRe[i][0] = coordPlot[i][XY].rep();
-    		pointsRe[i][1] = coordPlot[i][XY].imp();
-    		pointsRe[i][2] = coordPlot[i][Z].rep();
-    		pointsIm[i][0] = coordPlot[i][XY].rep();
-    		pointsIm[i][1] = coordPlot[i][XY].imp();
-    		pointsIm[i][2] = coordPlot[i][Z].imp();
+	    	int row = i / sampleBase, col = i % sampleBase;
+    		pointsRe[row][col][0] = coordPlot[i][XY].rep();
+    		pointsRe[row][col][1] = coordPlot[i][XY].imp();
+    		pointsRe[row][col][2] = coordPlot[i][Z].rep();
+    		pointsIm[row][col][0] = coordPlot[i][XY].rep();
+    		pointsIm[row][col][1] = coordPlot[i][XY].imp();
+    		pointsIm[row][col][2] = coordPlot[i][Z].imp();
     	}
-	    
+
 		Complex.printBoxText(3, boxSize, "Plotting...");
-		plot("Re(Z)", sampleBase, pointsRe);
-		plot("Im(Z)", sampleBase, pointsIm);
+		plot("Re(Z)", pointsRe);
+		plot("Im(Z)", pointsIm);
     }
 }

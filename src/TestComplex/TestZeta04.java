@@ -31,86 +31,21 @@ package TestComplex;
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
-import com.ipserc.arith.plot.SimpleGnuplot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
 
 import java.awt.image.SampleModel;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TestZeta04 {
-	
-	public static void plot(long samples, double points[][][]) {
-		SimpleGnuplot p = new SimpleGnuplot();
-		p.newGraph3D();
-		p.setTitle("PRUEBA");
-		//p.addGraph(points);
-		p.set("zeroaxis", "");
-		// p.set("style", "data lines");
-		// p.set("style", "data polygons");
-		p.set("style", "data boxplot");
-		// p.set("style", "data surface");
-		// p.set("style", "data rgbalpha");
-		//p.set("style", "data isosurface");
-		//p.set("xrange", "[0:"+samples+"]");
-		p.set("grid","");
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		p.plot(SimpleGnuplot.e_syncMode.SYNC);
+
+	public static void plot(String title, double[][][] grid) {
+		MatrixComplexPlot.plotGrid3DSync(title, grid);
 	}
 
-	public static File newFile(String filename) {
-		File fileHdlr = (File)null;
-		Path filePath = FileSystems.getDefault().getPath(filename);
-		if (Files.exists(filePath, LinkOption.NOFOLLOW_LINKS )) {
-			try {
-				Files.delete(filePath);
-			}
-			catch (IOException e) {
-		        System.out.println("Deletion "+ filePath.getFileName() + " error occurred.");
-		        e.printStackTrace();
-		        System.exit(e.hashCode());
-		        //return (File)null;
-		      } 
-		}
-	    try {
-	        fileHdlr = new File(filename);
-	        if (fileHdlr.createNewFile()) {
-	          System.out.println("File created: " + fileHdlr.getName());
-	        } else {
-	          System.out.println("File already exists.");
-	        }
-	      } catch (IOException e) {
-	        System.out.println("Creation " + filename + " error occurred.");
-	        e.printStackTrace();
-	        System.exit(e.hashCode());
-	        //return (File)null;
-	      }
-	    return fileHdlr;
-	}
-	
-	public static FileWriter newFileWriter(String filename) {
-		FileWriter fileWriteHdlr = (FileWriter)null;
-	    try {
-	    	fileWriteHdlr = new FileWriter(filename);
-	        System.out.println("Successfully created write file: " + filename);
-	      } catch (IOException e) {
-	        System.out.println("Error occurred creating write file: " + filename);
-	        e.printStackTrace();
-	        System.exit(e.hashCode());
-	      }
-	    return fileWriteHdlr;
-	}
-	
-	
     public static void main(String[] args) {
     	int XY = 0, Z = 1;
 		Complex s = new Complex();
@@ -168,42 +103,7 @@ public class TestZeta04 {
 	    		pointsIm[i][j][2] = coordPlot[i][j][Z].imp();
 	    	}
 
-	    FileWriter fileWriteHdlr = newFileWriter("/home/ipserc/eclipse-workspace/complexarith_github/data/Zeta.dat");
-	    
-	    int row = 0, col;
-	    String dataLine;
-	    
-	    try {
-		    // row 0
-		    dataLine = "";
-		    // 1st item
-		    dataLine += (sampleBase+1) + " ";
-		    for (col = 0; col < sampleBase; ++col) {
-		    	// set the x values
-		    	dataLine += pointsRe[row][col][1] + " ";
-		    }
-		    
-		    System.out.println(dataLine);
-		    fileWriteHdlr.write(dataLine+"\n");
-		    
-		    // 1 <= row <= samplebase
-		    for (row = 1; row <= sampleBase; ++row) {
-		    	col = 0;
-			    dataLine = "";
-			    dataLine += pointsRe[row-1][col][0] + " ";
-			    for (col = 1; col <= sampleBase; ++col) {
-				    dataLine += pointsRe[row-1][col-1][2] + " ";		    	
-			    }
-			    System.out.println(dataLine);
-			    fileWriteHdlr.write(dataLine+"\n");
-		    }
-		    fileWriteHdlr.flush();
-		    fileWriteHdlr.close();
-	    }
-	    catch (IOException e) {
-	        System.out.println("An error occurred writing in file: " + fileWriteHdlr.toString());
-	        e.printStackTrace();
-	        return;
-	    }
+	    plot("Re(Z)", pointsRe);
+	    plot("Im(Z)", pointsIm);
     }
 }
