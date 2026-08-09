@@ -18,8 +18,43 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.65 (2026_0809_1018)";
+	private final static String VERSION = "1.67 (2026_0809_1922)";
 	/* VERSION Release Note
+	 *
+	 * 1.67 (2026_0809_1922)
+	 * timesEqRaw() cableado en los 10 sitios de acumulador powMatrix/powMat de los 7 metodos
+	 * Taylor/Mercator de MatrixComplexFunctions.java (exp_, trigonTaylor -x3-, trigonHyperbolyc-
+	 * Taylor -x2-, logTaylor, logMercator, logHat -x2-, xMat en el ultimo), sustituyendo timesEq()
+	 * por timesEqRaw() (VERSION 1.66) en cada sitio. A diferencia del intento anterior de esta
+	 * misma familia de candidatos ("*Eq a nivel MatrixComplex", Decimoctava sesion, sin ganancia
+	 * de tiempo de pared medible), este SI da una ganancia real y grande, medida con
+	 * ScratchTimesEqRawBench01.java (conservado): timesEqRaw() vs timesEq() en un producto
+	 * aislado, 3.3x (N=8) a 6.9x (N=200) mas rapido; en una cadena de 20 productos encadenados
+	 * (el patron real del do-while de Taylor), 5-6x mas rapido en N=8/50/100. Verificado sin
+	 * regresion: ScratchTimesEqRawWiringVerify01.java (conservado) da salida byte a byte
+	 * identica a un build de referencia desde HEAD en los 9 delegadores publicos (exp_/sinTaylor/
+	 * cosTaylor/sinhTaylor/coshTaylor/logTaylor/logMercator/logHat/logm); bateria de 11 ficheros
+	 * (misma de la Decimoctava sesion) con exit codes identicos en ambos builds (5 fallos
+	 * preexistentes de TestTaylorSeries01-04/07, mismo stack trace exacto salvo numero de linea);
+	 * bateria adicional de 100 ficheros (Eigen/Jordan/Diag/SVD/Schur/Rank/Solve/Syseq/Line/
+	 * MatrixOperators/LU/Determinant) con exit codes identicos (solo TestJordan01 exit=1,
+	 * preexistente y ya documentado). Scripts conservados: ScratchTimesEqRawVerify01.java,
+	 * ScratchTimesDirectCheck01.java, ScratchTimesEqRawBench01.java,
+	 * ScratchTimesEqRawWiringVerify01.java (src/TestComplex/).
+	 *
+	 * 1.66 (2026_0809_1906)
+	 * timesEqRaw(MatrixComplex): nuevo producto in-place para el candidato "Camino A" de
+	 * rendimiento (Vector API, ver Claude/ComplexArithRev.md). Ataca el cuello de botella real
+	 * de los bucles Taylor/Mercator de MatrixComplexFunctions.java, medido en la Decimoctava
+	 * sesion (Fase 5): plusEq(Complex) recalcula mod/pha/cre trigonometricamente en CADA termino
+	 * sumado del triple bucle O(n^3) de times(MatrixComplex), no solo en el ultimo, que es el
+	 * unico que se lee. timesEqRaw() usa Complex.plusEqRaw() (nuevo, Complex.VERSION 1.33) para
+	 * los terminos intermedios y Complex.syncPolar() una sola vez por celda de salida -- de
+	 * O(rows*cols*inner) a O(rows*cols) llamadas trigonometricas, resultado bit a bit identico.
+	 * times()/timesEq() SIN TOCAR (metodo nuevo aparte, cero riesgo para el resto del proyecto,
+	 * que sigue usando el camino de siempre). Sin cablear todavia en ningun llamador -- eso es
+	 * la fase siguiente (MatrixComplexFunctions.java, 2 acumuladores powMatrix/powMat en los 7
+	 * metodos Taylor/Mercator).
 	 *
 	 * 1.65 (2026_0809_1018)
 	 * MatrixComplexUnary.java (clasificacion de signo/tipo de autovalores, 8 sitios): Complex.zero()
@@ -2242,6 +2277,49 @@ public class MatrixComplex {
 	 */
 	public MatrixComplex timesEq(MatrixComplex cMatrix) {
 		this.complexMatrix = this.times(cMatrix).complexMatrix;
+		return this;
+	}
+
+	/**
+	 * In-place matrix product, RAW ACCUMULATION: mutates 'this' to 'this' * 'cMatrix', same
+	 * contract as {@link #timesEq(MatrixComplex)} (dimension check, safe when 'cMatrix' is
+	 * 'this' itself), but attacks the real cost measured for this hot path (see
+	 * {@code Complex.VERSION} 1.33): {@link #times(MatrixComplex)}'s inner loop calls
+	 * {@code Complex.plusEq()} once per summed term, and each of those recomputes mod/pha/cre
+	 * (trigonometric) even though only the LAST term's result is ever read. Here each output
+	 * cell accumulates its {@code colLenA1} terms via {@link Complex#plusEqRaw(Complex)} (zero
+	 * trigonometric calls) and calls {@link Complex#syncPolar()} exactly ONCE, after the sum is
+	 * complete -- turns O(rows*cols*inner) trigonometric recomputations into O(rows*cols), with
+	 * a bit-identical result (see {@code Complex.plusEqRaw()}'s Javadoc for why). Still allocates
+	 * a full replacement complexMatrix internally, same as {@code timesEq()} -- this method
+	 * targets the trigonometric cost, not the allocation, which Fase 5 of the "*Eq a nivel
+	 * MatrixComplex" candidate (Decimoctava sesion) already measured as NOT the dominant cost at
+	 * the matrix sizes actually used by the Taylor/Mercator loops.
+	 * @param cMatrix The multiplier matrix.
+	 * @return 'this', for chaining.
+	 */
+	public MatrixComplex timesEqRaw(MatrixComplex cMatrix) {
+		int rowLenA1 = this.rows();
+		int colLenA1 = this.cols();
+		int rowLenA2 = cMatrix.rows();
+		int colLenA2 = cMatrix.cols();
+
+		if (colLenA1 != rowLenA2) {
+			System.err.println("Not valid product: The cols of matrix1 has to be equal to the rows of matrix2.");
+		}
+
+		MatrixComplex resultMatrix = new MatrixComplex(rowLenA1, colLenA2);
+
+		for (int rowf = 0; rowf < rowLenA1; ++rowf) {
+			for (int colf = 0; colf < colLenA2; ++colf) {
+				Complex acc = resultMatrix.complexMatrix[rowf][colf];
+				for (int iter = 0; iter < colLenA1; ++iter)
+					acc.plusEqRaw(this.complexMatrix[rowf][iter].times(cMatrix.complexMatrix[iter][colf]));
+				acc.syncPolar();
+			}
+		}
+
+		this.complexMatrix = resultMatrix.complexMatrix;
 		return this;
 	}
 

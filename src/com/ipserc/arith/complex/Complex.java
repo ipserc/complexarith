@@ -71,8 +71,22 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.32 (2026_0809_1018)";
+	private final static String VERSION = "1.33 (2026_0809_1906)";
 	/* VERSION Release Note
+	 * 1.33 (2026_0809_1906)
+	 * plusEqRaw(Complex)/syncPolar(): nuevos primitivos in-place para el candidato "Camino A"
+	 * de rendimiento (Vector API, ver Claude/ComplexArithRev.md). El cuello de botella real de
+	 * los bucles Taylor/Mercator de MatrixComplexFunctions.java (medido en la Decimoctava sesion,
+	 * Fase 5) no era la alocacion sino que plusEq(Complex) recalcula mod/pha/cre (Math.hypot +
+	 * Math.atan2 + normalizacion) en CADA paso de una suma en cadena, aunque esos valores
+	 * intermedios nunca se leen -- se sobrescriben en el siguiente paso antes de que nadie los
+	 * use. plusEqRaw() muta solo rep/imp (cero trigonometria); syncPolar() expone
+	 * setPolCoord() para cerrar la cadena una sola vez. Provisto matematicamente sin perdida
+	 * (plusEq(Complex) nunca lee mod/pha/cre de 'that', solo rep/imp -- saltarse los
+	 * setPolCoord() intermedios no cambia nada observable una vez se llama syncPolar()).
+	 * Metodos existentes (plusEq/minusEq/timesEq) SIN TOCAR. Ver MatrixComplex.VERSION para el
+	 * primer consumidor (timesEqRaw()).
+	 *
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {
 	 * public static void printBoxText(int boxId, int size, String title) {
@@ -1463,6 +1477,40 @@ public class Complex {
 	 */
 	public Complex plusEq(double that) {
 		this.rep += that;
+		this.setPolCoord();
+		return this;
+	}
+
+	/**
+	 * In-place addition, RECTANGULAR ONLY: mutates 'rep'/'imp' to 'this'+'that', WITHOUT
+	 * recomputing 'mod'/'pha'/'cre'. Does not allocate, zero trigonometric calls.
+	 * <p>
+	 * Use only for the intermediate steps of a chain of additions where the derived fields
+	 * (mod/pha/cre) of every step but the last are never read -- e.g. accumulating a
+	 * matrix-product cell over several terms. After the LAST {@code plusEqRaw()} of such a
+	 * chain, call {@link #syncPolar()} once to bring mod/pha/cre back in sync before reading
+	 * them; until then this object's mod/pha/cre are STALE (reflect a previous rep/imp, not the
+	 * current one). Safe because {@code plusEq(Complex)} itself never reads {@code that}'s
+	 * mod/pha/cre, only its rep/imp -- so skipping the intermediate {@link #setPolCoord()} calls
+	 * changes nothing observable once {@link #syncPolar()} runs, it only skips recomputing values
+	 * that would otherwise be overwritten by the next step before ever being read.
+	 * @param that The Complex Object to add to 'this'.
+	 * @return 'this', for chaining.
+	 */
+	public Complex plusEqRaw(Complex that) {
+		this.rep += that.rep;
+		this.imp += that.imp;
+		return this;
+	}
+
+	/**
+	 * Recomputes 'mod'/'pha'/'cre' from the current 'rep'/'imp'. Public entry point for
+	 * {@link #setPolCoord()}, meant to close out a chain of {@link #plusEqRaw(Complex)} calls
+	 * (or any other direct rep/imp mutation added in the future) before this object's polar
+	 * fields are read.
+	 * @return 'this', for chaining.
+	 */
+	public Complex syncPolar() {
 		this.setPolCoord();
 		return this;
 	}
