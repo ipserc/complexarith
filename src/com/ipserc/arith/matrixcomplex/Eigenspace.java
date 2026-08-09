@@ -20,8 +20,44 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.14 (2026_0809_1200)";
+	private final static String VERSION = "1.15 (2026_0809_1820)";
 	/* VERSION Release Note
+	 *
+	 * 1.15 (2026_0809_1820)
+	 * Segundo bug real reportado por el usuario, misma familia que 1.14 pero en un tercer sitio no
+	 * auditado entonces: para un par de autovalores complejos conjugados, uno daba un autovector
+	 * correcto y el otro [0,0,0,0,0] ("Is eigenvector: No"), pese a que por ser A real ambos deben
+	 * ser exactamente conjugados. Diagnosticado con trazas de depuracion (MatrixComplex.debugON()):
+	 * el bypass de la 1.14 solo cubria el caso dMatrix.typeEqSys()==DETERMINATE mal clasificado --
+	 * quedaban DOS fallos mas de la misma familia (epsilon absoluto fijo, ~1e-11 efectivo via
+	 * Complex.zero_treshold_exact()*CORRECTION_FACTOR, usado donde hace falta un criterio relativo
+	 * a la escala/condicionamiento):
+	 * (b) INCONSISTENT espurio: typeEqSys() calcula augmRank y coefRank con DOS triangularizaciones
+	 * independientes (rank() de la matriz aumentada vs. de coefMatrix); un residuo justo por encima
+	 * del epsilon puede desalinearlas para un sistema que, siendo homogeneo, es SIEMPRE consistente
+	 * matematicamente -- produce una excepcion o (via el chequeo INCONSISTENT ya existente aqui) un
+	 * autovector que se salta en silencio.
+	 * (c) INDETERMINATE correctamente clasificado pero mal resuelto: MatrixComplexEquationSystems.
+	 * solveGauss() decide en que fila esta la "variable libre" mirando si el pivote triangularizado
+	 * es Complex.ZERO bajo el MISMO epsilon fijo -- si el residuo del autovalor deja ese pivote justo
+	 * por encima del umbral, ninguna fila se reconoce como libre, no se planta la semilla lambda=1, y
+	 * la sustitucion hacia atras propaga cero puro en cada paso -- el vector trivial resultante SI
+	 * satisface (A-lambda*I)*0=0, asi que checkSingleSol() no lo detecta como erroneo (falso negativo
+	 * disfrazado de exito). Este es el caso que reprodujo el usuario: los dos residuos del par
+	 * conjugado (QRSchurfactor no es perfectamente simetrico en punto flotante) caen en lados
+	 * opuestos de ese mismo umbral fijo, sin ninguna diferencia matematica real entre ambos.
+	 * Arreglado: dMatrix.typeEqSys() deja de consultarse ANTES que cMatrix.rankNearSingular() --
+	 * ahora se comprueba primero rankNearSingular() (fiable, relativo a la escala) y, si dice
+	 * singular (SIEMPRE cierto para un autovalor genuino), se usa nullspaceBasisNearSingular()
+	 * incondicionalmente -- ya no solo para el caso DETERMINATE de la 1.14. typeEqSys()/solveGauss()
+	 * SIN TOCAR (uso general en MatrixComplexKernel.kernel()/Spline.java, fuera de alcance; cambiar
+	 * su epsilon globalmente repetiria el riesgo ya visto en MatrixComplex.VERSION 1.63 punto 2,
+	 * donde un criterio relativo aplicado sin acotar rompio TestDiag). Calibrado con ~90 casos
+	 * sinteticos (autovalores simples/repetidos/conjugados complejos/defectuosos via bloque de
+	 * Jordan, 4 escalas) mas el caso real: CERO regresiones encontradas, 3 casos adicionales
+	 * arreglados de rebote (2 excepciones INCONSISTENT espurias + el vector nulo original).
+	 * Scripts conservados: ScratchEigenInconsistentBug01-04.java,
+	 * ScratchEigenvectorsIndeterminateCalib01.java (src/TestComplex/).
 	 *
 	 * 1.14 (2026_0809_1200)
 	 * Bug real reportado por el usuario (autovector NaN, "geom mult:0", "IS NOT DIAGONALIZABLE"
@@ -850,23 +886,42 @@ public class Eigenspace extends MatrixComplex {
 			}
 			/* ------------- END DEBUGGING BLOCK ------------- */
 
-			if (dMatrix.typeEqSys() == INCONSISTENT) {
+			if (cMatrix.rankNearSingular() < cMatrix.rows()) {
+				// A-lambda*I is ALWAYS singular for a genuine eigenvalue (precise or not) --
+				// dMatrix.typeEqSys() (rank()'s fixed absolute epsilon) can misclassify this in
+				// TWO different ways for an imprecise eigenvalue, both confirmed with real/
+				// synthetic cases (9 agosto 2026, ver Claude/ComplexArithRev.md):
+				// (a) DETERMINATE: Syseq.solution()'s DETERMINATE branch would invert cMatrix and
+				// multiply by a ZERO right-hand side (this system is always homogeneous):
+				// inverse() now correctly refuses (isNumericallySingular()), so that product is
+				// Infinity*0 = NaN.
+				// (b) INCONSISTENT: solveGauss()'s free-variable detection (which row's pivot
+				// "equals zero") uses the SAME fixed epsilon on a DIFFERENT triangularization
+				// path (augmented vs. coefficient-only matrix) -- a residual just above that
+				// epsilon can make augmRank != coefRank for a system that is mathematically
+				// always consistent (homogeneous RHS), producing a spurious INCONSISTENT and
+				// either an exception or (via the old INCONSISTENT-skip below) a silently missing
+				// eigenvector.
+				// (c) INDETERMINATE (misclassified correctly, but solved wrong): even when
+				// typeEqSys() correctly says INDETERMINATE, solveGauss()'s free-variable pivot
+				// test (same fixed epsilon) can fail to recognize the near-zero pivot as the free
+				// row, seeding no lambda and silently back-substituting to the trivial all-zero
+				// vector -- which trivially "passes" checkSingleSol() (0 solves any homogeneous
+				// system), so it isn't caught downstream either. This is the case a user actually
+				// reported: one of a complex-conjugate eigenvalue pair got a real, correct
+				// eigenvector while the other got [0,0,0,0,0], purely because the two conjugates'
+				// QRSchurfactor residuals happened to fall on opposite sides of that fixed epsilon.
+				// rankNearSingular() (relative to the matrix's own scale) is immune to all three:
+				// checked FIRST, before trusting typeEqSys() at all, and used unconditionally
+				// (not just for the DETERMINATE case) to compute the eigenvector directly via the
+				// scale-aware nullspace instead. Calibrated against ~90 synthetic cases (simple/
+				// repeated/complex-conjugate/defective-Jordan eigenvalues, several scales) plus
+				// the real reported case, with NO regression found (ScratchEigenvectorsIndeterminateCalib01.java).
+				eigensolve = cMatrix.nullspaceBasisNearSingular();
+			}
+			else if (dMatrix.typeEqSys() == INCONSISTENT) {
 				rowEig += this.arithmeticMultiplicity(eigenval);
 				continue;
-			}
-
-			if (dMatrix.typeEqSys() == DETERMINATE && cMatrix.rankNearSingular() < cMatrix.rows()) {
-				// A-lambda*I is ALWAYS singular for a genuine eigenvalue (precise or not) -- a
-				// DETERMINATE classification here can only come from rank()'s fixed absolute
-				// epsilon missing a residual pivot left behind by an imprecise eigenvalue (same
-				// root cause as geometricMultiplicity(), see rankNearSingular()'s Javadoc).
-				// Syseq.solution()'s DETERMINATE branch would invert cMatrix and multiply by a
-				// ZERO right-hand side (this system is always homogeneous): inverse() now
-				// correctly refuses (isNumericallySingular()), so that product is Infinity*0 = NaN
-				// -- confirmed with a real 7x7 case (8-9 agosto 2026, ver Claude/ComplexArithRev.md).
-				// Bypass the broken branch and compute the eigenvector directly via the
-				// scale-aware nullspace instead.
-				eigensolve = cMatrix.nullspaceBasisNearSingular();
 			}
 			else eigensolve = dMatrix.solution(1);
 
