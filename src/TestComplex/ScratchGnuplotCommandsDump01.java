@@ -1,15 +1,15 @@
 package TestComplex;
 
+/**
+ * APARCADO (9 agosto 2026): dependia de com.panayotis.gnuplot.JavaPlot, retirado del proyecto
+ * (classes/com/panayotis y doc/com/panayotis eliminados) tras el reemplazo completo por
+ * com.ipserc.arith.plot.SimpleGnuplot (ver Claude/ComplexArithRev.md, Vigesima sesion). Ya cumplio
+ * su proposito -- la sintaxis exacta que volcaba fue la base para SimpleGnuplot -- y no se borra
+ * (regla del proyecto: los .java de test/verificacion se conservan), pero no compila sin la
+ * dependencia, asi que el cuerpo queda comentado con el truco habitual del "* /" mal cerrado.
+ * /
 import com.panayotis.gnuplot.JavaPlot;
 
-/**
- * Reverse-engineers the EXACT gnuplot script text panayotis/JavaPlot generates for the API surface
- * actually used across this project (confirmed narrow by grep: setTitle, addPlot(double[][]),
- * newGraph3D, set(key,value), setPersist, getPostInit().add, plot()) -- via getCommands(), which
- * only builds the string (GNUPlotExec.getCommands(), no process spawn, no waitFor(), safe to call
- * without opening any window). This is the scoping step for a possible homegrown replacement of
- * com.panayotis.gnuplot: need to know the exact syntax to replicate, not guess it.
- */
 public class ScratchGnuplotCommandsDump01 {
 	public static void main(String[] args) throws Exception {
 		System.out.println("=== 2D, single series, MatrixComplexPlot.plot()-style ===");
@@ -48,3 +48,4 @@ public class ScratchGnuplotCommandsDump01 {
 		System.out.println(p3.getCommands());
 	}
 }
+*/
