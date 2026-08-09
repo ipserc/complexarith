@@ -22,8 +22,23 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.24 (2026_0808_1500)";
+	private final static String VERSION = "1.25 (2026_0809_0938)";
 	/* VERSION Release Note
+	 * 1.25 (2026_0809_0938)
+	 * solveWeierstrass()/solveAberth()/solveQRCompanion()/el agrupamiento de raices (4 sitios):
+	 * el redondeo de la raiz devuelta a numOfDecs decimales, condicionado a Complex.exact()==true,
+	 * eliminado -- ahora se devuelve SIEMPRE la precision completa calculada (antes, el
+	 * comportamiento de Complex.exact(false)). Cierra, de raiz, el mismo bug que la nota de la
+	 * version 1.7 (2026_0801_1630, ver mas abajo) documento y parcheo a medias: bajo EXACT=true
+	 * (el modo por defecto) el redondeo tiraba precision y Eigenspace.eigenvectors() devolvia 0
+	 * filas para muchas matrices. Aquella nota lo resolvio cambiando a exact(false) en el caso
+	 * concreto que lo disparo, pero dejo el condicional vivo -- volvia a poder fallar en cualquier
+	 * llamador que usara el modo EXACT por defecto sin saber que estas 4 rutas dependian de ello.
+	 * Parte del desmontaje del acoplamiento EXACT/APPROXIMATED-a-precision-numerica en toda la
+	 * libreria (ver Claude/ComplexArithRev.md, Vigesimosegunda sesion): junto con Complex.
+	 * isZero()/equals()/imPartNull()/rePartNull() (fijados a ZERO_THRESHOLD_EXACT, ya no dependen
+	 * del modo), es el ultimo sitio de produccion que leia Complex.exact() para decidir un
+	 * resultado numerico en vez de solo presentacion.
 	 * 1.24 (2026_0808_1500)
 	 * Los 19 metodos publicos de plot (plotExpression*, plot/plotRe/plotIm/plotMod/plotPha)
 	 * sustituidos por pares xxxSync/xxxAsync (a peticion del usuario) -- cada uno llama a
@@ -977,12 +992,7 @@ public class Polynom extends MatrixComplex {
 			*/
 			if (Math.abs(cCoef.complexMatrix[0][i].rep()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(0, cCoef.complexMatrix[0][i].imp());
 			if (Math.abs(cCoef.complexMatrix[0][i].imp()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(cCoef.complexMatrix[0][i].rep(), 0);
-			if (Complex.exact()) {
-				cSol.complexMatrix[i][0] = Complex.round(cCoef.complexMatrix[0][i],numOfDecs); 
-			}
-			else {
-				cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i]; 
-			}
+			cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i];
 		}
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
@@ -1126,12 +1136,7 @@ public class Polynom extends MatrixComplex {
 		for (int i = 0; i < colLen; ++i) {
 			if (Math.abs(cCoef.complexMatrix[0][i].rep()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(0, cCoef.complexMatrix[0][i].imp());
 			if (Math.abs(cCoef.complexMatrix[0][i].imp()) < maxPrec) cCoef.complexMatrix[0][i].setComplexRec(cCoef.complexMatrix[0][i].rep(), 0);
-			if (Complex.exact()) {
-				cSol.complexMatrix[i][0] = Complex.round(cCoef.complexMatrix[0][i],numOfDecs);
-			}
-			else {
-				cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i];
-			}
+			cSol.complexMatrix[i][0] = cCoef.complexMatrix[0][i];
 		}
 
 		/* -------------   DEBUGGING BLOCK   ------------- */
@@ -1206,16 +1211,14 @@ public class Polynom extends MatrixComplex {
 
 		MatrixComplex rawRoots = new QRSchurfactor(companion).getEigenvalues();
 
-		// Same rounding/purification tail as solveWeierstrass()/solveAberth() -- see those methods'
-		// comments for why numOfDecs is derived from Complex.precision().
+		// Same purification tail as solveWeierstrass()/solveAberth().
 		double maxPrec = Math.sqrt(precision * 10);
-		int numOfDecs = (int) Math.abs(Math.log10(Complex.precision()));
 		MatrixComplex cSol = new MatrixComplex(degree, 1);
 		for (int i = 0; i < degree; ++i) {
 			Complex r = rawRoots.getItem(i, 0);
 			if (Math.abs(r.rep()) < maxPrec) r.setComplexRec(0, r.imp());
 			if (Math.abs(r.imp()) < maxPrec) r.setComplexRec(r.rep(), 0);
-			cSol.complexMatrix[i][0] = Complex.exact() ? Complex.round(r, numOfDecs) : r;
+			cSol.complexMatrix[i][0] = r;
 		}
 		return cSol;
 	}
@@ -1440,12 +1443,11 @@ public class Polynom extends MatrixComplex {
 			}
 		}
 
-		// Same rounding/purification tail as solveWeierstrass()/solveAberth()/solveQRCompanion() --
-		// see those methods' comments for why maxPrec/numOfDecs are derived this way. Missing here
-		// until now (found while investigating why a clustered centroid's imaginary part showed up
-		// as ~1e-8 noise from the averaging arithmetic itself instead of a clean 0.0, 8 agosto 2026).
+		// Same purification tail as solveWeierstrass()/solveAberth()/solveQRCompanion(). Missing
+		// here until now (found while investigating why a clustered centroid's imaginary part
+		// showed up as ~1e-8 noise from the averaging arithmetic itself instead of a clean 0.0,
+		// 8 agosto 2026).
 		double maxPrec = Math.sqrt(precision * 10);
-		int numOfDecs = (int) Math.abs(Math.log10(Complex.precision()));
 		MatrixComplex clustered = new MatrixComplex(degree, 1);
 		boolean[] done = new boolean[degree];
 		for (int i = 0; i < degree; ++i) {
@@ -1463,7 +1465,6 @@ public class Polynom extends MatrixComplex {
 			Complex centroid = new Complex(sumRe / count, sumIm / count);
 			if (Math.abs(centroid.rep()) < maxPrec) centroid.setComplexRec(0, centroid.imp());
 			if (Math.abs(centroid.imp()) < maxPrec) centroid.setComplexRec(centroid.rep(), 0);
-			if (Complex.exact()) centroid = Complex.round(centroid, numOfDecs);
 			for (int k = 0; k < degree; ++k) {
 				if (groupingFind(parent, k) == group) {
 					clustered.setItem(k, 0, centroid);

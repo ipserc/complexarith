@@ -282,7 +282,7 @@ class MatrixComplexOrtho {
 		for (int col = 0; col < colLen; ++col) {
 			v.copyCol(0, m, col);
 			v_euc_norm = v.euc_norm();
-			if (v_euc_norm > Complex.zero_treshold()) v = v.divides(v.euc_norm());
+			if (v_euc_norm > Complex.zero_treshold_exact()) v = v.divides(v.euc_norm());
 			norm.copyCol(col, v, 0);
 		}
 		return norm;
@@ -303,7 +303,7 @@ class MatrixComplexOrtho {
 		for (int row = 0; row < rowLen; ++row) {
 			v.copyRow(0, m, row);
 			v_euc_norm = v.euc_norm();
-			if (v_euc_norm > Complex.zero_treshold()) v = v.divides(v.euc_norm());
+			if (v_euc_norm > Complex.zero_treshold_exact()) v = v.divides(v.euc_norm());
 			norm.copyRow(row, v, 0);
 		}
 		return norm;

@@ -705,7 +705,7 @@ final class ComplexFunctions {
 			epsilon = z.minus(z0);
 			//System.out.println("epsilon:" + epsilon.mod());
 			if (Double.isNaN(epsilon.mod())) break;
-			if (epsilon.mod() <= ComplexState.zero_treshold()) break;
+			if (epsilon.mod() <= ComplexState.zero_treshold_exact()) break;
 			z0 = z.copy();
 		}
 		sc.close();  //closes the scanner

@@ -71,7 +71,7 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.30 (2026_0731_0007)";
+	private final static String VERSION = "1.31 (2026_0809_0938)";
 	/* VERSION Release Note
 	 * 1.9 (2023_0514_2000)
 	 * public static void printBoxTitle(int boxId, int size, String title) {
@@ -1186,18 +1186,18 @@ public class Complex {
 	 */
 	public boolean isZero() {
 		//if (this.mod() <= ZERO_THRESHOLD) return true;
-		if (Math.abs(this.rep()) <= ComplexState.zero_treshold()*CORRECTION_FACTOR && Math.abs(this.imp()) <= ComplexState.zero_treshold()*CORRECTION_FACTOR) return true;
+		if (Math.abs(this.rep()) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR && Math.abs(this.imp()) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
 	/**
 	 * Checks if the Complex is reduced zero.
 	 * @return true if this Complex value is reduced zero, false otherwise.
-	 * @apiNote Not called anywhere in this codebase (grepped across all of src/). Predates
-	 * {@link #isZero()}'s EXACT-aware ZERO_THRESHOLD -- this always uses the loose
-	 * ZERO_THRESHOLD_APPROX regardless of the EXACT flag. Left as dead code rather than removed,
-	 * consistent with how other confirmed-dead methods in this class (e.g. the rest of the
-	 * {@code *Red__} family) were handled.
+	 * @apiNote Not called anywhere in this codebase (grepped across all of src/). Always uses the
+	 * loose ZERO_THRESHOLD_APPROX, unlike {@link #isZero()} (fixed to ZERO_THRESHOLD_EXACT, no
+	 * longer EXACT/APPROXIMATED-mode-dependent -- see {@link #isZero()}'s current body). Left as
+	 * dead code rather than removed, consistent with how other confirmed-dead methods in this
+	 * class (e.g. the rest of the {@code *Red__} family) were handled.
 	 */
 	public boolean isZeroRed__() {
 		//if (this.mod() <= ZERO_THRESHOLD_R) return true;
@@ -1211,7 +1211,7 @@ public class Complex {
 	 */
 	public boolean imPartNull() {
 		if (this.rep == 0.0) return this.imp == 0.0;
-		if (Math.abs(imp/rep) <= ComplexState.zero_treshold()*CORRECTION_FACTOR) return true;
+		if (Math.abs(imp/rep) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1219,8 +1219,8 @@ public class Complex {
 	 * Checks if the imaginary part is reduced zero.
 	 * @return true if imaginary part is reduced zero, false otherwise.
 	 * @apiNote Not called anywhere in this codebase. Same rationale as {@link #isZeroRed__()}:
-	 * superseded by the EXACT-aware {@link #imPartNull()}, kept as documented dead code.
-	 * Unlike imPartNull(), also has no {@code rep==0.0} guard, so it can divide by zero.
+	 * superseded by {@link #imPartNull()}, kept as documented dead code. Unlike imPartNull(),
+	 * also has no {@code rep==0.0} guard, so it can divide by zero.
 	 */
 	public boolean imPartNullRed__() {
 		if (Math.abs(imp/rep) <= ComplexState.zero_threshold_approx()) return true;
@@ -1233,7 +1233,7 @@ public class Complex {
 	 */
 	public boolean rePartNull() {
 		if (this.imp == 0.0) return this.rep == 0.0;
-		if (Math.abs(rep/imp) <= ComplexState.zero_treshold()*CORRECTION_FACTOR) return true;
+		if (Math.abs(rep/imp) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR) return true;
 		else return false;
 	}
 
@@ -1241,8 +1241,8 @@ public class Complex {
 	 * Checks if the real part is reduced zero.
 	 * @return true if real part is reduced zero, false otherwise.
 	 * @apiNote Not called anywhere in this codebase. Same rationale as {@link #isZeroRed__()}:
-	 * superseded by the EXACT-aware {@link #rePartNull()}, kept as documented dead code.
-	 * Unlike rePartNull(), also has no {@code imp==0.0} guard, so it can divide by zero.
+	 * superseded by {@link #rePartNull()}, kept as documented dead code. Unlike rePartNull(),
+	 * also has no {@code imp==0.0} guard, so it can divide by zero.
 	 */
 	public boolean rePartNullRed__() {
 		if (Math.abs(rep/imp) <= ComplexState.zero_threshold_approx()) return true;
@@ -1307,7 +1307,7 @@ public class Complex {
 	 * @return The result of the comparison.
 	 */
 	public boolean equals(double n1, double n2) {
-		return ((Math.abs(this.rep - n1) <= ComplexState.zero_treshold()*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= ComplexState.zero_treshold()*CORRECTION_FACTOR));
+		return ((Math.abs(this.rep - n1) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR) && (Math.abs(this.imp - n2) <= ComplexState.zero_treshold_exact()*CORRECTION_FACTOR));
 	}
 
 	/**

@@ -8,8 +8,14 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.11 (2026_0808_0100)";
+	private final static String VERSION = "1.12 (2026_0809_0938)";
 	/* VERSION Release Note
+	 * 1.12 (2026_0809_0938)
+	 * isNormal(MatrixComplex,int)/isNormal(): el umbral Complex.zero_treshold() (dependiente del
+	 * modo EXACT/APPROXIMATED global) sustituido por Complex.zero_treshold_exact() (fijo). Parte
+	 * del desmontaje del acoplamiento EXACT/APPROXIMATED-a-precision-numerica en toda la libreria
+	 * (ver Claude/ComplexArithRev.md, Vigesimosegunda sesion) -- decidir si un vector ya esta
+	 * normalizado es una decision de algoritmo, no de formato de presentacion.
 	 * 1.11 (2026_0808_0100)
 	 * vectorprod(VectorComplex): resuelve el KNOWN LIMITATION de 3D-only. No es un limite
 	 * algoritmico -- por el teorema de Eckmann, un producto vectorial BINARIO genuino solo puede
@@ -253,7 +259,7 @@ public class VectorComplex extends MatrixComplex {
 	 * @return True if is normal, false otherwise
 	 */
 	public static boolean isNormal(MatrixComplex base, int row) {
-		if ((base.getRow(row).norm() - 1.0) < Complex.zero_treshold()) return true;
+		if ((base.getRow(row).norm() - 1.0) < Complex.zero_treshold_exact()) return true;
 		return false;
 	}
 
@@ -263,7 +269,7 @@ public class VectorComplex extends MatrixComplex {
 	 * @return True if is normal, false otherwise
 	 */
 	public boolean isNormal() {
-		if ((this.getVector(0).norm() - 1.0) < Complex.zero_treshold()) return true;
+		if ((this.getVector(0).norm() - 1.0) < Complex.zero_treshold_exact()) return true;
 		return false;
 	}
 

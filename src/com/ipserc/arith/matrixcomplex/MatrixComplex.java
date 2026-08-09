@@ -18,9 +18,25 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.63 (2026_0809_1200)";
+	private final static String VERSION = "1.64 (2026_0809_0938)";
 	/* VERSION Release Note
 	 *
+	 * 1.64 (2026_0809_0938)
+	 * MatrixComplexOrtho.normalizeByCols()/normalizeByRows(): el umbral Complex.zero_treshold()
+	 * (dependiente del modo EXACT/APPROXIMATED global) sustituido por Complex.zero_treshold_exact()
+	 * (fijo) al decidir si un vector es despreciable antes de dividir por su norma en Gram-Schmidt.
+	 * Parte del desmontaje del acoplamiento EXACT/APPROXIMATED-a-precision-numerica en toda la
+	 * libreria (ver Claude/ComplexArithRev.md, Vigesimosegunda sesion): investigando por que
+	 * TestEigenV21 (Complex.exact(false)) daba geometricMultiplicity()=0 para autovalores genuinos
+	 * mientras exact(true) funcionaba bien, se confirmo que QRSchurfactor.factorize() deflaciona
+	 * via h.getItem(hi,hi-1).isZero() -- en modo APPROXIMATED ese umbral es ~300x mas laxo, la
+	 * iteracion QR para antes y cada autovalor calculado queda con un residuo de ~1e-9 a ~1e-8 en
+	 * vez de ~1e-14/1e-15. rankNearSingular() (umbral FIJO de ayer, SINGULARITY_REL_TOL=1e-9) ya no
+	 * consideraba eso "casi singular" para 3 de los 5 autovalores del caso de TestEigenV21,
+	 * dejando geometricMultiplicity()=0. Como isZero() (Complex.java, VERSION 1.31) ahora usa
+	 * SIEMPRE ZERO_THRESHOLD_EXACT, QRSchurfactor queda arreglado sin tocar su fichero -- hereda el
+	 * fix de isZero(). Verificado con TestEigenV21: ambos modos dan ahora los mismos autovalores,
+	 * multiplicidades geometricas y DIAGONALIZABLE.
 	 * 1.63 (2026_0809_1200)
 	 * Bug real reportado por el usuario: para un autovalor imprecio (residuo de QRSchurfactor), un
 	 * autovector podia salir todo NaN, "geom mult:0" y "IS NOT DIAGONALIZABLE" para una matriz que
