@@ -30,41 +30,15 @@
 package TestComplex;
 
 import com.ipserc.arith.complex.*;
-import com.ipserc.arith.plot.SimpleGnuplot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle3D;
 
 
 
 public class TestSurfacePolyn01 {
-	
+
 	public static void plot(String title, long samples, double points[][]) {
-		SimpleGnuplot p = new SimpleGnuplot();
-		p.newGraph3D();
-		p.setTitle(title);
-		p.addPlot(points);
-		p.set("zeroaxis", "");
-		// p.set("logscale", "z");
-		// p.set("style", "data lines");
-		// p.set("style", "data polygons");
-		p.set("style", "data boxplot");
-		// p.set("style", "data surface");
-		// p.set("style", "data rgbalpha");
-		// p.set("style", "data isosurface");
-		/*
-			p.set("style", "data pm3d"); 
-			//p.set("style", "boxes");
-			//set pm3d depthorder base
-			p.set("pm3d","depthorder base");
-			//set pm3d lighting
-			p.set("pm3d","lighting");
-			//set boxdepth 0.4
-			p.set("boxdepth","0.4");
-			//p.set("xrange", "[0:"+samples+"]");
-		 * 
-		 */
-		p.set("grid","");
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		p.plot(SimpleGnuplot.e_syncMode.SYNC);
+		MatrixComplexPlot.plotSeries3DSync(title, e_lineStyle3D.BOXPLOT, points);
 	}
 
 	public static Complex func(Complex z) {
