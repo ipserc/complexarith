@@ -18,8 +18,25 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.67 (2026_0809_1922)";
+	private final static String VERSION = "1.68 (2026_0809_1928)";
 	/* VERSION Release Note
+	 *
+	 * 1.68 (2026_0809_1928)
+	 * MatrixComplexPlot.java: nuevos metodos 3D (e_lineStyle3D {LINES,BOXPLOT,SURFACE},
+	 * setLineStyle3D(), plotSeries3DSync/Async, plotSeries3D generico) -- candidato pendiente
+	 * anotado en la Vigesimotercera sesion (ver Claude/ComplexArithRev.md), mismo diseno que la
+	 * superficie 2D ya consolidada (plotSeriesSync/Async + entrada generica parametrizada por
+	 * SimpleGnuplot.e_syncMode). Cubre el mismo patron ya usado a mano en los 8 scripts 3D de
+	 * TestComplex/ (SimpleGnuplot.newGraph3D()+addPlot(double[][3])+"set style data X") --
+	 * inventariado con un agente Explore en la misma sesion, sin migrar todavia ningun llamador
+	 * (decision de alcance aparte). Solo 3 estilos expuestos (LINES/BOXPLOT/SURFACE): son los
+	 * unicos realmente usados, el resto (polygons/rgbalpha/isosurface/pm3d) aparecen solo
+	 * comentados en los 8 scripts, nunca en vivo. Verificado sin lanzar gnuplot (regla ya
+	 * establecida): ScratchMatrixComplexPlot3DVerify01.java (conservado) compara via reflexion el
+	 * texto exacto del script generado (SimpleGnuplot.buildScript(), privado) entre una replica a
+	 * mano de los 3 patrones reales (TestSurfaceCosc01 BOXPLOT, TestSurfaceLog01 BOXPLOT+logscale
+	 * Z, TestZeta05 SURFACE) y la nueva API -- script identico en los 3, mas el caso de varias
+	 * series. MatrixComplexPlot.java sigue sin VERSION propio (helper, cubierto por esta).
 	 *
 	 * 1.67 (2026_0809_1922)
 	 * timesEqRaw() cableado en los 10 sitios de acumulador powMatrix/powMat de los 7 metodos

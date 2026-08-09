@@ -182,6 +182,93 @@ public class MatrixComplexPlot {
 	}
 
 	/**
+	 * Enumerative to set the gnuplot 3D data style ({@code splot}). Covers the 3 styles actually
+	 * used across the project's 3D scripts (the other {@code data} styles gnuplot supports --
+	 * {@code polygons}/{@code rgbalpha}/{@code isosurface}/{@code pm3d} -- appear only as
+	 * commented-out alternatives in every one of those scripts, never live).
+	 * LINES: connects adjacent points with straight line segments.
+	 * BOXPLOT: draws each point as a small box (the most common choice in this project's scripts).
+	 * SURFACE: draws a continuous surface across the points (needs a regular grid to look right).
+	 */
+	public static enum e_lineStyle3D {
+		LINES, BOXPLOT, SURFACE;
+	}
+
+	/**
+	 * Returns the "style" set required for the 3D data styles above.
+	 * @param lineStyle The 3D line style.
+	 * @return The "style" set.
+	 */
+	public static String setLineStyle3D(e_lineStyle3D lineStyle) {
+		String strLineStyle = "data ";
+		switch (lineStyle) {
+			case LINES: return strLineStyle + "lines";
+			case BOXPLOT: return strLineStyle + "boxplot";
+			case SURFACE: return strLineStyle + "surface";
+		}
+		return strLineStyle + "boxplot";
+	}
+
+	/**
+	 * Plots one or more already-computed {@code [x,y,z]} series as a 3D {@code splot}, no
+	 * logarithmic Z scale. Shorthand for the logscale overload below.
+	 * @param title The plot title.
+	 * @param lineStyle The 3D line style.
+	 * @param series One or more {@code double[nbrPoints][3]} series to plot together.
+	 */
+	public static void plotSeries3DSync(String title, e_lineStyle3D lineStyle, double[][]... series) {
+		plotSeries3DSync(title, false, lineStyle, series);
+	}
+
+	/** Same as {@link #plotSeries3DSync(String, e_lineStyle3D, double[][]...)} but returns
+	 * immediately -- the plot window stays open independently, without blocking the caller. */
+	public static void plotSeries3DAsync(String title, e_lineStyle3D lineStyle, double[][]... series) {
+		plotSeries3DAsync(title, false, lineStyle, series);
+	}
+
+	/**
+	 * Plots one or more already-computed {@code [x,y,z]} series as a 3D {@code splot}. Consolidates
+	 * the {@code SimpleGnuplot} construction/configuration tail that used to be hand-duplicated
+	 * across the 8 3D scripts in {@code TestComplex/} ({@code TestSurfaceCosc01/02}, {@code
+	 * TestSurfaceLog01}, {@code TestSurfacePolyn01}, {@code TestSurfaceSin01}, {@code
+	 * TestSurfaceSinc01}, {@code TestZeta05}) -- the series themselves (which need each script's own
+	 * function evaluation) are still computed by the caller and passed in already built, same
+	 * division of responsibility as {@link #plotSeries(String, String, String, boolean, e_lineStyle,
+	 * SimpleGnuplot.e_syncMode, double[][]...)} for 2D.
+	 * @param title The plot title.
+	 * @param logscaleZ If true sets the Z axis to logarithmic scale (only {@code TestSurfaceLog01}
+	 * used this among the 8 scripts inventoried).
+	 * @param lineStyle The 3D line style.
+	 * @param series One or more {@code double[nbrPoints][3]} series to plot together.
+	 */
+	public static void plotSeries3DSync(String title, boolean logscaleZ, e_lineStyle3D lineStyle, double[][]... series) {
+		plotSeries3D(title, logscaleZ, lineStyle, SimpleGnuplot.e_syncMode.SYNC, series);
+	}
+
+	/** Same as {@link #plotSeries3DSync(String, boolean, e_lineStyle3D, double[][]...)} but returns
+	 * immediately -- the plot window stays open independently, without blocking the caller. */
+	public static void plotSeries3DAsync(String title, boolean logscaleZ, e_lineStyle3D lineStyle, double[][]... series) {
+		plotSeries3D(title, logscaleZ, lineStyle, SimpleGnuplot.e_syncMode.ASYNC, series);
+	}
+
+	/** Generic entry point every {@code plotSeries3DSync}/{@code plotSeries3DAsync} pair calls. */
+	public static void plotSeries3D(String title, boolean logscaleZ, e_lineStyle3D lineStyle, SimpleGnuplot.e_syncMode mode, double[][]... series) {
+		SimpleGnuplot p = new SimpleGnuplot();
+		p.newGraph3D();
+		p.setTitle(title);
+		for (double[][] s : series) p.addPlot(s);
+		p.set("zeroaxis", "");
+		p.set("style", setLineStyle3D(lineStyle));
+		if (logscaleZ) p.set("logscale", "z");
+		p.set("grid", "");
+		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
+		p.setPersist(true);
+		p.getPostInit().add("set terminal windows");
+		// -------------------------------------------------------------
+		p.plot(mode);
+	}
+
+	/**
 	 * Plots a table (moved from {@code MatrixComplexFunctions}, all 8 call sites are there). Used
 	 * to bring more info at debug for the Taylor/Mercator series convergence loops. No-op unless
 	 * {@link MatrixComplex#doPlot()} is on.
