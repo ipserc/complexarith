@@ -893,27 +893,46 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * Sondow, Jonathan and Weisstein, Eric W. "Riemann Zeta Function." From MathWorld--A Wolfram Web Resource.
-	 * https://mathworld.wolfram.com/RiemannZetaFunction.html
+	 * The Riemann's zeta function, via {@code eta(s)/(1-2^(1-s))} (Sondow/Weisstein, "Riemann Zeta
+	 * Function", https://mathworld.wolfram.com/RiemannZetaFunction.html).
 	 * @param s
 	 * @return
-	 * @apiNote The outer sum's n-th term carries a 1/2^(n+1) prefactor (geometric decay), so its
-	 * contribution to sum1 becomes unrepresentable in double precision long before n reaches the
-	 * previous fixed cap of 170 -- each of those unnecessary iterations still paid for an O(n)
-	 * inner loop of power()/binomialCoef() calls (the whole method was O(maxN^2), ~14450 term
-	 * evaluations regardless of how many were actually needed). Now breaks as soon as a term
-	 * leaves sum1 completely unchanged in EXACT double equality (not the tolerance-based
-	 * {@code equals()} used elsewhere in this class for convergence, e.g. zeta_re/zeta_ext/
-	 * gamma_integral): since the terms decay geometrically, an exact-equality miss here means
-	 * every later term is provably too small to move sum1's bits either, so this is guaranteed to
-	 * give bit-identical results to running the full 170 iterations, unlike a tolerance-based
-	 * check (tried first, measured to change the last 2-4 significant digits of the result --
-	 * sometimes closer to the true value, sometimes further, because stopping within a coarser
-	 * tolerance forgoes some of the incidental extra precision that grinding through all 170
-	 * iterations happened to accumulate). maxN=170 stays as the same safety cap as before for s
-	 * where convergence is genuinely slower.
+	 * @apiNote The series itself now lives in {@link #eta(Complex)} (Bloque C, "nuevos
+	 * instrumentos matematicos", see {@code Claude/ComplexArithRev.md}) -- see that method's
+	 * @apiNote for the convergence/stopping-criterion history (previously documented here, before
+	 * the extraction).
 	 */
 	static Complex zeta_havil(Complex s) {
+		return eta(s).dividesEq(Complex.ONE.minus(new Complex(2, 0).power(Complex.ONE.minus(s))));
+	}
+
+	/**
+	 * The Dirichlet eta function eta(s) = Sum_{k=1}^inf (-1)^(k-1)/k^s = (1-2^(1-s))*zeta(s), with
+	 * the removable singularity at s=1 resolved to its limit value ln(2) (where (1-2^(1-s)) has a
+	 * zero that exactly cancels zeta(s)'s pole there).
+	 * @param s The s parameter of the eta function
+	 * @return eta(s)
+	 * @apiNote Sondow/Weisstein's globally convergent series for eta (an Euler transform of the
+	 * alternating zeta series, see https://mathworld.wolfram.com/DirichletEtaFunction.html) is the
+	 * SAME sum {@link #zeta_havil(Complex)} used to compute internally, before dividing by
+	 * (1-2^(1-s)) -- extracted here (Bloque C, "nuevos instrumentos matematicos") instead of
+	 * duplicating the loop; zeta_havil now delegates to this and just adds that division.
+	 * <p>
+	 * The outer sum's n-th term carries a 1/2^(n+1) prefactor (geometric decay), so its
+	 * contribution to sum1 becomes unrepresentable in double precision long before n reaches the
+	 * fixed cap of 170 -- each of those unnecessary iterations would still pay for an O(n) inner
+	 * loop of power()/binomialCoef() calls (O(maxN^2) total, ~14450 term evaluations regardless of
+	 * how many are actually needed). Breaks as soon as a term leaves sum1 completely unchanged in
+	 * EXACT double equality (not the tolerance-based {@code equals()} used elsewhere in this class
+	 * for convergence, e.g. zeta_re/zeta_ext/gamma_integral): since the terms decay geometrically,
+	 * an exact-equality miss here means every later term is provably too small to move sum1's bits
+	 * either, so this is guaranteed to give bit-identical results to running the full 170
+	 * iterations, unlike a tolerance-based check (tried first, historically measured to change the
+	 * last 2-4 significant digits of the result). maxN=170 stays as a safety cap for s where
+	 * convergence is genuinely slower.
+	 */
+	static Complex eta(Complex s) {
+		if (s.rep() == 1.0 && s.isPureReal()) return new Complex(Math.log(2), 0);
 		int maxN = 170;
 		Complex sum1 = new Complex();
 		Complex prevSum1 = sum1.copy();
@@ -928,7 +947,6 @@ final class ComplexFunctions {
 			if (sum1.rep() == prevSum1.rep() && sum1.imp() == prevSum1.imp()) break;
 			prevSum1 = sum1.copy();
 		}
-		sum1.dividesEq(Complex.ONE.minus(new Complex(2,0).power(Complex.ONE.minus(s))));
 		return sum1;
 	}
 

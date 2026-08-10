@@ -71,8 +71,20 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.36 (2026_0810_2300)";
+	private final static String VERSION = "1.37 (2026_0811_0000)";
 	/* VERSION Release Note
+	 * 1.37 (2026_0811_0000)
+	 * Nuevos instrumentos matematicos, Bloque C (eta de Dirichlet) de la hoja de ruta anotada
+	 * durante el Bloque 1 de la auditoria matematica dedicada (ver Claude/ComplexArithRev.md):
+	 * eta(s) = Sum (-1)^(k-1)/k^s = (1-2^(1-s))*zeta(s), con s=1 resuelto al limite ln(2).
+	 * Hallazgo de reutilizacion: zeta_havil(s) ya calculaba internamente, como paso previo a
+	 * dividir por (1-2^(1-s)), exactamente la serie de Sondow/Euler-transformada que define eta --
+	 * extraida a su propio metodo en vez de duplicar el bucle; zeta_havil ahora delega en eta() y
+	 * solo anade esa division. Verificado (ScratchEtaAudit01.java): eta(1)=ln(2), eta(2)=pi^2/12,
+	 * identidad eta(s)==(1-2^(1-s))*zeta(s), suma alternada directa como referencia independiente,
+	 * y regresion de zeta_havil sobre los puntos ya cubiertos por
+	 * ScratchComplexFunctionsAudit01/02.java tras la refactorizacion.
+	 *
 	 * 1.36 (2026_0810_2300)
 	 * Nuevos instrumentos matematicos, Bloque B (funcion de error) de la hoja de ruta anotada
 	 * durante el Bloque 1 de la auditoria matematica dedicada (ver Claude/ComplexArithRev.md):
@@ -1795,6 +1807,7 @@ public class Complex {
 	public static Complex polygamma(int n, Complex z) { return ComplexFunctions.polygamma(n, z); }
 	public static Complex erf(Complex z) { return ComplexFunctions.erf(z); }
 	public static Complex erfc(Complex z) { return ComplexFunctions.erfc(z); }
+	public static Complex eta(Complex s) { return ComplexFunctions.eta(s); }
 	public static Complex zeta(Complex s) { return ComplexFunctions.zeta(s); }
 	public static Complex zeta_re(Complex s) { return ComplexFunctions.zeta_re(s); }
 	public static Complex zeta_ext(Complex s) { return ComplexFunctions.zeta_ext(s); }

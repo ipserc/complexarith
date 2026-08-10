@@ -3207,7 +3207,21 @@ A petición del usuario ("sí, sigue con el Bloque B"), implementado según el p
 
 `Complex.VERSION`: `1.35→1.36`.
 
-**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, listo para commitear. Bloque C (eta de Dirichlet) queda como siguiente paso natural, sin empezar.
+**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, commiteado (`760636d`). Bloque C (eta de Dirichlet) queda como siguiente paso natural, sin empezar.
+
+## Continuación — Nuevos instrumentos matemáticos, Bloque C: eta de Dirichlet (10 agosto 2026, commit pendiente)
+
+A petición del usuario ("sí, sigue con el Bloque C"), implementado según el plan ya aprobado.
+
+**Implementado**: `eta(Complex s)` en `ComplexFunctions.java` — `η(s) = Σ(-1)^(k-1)/k^s = (1-2^(1-s))·ζ(s)`, con `s=1` resuelto al límite `ln(2)` (caso especial, evita `0/0`). **Hallazgo de reutilización confirmado durante la implementación**: `zeta_havil(s)` ya calculaba internamente, como paso previo a la división final por `(1-2^(1-s))`, exactamente la serie de Sondow/Euler-transformada que define `eta` — extraída a su propio método en vez de duplicar el bucle; `zeta_havil` ahora es un cuerpo de una línea que delega en `eta(s)` y solo añade esa división (su javadoc largo, con la historia de la optimización del criterio de parada por igualdad exacta, se movió a `eta()`, que es donde vive el bucle real ahora).
+
+**Verificación** (`ScratchEtaAudit01.java`, conservado — **14/14 OK**): `η(1)=ln(2)`, `η(2)=π²/12`, identidad `η(s)==(1-2^(1-s))·ζ(s)` en 5 puntos (real, complejo, `Re(s)<0`), cruce contra una suma alternada directa independiente (`N=200000` términos, sin llamar a ningún método de `ComplexFunctions`) en 3 puntos, y regresión de `zeta_havil` tras la refactorización cruzada contra `zeta_re`/`zeta_ext` en la frontera de su dominio — todos pasan entre 1e-3 y precisión de máquina.
+
+**Verificación de regresión**: recompilación fresca completa de `com.ipserc.arith`. `TestGamma01-04`, `TestBeta01/02`, `TestComplex01`, `ScratchDigammaAudit01.java`, `ScratchErfAudit01.java` (Bloques A/B): 9/9 exit=0 sin cambios. `ScratchComplexFunctionsAudit01.java`: mismos 62 OK/3 FAIL de siempre (límite residual ya documentado). `TestZeta01-06.java` (los consumidores directos de la familia zeta, más relevantes aquí por tocar `zeta_havil`): `TestZeta01-05` exit=0 sin anomalías; `TestZeta06` no termina en 30s — confirmado NO relacionado con este cambio, es un barrido de búsqueda de ceros por fuerza bruta (`s.rep()` en pasos de `1e-6`, `s.imp()` en pasos de `1e-4`, del orden de `10^10` evaluaciones por diseño), mismo coste antes y después del refactor (la aritmética interna no cambió, solo su ubicación en un método separado).
+
+`Complex.VERSION`: `1.36→1.37`.
+
+**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, listo para commitear. Bloque D (polilogaritmo) queda como siguiente paso natural, sin empezar.
 
 ---
 
