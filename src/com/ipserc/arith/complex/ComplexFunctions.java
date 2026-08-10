@@ -714,6 +714,53 @@ final class ComplexFunctions {
 		return result.times(outerSign);
 	}
 
+	// Safety net for erf's Maclaurin series below, same role as SIMPSON_MAX_SUBDIVISIONS in
+	// ComplexCalculus.integrate: not the normal exit path (the term-below-tolerance break below
+	// is), but a backstop for |z| large enough that the terms have not started shrinking yet.
+	private static final int ERF_MAX_ITERATIONS = 5000;
+
+	/**
+	 * The (Gauss) error function erf(z) = (2/sqrt(pi)) * Integral_0^z exp(-t^2) dt.
+	 * @param z the argument
+	 * @return erf(z)
+	 * @apiNote Maclaurin series (2/sqrt(pi)) * Sum_{n=0}^inf (-1)^n*z^(2n+1)/(n!*(2n+1)), an entire
+	 * function so this converges for any z. Consecutive terms satisfy term_n = term_(n-1) *
+	 * (-z^2*(2n-1))/(n*(2n+1)) -- decaying factorially once n&gt;|z|^2, so the plain "last term
+	 * below tolerance" stopping rule (same as {@link #zeta_havil(Complex)}) is valid here without
+	 * the tail correction {@link #zeta_re(Complex)}/{@link #gamma_weiertrass(Complex)} needed for
+	 * their genuinely slow polynomial-decay tails.
+	 * <p>
+	 * KNOWN LIMITATION, not addressed here (out of scope, same kind of documented domain boundary
+	 * already accepted for e.g. {@link #gamma_nemes(Complex)}): for |z| large, the alternating
+	 * terms grow before they start shrinking (need n&gt;|z|^2 terms first), so double-precision
+	 * cancellation erodes the result well before {@link #ERF_MAX_ITERATIONS} is reached -- no
+	 * asymptotic/continued-fraction branch is implemented for that regime.
+	 */
+	static Complex erf(Complex z) {
+		double twoOverSqrtPi = 2.0 / Math.sqrt(Math.PI);
+		double tolerance = Math.pow(10, -(Complex.getMaxDecimals() + 2));
+		Complex negZ2 = z.times(z).opposite(); // -z^2, reused every step below
+		// term/sum are freshly allocated private accumulators (from copy()), safe to mutate in
+		// place instead of allocating a new Complex at each step.
+		Complex term = z.copy();
+		Complex sum = term.copy();
+		for (int n = 1; n <= ERF_MAX_ITERATIONS; ++n) {
+			term.timesEq(negZ2).timesEq((2.0 * n - 1) / (n * (2.0 * n + 1)));
+			sum.plusEq(term);
+			if (term.mod() < tolerance) break;
+		}
+		return sum.times(twoOverSqrtPi);
+	}
+
+	/**
+	 * The complementary error function erfc(z) = 1 - erf(z).
+	 * @param z the argument
+	 * @return erfc(z)
+	 */
+	static Complex erfc(Complex z) {
+		return Complex.ONE.minus(erf(z));
+	}
+
 	/*
 	 * http://mrob.com/pub/ries/src/zeta.cpp.txt
 	 */

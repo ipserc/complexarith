@@ -3193,7 +3193,21 @@ A petición del usuario ("Nuevos instrumentos matemáticos. planifica y lo revis
 
 `Complex.VERSION`: `1.34→1.35`.
 
-**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, listo para commitear. Bloque B (`erf`/`erfc`) queda como siguiente paso natural, sin empezar.
+**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, commiteado (`ea2b749`). Bloque B (`erf`/`erfc`) queda como siguiente paso natural, sin empezar.
+
+## Continuación — Nuevos instrumentos matemáticos, Bloque B: `erf`/`erfc` (10 agosto 2026, commit pendiente)
+
+A petición del usuario ("sí, sigue con el Bloque B"), implementado según el plan ya aprobado.
+
+**Implementado**: `erf(Complex z)` en `ComplexFunctions.java` vía la serie de Maclaurin `(2/√π)·Σ(-1)^n·z^(2n+1)/(n!(2n+1))` — función entera, converge para cualquier `z`. Cada término se deriva del anterior por la razón `term_n = term_(n-1)·(-z²(2n-1))/(n(2n+1))`, evitando recalcular potencias/factoriales desde cero en cada paso. Decaimiento factorial en cuanto `n>|z|²`, así que el criterio de parada "último término por debajo del umbral" (igual que `zeta_havil`) es válido sin la corrección de cola que sí hizo falta en `zeta_re`/`gamma_weiertrass`. `erfc(Complex z)` es un delegador trivial `ONE.minus(erf(z))`. Límite de dominio documentado y NO resuelto (alcance deliberadamente acotado, mismo patrón que `gamma_nemes`): para `|z|` grande la serie sufre cancelación catastrófica antes de converger — sin rama asintótica/fracción continua para ese régimen.
+
+**Verificación** (`ScratchErfAudit01.java`, conservado — **20/20 OK**): `erf(0)=0`/`erfc(0)=1`, función impar `erf(-z)=-erf(z)` (4 puntos complejos), 3 valores tabulados conocidos en el eje real (`erf(0.5)`, `erf(1)`, `erf(2)`) más `erf(4)→1` (saturación), identidad `erfc(z)=1-erf(z)`, derivada `erf'(z)=(2/√π)·e^(-z²)` cruzada contra `ComplexCalculus.derivative` (ya auditado), y `erf(z)` cruzado contra integración numérica directa de `exp(-t²)` vía `Complex.integrate` (ya auditado) — todos pasan entre 1e-6 y precisión de máquina.
+
+**Verificación de regresión**: recompilación fresca completa de `com.ipserc.arith`. `TestGamma01-04`, `TestBeta01/02`, `TestComplex01`, `ScratchDigammaAudit01.java` (Bloque A): 8/8 exit=0 sin cambios. `ScratchComplexFunctionsAudit01.java`: mismos 62 OK/3 FAIL que antes (límite residual ya documentado, no relacionado).
+
+`Complex.VERSION`: `1.35→1.36`.
+
+**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, listo para commitear. Bloque C (eta de Dirichlet) queda como siguiente paso natural, sin empezar.
 
 ---
 

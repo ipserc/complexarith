@@ -71,8 +71,21 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.35 (2026_0810_2200)";
+	private final static String VERSION = "1.36 (2026_0810_2300)";
 	/* VERSION Release Note
+	 * 1.36 (2026_0810_2300)
+	 * Nuevos instrumentos matematicos, Bloque B (funcion de error) de la hoja de ruta anotada
+	 * durante el Bloque 1 de la auditoria matematica dedicada (ver Claude/ComplexArithRev.md):
+	 * erf(z)/erfc(z). Serie de Maclaurin (2/sqrt(pi))*Sum (-1)^n*z^(2n+1)/(n!(2n+1)), funcion
+	 * entera por lo que converge para cualquier z; decaimiento factorial una vez n&gt;|z|^2, asi
+	 * que el criterio de parada "ultimo termino por debajo del umbral" (igual que zeta_havil) es
+	 * valido sin necesitar la correccion de cola de zeta_re/gamma_weiertrass. Limite de dominio
+	 * documentado, no resuelto: para |z| grande la serie sufre cancelacion catastrofica antes de
+	 * converger (mismo tipo de limite ya aceptado en gamma_nemes). Verificado
+	 * (ScratchErfAudit01.java): erf(0)=0, funcion impar, valores tabulados conocidos en el eje
+	 * real, erf'(z)==(2/sqrt(pi))*exp(-z^2) via derivada numerica, cruzado contra integracion
+	 * numerica directa de exp(-t^2).
+	 *
 	 * 1.35 (2026_0810_2200)
 	 * Nuevos instrumentos matematicos, Bloque A (digamma/poligamma) de la hoja de ruta anotada
 	 * durante el Bloque 1 de la auditoria matematica dedicada (ver Claude/ComplexArithRev.md):
@@ -1780,6 +1793,8 @@ public class Complex {
 	public static Complex beta(Complex p, Complex q) { return ComplexFunctions.beta(p, q); }
 	public static Complex digamma(Complex z) { return ComplexFunctions.digamma(z); }
 	public static Complex polygamma(int n, Complex z) { return ComplexFunctions.polygamma(n, z); }
+	public static Complex erf(Complex z) { return ComplexFunctions.erf(z); }
+	public static Complex erfc(Complex z) { return ComplexFunctions.erfc(z); }
 	public static Complex zeta(Complex s) { return ComplexFunctions.zeta(s); }
 	public static Complex zeta_re(Complex s) { return ComplexFunctions.zeta_re(s); }
 	public static Complex zeta_ext(Complex s) { return ComplexFunctions.zeta_ext(s); }
