@@ -2907,7 +2907,22 @@ Continuación en conversación nueva tras la pausa de la Vigesimotercera. El usu
 - **"Camino B" del Vector API** (`jdk.incubator.vector`): requiere instalar un JDK 17+/21+ completo aparte del de Eclipse, más subir el compliance del proyecto de 1.8.
 - **Pasada dedicada del rol Matemáticas Aplicadas** y **rol Física/Mecánica Cuántica**: siguen reservadas para el final de la revisión completa.
 
-**Sin punto de retomada pendiente** — preguntar al usuario por dónde seguir.
+## SESIÓN PAUSADA — Vigesimocuarta sesión (10 agosto 2026), a petición del usuario ("Paramos por ahora")
+
+**EXACTO PUNTO DE RETOMADA**: los 2 commits de esta sesión (`55aff0f` código, `8eec6bf` doc) están pusheados a `origin/master` (`HEAD`==`origin/master` verificado tras el push). Quedan **2 ficheros con cambios sin commitear, hechos por el usuario directamente en Eclipse tras la migración** — no revertidos, quedan tal cual para la próxima sesión:
+- `TestSurfaceCosc02.java`: `plot()` cambiado de `plotGrid3DSync()` a `plotGrid3DAsync()`.
+- `TestSurfaceSinc01.java`: mismo cambio a `plotGrid3DAsync()`, más `sampleBase` `110→161` y dominio `[-4,4]×[-4,4]` → `[-8,8]×[-8,8]` (más resolución, más área).
+
+Ninguno de los 2 se ha compilado ni verificado en esta sesión (son posteriores al último commit) — probablemente el usuario esté probando el modo async y una resolución/dominio mayor para `Sinc`. Sin decidir si se generalizan al resto de `TestSurface*`/`TestZeta04`/`TestZeta05` o se quedan solo en estos 2. Además, sin trackear/commitear como siempre `Claude/ClaudeRevisionComplexArith.txt` (modificado) y `Claude/Commands.txt` (nuevo) — ficheros propios del usuario, fuera del alcance de este documento.
+
+**Resumen de la sesión completa**: candidato "`TestZeta04.java`" cerrado (migrado a `plotGrid3D`, dejó de ser código muerto) + los 6 `TestSurface*.java` migrados de `BOXPLOT`/`LINES` (nube de puntos/cajas desconectadas) a malla real `plotGrid3D` — ver bloque "VIGESIMOCUARTA SESIÓN" arriba para el detalle completo. Con esto los 8 ficheros del inventario 3D original quedan con malla conectada real; el candidato "3D" de `MatrixComplexPlot` está agotado del todo.
+
+**Candidatos abiertos, sin decidir cuándo retomarlos**:
+- **Los 2 cambios sin commitear** (arriba) — decidir si se verifican/generalizan o se descartan.
+- **"Camino B" del Vector API** (`jdk.incubator.vector`): sin cambios, ver arriba.
+- **Pasada dedicada del rol Matemáticas Aplicadas** y **rol Física/Mecánica Cuántica**: sin cambios, reservadas para el final.
+
+**Sin punto de retomada urgente de código** — el trabajo cerrado esta sesión está commiteado y pusheado del todo; lo único pendiente son los 2 cambios experimentales sin commitear de arriba, a decisión del usuario.
 
 ---
 
