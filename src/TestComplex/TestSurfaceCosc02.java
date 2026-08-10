@@ -43,7 +43,7 @@ import java.util.List;
 public class TestSurfaceCosc02 {
 
 	public static void plot(String title, double[][][] grid) {
-		MatrixComplexPlot.plotGrid3DSync(title, grid);
+		MatrixComplexPlot.plotGrid3DAsync(title, grid);
 	}
 
     public static void main(String[] args) {
