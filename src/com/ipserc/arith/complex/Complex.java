@@ -71,8 +71,21 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.34 (2026_0810_2100)";
+	private final static String VERSION = "1.35 (2026_0810_2200)";
 	/* VERSION Release Note
+	 * 1.35 (2026_0810_2200)
+	 * Nuevos instrumentos matematicos, Bloque A (digamma/poligamma) de la hoja de ruta anotada
+	 * durante el Bloque 1 de la auditoria matematica dedicada (ver Claude/ComplexArithRev.md):
+	 * digamma psi(z) y poligamma psi^(n)(z), companeros directos de gamma. Un unico motor
+	 * polygamma(int n, Complex z) (n=0 es digamma), via la recurrencia estandar
+	 * psi^(n)(z)=psi^(n)(z+m)-(-1)^n*n!*Sum 1/(z+k)^(n+1) para desplazar z a la zona segura
+	 * Re(z)&gt;=10, mas la serie asintotica de Stirling alli -- reutiliza los mismos numeros de
+	 * Bernoulli B_2..B_10 ya usados por zeta_re para su cola de Euler-Maclaurin. Verificado
+	 * (ScratchDigammaAudit01.java): psi(1)=-EULER_MASC, psi(2)=1-EULER_MASC,
+	 * psi(1/2)=-EULER_MASC-2*ln2, recurrencia psi(z+1)-psi(z)==1/z, reflexion
+	 * psi(1-z)-psi(z)==pi*cot(pi*z), psi'(1)==zeta(2)==pi^2/6, cruzado contra la derivada numerica
+	 * de log(gamma(z)) via ComplexCalculus.derivative.
+	 *
 	 * 1.34 (2026_0810_2100)
 	 * Auditoria matematica dedicada de ComplexFunctions.java (Vigesimosexta sesion, ver
 	 * Claude/ComplexArithRev.md) -- 4 bugs reales encontrados y arreglados, cada uno verificado
@@ -1765,6 +1778,8 @@ public class Complex {
 	public static double factorial(int n) { return ComplexFunctions.factorial(n); }
 	public static Complex factorial(Complex n) { return ComplexFunctions.factorial(n); }
 	public static Complex beta(Complex p, Complex q) { return ComplexFunctions.beta(p, q); }
+	public static Complex digamma(Complex z) { return ComplexFunctions.digamma(z); }
+	public static Complex polygamma(int n, Complex z) { return ComplexFunctions.polygamma(n, z); }
 	public static Complex zeta(Complex s) { return ComplexFunctions.zeta(s); }
 	public static Complex zeta_re(Complex s) { return ComplexFunctions.zeta_re(s); }
 	public static Complex zeta_ext(Complex s) { return ComplexFunctions.zeta_ext(s); }

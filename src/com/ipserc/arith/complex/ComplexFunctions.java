@@ -620,6 +620,100 @@ final class ComplexFunctions {
 		return result;
 	}
 
+	// How far Re(w) must be shifted (via the standard recurrence, below) before the Stirling
+	// asymptotic series for psi/psi^(n) is applied. Same role as zeta_re's N=20, chosen smaller
+	// here because polygammaAsymptotic/digammaAsymptotic converge faster per unit of Re(w) than
+	// zeta_re's Dirichlet-series tail.
+	private static final double POLYGAMMA_ASYMPTOTIC_SHIFT = 10.0;
+
+	/**
+	 * The digamma function psi(z) = d/dz[ln(Gamma(z))] = Gamma'(z)/Gamma(z).
+	 * @param z the argument
+	 * @return psi(z)
+	 */
+	static Complex digamma(Complex z) {
+		return polygamma(0, z);
+	}
+
+	/**
+	 * The polygamma function psi^(n)(z), the n-th derivative of {@link #digamma(Complex)}. n=0 is
+	 * digamma itself.
+	 * @param n the derivative order, n&gt;=0
+	 * @param z the argument
+	 * @return psi^(n)(z)
+	 * @apiNote Recurrence psi^(n)(z) = psi^(n)(z+m) - (-1)^n*n! * Sum_{k=0}^{m-1} 1/(z+k)^(n+1)
+	 * (telescoped from the elementary psi^(n)(z+1) = psi^(n)(z) + (-1)^n*n!/z^(n+1)) shifts z into
+	 * the safe zone Re(w)&gt;=POLYGAMMA_ASYMPTOTIC_SHIFT, where {@link #digammaAsymptotic(Complex)}/
+	 * {@link #polygammaAsymptotic(int, Complex)} apply the Stirling asymptotic expansion (reusing
+	 * the same {@link #ZETA_RE_BERNOULLI_2J} Bernoulli numbers {@code zeta_re} already uses for its
+	 * own Euler-Maclaurin tail). n=0 needs no special case in the recurrence loop: the general term
+	 * (-1)^0*0!/(z+k)^1 = 1/(z+k) already collapses to the classic psi(z)=psi(z+1)-1/z recurrence.
+	 * <p>
+	 * Poles at z=0,-1,-2,... (where Gamma itself has poles) fall out for free: the recurrence loop
+	 * adds a term 1/(z+k)^(n+1) for w=z+k stepping up from z by whole units, so a non-positive
+	 * integer z is hit exactly, producing an Infinity term via the same divide-by-zero convention
+	 * {@code divides()} already uses elsewhere in this class (e.g. gamma_zones) -- no explicit pole
+	 * guard needed.
+	 * <p>
+	 * KNOWN LIMITATION, not addressed here (out of scope, no caller needs it): for z with very
+	 * negative Re(z), the recurrence loop runs Re(POLYGAMMA_ASYMPTOTIC_SHIFT-z) times -- a
+	 * reflection-formula shortcut (psi(1-z)=psi(z)+pi*cot(pi*z)) could avoid this, but is not
+	 * implemented since no consumer in this codebase needs Re(z) that far negative.
+	 */
+	static Complex polygamma(int n, Complex z) {
+		if (n < 0) throw new IllegalArgumentException("polygamma: order n must be >= 0, got " + n);
+		double sign = (n % 2 == 0) ? 1.0 : -1.0; // (-1)^n
+		double signedFactorialN = sign * factorial(n);
+
+		Complex w = z.copy();
+		Complex correction = new Complex(0);
+		while (w.rep() < POLYGAMMA_ASYMPTOTIC_SHIFT) {
+			correction.plusEq(w.power(-(n + 1)).times(signedFactorialN));
+			w = w.plus(1);
+		}
+		Complex asymptotic = (n == 0) ? digammaAsymptotic(w) : polygammaAsymptotic(n, w);
+		return asymptotic.minus(correction);
+	}
+
+	/**
+	 * Stirling asymptotic expansion of psi(w) = ln(w) - 1/(2w) - Sum_k B_2k/(2k*w^2k), valid for
+	 * Re(w) large (see {@link #POLYGAMMA_ASYMPTOTIC_SHIFT}).
+	 */
+	private static Complex digammaAsymptotic(Complex w) {
+		// log(w) is a freshly allocated private accumulator; minus mutates it in place below
+		// instead of allocating an intermediate Complex for each subtracted term.
+		Complex result = log(w);
+		result.minusEq(w.inverse().divides(2));
+		Complex wInv2 = w.power(-2);
+		Complex wPow = wInv2.copy();
+		for (int k = 1; k <= ZETA_RE_BERNOULLI_2J.length; k++) {
+			result.minusEq(wPow.times(ZETA_RE_BERNOULLI_2J[k - 1] / (2.0 * k)));
+			if (k < ZETA_RE_BERNOULLI_2J.length) wPow = wPow.times(wInv2);
+		}
+		return result;
+	}
+
+	/**
+	 * Stirling asymptotic expansion of psi^(n)(w), n&gt;=1: (-1)^(n-1) * [ (n-1)!/w^n +
+	 * n!/(2*w^(n+1)) + Sum_k B_2k*(2k+n-1)!/(2k)! / w^(2k+n) ], valid for Re(w) large (see
+	 * {@link #POLYGAMMA_ASYMPTOTIC_SHIFT}). The ratio (2k+n-1)!/(2k)! is computed as the short
+	 * product (2k+1)*(2k+2)*...*(2k+n-1) (empty product = 1 for n=1) instead of two factorials, to
+	 * avoid needlessly large intermediate factorial values for bigger n.
+	 */
+	private static Complex polygammaAsymptotic(int n, Complex w) {
+		double outerSign = (n % 2 == 0) ? -1.0 : 1.0; // (-1)^(n-1)
+		// w.power(-n) is a freshly allocated private accumulator; plusEq mutates it in place below
+		// instead of allocating an intermediate Complex for each added term.
+		Complex result = w.power(-n).times(factorial(n - 1));
+		result.plusEq(w.power(-(n + 1)).times(factorial(n) / 2.0));
+		for (int k = 1; k <= ZETA_RE_BERNOULLI_2J.length; k++) {
+			double ratio = 1.0;
+			for (int i = 1; i <= n - 1; i++) ratio *= (2 * k + i);
+			result.plusEq(w.power(-(2 * k + n)).times(ZETA_RE_BERNOULLI_2J[k - 1] * ratio));
+		}
+		return result.times(outerSign);
+	}
+
 	/*
 	 * http://mrob.com/pub/ries/src/zeta.cpp.txt
 	 */
