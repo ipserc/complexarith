@@ -71,8 +71,36 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.39 (2026_0811_0200)";
+	private final static String VERSION = "1.40 (2026_0811_0300)";
 	/* VERSION Release Note
+	 * 1.40 (2026_0811_0300)
+	 * Bug real preexistente arreglado (investigacion dedicada, a peticion del usuario): isPureReal()
+	 * devolvia false para el propio cero exacto (rePartNull() siendo cierto lo excluia en vez de
+	 * incluirlo), y de forma simetrica isPureImaginary() tambien excluia el cero. Efecto en cadena
+	 * confirmado con pruebas antes/despues: isInteger() decia que 0 no es entero (encontrado la
+	 * sesion anterior, disparo del bug en besselY(0,z)); gamma_zones(0)/gamma_integral(0)/
+	 * gamma_weiertrass(0)/gamma_euler(0) daban -Infinity en vez de +Infinity (el signo correcto del
+	 * polo, su guarda isIntegerNegativeZero() fallaba en z=0 exacto -- gamma(0), el default via
+	 * gamma_fast/Lanczos, NO usa esa guarda y sigue dando -Infinity, bug preexistente DISTINTO, sin
+	 * relacion con isPureReal, NO arreglado aqui); MatrixComplex.isHermitian()/isAntiHermitian() (y
+	 * por extension isPostiveDefinite()/isPostiveSemiDefinite()/isNegtiveDefinite()/
+	 * isNegtiveSemiDefinite(), que dependen de isHermitian()) clasificaban mal CUALQUIER matriz
+	 * Hermitiana/anti-Hermitiana con un cero exacto en la diagonal -- caso nada raro. Arreglado
+	 * quitando la guarda extra de cada metodo (isPureReal()=imPartNull() a secas,
+	 * isPureImaginary()=rePartNull() a secas) -- cero pasa a ser, correctamente, tanto puramente
+	 * real como puramente imaginario a la vez (la convencion matematica estandar). Verificado con
+	 * bateria de ~37 ficheros (incluidos los 24 que tocan Hermitian/Definite) comparada contra un
+	 * build de referencia pre-fix: sin regresiones, mas las mejoras esperadas confirmadas.
+	 * <p>
+	 * 2 hallazgos colaterales, reportados pero NO arreglados aqui (fuera de alcance, cada uno una
+	 * investigacion propia aparte): (1) {@code gamma(0)} (default, via gamma_fast/Lanczos) sigue
+	 * dando -Infinity -- no pasa por isPureReal/isIntegerNegativeZero en absoluto, bug distinto en
+	 * el propio manejo del polo de Lanczos. (2) {@code MatrixComplex.power(double 0.0)}/
+	 * {@code power_(Complex 0)} puede devolver la matriz CERO en vez de la identidad para matrices
+	 * no diagonalizables -- confirmado que {@code power(0.0)} ya daba el resultado incorrecto ANTES
+	 * de este fix, llamando directamente al overload double (bug independiente en power()/exp()/
+	 * log(), no causado por isPureReal()). Ver Claude/ComplexArithRev.md para el detalle de ambos.
+	 *
 	 * 1.39 (2026_0811_0200)
 	 * Nuevos instrumentos matematicos, Bloque E (funciones de Bessel, ultimo de la hoja de ruta) de
 	 * la hoja de ruta anotada durante el Bloque 1 de la auditoria matematica dedicada (ver
@@ -1379,21 +1407,27 @@ public class Complex {
 	/**
 	 * Checks if a number is pure real
 	 * @return True if the number is pure real
+	 * @apiNote BUG FIXED (Vigesimoctava sesion, investigacion dedicada del bug reportado en el
+	 * Bloque E de "nuevos instrumentos matematicos" -- ver Claude/ComplexArithRev.md): the previous
+	 * body had an extra {@code if (rePartNull()) return false;} guard, which excluded the number
+	 * ZERO from being "pure real" -- backwards, since zero is trivially a real number (and, by the
+	 * same standard convention, also purely imaginary at the same time; it is the one value both
+	 * predicates should agree on). Confirmed with {@code new Complex(0,0).isPureReal()==false}
+	 * before this fix. Now simply "imaginary part is null", with no exception for zero.
 	 */
 	public Boolean isPureReal() {
-		if (rePartNull()) return false;
-		if (!imPartNull()) return false;
-		return true;
+		return imPartNull();
 	}
 
 	/**
 	 * Checks if a number is pure imaginary
 	 * @return True if the number is pure imaginary
+	 * @apiNote BUG FIXED (Vigesimoctava sesion): same issue as {@link #isPureReal()}'s @apiNote,
+	 * mirrored -- the extra {@code if (imPartNull()) return false;} guard excluded zero. Now simply
+	 * "real part is null".
 	 */
 	public Boolean isPureImaginary() {
-		if (imPartNull()) return false;
-		if (!rePartNull()) return false;
-		return true;
+		return rePartNull();
 	}
 
 	/*
