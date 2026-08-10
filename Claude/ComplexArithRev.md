@@ -2968,7 +2968,7 @@ Continuación en conversación nueva tras la pausa de la Vigesimoquinta. El usua
 
 **Conclusión**: el compliance 21 compila limpio con el compilador real, no solo en la simulación `--release` de la sesión anterior. Sin cambios en ficheros de producción con `VERSION` (solo configuración de proyecto Eclipse, fuera del repo git) — sin bump de `VERSION`.
 
-**Pendiente, sin hacer todavía en esta sesión**: abrir Eclipse y confirmar en la UI que el proyecto arranca limpio con JavaSE-21 (el registro y el compliance están verificados por línea de comandos, pero no dentro del propio IDE). Paso 3 de la hoja de ruta (diseño real del uso de `jdk.incubator.vector`, proyecto grande aparte) sigue sin empezar.
+**Verificación dentro del propio Eclipse, misma sesión**: Eclipse abierto apuntando al workspace (`C:\Users\josel\workspace-eclipse`) — el usuario confirmó que arranca limpio con JavaSE-21, compila el proyecto sin errores y ejecuta `TestSurfaceSinc01.java` correctamente. Con esto la verificación queda completa tanto por línea de comandos (arriba) como dentro del IDE real — los pasos 1 y 2 de la hoja de ruta del Camino B quedan cerrados del todo. Paso 3 (diseño real del uso de `jdk.incubator.vector`, proyecto grande aparte) sigue sin empezar.
 
 **Candidatos abiertos, sin cambios respecto a la sesión anterior**:
 - Los 2 cambios experimentales sin commitear (`TestSurfaceCosc02.java`/`TestSurfaceSinc01.java` → `plotGrid3DAsync`, `Sinc01` con más resolución/dominio) — sin decidir.
