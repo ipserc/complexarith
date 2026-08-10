@@ -71,8 +71,22 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.38 (2026_0811_0100)";
+	private final static String VERSION = "1.39 (2026_0811_0200)";
 	/* VERSION Release Note
+	 * 1.39 (2026_0811_0200)
+	 * Nuevos instrumentos matematicos, Bloque E (funciones de Bessel, ultimo de la hoja de ruta) de
+	 * la hoja de ruta anotada durante el Bloque 1 de la auditoria matematica dedicada (ver
+	 * Claude/ComplexArithRev.md): besselJ(Complex nu, Complex z) y besselY(Complex nu, Complex z).
+	 * J_nu(z) generaliza a orden Complex reutilizando gamma(); orden entero negativo usa la
+	 * reflexion J_(-n)=(-1)^n*J_n en vez de la serie directa. Y_nu(z): orden no entero via la
+	 * formula de reflexion directa (sin digamma); orden entero no negativo via la serie limite
+	 * estandar (Abramowitz &amp; Stegun 9.1.11), que si necesita digamma (Bloque A) porque
+	 * sin(n*pi)=0 deja la reflexion en 0/0. Orden entero negativo para Y NO implementado (alcance
+	 * deliberadamente acotado segun el plan aprobado) -- falla alto. Verificado
+	 * (ScratchBesselAudit01.java): J_0(0)=1, J_n(0)=0 (n&gt;0), recurrencia de 3 terminos
+	 * J_(n-1)+J_(n+1)==(2n/z)*J_n, ecuacion diferencial de Bessel via derivada numerica doble,
+	 * Wronskiano J_n*Y_n'-J_n'*Y_n==2/(pi*z), valores tabulados conocidos.
+	 *
 	 * 1.38 (2026_0811_0100)
 	 * Nuevos instrumentos matematicos, Bloque D (polilogaritmo) de la hoja de ruta anotada durante
 	 * el Bloque 1 de la auditoria matematica dedicada (ver Claude/ComplexArithRev.md):
@@ -1869,6 +1883,8 @@ public class Complex {
 	public static Complex cosc(Complex z) { return ComplexFunctions.cosc(z); }
 	public static Complex tanc(Complex z) { return ComplexFunctions.tanc(z); }
 	public static Complex chebyshev(int degree, Complex cx) { return ComplexFunctions.chebyshev(degree, cx); }
+	public static Complex besselJ(Complex nu, Complex z) { return ComplexFunctions.besselJ(nu, z); }
+	public static Complex besselY(Complex nu, Complex z) { return ComplexFunctions.besselY(nu, z); }
 
 	/*
 	 * ***********************************************

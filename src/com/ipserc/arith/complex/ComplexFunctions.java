@@ -1546,4 +1546,140 @@ final class ComplexFunctions {
 	static Complex chebyshev(int degree, Complex cx) {
 		return Complex.cos(Complex.arccos(cx).times(degree));
 	}
+
+	// Safety net for the two Bessel series below, same role as ERF_MAX_ITERATIONS/
+	// POLYLOG_MAX_ITERATIONS: not the normal exit path, only a backstop.
+	private static final int BESSEL_MAX_ITERATIONS = 500;
+
+	/**
+	 * The Bessel function of the first kind, J_nu(z) = Sum_{k=0}^inf [(-1)^k/(k!*Gamma(nu+k+1))] *
+	 * (z/2)^(nu+2k).
+	 * @param nu the order, any Complex value
+	 * @param z the argument
+	 * @return J_nu(z)
+	 * @apiNote Generalizes naturally to Complex order by reusing {@link #gamma(Complex)} in place
+	 * of the usual integer factorial -- entire in z for fixed nu, so the series converges for any
+	 * z. For negative integer order, delegates to the reflection J_(-n)(z)=(-1)^n*J_n(z) instead
+	 * of evaluating the series directly at nu=-n: the direct series would need
+	 * 1/Gamma(-n+k+1), which is exactly 0 for k&lt;n (Gamma has poles at those non-positive
+	 * integers) -- correct in principle (those terms vanish) but needlessly relies on
+	 * {@link #gamma(Complex)}'s pole handling instead of the simpler, exact reflection identity.
+	 */
+	static Complex besselJ(Complex nu, Complex z) {
+		if (nu.isIntegerNegative()) {
+			long n = Math.round(-nu.rep());
+			Complex result = besselJSeries(nu.opposite(), z);
+			return (n % 2 == 0) ? result : result.opposite();
+		}
+		return besselJSeries(nu, z);
+	}
+
+	/**
+	 * Direct series for J_nu(z), valid for any nu that is not a negative integer (see
+	 * {@link #besselJ(Complex, Complex)} for that case).
+	 * @apiNote Consecutive terms satisfy term_k = term_(k-1) * (-(z/2)^2) / (k*(nu+k)), avoiding a
+	 * fresh factorial/gamma evaluation per term. Same "last term below tolerance" stopping rule as
+	 * {@link #erf(Complex)}/{@link #polylog(Complex, Complex)}, valid here since the k! in the
+	 * denominator forces factorial decay for any fixed z.
+	 */
+	private static Complex besselJSeries(Complex nu, Complex z) {
+		double tolerance = Math.pow(10, -(Complex.getMaxDecimals() + 2));
+		Complex halfZ = z.divides(2);
+		// term/sum are freshly allocated private accumulators, safe to mutate in place.
+		Complex term = halfZ.power(nu).divides(gamma(nu.plus(1)));
+		Complex sum = term.copy();
+		Complex negHalfZ2 = halfZ.power(2).opposite(); // -(z/2)^2, reused every step below
+		for (int k = 1; k <= BESSEL_MAX_ITERATIONS; ++k) {
+			term.timesEq(negHalfZ2).dividesEq(new Complex(k, 0).times(nu.plus(k)));
+			sum.plusEq(term);
+			if (term.mod() < tolerance) break;
+		}
+		return sum;
+	}
+
+	/**
+	 * The Bessel function of the second kind (Neumann function), Y_nu(z).
+	 * @param nu the order
+	 * @param z the argument
+	 * @return Y_nu(z)
+	 * @apiNote SCOPE DECISION, deliberately bounded (same kind of documented domain boundary as
+	 * {@link #polylog(Complex, Complex)}): non-integer nu uses the direct reflection formula
+	 * Y_nu(z) = [J_nu(z)*cos(nu*pi) - J_(-nu)(z)] / sin(nu*pi) (no {@link #digamma(Complex)} needed
+	 * there); non-negative integer n uses the standard limiting series (sin(n*pi)=0 makes the
+	 * reflection formula an unresolved 0/0 for integer order), which needs
+	 * {@link #digamma(Complex)} -- see {@link #besselYIntegerSeries(int, Complex)}. Negative
+	 * integer order is NOT implemented (fails high with {@link IllegalArgumentException} instead
+	 * of silently returning a wrong value): the reflection Y_(-n)=(-1)^n*Y_n is trivial to add, but
+	 * was explicitly left out of scope in the plan for this block, since no consumer in this
+	 * codebase needs it.
+	 */
+	static Complex besselY(Complex nu, Complex z) {
+		if (!isIntegerOrder(nu)) return besselYReflection(nu, z);
+		if (nu.rep() < 0) throw new IllegalArgumentException("besselY: negative integer order not implemented (out of scope) -- got n=" + nu.rep());
+		return besselYIntegerSeries((int) Math.round(nu.rep()), z);
+	}
+
+	/**
+	 * Whether nu is an integer order, WITHOUT going through {@link Complex#isInteger()}.
+	 * @apiNote Deliberately does not reuse {@code Complex.isInteger()} (which requires
+	 * {@code isPureReal()}): found during this block's own verification that {@code isPureReal()}
+	 * returns false for the value zero exactly ({@code rePartNull()} being true short-circuits it
+	 * to false, instead of the real part simply being null/irrelevant to "is this purely real"),
+	 * so {@code isInteger()} incorrectly says nu=0 is not an integer -- reproduced with
+	 * {@code new Complex(0,0).isPureReal()==false}. This is a real, preexisting quirk in
+	 * {@code Complex} itself (affects every caller of {@code isInteger}/{@code isPureReal} at
+	 * exactly zero, well beyond this block), reported to the user rather than fixed here -- out of
+	 * scope for "nuevos instrumentos matematicos" and too wide a blast radius to fix inline. This
+	 * local check is safe because nu here is always a directly-constructed value (e.g.
+	 * {@code new Complex(n, 0)}), never a computed/noisy one, so exact equality is fine.
+	 */
+	private static boolean isIntegerOrder(Complex nu) {
+		return nu.imp() == 0.0 && nu.rep() == Math.rint(nu.rep());
+	}
+
+	private static Complex besselYReflection(Complex nu, Complex z) {
+		Complex piNu = nu.times(Complex.PI);
+		Complex numerator = besselJ(nu, z).times(cos(piNu)).minus(besselJ(nu.opposite(), z));
+		return numerator.divides(sin(piNu));
+	}
+
+	/**
+	 * Standard limiting series for Y_n(z), n a non-negative integer (Abramowitz &amp; Stegun 9.1.11):
+	 * Y_n(z) = (2/pi)*J_n(z)*ln(z/2) - (1/pi)*Sum_{k=0}^(n-1) (n-k-1)!/k! * (z/2)^(2k-n)
+	 * - (1/pi)*Sum_{k=0}^inf (-1)^k*[psi(k+1)+psi(n+k+1)]/(k!*(n+k)!) * (z/2)^(n+2k).
+	 */
+	private static Complex besselYIntegerSeries(int n, Complex z) {
+		double tolerance = Math.pow(10, -(Complex.getMaxDecimals() + 2));
+		Complex halfZ = z.divides(2);
+
+		// First term: (2/pi) * J_n(z) * ln(z/2).
+		Complex result = besselJSeries(new Complex(n, 0), z).times(log(halfZ)).times(2.0 / Math.PI);
+
+		// Second term: the finite sum, only present for n>=1.
+		if (n > 0) {
+			Complex finiteSum = new Complex(0);
+			for (int k = 0; k < n; ++k) {
+				double coeff = factorial(n - k - 1) / factorial(k);
+				finiteSum.plusEq(halfZ.power(2 * k - n).times(coeff));
+			}
+			result.minusEq(finiteSum.times(1.0 / Math.PI));
+		}
+
+		// Third term: the infinite series, same factorial-decay stopping rule as besselJSeries.
+		Complex halfZ2 = halfZ.power(2);
+		Complex zPow = halfZ.power(n); // (z/2)^(n+2k), for k=0
+		Complex infSum = new Complex(0);
+		for (int k = 0; k <= BESSEL_MAX_ITERATIONS; ++k) {
+			double sign = (k % 2 == 0) ? 1.0 : -1.0;
+			double denom = factorial(k) * factorial(n + k);
+			Complex psiSum = digamma(new Complex(k + 1, 0)).plus(digamma(new Complex(n + k + 1, 0)));
+			Complex term = zPow.times(psiSum).times(sign / denom);
+			infSum.plusEq(term);
+			if (term.mod() < tolerance) break;
+			zPow = zPow.times(halfZ2);
+		}
+		result.minusEq(infSum.times(1.0 / Math.PI));
+
+		return result;
+	}
 }
