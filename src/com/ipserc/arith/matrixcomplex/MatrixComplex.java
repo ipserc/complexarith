@@ -18,8 +18,34 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.70 (2026_0810_2330)";
+	private final static String VERSION = "1.71 (2026_0810_2340)";
 	/* VERSION Release Note
+	 *
+	 * 1.71 (2026_0810_2340)
+	 * Bug real reportado por el usuario: Eigenspace imprimia "arith mult:1 - geom mult:2" para un
+	 * autovalor (violacion del teorema fundamental geom_mult<=arith_mult). Causa raiz en
+	 * MatrixComplexUnary.rankByRelativePivot() (usado por rankNearSingular(), y este por
+	 * Eigenspace.geometricMultiplicity()): leia solo la entrada DIAGONAL de cada fila tras
+	 * triangleUp(), que solo pivota por FILAS -- si una columna se anula del todo antes de su turno
+	 * (columna dependiente de una anterior), el pivote real de esa fila queda desplazado a una
+	 * columna posterior y la diagonal se queda con un cero ESTRUCTURAL, infravalorando el rango.
+	 * Confirmado con [i,-i,i; i,-i,-i; i,-i,i] (columna 1 = -columna 0): triangleUp() da
+	 * [i,-i,i; 0,0,-2i; 0,0,0], diagonal [i,0,0] -> rango 1 en vez del rango real 2 (rank() de
+	 * referencia y el nucleo (1,1,0) lo confirman).
+	 * Primer intento (leer el maximo modulo de TODA la fila en vez de solo la diagonal) resulto
+	 * INSUFICIENTE -- detectado en la propia bateria de regresion de esta sesion antes de commitear:
+	 * rompia el caso general (autovalor simple con geom mult correctamente 1 pasaba a reportar 0,
+	 * imposible matematicamente). Causa: cuando DOS filas quedan con su pivote desplazado a la MISMA
+	 * columna posterior (A-1*I de TestEigenV05, [2,2,-1;2,2,1;0,0,4] -> triangleUp() da
+	 * [2,2,-1;0,0,2;0,0,4], filas 1 y 2 son linealmente DEPENDIENTES entre si -- fila2=2*fila1 -- pero
+	 * cada una por separado parecia "no despreciable"), una sola pasada de triangleUp() no basta ni
+	 * repetida (el hueco estructural persiste, la eliminacion nunca mira mas alla de la columna k en
+	 * el paso k). Arreglo definitivo: rankByRelativePivot() ya NO depende de triangleUp() -- eliminacion
+	 * gaussiana propia con AVANCE DE COLUMNA (si la columna actual no tiene pivote no-despreciable en
+	 * las filas restantes, se prueba la siguiente columna sin avanzar de fila), mismo umbral relativo
+	 * SINGULARITY_REL_TOL aplicado en cada paso de eliminacion en vez de solo al leer el resultado
+	 * final. Verificado con ScratchGeomMultBug01.java (caso reportado) y ScratchGeomMultBug02.java
+	 * (caso de regresion de la Ronda 1), ambos conservados en src/TestComplex/: coinciden con rank().
 	 *
 	 * 1.70 (2026_0810_2330)
 	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 4 de la hoja de ruta

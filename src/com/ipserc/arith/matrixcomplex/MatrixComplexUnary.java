@@ -569,19 +569,70 @@ class MatrixComplexUnary {
 	 * on {@code A-lambda*I}, which DOES have a coherent scale) -- use {@code rank()} elsewhere.
 	 * @param m The matrix (must be square).
 	 * @return The relative-pivot rank (0 for a zero matrix).
+	 * @apiNote BUG FIXED, 2 rondas (10 agosto 2026, reportado por el usuario -- ver
+	 * Claude/ComplexArithRev.md). <b>Ronda 1</b>: leia solo la entrada DIAGONAL de cada fila tras
+	 * {@code triangleUp()}, asumiendo que el pivote de cada fila cae siempre en su posicion diagonal.
+	 * {@code triangleUp()} solo permuta FILAS (nunca columnas) -- si una columna se anula por completo
+	 * antes de "su turno" (p.ej. por ser combinacion lineal de una columna anterior), la eliminacion la
+	 * salta sin mas, dejando un cero ESTRUCTURAL en la diagonal mientras el pivote real de esa fila
+	 * queda desplazado a una columna posterior -- confirmado con {@code [i,-i,i; i,-i,-i; i,-i,i]}
+	 * (columna 1 = -1 x columna 0): diagonal {@code [i,0,0]} tras triangularizar, rango 1 en vez del
+	 * rango real 2. <b>Ronda 2</b>: el primer arreglo (leer el maximo de TODA la fila en vez de solo la
+	 * diagonal) resulto insuficiente -- confirmado que rompia el caso general (autovalor simple con
+	 * geom mult correctamente 1 pasaba a reportar 0, matematicamente imposible: todo autovalor genuino
+	 * tiene geom mult&gt;=1). Causa: cuando DOS filas distintas quedan con su pivote desplazado a la
+	 * MISMA columna posterior (visto con {@code A-1*I} de {@code TestEigenV05}, {@code [2,2,-1;
+	 * 2,2,1; 0,0,4]} -&gt; {@code triangleUp()} da {@code [2,2,-1; 0,0,2; 0,0,4]}: filas 1 y 2 son
+	 * linealmente DEPENDIENTES entre si -- fila2=2*fila1 -- pero cada una por separado tiene un maximo
+	 * de fila no despreciable, asi que el conteo por fila las contaba como 2 filas independientes en
+	 * vez de 1), {@code triangleUp()} de una sola pasada no reduce lo suficiente: al llegar a la
+	 * columna con diagonal cero, se salta esa columna SIN buscar si hay un pivote usable en una columna
+	 * posterior para eliminar las filas de debajo -- ni una segunda pasada de {@code triangleUp()}
+	 * ayuda (el mismo hueco estructural persiste, la eliminacion nunca mira mas alla de la columna k en
+	 * el paso k). Arreglado sustituyendo la dependencia en {@code triangleUp()} por una eliminacion
+	 * gaussiana propia y autocontenida con AVANCE DE COLUMNA (si la columna actual no tiene ningun
+	 * pivote no-despreciable en las filas restantes, se prueba la siguiente columna sin avanzar de
+	 * fila -- la forma estandar de construir una forma escalonada por filas para calcular el rango,
+	 * sin asumir que columna-pivote y fila coinciden en indice) -- mismo criterio de tolerancia
+	 * RELATIVA ({@link #SINGULARITY_REL_TOL}) que antes, ahora aplicado correctamente en cada paso de
+	 * eliminacion en vez de solo al leer el resultado final. Verificado con
+	 * {@code ScratchGeomMultBug01.java}/{@code ScratchGeomMultBug02.java} (conservados): ambos casos
+	 * (el reportado por el usuario y el de regresion de la Ronda 1) coinciden con {@code rank()}.
 	 */
 	static int rankByRelativePivot(MatrixComplex m) {
-		MatrixComplex tri = m.triangleUp();
-		int n = tri.rows();
-		double maxPivot = 0;
-		for (int i = 0; i < n; ++i) {
-			double mod = tri.getItem(i, i).mod();
-			if (mod > maxPivot) maxPivot = mod;
-		}
-		if (maxPivot == 0) return 0;
+		MatrixComplex aux = m.copy();
+		int rowLen = aux.rows();
+		int colLen = aux.cols();
+
+		double scale = 0;
+		for (int i = 0; i < rowLen; ++i)
+			for (int j = 0; j < colLen; ++j) {
+				double mod = aux.getItem(i, j).mod();
+				if (mod > scale) scale = mod;
+			}
+		if (scale == 0) return 0;
+
+		int pivotRow = 0;
 		int rank = 0;
-		for (int i = 0; i < n; ++i) {
-			if (tri.getItem(i, i).mod() / maxPivot > SINGULARITY_REL_TOL) ++rank;
+		for (int col = 0; col < colLen && pivotRow < rowLen; ++col) {
+			int maxRow = pivotRow;
+			double maxMod = aux.getItem(pivotRow, col).mod();
+			for (int row = pivotRow + 1; row < rowLen; ++row) {
+				double mod = aux.getItem(row, col).mod();
+				if (mod > maxMod) { maxMod = mod; maxRow = row; }
+			}
+			if (maxMod / scale <= SINGULARITY_REL_TOL) continue; // No usable pivot in this column -- try the next one.
+
+			if (maxRow != pivotRow) aux.swapRows(pivotRow, maxRow);
+			Complex pivotVal = aux.getItem(pivotRow, col);
+			for (int row = pivotRow + 1; row < rowLen; ++row) {
+				Complex factor = aux.getItem(row, col).divides(pivotVal);
+				for (int c = col; c < colLen; ++c) {
+					aux.setItem(row, c, aux.getItem(row, c).minus(factor.times(aux.getItem(pivotRow, c))));
+				}
+			}
+			++pivotRow;
+			++rank;
 		}
 		return rank;
 	}
