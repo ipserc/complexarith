@@ -71,8 +71,21 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.37 (2026_0811_0000)";
+	private final static String VERSION = "1.38 (2026_0811_0100)";
 	/* VERSION Release Note
+	 * 1.38 (2026_0811_0100)
+	 * Nuevos instrumentos matematicos, Bloque D (polilogaritmo) de la hoja de ruta anotada durante
+	 * el Bloque 1 de la auditoria matematica dedicada (ver Claude/ComplexArithRev.md):
+	 * polylog(Complex s, Complex z) = Li_s(z) = Sum z^k/k^s, via la serie directa. Alcance
+	 * deliberadamente acotado (misma decision de alcance que beta/gamma_integral con dominio
+	 * documentado): solo |z|&lt;1, donde la serie converge; falla alto con IllegalArgumentException
+	 * fuera de ahi, salvo el caso especial z=1 con Re(s)&gt;1 (devuelve zeta(s) directamente, la
+	 * identidad Li_s(1)=zeta(s)). La continuacion analitica general (formula de inversion de
+	 * Jonquiere, con Hurwitz-zeta y polinomios de Bernoulli) no esta implementada -- proyecto
+	 * aparte, no pedido. Verificado (ScratchPolylogAudit01.java): Li_1(z)==-log(1-z), Li_2(1)==
+	 * zeta(2)==pi^2/6, Li_s(z)~=z para |z| pequeno, excepcion lanzada de forma consistente para
+	 * |z|&gt;=1 (excepto el caso especial).
+	 *
 	 * 1.37 (2026_0811_0000)
 	 * Nuevos instrumentos matematicos, Bloque C (eta de Dirichlet) de la hoja de ruta anotada
 	 * durante el Bloque 1 de la auditoria matematica dedicada (ver Claude/ComplexArithRev.md):
@@ -1808,6 +1821,7 @@ public class Complex {
 	public static Complex erf(Complex z) { return ComplexFunctions.erf(z); }
 	public static Complex erfc(Complex z) { return ComplexFunctions.erfc(z); }
 	public static Complex eta(Complex s) { return ComplexFunctions.eta(s); }
+	public static Complex polylog(Complex s, Complex z) { return ComplexFunctions.polylog(s, z); }
 	public static Complex zeta(Complex s) { return ComplexFunctions.zeta(s); }
 	public static Complex zeta_re(Complex s) { return ComplexFunctions.zeta_re(s); }
 	public static Complex zeta_ext(Complex s) { return ComplexFunctions.zeta_ext(s); }

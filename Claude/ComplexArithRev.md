@@ -3221,7 +3221,21 @@ A petición del usuario ("sí, sigue con el Bloque C"), implementado según el p
 
 `Complex.VERSION`: `1.36→1.37`.
 
-**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, listo para commitear. Bloque D (polilogaritmo) queda como siguiente paso natural, sin empezar.
+**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, commiteado (`2343067`). Bloque D (polilogaritmo) queda como siguiente paso natural, sin empezar.
+
+## Continuación — Nuevos instrumentos matemáticos, Bloque D: polilogaritmo (10 agosto 2026, commit pendiente)
+
+A petición del usuario ("sí, sigue con el Bloque D"), implementado según el plan ya aprobado.
+
+**Implementado**: `polylog(Complex s, Complex z)` = `Li_s(z) = Σ z^k/k^s` en `ComplexFunctions.java`, vía la serie directa. Cada término se deriva del anterior por la razón `term_k = term_(k-1)·z·((k-1)/k)^s`, que tiende a `z` cuando `k` crece — decaimiento geométrico eventual para cualquier `|z|<1`, válido para el mismo criterio de parada "último término por debajo del umbral" que `zeta_havil`/`eta`. **Alcance deliberadamente acotado** (misma decisión de alcance que `beta`/`gamma_integral`, con dominio documentado): solo `|z|<1`, donde la serie converge; fuera de ahí falla alto con `IllegalArgumentException` en vez de devolver un resultado silenciosamente divergente/incorrecto — la continuación analítica general (fórmula de inversión de Jonquière, que necesitaría Hurwitz-zeta y polinomios de Bernoulli) es un proyecto bastante mayor y no está implementada. Único caso de conveniencia: `z=1` con `Re(s)>1` devuelve `zeta(s)` directamente (identidad `Li_s(1)=ζ(s)` exacta ahí), extendiendo el dominio útil sin coste.
+
+**Verificación** (`ScratchPolylogAudit01.java`, conservado — **23/23 OK**): identidad cerrada `Li_1(z)==-log(1-z)` (5 puntos con `|z|<1`), 2 formas cerradas adicionales usadas como verificación cruzada extra no pedida explícitamente en el plan pero baratas de añadir (`Li_0(z)=z/(1-z)`, `Li_{-1}(z)=z/(1-z)²`), `Li_2(1)==ζ(2)==π²/6` y `Li_3(1)==ζ(3)` vía el caso especial `z=1`, comportamiento asintótico `Li_s(z)≈z` para `|z|` pequeño, y 3 casos de excepción confirmando que se lanza de forma consistente para `|z|≥1` salvo el caso especial (incluido el caso límite `z=1` con `Re(s)≤1`, donde el caso especial NO aplica y debe fallar igual).
+
+**Verificación de regresión**: recompilación fresca completa de `com.ipserc.arith`. `TestGamma01-04`, `TestBeta01/02`, `TestComplex01`, `ScratchDigammaAudit01/ErfAudit01/EtaAudit01.java` (Bloques A/B/C): 10/10 exit=0 sin cambios. `ScratchComplexFunctionsAudit01.java`: mismos 62 OK/3 FAIL de siempre (límite residual ya documentado, no relacionado).
+
+`Complex.VERSION`: `1.37→1.38`.
+
+**Sin punto de retomada pendiente sobre este bloque** — cerrado del todo, listo para commitear. Bloque E (Bessel `J_ν`/`Y_n`, el único que depende de un bloque anterior — digamma, Bloque A) queda como último paso de la hoja de ruta, sin empezar.
 
 ---
 

@@ -950,6 +950,54 @@ final class ComplexFunctions {
 		return sum1;
 	}
 
+	// Safety net for polylog's series below, same role as ERF_MAX_ITERATIONS/
+	// SIMPSON_MAX_SUBDIVISIONS: not the normal exit path, but a backstop for |z| close to the
+	// domain boundary (1), where convergence genuinely slows down.
+	private static final int POLYLOG_MAX_ITERATIONS = 10000;
+
+	/**
+	 * The polylogarithm Li_s(z) = Sum_{k=1}^inf z^k/k^s.
+	 * @param s the order
+	 * @param z the argument, with |z| &lt; 1 (see @apiNote for the one exception)
+	 * @return Li_s(z)
+	 * @apiNote SCOPE DECISION, deliberately bounded (same kind of documented domain boundary as
+	 * e.g. {@link #beta(Complex, Complex)}/{@link #gamma_integral(Complex)}): the direct series
+	 * only converges for |z|&lt;1, and only that domain is implemented here. The general analytic
+	 * continuation to |z|&gt;=1 (Jonquiere's inversion formula, which needs Hurwitz zeta and
+	 * Bernoulli polynomials) is a substantially bigger project on its own and not implemented --
+	 * this fails high with {@link IllegalArgumentException} for |z|&gt;=1 instead of silently
+	 * returning a divergent/wrong result (same "fail loud instead of returning garbage" pattern
+	 * already used elsewhere in this codebase, e.g. {@code Jordan.checkReconstruction()}). One
+	 * convenience exception: z=1 with Re(s)&gt;1 returns {@link #zeta(Complex)} directly (the
+	 * identity Li_s(1)=zeta(s) holds exactly there, extending the useful domain for free without
+	 * implementing the general continuation).
+	 * <p>
+	 * Consecutive terms satisfy term_k = term_(k-1) * z * ((k-1)/k)^s, so the ratio tends to z as
+	 * k grows -- eventually geometric decay for any |z|&lt;1, making the plain "last term below
+	 * tolerance" stopping rule (same as {@link #zeta_havil(Complex)}/{@link #eta(Complex)}) valid.
+	 * Convergence genuinely slows down as |z| approaches 1 (more terms needed before the ratio's
+	 * geometric regime dominates); {@link #POLYLOG_MAX_ITERATIONS} is a safety net for that case,
+	 * not the normal exit path.
+	 */
+	static Complex polylog(Complex s, Complex z) {
+		if (z.mod() >= 1.0) {
+			if (z.equals(Complex.ONE) && s.rep() > 1.0) return zeta(s);
+			throw new IllegalArgumentException("polylog: |z| must be < 1 (got |z|=" + z.mod() + ") -- the series does not converge there and no analytic continuation is implemented");
+		}
+		double tolerance = Math.pow(10, -(Complex.getMaxDecimals() + 2));
+		// zPow/sum are freshly allocated private accumulators (from copy()), safe to mutate in
+		// place instead of allocating a new Complex at each step.
+		Complex zPow = z.copy();
+		Complex sum = zPow.copy();
+		for (int k = 2; k <= POLYLOG_MAX_ITERATIONS; ++k) {
+			zPow.timesEq(z);
+			Complex term = zPow.divides(new Complex(k, 0).power(s));
+			sum.plusEq(term);
+			if (term.mod() < tolerance) break;
+		}
+		return sum;
+	}
+
 	/**
 	 * Returns the k zero of the Chebyshev Unary Polynomial of n+1 degree
 	 * @param n the number of samples (0..n)
