@@ -22,8 +22,35 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.26 (2026_0809_1124)";
+	private final static String VERSION = "1.27 (2026_0810_2200)";
 	/* VERSION Release Note
+	 * 1.27 (2026_0810_2200)
+	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 2 de la hoja de ruta
+	 * "Matematicas Aplicadas", ver Claude/ComplexArithRev.md) -- 3 bugs reales encontrados y
+	 * arreglados, verificados numericamente antes y despues (ScratchPolynomAudit01.java,
+	 * conservado):
+	 * - power(int pot): pot<=0 devolvia new Polynom(), una matriz 0x0 GENUINAMENTE VACIA via el
+	 *   constructor sin argumentos de MatrixComplex -- ni siquiera "polinomio cero", confirmado que
+	 *   power(0).eval(x) lanzaba IllegalArgumentException. pot==0 ahora devuelve el polinomio
+	 *   constante 1 (P^0=1, convencion estandar); pot<0 ahora lanza explicitamente (los polinomios
+	 *   no tienen inverso multiplicativo en general). Sin llamadores con pot<=0 en todo el proyecto
+	 *   -- bug real pero latente.
+	 * - hermiteI(int)/legendreI(int): la recurrencia llamaba al metodo hermano REAL (hermite()/
+	 *   legendre()) en vez de a si misma -- unico par de metodos de toda la clase que rompia el
+	 *   patron autorreferente que usan hermite/hermiteP/legendre/laguerre/chebyshev. Enmascarado en
+	 *   grado 0/1 (coincide por los casos base compartidos), diverge en grado>=2 (verificado:
+	 *   hermiteI(3)(0.5) daba -3.0 real en vez de -7.0i de la recurrencia autorreferente).
+	 *   Arreglados para recursionar sobre si mismos, quitando el .times(Complex.i) sobrante (el
+	 *   coeficiente base ya lleva la "i" incorporada).
+	 * - divides(Polynom): eliminado un System.out.println("continue") de depuracion suelto en el
+	 *   camino de coeficiente cero (comentario "Kept for testing purposes" en el propio codigo de
+	 *   produccion) -- ensuciaba stdout de cualquier llamador cuyo dividendo tuviera coeficientes
+	 *   nulos intermedios.
+	 * Verificado con una bateria dirigida (Hermite/Legendre/Chebyshev/Laguerre reales contra
+	 * valores conocidos, division/interpolacion/fromRoots/solve2d) sin regresiones -- el resto del
+	 * fichero (root-finding, EXACT/APPROXIMATED, purificacion) ya tenia auditorias/calibraciones
+	 * previas extensas documentadas en este mismo bloque de VERSION.
+	 *
 	 * 1.26 (2026_0809_1124)
 	 * Revision a peticion del usuario del cambio de VERSION 1.25: solveWeierstrass()/solveAberth()
 	 * se quedaron con la variable numOfDecs (y ~18 lineas de comentario justificando como se
@@ -1657,9 +1684,6 @@ public class Polynom extends MatrixComplex {
 		for(int col1 = dividend.degree(); col1 >= divisor.degree(); --col1) {
 			if (dividend.complexMatrix[0][col1].equals(0,0)) {
 				quotient.complexMatrix[0][col1-divisor.degree()] = dividend.complexMatrix[0][col1];
-				// Kept for testing purposes
-				System.out.println("continue");
-				//
 				continue;
 			}
 			coef = dividend.complexMatrix[0][col1].divides(divisor.complexMatrix[0][divisor.degree()]);
@@ -1694,9 +1718,20 @@ public class Polynom extends MatrixComplex {
 	 * Calculates the polynomial to the nth power
 	 * @param pot The exponent
 	 * @return The polynomial raised to the nth power
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): {@code pot<=0} returned
+	 * {@code new Polynom()}, the no-arg constructor -- which builds a genuinely EMPTY (0x0) matrix
+	 * via {@code MatrixComplex()}, not even a "zero polynomial", let alone the mathematically
+	 * correct {@code P^0=1}. Confirmed it wasn't just wrong in value but structurally broken:
+	 * {@code power(0).eval(x)} threw {@code IllegalArgumentException} ("0 rows"), since a 0x0
+	 * matrix has no coefficient to read. No caller anywhere in this codebase passes {@code pot<=0}
+	 * (all call sites use a genuine multiplicity {@code >=1}), so this was latent. Fixed: {@code
+	 * pot==0} now returns the constant polynomial 1 ({@code P^0=1} for any P, standard convention);
+	 * {@code pot<0} now throws explicitly (polynomials have no multiplicative inverse in general --
+	 * silently returning garbage was worse than failing loud).
 	 */
 	public Polynom power(int pot) {
-		if (pot <= 0) return new Polynom();
+		if (pot < 0) throw new IllegalArgumentException(HEADINFO + "power: negative exponent " + pot + " is not defined for polynomials.");
+		if (pot == 0) return new Polynom("1");
 		Polynom pol = this.copy();
 		for(int i = 1; i < pot; ++i)
 			pol = this.times(pol);
@@ -2034,11 +2069,24 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Calculates the Hermite I polynomial of degree "degree" using the formula hermite(n) = 2n*hermite(n-1)i - 2(n-1)*hermite(n-2)
+	 * Calculates the Hermite I polynomial of degree "degree" using the formula hermiteI(n) = 2xi*hermiteI(n-1) - 2(n-1)*hermiteI(n-2)
 	 * Hermite(0) = 1
 	 * Hermite(1) = 2xi
 	 * @param degree The degree of the Hermite polynomial.
 	 * @return The Hermite polynomial of degree "degree".
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): the recurrence called the
+	 * sibling {@link #hermite(int)} (the REAL Hermite polynomials) instead of recursing on itself,
+	 * with an extra stray {@code .times(Complex.i)} on only the first recursive term -- unlike
+	 * every other recurrence in this class ({@link #hermite(int)}, {@link #hermiteP(int)}, {@link
+	 * #legendre(int)}, {@link #laguerre(int, double)}, {@link #chebyshev(int, int)}), all of which
+	 * are self-referential. For degree 0/1 (the base cases) this coincidentally matched what a
+	 * self-referential recurrence gives (since {@code hermite(1)*i == hermite1} and
+	 * {@code hermite(0) == hermite0} by construction), masking the bug -- but degree>=2 uses
+	 * degree-1/degree-2 arguments that are themselves no longer base cases, and diverged sharply
+	 * (verified: {@code hermiteI(3)(0.5)} gave a real {@code -3.0} instead of the self-consistent
+	 * recurrence's {@code -7.0i}). Fixed to recurse on itself, matching every sibling method's
+	 * pattern -- {@code hermite1} already carries the needed "i" (it's {@code "2i,0"}), so no extra
+	 * {@code .times(Complex.i)} is needed once the recursion is self-referential.
 	 */
 	public Polynom hermiteI(int degree) {
 		final Polynom hermite0 = new Polynom("1");
@@ -2047,7 +2095,7 @@ public class Polynom extends MatrixComplex {
 		if (degree == 0) return hermite0;
 		if (degree == 1) return hermite1;
 		Polynom hermite = new Polynom(degree);
-		hermite = hermite1.times(hermite(degree-1).times(Complex.i)).minus(hermite(degree-2).times(2.0*(degree-1)));
+		hermite = hermite1.times(hermiteI(degree-1)).minus(hermiteI(degree-2).times(2.0*(degree-1)));
 		return hermite;
 	}
 
@@ -2089,11 +2137,19 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Calculates the Legendre I polynomial of degree "degree" using the formula (n+1)*legendre(n+1) = (2n+1)·x*legendre(n)i - n*legendre(n-1)
+	 * Calculates the Legendre I polynomial of degree "degree" using the formula (n+1)*legendreI(n+1) = (2n+1)·xi*legendreI(n) - n*legendreI(n-1)
 	 * Legendre(0) = 1
 	 * Legendre(1) = xi
 	 * @param degree The degree of the Legendre polynomial.
 	 * @return The Legendre polynomial of degree "degree".
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): same defect as {@link
+	 * #hermiteI(int)} (see its apiNote for the full diagnosis) -- called the sibling {@link
+	 * #legendre(int)} (REAL Legendre polynomials) instead of recursing on itself, with an extra
+	 * stray {@code .times(Complex.i)}. Masked at degree 0/1 by the shared base cases, diverged from
+	 * degree>=2 onward (verified: {@code legendreI(3)(0.5)} gave a real {@code -0.229167} instead
+	 * of the self-consistent recurrence's {@code -1.0625i}). Fixed to recurse on itself; {@code
+	 * legendre1} already carries the needed "i" ({@code "i, 0"}), so the extra
+	 * {@code .times(Complex.i)} is removed.
 	 */
 	public Polynom legendreI(int degree) {
 		final Polynom legendre0 = new Polynom("1");
@@ -2103,7 +2159,7 @@ public class Polynom extends MatrixComplex {
 		if (degree == 1) return legendre1;
 		Polynom legendre = new Polynom(degree);
 		int n = degree - 1;
-		legendre = legendre(n).times(legendre1.times(2*n+1).times(Complex.i)).minus(legendre(n-1).times(n));
+		legendre = legendreI(n).times(legendre1.times(2*n+1)).minus(legendreI(n-1).times(n));
 		return legendre.divides(degree);
 	}
 
