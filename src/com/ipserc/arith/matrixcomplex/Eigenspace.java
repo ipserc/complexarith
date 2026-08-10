@@ -20,8 +20,34 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.15 (2026_0809_1820)";
+	private final static String VERSION = "1.16 (2026_0810_2230)";
 	/* VERSION Release Note
+	 *
+	 * 1.16 (2026_0810_2230)
+	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 3 de la hoja de ruta
+	 * "Matematicas Aplicadas", ver Claude/ComplexArithRev.md) -- 3 bugs reales encontrados y
+	 * arreglados, todos con cero llamadores en el proyecto (latentes), verificados con
+	 * ScratchEigenspaceAudit01.java (conservado):
+	 * - arithmeticMultiplicity__(Complex,int) / geometricMultiplicityFromEVectors(Complex): ambos
+	 *   indexaban `eigenvalues` (array de autovalores DISTINTOS) con un bucle acotado por
+	 *   `this.rows()` (dimension de la matriz, siempre >= eigenvalues.rows(), estrictamente mayor
+	 *   en cuanto hay un autovalor repetido) -- confirmado ArrayIndexOutOfBoundsException para
+	 *   cualquier matriz con autovalor repetido (diag(2,2,3): this.rows()=3, eigenvalues.rows()=2).
+	 *   El array correcto para ese indexado es `roots` (una raiz cruda por cada slot de
+	 *   multiplicidad algebraica, siempre this.rows() de ellas) -- arreglados para comparar contra
+	 *   `roots` en vez de `eigenvalues`.
+	 * - orderSwap(): 2 bugs juntos -- (1) ambos bucles de reordenacion usaban `eigenvalues.rows()`
+	 *   como limite Y como base del indice espejo para invertir `roots`/`solutions` (que tienen
+	 *   this.rows() filas cada uno) -- confirmado que invertir [3,2,2] daba el resultado corrupto
+	 *   [2,3,2] en vez de [2,2,3] (solo se tocaban las 2 primeras filas). (2) `eigenvalues` en si
+	 *   nunca se reordenaba, pese a que el comentario del propio metodo decia "swap eigenvalues" --
+	 *   confirmado que eigenvalues() y roots() quedaban en ordenes contradictorios tras una sola
+	 *   llamada. Arreglado: cada uno de los 3 arrays se invierte ahora con su PROPIO numero de
+	 *   filas, y `eigenvalues` se incluye de verdad.
+	 * El resto del fichero (eigenval()/eigenvectors3()/geometricMultiplicity()/etc.) ya tenia
+	 * auditorias/calibraciones extensas de sesiones anteriores documentadas en este mismo bloque de
+	 * VERSION (agrupamiento por componentes conexas, rankNearSingular() para autovalores
+	 * defectuosos imprecisos, etc.) -- sin discrepancias nuevas encontradas ahi.
 	 *
 	 * 1.15 (2026_0809_1820)
 	 * Segundo bug real reportado por el usuario, misma familia que 1.14 pero en un tercer sitio no
@@ -632,6 +658,24 @@ public class Eigenspace extends MatrixComplex {
 		return i;
 	}
 
+	/**
+	 * Legacy pre-VERSION-1.10 implementation, kept for reference/comparison (see the {@code __}
+	 * suffix convention used elsewhere in this project for deliberately parked code) -- counts
+	 * how many of the RAW roots (before grouping) round-match {@code eigenVal}.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): indexed {@code eigenvalues}
+	 * (the array of DISTINCT eigenvalues, {@code eigenvalues.rows()} rows) with a loop bound of
+	 * {@code this.rows()} (the matrix dimension, always >= {@code eigenvalues.rows()}, strictly
+	 * greater whenever any eigenvalue repeats) -- confirmed to throw
+	 * {@code ArrayIndexOutOfBoundsException} for any matrix with a repeated eigenvalue (e.g.
+	 * diag(2,2,3): {@code this.rows()}=3, {@code eigenvalues.rows()}=2). This method's own counting
+	 * logic (incrementing once per match across a loop of {@code this.rows()} iterations) only
+	 * makes sense against the RAW, ungrouped {@link #roots} array (one entry per algebraic
+	 * multiplicity slot, always exactly {@code this.rows()} of them) -- counting matches in
+	 * {@code eigenvalues} (one row per DISTINCT value) could never return more than 1 even for a
+	 * genuinely repeated eigenvalue. Fixed by comparing against {@code roots} instead of
+	 * {@code eigenvalues}, restoring the method's actual intent. Zero callers anywhere in this
+	 * codebase -- latent bug, never exercised.
+	 */
 	public int arithmeticMultiplicity__(Complex eigenVal, int digits) {
 		final boolean DEBUG_ON = false;
 		final String METH_NAME = "arithmeticMultiplicity";
@@ -641,16 +685,16 @@ public class Eigenspace extends MatrixComplex {
 			if (DEBUG_ON) {
 				Complex.storeFormatStatus();
 				Complex.setFixedOFF(); ;
-				eigenvalues.getItem(i,0).println(HEADINFO + METH_NAME + ":eigenvalues.getItem("+i+",0):");
+				roots.getItem(i,0).println(HEADINFO + METH_NAME + ":roots.getItem("+i+",0):");
 				eigenVal.println(HEADINFO + METH_NAME + ":eigenVal:");
-				eigenvalues.getItem(i,0).minus(eigenVal).println(HEADINFO + METH_NAME + ":value - eignval:");
+				roots.getItem(i,0).minus(eigenVal).println(HEADINFO + METH_NAME + ":value - eignval:");
 				System.out.println("digits:" + digits);
-				Complex.round(eigenvalues.getItem(i,0), digits).println(HEADINFO + METH_NAME + ":round(eigenvalues.getItem("+i+",0), "+ digits +"):");
+				Complex.round(roots.getItem(i,0), digits).println(HEADINFO + METH_NAME + ":round(roots.getItem("+i+",0), "+ digits +"):");
 				eigenVal.println(HEADINFO + METH_NAME + ":Complex.round(eigenVal, "+ digits + "):");
 				Complex.restoreFormatStatus();
 			}
 			/* ------------- END DEBUGGING BLOCK ------------- */
-				if (Complex.round(eigenvalues.getItem(i,0), digits).equals(Complex.round(eigenVal, digits))) ++arithMult;
+				if (Complex.round(roots.getItem(i,0), digits).equals(Complex.round(eigenVal, digits))) ++arithMult;
 		}
 
 		return arithMult;
@@ -663,6 +707,15 @@ public class Eigenspace extends MatrixComplex {
 	 * The method used here is get the eigenvectors associated to the eigenvalue and calculate the rank of the eigenvector basis
 	 * @param eigenVal The value to evaluate the geometric multiplicity
 	 * @return The geometric multiplicity
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): same indexing mix-up as
+	 * {@link #arithmeticMultiplicity__(Complex, int)} (see its apiNote for the full diagnosis) --
+	 * indexed {@code eigenvalues} (DISTINCT-eigenvalue count) with a loop bound of {@code
+	 * this.rows()} (matrix dimension, matches {@code solutions}/{@link #roots}'s actual row count
+	 * instead), throwing {@code ArrayIndexOutOfBoundsException} for any matrix with a repeated
+	 * eigenvalue. Comparing against {@code roots} (one raw root per {@code solutions} row, same
+	 * indexing) is also the only array that lines up 1-to-1 with {@code solutions.complexMatrix[i]}
+	 * -- {@code eigenvalues} has fewer rows whenever anything repeats. Zero callers anywhere in
+	 * this codebase -- latent bug, never exercised.
 	 */
 	public int geometricMultiplicityFromEVectors(Complex eigenVal) {
 		final boolean DEBUG_ON = false;
@@ -670,7 +723,7 @@ public class Eigenspace extends MatrixComplex {
 		MatrixComplex eigenV = new MatrixComplex(solutions.rows(), solutions.cols());
 
 		for (int i = 0; i < this.rows(); ++i) {
-				if (eigenvalues.getItem(i,0).equals(eigenVal)) 
+				if (roots.getItem(i,0).equals(eigenVal))
 					eigenV.complexMatrix[i] = solutions.complexMatrix[i];
 		}
 		/* -------------   DEBUGGING BLOCK   ------------- */
@@ -826,18 +879,36 @@ public class Eigenspace extends MatrixComplex {
 	}
 
 	/**
-	 * Swaps the order of the roots and the solutions. Use 
+	 * Swaps the order of the roots, the eigenvalues and the solutions. Use
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): 2 bugs found together --
+	 * (1) both loops used {@code eigenvalues.rows()} (the DISTINCT-eigenvalue count) as the bound
+	 * AND the mirror-index base for reversing {@code roots}/{@code solutions}, which actually have
+	 * {@code this.rows()} rows each (one per original root/multiplicity slot, always >=
+	 * {@code eigenvalues.rows()}, strictly greater whenever any eigenvalue repeats). Confirmed with
+	 * a matrix with a repeated eigenvalue (diag(2,2,3), {@code eigenvalues.rows()}=2 vs.
+	 * {@code roots.rows()}=3): reversing {@code [3,2,2]} gave the corrupted {@code [2,3,2]} instead
+	 * of {@code [2,2,3]} -- only the first 2 rows were touched, the 3rd was left untouched by a loop
+	 * that never reached it. (2) {@code eigenvalues} itself was never reordered at all, despite the
+	 * method's own comment claiming "swap eigenvalues" -- confirmed {@link #eigenvalues()} stayed in
+	 * its old order while {@link #roots()} flipped, leaving the two accessors reporting
+	 * inconsistent orderings after a single call. Fixed: each of the 3 arrays is now reversed using
+	 * its OWN row count, and {@code eigenvalues} is genuinely included.
 	 */
 	public void orderSwap() {
 		MatrixComplex rootsTmp = roots.clone();
 		MatrixComplex solutionsTmp = solutions.clone();
+		MatrixComplex eigenvaluesTmp = eigenvalues.clone();
 		// swap eigenvalues
 		for (int row = 0; row < eigenvalues.rows(); ++row) {
-			roots.complexMatrix[eigenvalues.rows() - row - 1] = rootsTmp.complexMatrix[row];
+			eigenvalues.complexMatrix[eigenvalues.rows() - row - 1] = eigenvaluesTmp.complexMatrix[row];
+		}
+		// swap roots
+		for (int row = 0; row < roots.rows(); ++row) {
+			roots.complexMatrix[roots.rows() - row - 1] = rootsTmp.complexMatrix[row];
 		}
 		// swap vectors
-		for (int row = 0; row < eigenvalues.rows(); ++row) {
-			solutions.complexMatrix[eigenvalues.rows() - row - 1] = solutionsTmp.complexMatrix[row];
+		for (int row = 0; row < solutions.rows(); ++row) {
+			solutions.complexMatrix[solutions.rows() - row - 1] = solutionsTmp.complexMatrix[row];
 		}
 		order = order == Order.DOWN? Order.UP : Order.DOWN;
 	}
