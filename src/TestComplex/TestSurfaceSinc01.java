@@ -53,8 +53,8 @@ public class TestSurfaceSinc01 {
 		int boxSize = 65;
 		int sampleBase = 161;
 		int totalPoints = (sampleBase+1)*(sampleBase+1);
-		double xlow = -6, xhigh = 6;
-		double ylow = -6, yhigh = 6;
+		double xlow = -16, xhigh = 16;
+		double ylow = -16, yhigh = 16;
 		double incx = (xhigh-xlow)/sampleBase;
 		double incy = (yhigh-ylow)/sampleBase;
 		double x, y;

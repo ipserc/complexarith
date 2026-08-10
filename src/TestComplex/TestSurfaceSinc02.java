@@ -9,7 +9,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
  */
 public class TestSurfaceSinc02 {
 
-	private static final double LOW = -6, HIGH = 6;
+	private static final double LOW = -16, HIGH = 16;
 	private static final int SAMPLES = 161;
 
 	public static void main(String[] args) {
