@@ -18,8 +18,28 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.71 (2026_0810_2340)";
+	private final static String VERSION = "1.72 (2026_0811_0100)";
 	/* VERSION Release Note
+	 *
+	 * 1.72 (2026_0811_0100)
+	 * Bug real arreglado (hallazgo colateral de la investigacion de Complex.isPureReal(), Vigesimoctava
+	 * sesion, ver Claude/ComplexArithRev.md): MatrixComplexFunctions.exp() tenia una guarda temprana
+	 * "if (m.isNaN() || m.isNull() || m.isInfinite()) return m;" que devolvia la matriz CERO sin
+	 * tocar cuando se le pasaba la matriz cero -- correcto para NaN/Infinito (no hay mejor respuesta
+	 * que propagarlos), pero incorrecto para el cero: exp(0) es la IDENTIDAD, no la matriz cero.
+	 * Confirmado alcanzable en la practica via power(double 0.0)/power_(Complex 0): para cualquier
+	 * matriz M no diagonalizable, M^0 caia en exp(M.log()*0)=exp(0) y devolvia la matriz cero en vez
+	 * de la identidad, en silencio. Arreglado quitando isNull() de la guarda -- la matriz cero es
+	 * diagonal por definicion (toda entrada fuera de la diagonal es cero), asi que cae de forma
+	 * natural en el atajo "isDiagonal()" ya existente justo debajo, que calcula Complex.exp(0)=1 por
+	 * cada entrada diagonal -- la identidad, sin necesitar un caso especial nuevo.
+	 * Hallazgo colateral relacionado, NO arreglado (fuera de alcance, mismo patron "if (isNaN() ||
+	 * isNull() || isInfinite()) return m;" presente tambien en logTaylor()/logMercator()/logHat()/
+	 * logm()): para esas 4 funciones el caso m=0 es una singularidad genuina (log(0) no existe, a
+	 * diferencia de exp(0)=I), asi que devolver la matriz cero sin tocar no tiene el mismo tipo de
+	 * "respuesta correcta silenciosamente saltada" que exp() -- es una decision de diseño distinta
+	 * (fallar alto vs. devolver un centinela), reportada para que el usuario decida si merece su
+	 * propia investigacion.
 	 *
 	 * 1.71 (2026_0810_2340)
 	 * Bug real reportado por el usuario: Eigenspace imprimia "arith mult:1 - geom mult:2" para un

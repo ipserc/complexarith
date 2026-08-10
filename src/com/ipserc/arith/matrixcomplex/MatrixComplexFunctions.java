@@ -29,10 +29,23 @@ class MatrixComplexFunctions {
 	 * This calculation is achieved using the Taylor's series of the exponential extended for complex matrices
 	 * @param m The matrix.
 	 * @return The value of e^m
+	 * @apiNote BUG FIXED (investigacion dedicada, hallazgo colateral de la Vigesimoctava sesion, ver
+	 * Claude/ComplexArithRev.md): the early-return guard used to include {@code m.isNull()},
+	 * passing the ZERO matrix straight through unchanged -- correct for {@code isNaN()}/
+	 * {@code isInfinite()} (there is no better answer than propagating those sentinels), but wrong
+	 * for the zero matrix: {@code exp(0)} is the IDENTITY matrix, not the zero matrix. Confirmed
+	 * this was reachable in practice via {@code MatrixComplex.power(double 0.0)}/
+	 * {@code power_(Complex 0)} (any {@code M^0} for a non-diagonalizable {@code M} falls through
+	 * to {@code exp(M.log().times(0))}, i.e. exactly {@code exp(0)}) -- {@code M^0} always silently
+	 * returned the zero matrix instead of the identity for any such {@code M}. Fixed by dropping
+	 * {@code isNull()} from the guard: the zero matrix is trivially diagonal (every off-diagonal
+	 * entry is exactly zero), so it now falls through to the {@code isDiagonal()} fast path just
+	 * below, which correctly computes {@code Complex.exp(0)=1} for each diagonal entry -- the
+	 * identity matrix, with no special case needed.
 	 */
 	static MatrixComplex exp(MatrixComplex m) {
 		MatrixComplex.trace("------------ exp() ------------ ");
-		if (m.isNaN() || m.isNull() || m.isInfinite() ) return m;
+		if (m.isNaN() || m.isInfinite() ) return m;
 		if (m.rows() != m.cols()) {
 			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
