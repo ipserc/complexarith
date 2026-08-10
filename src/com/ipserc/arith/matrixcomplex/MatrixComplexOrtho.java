@@ -117,21 +117,39 @@ class MatrixComplexOrtho {
 	 * Use the Column calc for the dotprod. Otherwise dotprod needs work with transposed
 	 * @param m The matrix.
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): the vectors being
+	 * orthogonalized are {@code m}'s ROWS (extracted via {@code m.transpose()} + {@code copyCol},
+	 * matching the row-per-vector convention used throughout this codebase for a basis/list of
+	 * vectors -- e.g. {@code Eigenspace.solutions()}, {@code VectorComplex.base()} -- despite the
+	 * misleading "we operate with cols" comment below, which refers to the INTERMEDIATE transposed
+	 * matrix's columns, not the conceptual vectors; confirmed empirically: extracting {@code m}'s
+	 * actual columns instead breaks {@code Schurfactor} (its Schur matrix stopped being upper
+	 * triangular), which relies on {@code VectorComplex.base().orthonormalize()}'s row convention.
+	 * The REAL bug was the clamp {@code colLen = colLen>rowLen?rowLen:colLen}, which shrank
+	 * {@code colLen} (the raw vector COUNT, {@code m.rows()}) down to {@code rowLen} (the ambient
+	 * DIMENSION, {@code m.cols()}) instead of only capping the LOOP bound / output vector count --
+	 * for a rectangular {@code m} this produced a wrong-shaped result (confirmed:
+	 * {@code QRfactor.qrGramSchmidt()} on a 3x2 matrix returned a 2x2 {@code Q}, making
+	 * {@code Q*R} dimensionally undefined, surfacing as {@code Infinity}). Fixed by keeping
+	 * {@code colLen} unclamped and introducing a separate {@code vecCount=min(rowLen,colLen)}
+	 * ("reduced to the smaller dimension", this method's own contract) for the loop/output size
+	 * only -- extraction, dotprod plumbing and the final transpose are otherwise UNCHANGED. See
+	 * {@code Claude/ComplexArithRev.md} for the measurements (both the rectangular-QR fix and the
+	 * Schurfactor regression this avoids).
 	 */
 	static MatrixComplex gramSchmidt(MatrixComplex m) {
 		// Because we operate with cols
 		MatrixComplex thsiTansposed = m.transpose();
 		int rowLen = thsiTansposed.rows();
 		int colLen = thsiTansposed.cols();
+		int vecCount = Math.min(rowLen, colLen);
 
-		colLen = colLen > rowLen ? rowLen : colLen;
-
-		MatrixComplex gramschmidt = new MatrixComplex(rowLen, colLen);
+		MatrixComplex gramschmidt = new MatrixComplex(rowLen, vecCount);
 		MatrixComplex v = new MatrixComplex(rowLen, 1);
 		MatrixComplex x = new MatrixComplex(rowLen, 1);
 		MatrixComplex g = new MatrixComplex(rowLen, 1);
 
-		for (int i = 0; i < colLen; ++i) {
+		for (int i = 0; i < vecCount; ++i) {
 			x.copyCol(0, thsiTansposed, i);
 			g = x;
 			for (int j = i-1; j >= 0; --j) {
@@ -148,21 +166,30 @@ class MatrixComplexOrtho {
 	 * The calculated orthogonal matrix is extended to the full dimension of the matrix.
 	 * @param m The matrix.
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): same shape/dimension defect
+	 * as {@link #gramSchmidt(MatrixComplex)} (see its apiNote), plus a SECOND bug specific to this
+	 * method -- the random-fill branch ({@code else x.initMatrixRandomInt(9)}) was unreachable
+	 * dead code, since the loop bound was the same (clamped) {@code colLen} the {@code i<colLen}
+	 * guard tested, so {@code i} could never reach the {@code else}. This method could never
+	 * actually do what its own name/Javadoc promise ("extended to the full dimension... not
+	 * included vectors... randomly generated"). The vectors are {@code m}'s ROWS (see {@link
+	 * #gramSchmidt(MatrixComplex)}'s apiNote for why that convention is kept, not {@code m}'s
+	 * columns), extracted via {@code m.transpose()}+{@code copyCol} exactly as before -- only the
+	 * loop now genuinely runs to the full ambient dimension ({@code rowLen}, unclamped), reaching
+	 * the random fill-in branch for slots beyond {@code m}'s own {@code colLen} row vectors.
 	 */
 	static MatrixComplex gramSchmidtFull(MatrixComplex m) {
 		// Because we operate with cols
 		MatrixComplex thsiTansposed = m.transpose();
-		int rowLen = thsiTansposed.rows();
-		int colLen = thsiTansposed.cols();
+		int rowLen = thsiTansposed.rows();		// ambient dimension -- also the FULL output vector count
+		int colLen = thsiTansposed.cols();		// number of m's own row vectors available
 
-		colLen = colLen > rowLen ? rowLen : colLen;
-
-		MatrixComplex gramschmidtF = new MatrixComplex(rowLen, colLen);
+		MatrixComplex gramschmidtF = new MatrixComplex(rowLen, rowLen);
 		MatrixComplex v = new MatrixComplex(rowLen, 1);
 		MatrixComplex x = new MatrixComplex(rowLen, 1);
 		MatrixComplex g = new MatrixComplex(rowLen, 1);
 
-		for (int i = 0; i < colLen; ++i) {
+		for (int i = 0; i < rowLen; ++i) {
 			if (i < colLen) x.copyCol(0, thsiTansposed, i);
 			else x.initMatrixRandomInt(9);
 			g = x;
@@ -180,23 +207,30 @@ class MatrixComplexOrtho {
 	 * The calculated orthogonal matrix is extended to the full dimension of the matrix.
 	 * @param m The matrix.
 	 * @return The matrix with the orthogonal base that generates the same vector subspace.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): same family of defects as
+	 * {@link #gramSchmidtFull(MatrixComplex)} (see its apiNote) -- a clamp that shrank the ambient
+	 * dimension instead of just the loop count, and on top of that the pre-fill {@code
+	 * gramschmidtF = thsiTansposed.copy()} recycled leftover transposed data for the "extra" slots
+	 * instead of ever reaching the random fill-in branch (same unreachable-{@code else} bug as
+	 * {@link #gramSchmidtFull(MatrixComplex)}). Row-vector extraction convention kept unchanged
+	 * (see {@link #gramSchmidt(MatrixComplex)}'s apiNote for why); loop now genuinely reaches the
+	 * random fill-in for slots beyond {@code m}'s own row vectors; keeps this method's own
+	 * {@code dotprod(g,v)} (evolving vector) distinction from
+	 * {@link #gramSchmidtFull(MatrixComplex)}'s {@code dotprod(x,v)} (fixed original) intact.
 	 */
 	static MatrixComplex gramSchmidtMFull(MatrixComplex m) {
 		// Because we operate with cols
 		MatrixComplex thsiTansposed = m.transpose();
-		int rowLen = thsiTansposed.rows();
-		int colLen = thsiTansposed.cols();
+		int rowLen = thsiTansposed.rows();		// ambient dimension -- also the FULL output vector count
+		int colLen = thsiTansposed.cols();		// number of m's own row vectors available
 
-		colLen = colLen > rowLen ? rowLen : colLen;
-
-		MatrixComplex gramschmidtF = new MatrixComplex(rowLen, colLen);
+		MatrixComplex gramschmidtF = new MatrixComplex(rowLen, rowLen);
 		MatrixComplex v = new MatrixComplex(rowLen, 1);
 		MatrixComplex x = new MatrixComplex(rowLen, 1);
 		MatrixComplex g = new MatrixComplex(rowLen, 1);
 
-		gramschmidtF = thsiTansposed.copy();
-		for (int i = 0; i < colLen; ++i) {
-			if (i < colLen) x.copyCol(0, gramschmidtF, i);
+		for (int i = 0; i < rowLen; ++i) {
+			if (i < colLen) x.copyCol(0, thsiTansposed, i);
 			else x.initMatrixRandomInt(9);
 			g = x;
 			for (int j = i-1; j >= 0; --j) {
@@ -213,23 +247,25 @@ class MatrixComplexOrtho {
 	 * The calculated orthogonal matrix is reduced to the smaller dimension of the matrix.
 	 * @param m The matrix.
 	 * @return The matrix with the orthogonal basis that generates the same vector subspace.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): same shape/dimension defect
+	 * as {@link #gramSchmidt(MatrixComplex)} (see its apiNote) -- same fix, same row-vector
+	 * extraction convention kept unchanged, only the clamp replaced by a separate {@code vecCount}
+	 * for the loop/output size.
 	 */
 	static MatrixComplex gramSchmidtM(MatrixComplex m) {
 		// Because we operate with cols
 		MatrixComplex thsiTansposed = m.transpose();
 		int rowLen = thsiTansposed.rows();
 		int colLen = thsiTansposed.cols();
+		int vecCount = Math.min(rowLen, colLen);
 
-		colLen = colLen > rowLen ? rowLen : colLen;
-
-		MatrixComplex gramschmidt = new MatrixComplex(rowLen, colLen);
+		MatrixComplex gramschmidt = new MatrixComplex(rowLen, vecCount);
 		MatrixComplex v = new MatrixComplex(rowLen, 1);
 		MatrixComplex x = new MatrixComplex(rowLen, 1);
 		MatrixComplex g = new MatrixComplex(rowLen, 1);
 
-		gramschmidt = thsiTansposed.copy();
-		for (int i = 0; i < colLen; ++i) {
-			x.copyCol(0, gramschmidt, i);
+		for (int i = 0; i < vecCount; ++i) {
+			x.copyCol(0, thsiTansposed, i);
 			g = x;
 			for (int j = i-1; j >= 0; --j) {
 				v.copyCol(0, gramschmidt, j);

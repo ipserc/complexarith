@@ -18,8 +18,40 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.69 (2026_0809_1940)";
+	private final static String VERSION = "1.70 (2026_0810_2330)";
 	/* VERSION Release Note
+	 *
+	 * 1.70 (2026_0810_2330)
+	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 4 de la hoja de ruta
+	 * "Matematicas Aplicadas", ver Claude/ComplexArithRev.md) -- 2 bugs reales encontrados y
+	 * arreglados en MatrixComplexOrtho.gramSchmidt()/gramSchmidtFull()/gramSchmidtM()/
+	 * gramSchmidtMFull() (helper cubierto por este VERSION, sin VERSION propio), verificados con
+	 * ScratchFactorizationAudit01.java (conservado en src/TestComplex/):
+	 * - Los 4 metodos compartian una linea "colLen = colLen>rowLen?rowLen:colLen" que, para una
+	 *   matriz genuinamente rectangular, encogia la DIMENSION AMBIENTE de cada vector en vez de
+	 *   solo el numero de vectores de salida -- confirmado que QRfactor.qrGramSchmidt() sobre una
+	 *   matriz 3x2 devolvia una Q de 2x2 (no 3x2), haciendo Q*R literalmente indefinido
+	 *   (dimensiones incompatibles, se manifestaba como valores Infinity). Arreglado separando el
+	 *   numero de vectores de salida (min(dimension_ambiente, num_vectores), como ya prometia el
+	 *   Javadoc de cada metodo) de la dimension ambiente en si, que ya no se recorta.
+	 * - gramSchmidtFull()/gramSchmidtMFull(): de propina, la rama de relleno aleatorio
+	 *   ("else x.initMatrixRandomInt(9)") era codigo INALCANZABLE -- el bucle nunca llegaba a
+	 *   superar el limite (ya recortado) que la propia guarda comprobaba, asi que ninguno de los 2
+	 *   metodos podia hacer nunca lo que su nombre/Javadoc prometen ("extendido a la dimension
+	 *   completa... los vectores no incluidos se generan aleatoriamente"). Arreglado junto con el
+	 *   bug de dimension: el bucle ahora llega de verdad a la dimension ambiente completa.
+	 * La convencion "un vector por FILA" (coherente con Eigenspace.solutions()/VectorComplex.base()
+	 * en el resto del proyecto) se conserva sin tocar -- un primer intento de reescribir estos 4
+	 * metodos operando directamente sobre las COLUMNAS de la matriz de entrada rompia Schurfactor
+	 * (que depende de VectorComplex.base().orthonormalize() con la convencion de filas), revertido
+	 * antes de commitear. El desajuste real para QR (que necesita las COLUMNAS de la matriz
+	 * ortogonalizadas) se arreglo en QRfactor.java en su lugar (ver ese VERSION) transponiendo
+	 * antes/despues de llamar a estos 4 metodos, sin tocar su contrato de "filas".
+	 * Verificado con ScratchFactorizationAudit01.java (42/42 OK: reconstruccion + unitariedad de
+	 * LUfactor x4 metodos, QRfactor x5 metodos incluida una matriz genuinamente rectangular,
+	 * Schurfactor, SVDfactor x2 metodos, Diagfactor con autovalor repetido, Jordan defectuoso) y
+	 * una bateria de 65 ficheros consumidores: 63/65 exit=0, TestJordan01/TestVector03 exit=1
+	 * (ambos fallos preexistentes ya documentados, confirmados no relacionados).
 	 *
 	 * 1.69 (2026_0809_1940)
 	 * Superficie 3D REAL, a peticion del usuario ("puedes hacer que TestZeta05 haga un plot de

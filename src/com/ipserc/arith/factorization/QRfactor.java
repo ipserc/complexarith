@@ -29,8 +29,26 @@ public class QRfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "QRfactor --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0807_2330)";
+	private final static String VERSION = "1.4 (2026_0810_2330)";
 	/* VERSION Release Note
+	 *
+	 * 1.4 (2026_0810_2330)
+	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 4 de la hoja de ruta
+	 * "Matematicas Aplicadas", ver Claude/ComplexArithRev.md): qrGramSchmidt()/qrGramSchmidtFull()/
+	 * qrGramSchmidtM()/qrGramSchmidtMFull() fallaban con Q de forma incorrecta para cualquier
+	 * matriz genuinamente rectangular (confirmado: Q de 2x2 en vez de 3x2 para una entrada 3x2,
+	 * Q*R indefinido/Infinity) -- causa raiz en MatrixComplexOrtho.gramSchmidt() y hermanos (ver
+	 * MatrixComplex.VERSION 1.70), mas un desajuste propio de esta clase: esos 4 metodos
+	 * ortogonalizan las FILAS de su argumento (convencion ya establecida en el resto del proyecto),
+	 * pero QR necesita las COLUMNAS de la matriz ortogonalizadas -- invisible para matrices
+	 * cuadradas (Q*R=A se cumple trivialmente para cualquier Q unitaria de la forma correcta, dado
+	 * que R se define como Q^H*A), pero necesario para el caso rectangular. Arreglado transponiendo
+	 * antes y despues de llamar a gramSchmidt()/etc., sin tocar el contrato de esos 4 metodos
+	 * compartidos. qrHouseholder() ya funcionaba correctamente para matrices rectangulares (no
+	 * tocado). Verificado con ScratchFactorizationAudit01.java (src/TestComplex/, conservado): los
+	 * 5 metodos dan Q semi-unitaria/unitaria y A==Q*R exactos (~1e-14) para una matriz 3x2 real,
+	 * ademas de una bateria de 65 ficheros consumidores sin regresiones (ver MatrixComplex.VERSION
+	 * 1.70 para el detalle completo de la verificacion).
 	 *
 	 * 1.3 (2026_0807_2330)
 	 * Auditoria de com.ipserc.arith.factorization.QRfactor (ver Claude/ComplexArithRev.md), 3
@@ -217,40 +235,63 @@ public class QRfactor extends MatrixComplex {
 
 	/**
 	 * QR decomposition using the Gram - Schmidt factorization. Factorices the array using the QR decomposition.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): {@code
+	 * MatrixComplexOrtho.gramSchmidt()} (and its 3 siblings) orthogonalize their argument's ROWS
+	 * (the vector-per-row convention used throughout this codebase, e.g. {@code
+	 * Eigenspace.solutions()}/{@code VectorComplex.base()} -- see that method's own apiNote), but a
+	 * QR factorization needs {@code this}'s COLUMNS orthogonalized into {@code Q}. For a SQUARE
+	 * matrix this distinction was invisible ({@code cR:=Q^H*this} makes {@code Q*R=this} hold for
+	 * ANY unitary {@code Q} of the right shape, and rows/columns have the same count) -- but for a
+	 * genuinely rectangular matrix, calling {@code this.gramSchmidt()} directly orthogonalized the
+	 * wrong-shaped set of vectors entirely, producing a {@code Q} that couldn't even multiply
+	 * against {@code this} (confirmed: 2x2 {@code Q} for a 3x2 input, {@code cR} calculation
+	 * throwing/producing {@code Infinity}). Fixed by transposing before AND after: {@code
+	 * this.transpose()} feeds {@code gramSchmidt()} what it needs to treat as "rows" (this
+	 * matrix's actual columns), and the trailing {@code .transpose()} flips the result back into a
+	 * proper {@code this.rows() x k} column-oriented {@code Q}. {@code normalize()}
+	 * ({@code normalizeByRows()}) is applied BEFORE that final transpose, while each of this
+	 * matrix's columns is still oriented as a row -- normalizing rows there is exactly normalizing
+	 * what will become {@code Q}'s columns.
 	 */
 	public void qrGramSchmidt() {
 		factorized = false;
-		cQ = this.gramSchmidt().normalize();
+		cQ = this.transpose().gramSchmidt().normalize().transpose();
 		cR = cQ.adjoint().times(this);
 		factorized = true;
 	}
 
 	/**
 	 * QR decomposition using the Gram - Schmidt Full factorization. Factorices the array using the QR decomposition.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): see {@link
+	 * #qrGramSchmidt()}'s apiNote -- identical fix (transpose before and after).
 	 */
 	public void qrGramSchmidtFull() {
 		factorized = false;
-		cQ = this.gramSchmidtFull().normalize();
+		cQ = this.transpose().gramSchmidtFull().normalize().transpose();
 		cR = cQ.adjoint().times(this);
 		factorized = true;
 	}
 
 	/**
 	 * QR decomposition using the Gram - Schmidt Modified factorization. Factorices the array using the QR decomposition.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): see {@link
+	 * #qrGramSchmidt()}'s apiNote -- identical fix (transpose before and after).
 	 */
 	public void qrGramSchmidtM() {
 		factorized = false;
-		cQ = this.gramSchmidtM().normalize();
+		cQ = this.transpose().gramSchmidtM().normalize().transpose();
 		cR = cQ.adjoint().times(this);
 		factorized = true;
 	}
-	
+
 	/**
 	 * QR decomposition using the Gram - Schmidt Modified Full factorization. Factorices the array using the QR decomposition.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): see {@link
+	 * #qrGramSchmidt()}'s apiNote -- identical fix (transpose before and after).
 	 */
 	public void qrGramSchmidtMFull() {
 		factorized = false;
-		cQ = this.gramSchmidtMFull().normalize();
+		cQ = this.transpose().gramSchmidtMFull().normalize().transpose();
 		cR = cQ.adjoint().times(this);
 		factorized = true;
 	}
