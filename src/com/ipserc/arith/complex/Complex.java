@@ -71,8 +71,28 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.33 (2026_0809_1906)";
+	private final static String VERSION = "1.34 (2026_0810_2100)";
 	/* VERSION Release Note
+	 * 1.34 (2026_0810_2100)
+	 * Auditoria matematica dedicada de ComplexFunctions.java (Vigesimosexta sesion, ver
+	 * Claude/ComplexArithRev.md) -- 4 bugs reales encontrados y arreglados, cada uno verificado
+	 * numericamente antes y despues:
+	 * - factorial(Complex n): devolvia gamma(n)=(n-1)! en vez de gamma(n+1)=n! (mismo patron
+	 *   off-by-one ya arreglado en binomialCoef(Complex,Complex) en la Sexta sesion). Sin
+	 *   llamadores en el proyecto -- bug real pero latente.
+	 * - arccos(Complex z): la formula log() independiente violaba la identidad
+	 *   asin(z)+acos(z)==pi/2 en 12 de 19 puntos barridos (error hasta 6.3). Reescrito para
+	 *   derivar de pi/2-arcsin(z), el mismo principio que arccosExtreme() ya usaba correctamente
+	 *   para |z| extremo.
+	 * - gamma_integral(Complex z): resultados muy erroneos para 0&lt;Re(z)&lt;1 (error hasta 4
+	 *   ordenes de magnitud en Re(z)=0.1) por la singularidad integrable de t^(z-1) en t=0, sin
+	 *   manejar por la cuadratura de Simpson de ComplexCalculus.integrate(). Arreglado con la
+	 *   recurrencia estandar Gamma(z)=Gamma(z+1)/z para desplazar z a la zona segura Re(z)&gt;=1.
+	 * - gamma_weiertrass()/gamma_euler(): el criterio de parada ("ultimo delta pequeno") no
+	 *   escalaba con los decimales pedidos -- mismo defecto de cola O(1/k^2) ya diagnosticado y
+	 *   arreglado en zeta_re (Sexta sesion), nunca aplicado aqui. Arreglado dividiendo el umbral
+	 *   por el indice de iteracion (autocalibrado, sin derivar la constante de cola exacta).
+	 *
 	 * 1.33 (2026_0809_1906)
 	 * plusEqRaw(Complex)/syncPolar(): nuevos primitivos in-place para el candidato "Camino A"
 	 * de rendimiento (Vector API, ver Claude/ComplexArithRev.md). El cuello de botella real de

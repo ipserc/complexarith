@@ -341,11 +341,26 @@ final class ComplexFunctions {
 	 * Gamma function calculated by the integtral of t.power(z.minus(ONE))).times(Complex.exp(t.opposite()) dt
 	 * @param z the gamma parameter as Complex
 	 * @return the gamma value
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): for Re(z)<1 the integrand
+	 * {@code t^(z-1)*e^-t} has an integrable singularity at t=0 (already flagged as a known,
+	 * deliberately out-of-scope gap in {@code ComplexCalculus.integrate}'s own Sexta-sesion
+	 * apiNote), which the uniform-grid Simpson quadrature there cannot resolve -- measured error up
+	 * to 4 orders of magnitude (Re(z)=0.1 gave 32449 instead of the true value ~9.51). The one
+	 * internal caller ({@link #gamma_zones}) never reaches this domain, but this is public API
+	 * ({@code Complex.gamma_integral}) with no domain warning. Fixed via the standard recurrence
+	 * Gamma(z) = Gamma(z+1)/z, which shifts z into Re(z)>=1 (where the integrand has no
+	 * singularity at t=0, verified accurate to ~1e-9 there) before integrating -- recurses as many
+	 * times as needed for arbitrarily negative Re(z), without touching the quadrature itself.
+	 * Re-verified: Re(z)=0.1/0.3/0.5/0.7/0.9 now all agree with {@link #gamma_fast(Complex)} to
+	 * within 1e-4. See {@code Claude/ComplexArithRev.md} for the measurements.
 	 */
 	static Complex gamma_integral(Complex z) {
 		if (z.isIntegerNegativeZero()) {
 			double sign = Math.pow(-1.0, Math.ceil(z.rep()));
 			return Complex.ZERO.inverse().times(sign);
+		}
+		if (z.rep() < 1.0) {
+			return gamma_integral(z.plus(1)).divides(z);
 		}
 		// Valores válidos van desde 50 hasta 100000
 		double uplimit = 100;
@@ -397,6 +412,24 @@ final class ComplexFunctions {
 	 * {@code gamma()}, which always uses {@link #gamma_fast} (Lanczos). "Speeding this up" would
 	 * mean replacing the Weierstrass product with something like Lanczos, which would defeat its
 	 * purpose as a reference implementation to compare against the fast path -- so it stays as-is.
+	 * <p>
+	 * SEPARATE BUG FIXED (Vigesimosexta sesion, auditoria matematica): the slowness above was
+	 * never the problem -- the STOPPING CRITERION was. Each per-term correction is O(1/i^2) (from
+	 * expanding ln(1+z/i)-z/i), so stopping once one term's delta drops below the requested
+	 * tolerance silently ignores that the remaining tail (sum of all later O(1/k^2) terms) is
+	 * O(1/i) -- i times LARGER than the last term added. Measured directly: requesting
+	 * 3/5/7/9 decimals gave real errors 6x/58x/579x/6001x worse than the requested tolerance (the
+	 * ratio itself grows with more requested decimals, since more decimals -> larger i at exit ->
+	 * a worse i-fold underestimate) -- e.g. gamma_weiertrass(5) at the default 5 decimals returned
+	 * 23.99942 instead of 24, an error 58x looser than requested. This is the exact same tail-decay
+	 * mismatch already diagnosed and fixed in {@link #zeta_re}'s Euler-Maclaurin correction (Sexta
+	 * sesion) -- never carried over to this method. Fixed by requiring the delta to be below
+	 * {@code convergenceThreshold/i} instead of {@code convergenceThreshold}: since delta_i =
+	 * O(C/i^2) and the true remaining tail ~ O(C/i), delta_i &lt; threshold/i implies C/i^2 &lt;
+	 * threshold/i, i.e. C/i (the tail) &lt; threshold -- self-calibrating without needing to derive
+	 * the Weierstrass-specific tail constant explicitly. Re-verified: errors now stay within the
+	 * requested tolerance at 3/5/7/9 decimals (previously off by up to 3 orders of magnitude at 9).
+	 * See {@code Claude/ComplexArithRev.md} for the measurements.
 	 */
 	static Complex gamma_weiertrass(Complex z) {
 		int iterations;
@@ -428,13 +461,9 @@ final class ComplexFunctions {
 			zdi = z.divides(i);
 			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
 			prod.timesEq((zdi.plus(Complex.ONE)).inverse().times(Complex.exp(zdi)));
-			// Adaptive early exit: each factor -> 1 as i grows (O(1/i^2) per-term correction), so
-			// prod typically stabilizes to convergenceThreshold well before the iterations cap
-			// above (itself just a safety net for pathological z). gamma_weiertrass is a
-			// reference/comparison implementation (production gamma() uses gamma_fast), so this
-			// changing the result at a level finer than the requested decimals has no effect on
-			// any other calculation in this library.
-			if (prod.minus(prevProd).mod() < convergenceThreshold) break;
+			// Adaptive early exit, tail-corrected (see apiNote above): dividing by i compensates
+			// for the O(1/i) remaining tail being i times larger than this O(1/i^2) last delta.
+			if (prod.minus(prevProd).mod() < convergenceThreshold / i) break;
 			prevProd = prod.copy();
 		}
 		Complex result = Complex.exp(z.times(-Complex.EULER_MASC));
@@ -459,6 +488,10 @@ final class ComplexFunctions {
 	 * reaches it except {@code TestGamma01}/{@code TestGamma03} (directly, and indirectly via
 	 * {@link #gamma_zones}, only exercised by {@code TestGamma01}/{@code TestGamma02}): production
 	 * code calls {@code gamma()}, which always uses {@link #gamma_fast} (Lanczos).
+	 * <p>
+	 * SEPARATE BUG FIXED (Vigesimosexta sesion, auditoria matematica): identical stopping-criterion
+	 * defect as {@link #gamma_weiertrass}'s (see its apiNote for the full derivation) -- same fix
+	 * applied here ({@code convergenceThreshold/n} instead of {@code convergenceThreshold}).
 	 */
 	static Complex gamma_euler(Complex z) {
 		int iterations;
@@ -491,8 +524,8 @@ final class ComplexFunctions {
 			term2 = (Complex.ONE.plus(z.divides(n))).inverse(); // (1+z/n)⁻¹
 			// Accumulator mutated in place instead of reassigned to a new Complex each iteration.
 			prod.timesEq(term1).timesEq(term2);
-			// Adaptive early exit -- see the identical comment in gamma_weiertrass just above.
-			if (prod.minus(prevProd).mod() < convergenceThreshold) break;
+			// Adaptive early exit, tail-corrected -- see the apiNote on gamma_weiertrass above.
+			if (prod.minus(prevProd).mod() < convergenceThreshold / n) break;
 			prevProd = prod.copy();
 		}
 		prod.dividesEq(z);
@@ -558,12 +591,18 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * Tecomplex factorial as gamma
+	 * The complex factorial via the Gamma function: n! = Gamma(n+1).
 	 * @param n
 	 * @return
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): was {@code gamma(n)}, which
+	 * computes {@code Gamma(n) = (n-1)!}, not {@code n!} -- off by the same one-factorial shift
+	 * already found and fixed in {@link #binomialCoef(Complex, Complex)} (Sexta sesion), but left
+	 * unfixed here. Verified: {@code factorial(5+0i)} returned {@code 24} (=Gamma(5)=4!) instead of
+	 * {@code 120} (=5!=Gamma(6)). Zero callers anywhere in this codebase (production or tests), so
+	 * this was a real but entirely latent bug, never exercised.
 	 */
 	static Complex factorial(Complex n) {
-		return gamma(n);
+		return gamma(n.plus(1));
 	}
 
 	/**
@@ -1121,12 +1160,27 @@ final class ComplexFunctions {
 	 * Returns a new Complex Object which value is the arccosine of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object arccosine of 'z'.
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): the previous body computed
+	 * arccos independently via {@code log(z+sqrt(z^2-1))/(-i)}, a separate closed form from
+	 * {@link #arcsin(Complex)}'s {@code log(iz+sqrt(1-z^2))/i}. Verified {@code sqrt(z^2-1) ==
+	 * i*sqrt(1-z^2)} numerically (the two square roots ARE branch-consistent), yet the fundamental
+	 * identity {@code arcsin(z)+arccos(z)==pi/2} still failed for 12 of 19 swept points (real axis
+	 * outside a narrow range, pure imaginary axis, most complex quadrants) with errors from 0.9 to
+	 * 6.3 -- a principal-branch discontinuity in {@code log(a)-log(b) != log(a/b)} when combining
+	 * the two independent log terms. {@link #arccosExtreme(Complex)} (the |z|>SAFE_SQUARE_LIMIT
+	 * fallback just below) already avoided this failure mode by deriving its result from {@code
+	 * arcsinExtreme(z)} via the exact identity {@code acos(z) = pi/2 - asin(z)} instead of an
+	 * independent formula -- this now applies that same principle here, which holds the identity
+	 * by algebraic construction (no independent log-branch choice to go inconsistent) rather than
+	 * needing the two formulas to coincidentally agree. Re-verified: the identity now holds to
+	 * floating-point precision at all 19 previously-swept points, and {@code cos(arccos(z))==z}
+	 * (unaffected either way, since {@code cos(pi/2-w)=sin(w)} and {@code sin(arcsin(z))=z}
+	 * already held) still holds. See {@code Claude/ComplexArithRev.md} for the full sweep.
 	 */
 	static Complex arccos(Complex z) {
-		Complex negi = new Complex(0,-1);
-		Complex one = new Complex(1,0);
 		if (Math.abs(z.rep()) > SAFE_SQUARE_LIMIT || Math.abs(z.imp()) > SAFE_SQUARE_LIMIT) return arccosExtreme(z);
-		return log((z).plus(root((z.power(2).minus(one)),2))).divides(negi);
+		Complex halfPi = new Complex(Complex.HALF_PI, 0);
+		return halfPi.minus(arcsin(z));
 	}
 
 	// z.power(2) overflows to Infinity once |z| > Math.sqrt(Double.MAX_VALUE) ~ 1.34e154, even though
