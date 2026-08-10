@@ -699,21 +699,36 @@ public class Laplace extends MatrixComplex  {
 	 * Returns the value of the Fourier Series at a given point.
 	 * @param p The point in which the Series is evaluated. Only the real part has sense.
 	 * @return The value returned from the Fourier Series.
+	 * @apiNote DEAD CODE, parked not fixed (Vigesimosexta sesion, auditoria matematica): {@code
+	 * series}/{@code isSerialized} (the state this method reads) are declared in this class but
+	 * NEVER assigned anywhere -- unlike {@code Fourier.java}, this class has no {@code serialize()}
+	 * method to populate them, so {@code isSerialized} stays {@code false} forever and this method
+	 * always hits the early-return guard, returning exactly {@code Complex(0)} for ANY input {@code
+	 * p} regardless of the actual signal -- it never evaluates any series, contradicting its own
+	 * Javadoc. Confirmed zero callers anywhere in this codebase. Same root cause already parked (via
+	 * the {@code "* /"} convention) on this method's two immediate neighbors, {@code printCoefs()}/
+	 * {@code printSCoefs()}, just above -- this is the third and last method depending on that
+	 * never-populated state, parked here the same way for consistency rather than inventing a new
+	 * {@code serialize()} implementation that was never asked for. The class's real, working,
+	 * already-audited API is {@link #CLT(int, int)}/{@link #DLT(int, double)}/{@link #IDLT()}, none
+	 * of which touch {@code series}.
 	 */
+	/* *********************************************************************************************************************************************************** * /
 	public Complex calc(Complex p) {
 		Complex val = new Complex(0);
-		
+
 		if(!isSerialized) {
 			System.out.println("WARNING (Calc):Function not serialized yet. Serialize it first.");
 			return val ;
 		}
 
-		val = val.plus(series.getItem(0,0).times(2));		
+		val = val.plus(series.getItem(0,0).times(2));
 		for (int i = 1; i < series.cols(); ++i) {
 			val = val.plus(series.getItem(0,i).times(Complex.exp(Complex.i.times(p).times(Complex.DOS_PI * i).divides(period))));
 		}
 		return val.minus(offset);
 	}
+	/ * *********************************************************************************************************************************************************** */
 
 	/*
 	 * **************** DISCRETE LAPLACE TRANSFORM METHODS ****************
