@@ -5,9 +5,19 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.signal.*;
 import com.ipserc.arith.signal.Fourier.*;
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class TestFilter01 {
 	private static boolean __NORMALIZE__ = false;
+	private static final String __HOME__ = System.getProperty("user.home");
+	private static final Path __SOUND_DIR__ = Paths.get(__HOME__, "Saco", "Sonido");
+	private static final Path __FOURIER_DIR__ = Paths.get(__HOME__, "Saco", "Fourier");
+
+	private static String saveTarget(Path dir, String fileName) {
+		dir.toFile().mkdirs();
+		return dir.resolve(fileName).toString();
+	}
 
 	private static Complex sin(Complex z, int frec) {
 		return Complex.sin(z.times(Math.PI*frec));
@@ -52,10 +62,10 @@ public class TestFilter01 {
 		
 		//PLOTING RESULTS
 		System.out.println("Plotting results...");		
-		filter.plotDFTSync("Filter " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.IMPULSES);
-		signalFiltered.plotSamplesSync("Filtered signal " + filterparams, true, e_lineStyle.LINES);
-		signalFiltered.plotDFTSync("Filtered signal " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
-		signalFiltered.saveRAWSamples("/home/ipserc/Saco/Fourier/signal_func"+samplefreq+"_"+fInit+"_"+bandwidth+".raw", __NORMALIZE__);
+		filter.plotDFTAsync("Filter " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.IMPULSES);
+		signalFiltered.plotSamplesAsync("Filtered signal " + filterparams, true, e_lineStyle.LINES);
+		signalFiltered.plotDFTAsync("Filtered signal " + filterparams, e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
+		signalFiltered.saveRAWSamples(saveTarget(__FOURIER_DIR__, "signal_func"+samplefreq+"_"+fInit+"_"+bandwidth+".raw"), __NORMALIZE__);
 
 		System.out.println("\n" + Complex.repeat("-", 20) + "\n");
 
@@ -74,7 +84,7 @@ public class TestFilter01 {
 		 * SIGNAL SECTION
 		 *****************/
        	// String signalFileNamePath = "/home/ipserc/Saco/Sonido/muestra_"+samplefreq+".raw"; // "/home/ipserc/saco/Sonido/muestra01.raw"; // "/home/ipserc/saco/Sonido/signal_func8000.raw";
-       	String signalFileNamePath = "/home/ipserc/Saco/Sonido/muestra01.raw";
+       	String signalFileNamePath = __SOUND_DIR__.resolve("muestra01.raw").toString();
        	File samplesFile = new File(signalFileNamePath);
        	if (samplesFile.exists()) {
        		signal = new Fourier(signalFileNamePath);
@@ -87,7 +97,7 @@ public class TestFilter01 {
 			System.out.println("Creating signal...");
 			signal = new Fourier(z -> func16(z), loLimit, upLimit);
 			signal.DFT(samplefreq);
-			signal.saveRAWSamples(signalFileNamePath, __NORMALIZE__);
+			signal.saveRAWSamples(saveTarget(__SOUND_DIR__, "muestra01.raw"), __NORMALIZE__);
 			//signal.saveSamples("/home/ipserc/saco/signal_func44100.txt", "");
        	}
 		signal.plotSamplesSync("Original Signal", signal.getN(), true, e_lineStyle.LINES);
