@@ -8,9 +8,20 @@ public class Line {
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0807_2300)";
+	private final static String VERSION = "1.7 (2026_0810_2340)";
 	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
+	 *
+	 * 1.7 (2026_0810_2340)
+	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 6 de la hoja de ruta
+	 * "Matematicas Aplicadas", ver Claude/ComplexArithRev.md): angle(Line) calculaba sin() via
+	 * crossprod() (limite 7D, mismo defecto ya encontrado y arreglado en distance(Point)/
+	 * distance(Line) de este mismo fichero) -- para dim>7 devolvia 0.0 para CUALQUIER par de
+	 * rectas cuyo angulo no fuera exactamente pi/2 (el atajo cos==0 solo salvaba el caso
+	 * ortogonal). Confirmado con un caso de 60 grados en dimension 8. Arreglado delegando en
+	 * VectorComplex.angle() (ya general en dimension y con clamp de acos desde su VERSION 1.10),
+	 * mismo patron que Plane.angle(Line)/angle(VectorComplex)/angle(Plane) ya usaban. Verificado
+	 * con ScratchGeomAudit03.java (conservado).
 	 *
 	 * 1.6 (2026_0807_2300)
 	 * intersection(Line): limpia una referencia cruzada obsoleta en el Javadoc -- citaba "el KNOWN
@@ -370,13 +381,22 @@ public class Line {
 	 * Calculates the angle between two lines
 	 * @param line The given line
 	 * @return The angle in radians
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): computed {@code sin} via
+	 * {@code direction.crossprod(line.direction)}, only well-founded up to 7D (Hurwitz's theorem,
+	 * same limitation already found and fixed in {@link #distance(Point)}/{@link #distance(Line)}
+	 * elsewhere in this class) -- for dim&gt;7, {@code crossprod()} degenerates to an empty vector
+	 * (norm 0), so {@code sin} silently collapsed to 0 for ANY pair of lines whose angle isn't
+	 * exactly {@code pi/2} (the {@code cos==0} guard masked the orthogonal case only). Confirmed:
+	 * two 8-dimensional lines at a genuine 60-degree angle (&lt;d1,d2&gt;=1, |d1|=|d2|=sqrt(2))
+	 * returned {@code 0.0} instead of {@code pi/3}. {@code Plane.angle(Line)}/{@code
+	 * angle(VectorComplex)}/{@code angle(Plane)} already avoid this by delegating to {@link
+	 * VectorComplex#angle(VectorComplex)} (dimension-general, {@code acos}-clamped since VERSION
+	 * 1.10) instead of reimplementing via {@code crossprod()} -- this method now does the same,
+	 * matching the {@code |&lt;d1,d2&gt;|}-based (unsigned/acute-angle) convention this method
+	 * already had via its own {@code .abs()} on {@code cos}.
 	 */
 	public double angle(Line line) {
-		double sin = (this.direction.crossprod(line.direction)).norm()/this.direction.norm()/line.direction.norm();
-		double cos = (this.direction.dotprod(line.direction)).abs()/this.direction.norm()/line.direction.norm();
-		if (cos == 0) return Math.PI/2;
-		//else return Math.acos(cos);
-		else return Math.atan(sin/cos);
+		return this.direction.angle(line.direction);
 	}
 	
 	/**

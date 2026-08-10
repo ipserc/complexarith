@@ -16,8 +16,24 @@ public class Plane {
 	private Point point;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0807_1330)";
+	private final static String VERSION = "1.4 (2026_0810_2340)";
 	/* VERSION Release Note
+	 *
+	 * 1.4 (2026_0810_2340)
+	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 6 de la hoja de ruta
+	 * "Matematicas Aplicadas", ver Claude/ComplexArithRev.md): intersection(Plane) crasheaba con
+	 * "Not valid sum" para CUALQUIER par de planos genuinamente no paralelos -- aMatrix.solve() ya
+	 * devuelve su solucion con la orientacion de FILA (1xN) que Point espera, pero el codigo le
+	 * aplicaba un .transpose() de mas antes de asignarla a point.complexMatrix, dejando un array
+	 * Nx1 en un objeto Point que en todo el resto del proyecto siempre es 1xN -- la siguiente
+	 * llamada a Line.point(Complex) sobre la recta devuelta reventaba al intentar sumar formas
+	 * incompatibles. Confirmado con el caso clasico plano XY / plano XZ (interseccion = eje X):
+	 * quitando la transposicion sobrante, el punto resultante cae en AMBOS planos (distancia 0 a
+	 * cada uno) y Line.point(double) vuelve a funcionar con normalidad. Ningun llamador del
+	 * proyecto llegaba tan lejos antes del arreglo -- el driver de regresion existente
+	 * (ScratchGeomAudit02.java) solo ejercitaba la deteccion de paralelismo, nunca un par
+	 * genuinamente no paralelo hasta el final. Verificado con ScratchGeomAudit03.java
+	 * (conservado).
 	 *
 	 * 1.3 (2026_0807_1330)
 	 * Audit of com.ipserc.arith.geom (ver Claude/ComplexArithRev.md), continuacion de la sesion
@@ -397,6 +413,23 @@ public class Plane {
 	 * Returns the intersection between the two planes as a Line
 	 * @param plane The other plane
 	 * @return The intersection line
+	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): {@code aMatrix.solve()}
+	 * already returns its solution ROW-oriented ({@code 1 x this.normal.dim()}, one row -- the
+	 * same shape {@link Point} itself uses internally, confirmed by inspection: for the 2 real
+	 * plane equations plus one implicit all-zero row (this system genuinely has 1 free variable,
+	 * since 2 hyperplanes intersect in a line in 3D -- {@code solve()} seeds it, giving a genuine
+	 * particular solution on the intersection line, not an arbitrary vector). The extra {@code
+	 * .transpose()} before assigning to {@code point.complexMatrix} turned that valid {@code 1x3}
+	 * row into a {@code 3x1} column -- {@code Point} always expects {@code 1xN}, so the very next
+	 * use of this method's result ({@code Line.point(Complex)}, called by any caller walking the
+	 * returned line) threw {@code IllegalArgumentException: Not valid sum} from {@code
+	 * MatrixComplex.plus()} trying to add a {@code 3x1} point to the {@code 1x3} direction vector.
+	 * Confirmed with the classic XY/XZ-plane case (intersection = the X axis): removing the
+	 * spurious transpose gives a point that lies on BOTH planes (distance 0 to each) and lets
+	 * {@code Line.point(double)} work normally afterwards. No caller in this codebase reached this
+	 * far before the fix (the existing regression driver only exercised the parallel-detection
+	 * branch, never a genuinely intersecting pair) -- a real bug, previously unreachable in
+	 * practice via any existing test.
 	 */
 	public Line intersection(Plane plane) {
 		double angle = this.angle(plane);
@@ -414,10 +447,10 @@ public class Plane {
 			}
 			aMatrix.complexMatrix[1][i] = plane.normal.dotprod(plane.toVector(plane.point));
 			MatrixComplex solutions = aMatrix.solve();
-			
+
 			Point point = new Point();
-			point.complexMatrix = solutions.transpose().complexMatrix.clone();
-			Line line = new Line(direction, point);			
+			point.complexMatrix = solutions.complexMatrix.clone();
+			Line line = new Line(direction, point);
 			return line;
 		}
 		else {
