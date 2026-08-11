@@ -42,9 +42,9 @@ class MatrixComplexUnary {
 	private MatrixComplexUnary() {}
 
 	/**
-	 * Checks if a matrix is empty, A matrix is empty if rows = cols = 0
+	 * Checks if a matrix is empty. A matrix is empty if rows = cols = 0.
 	 * @param m The matrix.
-	 * @return True is matrix is empty
+	 * @return True if the matrix is empty.
 	 */
 	static boolean isEmpty(MatrixComplex m) {
 		if (m.rows() == 0 && m.cols() == 0) return true;
@@ -52,7 +52,7 @@ class MatrixComplexUnary {
 	}
 
 	/**
-	 * Makes the matrix to become positive semidefinite
+	 * Applies the absolute value to each entry of the matrix, in place.
 	 * @param m The matrix.
 	 */
 	static void abs(MatrixComplex m) {
@@ -569,35 +569,34 @@ class MatrixComplexUnary {
 	 * on {@code A-lambda*I}, which DOES have a coherent scale) -- use {@code rank()} elsewhere.
 	 * @param m The matrix (must be square).
 	 * @return The relative-pivot rank (0 for a zero matrix).
-	 * @apiNote BUG FIXED, 2 rondas (10 agosto 2026, reportado por el usuario -- ver
-	 * Claude/ComplexArithRev.md). <b>Ronda 1</b>: leia solo la entrada DIAGONAL de cada fila tras
-	 * {@code triangleUp()}, asumiendo que el pivote de cada fila cae siempre en su posicion diagonal.
-	 * {@code triangleUp()} solo permuta FILAS (nunca columnas) -- si una columna se anula por completo
-	 * antes de "su turno" (p.ej. por ser combinacion lineal de una columna anterior), la eliminacion la
-	 * salta sin mas, dejando un cero ESTRUCTURAL en la diagonal mientras el pivote real de esa fila
-	 * queda desplazado a una columna posterior -- confirmado con {@code [i,-i,i; i,-i,-i; i,-i,i]}
-	 * (columna 1 = -1 x columna 0): diagonal {@code [i,0,0]} tras triangularizar, rango 1 en vez del
-	 * rango real 2. <b>Ronda 2</b>: el primer arreglo (leer el maximo de TODA la fila en vez de solo la
-	 * diagonal) resulto insuficiente -- confirmado que rompia el caso general (autovalor simple con
-	 * geom mult correctamente 1 pasaba a reportar 0, matematicamente imposible: todo autovalor genuino
-	 * tiene geom mult&gt;=1). Causa: cuando DOS filas distintas quedan con su pivote desplazado a la
-	 * MISMA columna posterior (visto con {@code A-1*I} de {@code TestEigenV05}, {@code [2,2,-1;
-	 * 2,2,1; 0,0,4]} -&gt; {@code triangleUp()} da {@code [2,2,-1; 0,0,2; 0,0,4]}: filas 1 y 2 son
-	 * linealmente DEPENDIENTES entre si -- fila2=2*fila1 -- pero cada una por separado tiene un maximo
-	 * de fila no despreciable, asi que el conteo por fila las contaba como 2 filas independientes en
-	 * vez de 1), {@code triangleUp()} de una sola pasada no reduce lo suficiente: al llegar a la
-	 * columna con diagonal cero, se salta esa columna SIN buscar si hay un pivote usable en una columna
-	 * posterior para eliminar las filas de debajo -- ni una segunda pasada de {@code triangleUp()}
-	 * ayuda (el mismo hueco estructural persiste, la eliminacion nunca mira mas alla de la columna k en
-	 * el paso k). Arreglado sustituyendo la dependencia en {@code triangleUp()} por una eliminacion
-	 * gaussiana propia y autocontenida con AVANCE DE COLUMNA (si la columna actual no tiene ningun
-	 * pivote no-despreciable en las filas restantes, se prueba la siguiente columna sin avanzar de
-	 * fila -- la forma estandar de construir una forma escalonada por filas para calcular el rango,
-	 * sin asumir que columna-pivote y fila coinciden en indice) -- mismo criterio de tolerancia
-	 * RELATIVA ({@link #SINGULARITY_REL_TOL}) que antes, ahora aplicado correctamente en cada paso de
-	 * eliminacion en vez de solo al leer el resultado final. Verificado con
-	 * {@code ScratchGeomMultBug01.java}/{@code ScratchGeomMultBug02.java} (conservados): ambos casos
-	 * (el reportado por el usuario y el de regresion de la Ronda 1) coinciden con {@code rank()}.
+	 * @apiNote BUG FIXED, 2 rounds (10 August 2026, reported by the user -- see
+	 * Claude/ComplexArithRev.md). <b>Round 1</b>: only read each row's DIAGONAL entry after
+	 * {@code triangleUp()}, assuming each row's pivot always falls on the diagonal position.
+	 * {@code triangleUp()} only permutes ROWS (never columns) -- if a column vanishes completely
+	 * before "its turn" (e.g. because it is a linear combination of an earlier column), elimination
+	 * simply skips it, leaving a STRUCTURAL zero on the diagonal while that row's real pivot ends up
+	 * shifted to a later column -- confirmed with {@code [i,-i,i; i,-i,-i; i,-i,i]}
+	 * (column 1 = -1 x column 0): diagonal {@code [i,0,0]} after triangularizing, rank 1 instead of
+	 * the real rank 2. <b>Round 2</b>: the first fix (reading the maximum of the WHOLE row instead of
+	 * just the diagonal) turned out to be insufficient -- confirmed it broke the general case (a
+	 * simple eigenvalue with geom mult correctly 1 started reporting 0, mathematically impossible:
+	 * every genuine eigenvalue has geom mult&gt;=1). Cause: when TWO different rows end up with their
+	 * pivot shifted to the SAME later column (seen with {@code A-1*I} from {@code TestEigenV05}, {@code
+	 * [2,2,-1; 2,2,1; 0,0,4]} -&gt; {@code triangleUp()} gives {@code [2,2,-1; 0,0,2; 0,0,4]}: rows 1
+	 * and 2 are linearly DEPENDENT on each other -- row2=2*row1 -- but each one individually has a
+	 * non-negligible row maximum, so the per-row count treated them as 2 independent rows instead of
+	 * 1), a single {@code triangleUp()} pass does not reduce enough: on reaching a column with a zero
+	 * diagonal, it skips that column WITHOUT looking for a usable pivot in a later column to eliminate
+	 * the rows below -- not even a second {@code triangleUp()} pass helps (the same structural gap
+	 * persists, elimination never looks beyond column k at step k). Fixed by replacing the dependency
+	 * on {@code triangleUp()} with a self-contained Gaussian elimination of its own with COLUMN
+	 * ADVANCE (if the current column has no non-negligible pivot among the remaining rows, the next
+	 * column is tried without advancing the row -- the standard way to build a row-echelon form for
+	 * computing rank, without assuming pivot-column and row indices coincide) -- same RELATIVE
+	 * tolerance criterion ({@link #SINGULARITY_REL_TOL}) as before, now applied correctly at every
+	 * elimination step instead of only when reading the final result. Verified with
+	 * {@code ScratchGeomMultBug01.java}/{@code ScratchGeomMultBug02.java} (kept): both cases
+	 * (the one reported by the user and the Round 1 regression) match {@code rank()}.
 	 */
 	static int rankByRelativePivot(MatrixComplex m) {
 		MatrixComplex aux = m.copy();

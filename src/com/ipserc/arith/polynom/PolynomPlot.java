@@ -12,16 +12,16 @@ import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
  * Package-private GNUPlot integration for {@link Polynom} -- isolates the {@link SimpleGnuplot}
  * dependency to this one class, instead of spreading it through the resolution/arithmetic core.
  * <p>
- * Extracted from {@code Polynom.java} (Décima sesión, ver {@code Claude/ComplexArithRev.md}),
- * Fase 2 of the same restructuring that moved presentation to {@link PolynomFormat} in Fase 1 --
- * same pattern as {@code Complex.java}'s {@code ComplexBoxArt}/{@code ComplexFormat} (Sexta
- * sesión, Paso 2): methods take the {@link Polynom} instance as an explicit parameter (where they
+ * Extracted from {@code Polynom.java} (10th session, see {@code Claude/ComplexArithRev.md}),
+ * Phase 2 of the same restructuring that moved presentation to {@link PolynomFormat} in Phase 1 --
+ * same pattern as {@code Complex.java}'s {@code ComplexBoxArt}/{@code ComplexFormat} (Sixth
+ * session, Step 2): methods take the {@link Polynom} instance as an explicit parameter (where they
  * actually need it -- some of the original methods never touched {@code this} at all, and stay
  * plain static utilities here too) and read it only through already-public members. {@code
  * Polynom.java}'s own public methods keep their exact signatures, delegating to these in one line
  * each -- the public API is unchanged.
  * <p>
- * Migration (8 agosto 2026, a peticion del usuario): {@code com.panayotis.gnuplot.JavaPlot}
+ * Migration (8 agosto 2026, at the user's request): {@code com.panayotis.gnuplot.JavaPlot}
  * (external dependency, not present in every environment, previously documented here as a
  * compilation blocker when missing from the classpath) replaced by {@link SimpleGnuplot}, a
  * dependency-free homegrown replacement -- same gnuplot engine underneath, only the Java wrapper
@@ -32,7 +32,7 @@ import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
  * applying (user-confirmed correct rendering, both the data-block and native-expression
  * {@code addPlot} paths this class actually uses).
  * <p>
- * Continuation (8 agosto 2026, a peticion del usuario): every method here now takes an explicit
+ * Continuation (8 agosto 2026, at the user's request): every method here now takes an explicit
  * {@link e_syncMode} parameter (threaded straight to {@code SimpleGnuplot.plot(mode)}) instead of
  * always blocking -- this class is package-private, so the {@code xxxSync}/{@code xxxAsync} naming
  * pair the user asked for lives one layer up, on {@code Polynom.java}'s public methods (the actual

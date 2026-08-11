@@ -35,8 +35,14 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.10 (2026_0808_1500)";
+	private final static String VERSION = "1.11 (2026_0811_2010)";
 	/* VERSION Release Note
+	 *
+	 * 1.11 (2026_0811_2010)
+	 * Comentarios Javadoc revisados como parte de la generación de la documentación de la API: ya
+	 * estaban en inglés casi en su totalidad, solo se han corregido un par de erratas menores
+	 * ("titel"/"polt" -> "title"/"plot" en plotDFTSync/plotDFTsamp/plotDFTfrec). Sin cambios
+	 * funcionales.
 	 *
 	 * 1.10 (2026_0808_1500)
 	 * Todos los metodos de plot publicos (plot/plotFunction/plotSamples x2/plotSeries/plotCompare/
@@ -1430,7 +1436,7 @@ public class Fourier extends MatrixComplex {
 
 	/**
 	 * Plots the DFT graphic in the domain of Coefficients or Frequency
-	 * @param Title The titel of the polt
+	 * @param Title The title of the plot
 	 * @param domain The domain in which plot the DFT
 	 * @param operator The operator used
 	 * @param logscale True in y axis should be set in logarithmic scale
@@ -1456,7 +1462,7 @@ public class Fourier extends MatrixComplex {
 
 	/**
 	 * Does the plot the DFT graphic in the domain of Coefficients
-	 * @param Title The title of the polt
+	 * @param Title The title of the plot
 	 * @param domain The domain in which plot the DFT
 	 * @param operator The operator used
 	 * @param logscale True in y axis should be set in logarithmic scale
@@ -1479,7 +1485,7 @@ public class Fourier extends MatrixComplex {
 
 	/**
 	 * Does the plot the DFT graphic in the domain of Frequency
-	 * @param Title The title of the polt
+	 * @param Title The title of the plot
 	 * @param domain The domain in which plot the DFT
 	 * @param operator The operator used
 	 * @param logscale True in y axis should be set in logarithmic scale

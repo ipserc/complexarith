@@ -10,7 +10,11 @@ import com.ipserc.arith.polynom.*;
 import com.ipserc.arith.syseq.Syseq;
 
 /**
- * 
+ * MatrixComplex is a class that allows defining and operating with square and rectangular
+ * matrices of complex numbers ({@link Complex} entries): the core arithmetic operations
+ * (addition, subtraction, multiplication, power, transpose, ...), plus factorization,
+ * eigenvalue/eigenvector, and other linear-algebra facilities delegated to the companion
+ * classes in this package and in {@code com.ipserc.arith.factorization}.
  * @author ipserc
  *
  */
@@ -18,8 +22,19 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.72 (2026_0811_0100)";
+	private final static String VERSION = "1.73 (2026_0811_2100)";
 	/* VERSION Release Note
+	 *
+	 * 1.73 (2026_0811_2100)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
+	 * la generación de la documentación de la API. De paso, corregidos varios errores de redacción
+	 * preexistentes en el propio Javadoc en inglés (concordancia sujeto-verbo, artículos, erratas
+	 * "Postive"/"Negtive" ya presentes en los nombres de método -- no tocados -- documentadas mejor
+	 * en su Javadoc, un fragmento de código pegado por error dentro de un comentario de equals(),
+	 * una descripción incorrecta de repPositiveMainDiag() -- decía "False if a non positive was
+	 * found, false otherwise", lo que la hacía devolver false en ambos casos -- y un guion largo mal
+	 * codificado en el Javadoc de hermitian()); añadida la descripción de clase de MatrixComplex, que
+	 * estaba vacía.
 	 *
 	 * 1.72 (2026_0811_0100)
 	 * Bug real arreglado (hallazgo colateral de la investigacion de Complex.isPureReal(), Vigesimoctava
@@ -1585,8 +1600,8 @@ public class MatrixComplex {
 	 * 0.5: coarse enough to merge genuinely DISTINCT eigenvalues spaced closer than that into one
 	 * spurious "repeated" eigenvalue -- confirmed real via {@code Schurfactor.factorize()} opaquely
 	 * failing on a well-conditioned matrix whose 3 distinct eigenvalues (confirmed correct and
-	 * distinct via raw {@code QRSchurfactor} output) were only ~0.05-0.13 apart (Decimoctava
-	 * sesion, 6 agosto 2026, ver {@code Claude/ComplexArithRev.md}). User-supplied value,
+	 * distinct via raw {@code QRSchurfactor} output) were only ~0.05-0.13 apart (18th session,
+	 * 6 August 2026, see {@code Claude/ComplexArithRev.md}). User-supplied value,
 	 * measured the same way as {@link #BEST_NUM_DECS_CAP}: a 100-case synthetic sweep (Group A --
 	 * 3 genuinely distinct eigenvalues at gaps 0.005-1.2, well-conditioned by construction via a
 	 * unitary similarity) crossed with a 96-case companion sweep of genuinely repeated eigenvalues
@@ -1918,9 +1933,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Compares two matrices and return the result of the comparingif (__DEBUG__) 
+	 * Compares two matrices and returns the result of the comparison.
 	 * @param cMatrix The matrix to compare with
-	 * @return The result of the comparing
+	 * @return The result of the comparison
 	 */
 	public boolean equals(MatrixComplex cMatrix) {
 		int rowLen = this.rows();
@@ -2414,8 +2429,8 @@ public class MatrixComplex {
 	 * complete -- turns O(rows*cols*inner) trigonometric recomputations into O(rows*cols), with
 	 * a bit-identical result (see {@code Complex.plusEqRaw()}'s Javadoc for why). Still allocates
 	 * a full replacement complexMatrix internally, same as {@code timesEq()} -- this method
-	 * targets the trigonometric cost, not the allocation, which Fase 5 of the "*Eq a nivel
-	 * MatrixComplex" candidate (Decimoctava sesion) already measured as NOT the dominant cost at
+	 * targets the trigonometric cost, not the allocation, which Stage 5 of the "*Eq at the
+	 * MatrixComplex level" candidate (18th session) already measured as NOT the dominant cost at
 	 * the matrix sizes actually used by the Taylor/Mercator loops.
 	 * @param cMatrix The multiplier matrix.
 	 * @return 'this', for chaining.
@@ -3761,11 +3776,11 @@ public class MatrixComplex {
 	 * Calculates the adjunct matrix of the rows passed in the parameter "includedRows".
 	 * The adjugate, classical adjoint, or adjunct of a square matrix is the transpose of its cofactor matrix.
 	 * <p>
-	 * FIX (Etapa 4, Decimocuarta sesion): delegated to {@code MatrixComplexUnary.adjunct(m, includedRows)},
+	 * FIX (Stage 4, 14th session): delegated to {@code MatrixComplexUnary.adjunct(m, includedRows)},
 	 * which in turn delegates to {@code adjugate(m, includedRows)} -- the original body called itself
 	 * ({@code this.adjunct(includedRows)}), an infinite recursion that guaranteed a
 	 * {@code StackOverflowError} on every call. Zero callers anywhere in the project.
-	 * @param includedRows A list with the indexes of the the rows included in the cofactors array.
+	 * @param includedRows A list with the indexes of the rows included in the cofactors array.
 	 * @return The adjunct matrix.
 	 */
 	public MatrixComplex adjunct(int[] includedRows) {
@@ -3906,7 +3921,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Method for creating an Square Identity array of "dim" size
+	 * Method for creating a square identity array of "dim" size
 	 * @param dim The size of Identity array
 	 * @return The Identity array
 	 */
@@ -3915,32 +3930,32 @@ public class MatrixComplex {
 	}
 
 	/**
-	 *
-	 * @return
+	 * Checks if the matrix is positive definite.
+	 * @return True if the matrix is positive definite.
 	 */
 	public boolean isPostiveDefinite() {
 		return MatrixComplexUnary.isPostiveDefinite(this);
 	}
 
 	/**
-	 *
-	 * @return
+	 * Checks if the matrix is positive semi-definite.
+	 * @return True if the matrix is positive semi-definite.
 	 */
 	public boolean isPostiveSemiDefinite() {
 		return MatrixComplexUnary.isPostiveSemiDefinite(this);
 	}
 
 	/**
-	 *
-	 * @return
+	 * Checks if the matrix is negative definite.
+	 * @return True if the matrix is negative definite.
 	 */
 	public boolean isNegtiveDefinite() {
 		return MatrixComplexUnary.isNegtiveDefinite(this);
 	}
 
 	/**
-	 *
-	 * @return
+	 * Checks if the matrix is negative semi-definite.
+	 * @return True if the matrix is negative semi-definite.
 	 */
 	public boolean isNegtiveSemiDefinite() {
 		return MatrixComplexUnary.isNegtiveSemiDefinite(this);
@@ -3955,15 +3970,15 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Checks if there is one item on the main diagonal for which its REAL PART is zero or negative .
-	 * @return False if a non positive was found, false otherwise.
+	 * Checks if every item on the main diagonal has a non-negative REAL PART.
+	 * @return True if every diagonal item has a non-negative real part, false if any is negative.
 	 */
 	public boolean repPositiveMainDiag() {
 		return MatrixComplexUnary.repPositiveMainDiag(this);
 	}
 
 	/**
-	 * Method for creating an Square Identity array of "this" matrix size
+	 * Method for creating a square identity array of "this" matrix size
 	 * @param dim The size of Identity array
 	 * @return The Identity array
 	 */
@@ -4021,8 +4036,8 @@ public class MatrixComplex {
 	public static final int DETERMINATE = 1;
 
 	/**
-	 * Identifies if the system of equations is isHomogeneous.
-	 * @return Returns true if the system is isHomogeneous, false otherwise.
+	 * Identifies if the system of equations is homogeneous.
+	 * @return Returns true if the system is homogeneous, false otherwise.
 	 */
 	public boolean isHomogeneous() {
 		return MatrixComplexEquationSystems.isHomogeneous(this);
@@ -4087,7 +4102,7 @@ public class MatrixComplex {
 
 	/**
 	 * Shortcut to solveGauss
-	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
+	 * finds the solutions to an equation system by the default rule (Gauss reduction)
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The column matrix with the solutions if they exist.
 	 */
@@ -4192,7 +4207,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
+	 * finds the solutions to an equation system by the default rule (Gauss reduction)
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The column matrix with the solutions if they exist, otherwise null.
 	 */	
@@ -4201,7 +4216,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * finds the solutions to a equation systems using the Cramer's rule
+	 * finds the solutions to an equation system using Cramer's rule
 	 * @return The column matrix with the solutions if they exist.
 	 */
 	public MatrixComplex solveCramer() {
@@ -4239,7 +4254,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns the sub-matrix formed with rows an columns indicated in the parameters "rows" and "columns".
+	 * Returns the sub-matrix formed with rows and columns indicated in the parameters "rows" and "columns".
 	 * @param rows A list of integers of the rows to be taken.
 	 * @param cols A list of integers of the columns to be taken.
 	 * @return The new sub-matrix.
@@ -4249,7 +4264,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Returns the sub-matrix formed with rows an columns indicated in the parameters "rows" and "columns" as a list of comma separated values.
+	 * Returns the sub-matrix formed with rows and columns indicated in the parameters "rows" and "columns" as a list of comma separated values.
 	 * @param Srows A string with a list of integers separated by commas of the rows to be taken.
 	 * @param Scols A string with a list of integers separated by commas of the columns to be taken.
 	 * @return The new sub-matrix.
@@ -4299,7 +4314,7 @@ public class MatrixComplex {
 	 * whose entries genuinely share one physical scale throughout, such as {@code A-lambda*I} for
 	 * an eigenvalue -- {@code rank()}'s own fixed-absolute-epsilon zero test can otherwise miss a
 	 * residual pivot left behind by an imprecise eigenvalue (confirmed with a real 7x7 case,
-	 * 8 agosto 2026, ver Claude/ComplexArithRev.md: {@code geometricMultiplicity()} computed 0
+	 * 8 August 2026, see Claude/ComplexArithRev.md: {@code geometricMultiplicity()} computed 0
 	 * instead of 1 for a genuine eigenvalue). Introduced specifically for
 	 * {@code Eigenspace.geometricMultiplicity()}; a matrix without a coherent scale (e.g. a set of
 	 * eigenvector candidates mixing normalized and genuinely-tiny components) should keep using
@@ -4312,7 +4327,7 @@ public class MatrixComplex {
 
 	/**
 	 * Calculates the rank of an array. It is not reliable for ill-conditioned matrix due to lack of precision
-	 * Kept for testing proposes
+	 * Kept for testing purposes
 	 * @return The rank of the matrix.
 	 */
 	public int rank0() {
@@ -4320,8 +4335,8 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Major Independent Lineal submatrix. Traverse the different minors of the matrix untils the first not dependent linear minor
-	 * @return The major independet lineal minor
+	 * Major linearly independent submatrix. Traverses the different minors of the matrix until the first linearly independent minor.
+	 * @return The major linearly independent minor
 	 */
 	public MatrixComplex majorIL() {
 		return MatrixComplexRank.majorIL(this);
@@ -4364,9 +4379,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * The rank of A is equal the number of non-zero singular values of the characteristic polynomial of A.adjoint()*A
-	 * This is method used for other numerical programs
-	 * Kept for testing proposes
+	 * The rank of A is equal to the number of non-zero singular values of the characteristic polynomial of A.adjoint()*A
+	 * This method is used for cross-checking against other numerical programs
+	 * Kept for testing purposes
 	 * @return The rank of the matrix.
 	 */
 	public int rank2() {
@@ -4438,7 +4453,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Indicates if the array is square or nor
+	 * Indicates if the array is square or not
 	 * @return true for square matrix, false otherwise
 	 */
 	public boolean isSquare() {
@@ -4543,7 +4558,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calulates the Kernel of a base
+	 * Calculates the kernel of a base
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The kernel vector components
 	 */
@@ -4552,7 +4567,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calulates the Kernel of a base using Complex.ONE as seed
+	 * Calculates the kernel of a base using Complex.ONE as seed
 	 * @return The kernel vector components
 	 */
 	public MatrixComplex kernel() {
@@ -4600,7 +4615,7 @@ public class MatrixComplex {
 	 * {@code nullspaceBasis()}: safe only for a matrix whose entries genuinely share one physical
 	 * scale, such as {@code A-lambda*I} for an eigenvalue -- see
 	 * {@code MatrixComplexKernel.nullspaceBasisNearSingular()} and
-	 * {@link #rankNearSingular()} for the full rationale (8-9 agosto 2026, ver
+	 * {@link #rankNearSingular()} for the full rationale (8-9 August 2026, see
 	 * Claude/ComplexArithRev.md).
 	 * @return A matrix with one basis vector per row, using the relative-pivot criterion.
 	 */
@@ -4625,7 +4640,7 @@ public class MatrixComplex {
 
 	/**
 	 * Returns a new augmented matrix.
-	 * Copy the original matrix and add a column to zeros.
+	 * Copies the original matrix and adds a column of zeros.
 	 * @return The augmented matrix.
 	 */
 	public MatrixComplex augment() {
@@ -4647,7 +4662,7 @@ public class MatrixComplex {
 
 	/**
 	 * DEPRECATED Returns a new augmented array with the FIRST column of terms.
-	 * DEPRECATED Copies the original matrix and add the FIRST column "interms".
+	 * DEPRECATED Copies the original matrix and adds the FIRST column "interms".
 	 * DEPRECATED Left only for fail recovery of augment1()
 	 * @param interms The column to be added.
 	 * @return The augmented matrix.
@@ -4658,7 +4673,7 @@ public class MatrixComplex {
 
 	/**
 	 * Returns a new augmented array with ALL the columns of terms.
-	 * Copies the original matrix and add the ALL the columns of "interms".
+	 * Copies the original matrix and adds all the columns of "interms".
 	 * @param interms The column to be added.
 	 * @return The augmented matrix.
 	 */
@@ -4668,7 +4683,7 @@ public class MatrixComplex {
 
 	/**
 	 * Returns a new array with the terms of the unknowns.
-	 * Copy the original matrix and remove the column "interms".
+	 * Copies the original matrix and removes the column "interms".
 	 * @return The augmented matrix.
 	 */
 	public MatrixComplex unkMatrix() {
@@ -4746,7 +4761,7 @@ public class MatrixComplex {
 
 	/**
 	 * Calculates the Hermitian matrix (or self-adjoint matrix).
-	 * The Hermitian matrix (or self-adjoint matrix) is a complex square matrix that is equal to its own conjugate transposeâ€”that is, the element in the i-th row and j-th column is equal to the complex conjugate of the element in the j-th row and i-th column, for all indices i and j.
+	 * The Hermitian matrix (or self-adjoint matrix) is a complex square matrix that is equal to its own conjugate transpose -- that is, the element in the i-th row and j-th column is equal to the complex conjugate of the element in the j-th row and i-th column, for all indices i and j.
 	 * Hermitian matrices can be understood as the complex extension of real symmetric matrices.
 	 * @return The Hermitian matrix.
 	 */
@@ -4755,8 +4770,8 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the skew-Hermitian or antihermitian.
-	 * The skew-Hermitian or antihermitian if its conjugate transpose is equal to the original matrix, with all the entries being of opposite sign.[1] That is, the matrix A is skew-Hermitian if it satisfies the relation.
+	 * Calculates the skew-Hermitian (or anti-Hermitian) matrix.
+	 * A matrix is skew-Hermitian (or anti-Hermitian) if its conjugate transpose is equal to the negative of the original matrix, i.e. matrix A is skew-Hermitian if it satisfies A = -A*.
 	 * @return The skew-Hermitian matrix.
 	 */
 	public MatrixComplex skewHermitian() {

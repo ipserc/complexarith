@@ -67,9 +67,9 @@ class MatrixComplexEquationSystems {
 	}
 
 	/**
-	 * Identifies if the system of equations is isHomogeneous.
+	 * Identifies whether the system of equations is homogeneous.
 	 * @param m The matrix.
-	 * @return Returns true if the system is isHomogeneous, false otherwise.
+	 * @return True if the system is homogeneous, false otherwise.
 	 */
 	static boolean isHomogeneous(MatrixComplex m) {
 		int rowLen = m.rows();
@@ -163,9 +163,9 @@ class MatrixComplexEquationSystems {
 	}
 
 	/**
-	 * If the number of equations is less than of unknowns, the missing equations are introduced with the coefficients and the independent term set to zero.
+	 * If the number of equations is less than the number of unknowns, the missing equations are introduced with the coefficients and the independent term set to zero.
 	 * @param m The matrix.
-	 * @return the system of equations completed with equations that are missing to zero.
+	 * @return The system of equations completed with the missing equations set to zero.
 	 */
 	static MatrixComplex completeEqSys(MatrixComplex m) {
 		int rowLen = m.rows();
@@ -184,9 +184,9 @@ class MatrixComplexEquationSystems {
 	}
 
 	/**
-	 * Finds the solutions of an equation systems by the default rule (Gauss reduction)
+	 * Finds the solutions of an equation system by the default rule (Gauss reduction), with lambda=1.
 	 * @param m The matrix.
-	 * @return The solutions of the equation systems
+	 * @return The solutions of the equation system.
 	 */
 	static MatrixComplex solve(MatrixComplex m) {
 			MatrixComplex newThis = m.clone();
@@ -194,8 +194,7 @@ class MatrixComplexEquationSystems {
 	}
 
 	/**
-	 * Shortcut to solveGauss
-	 * finds the solutions to a equation systems by the default rule (Gauss reduction)
+	 * Finds the solutions of an equation system by the default rule (Gauss reduction). Shortcut to solveGauss.
 	 * @param m The matrix.
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The column matrix with the solutions if they exist.
@@ -206,13 +205,12 @@ class MatrixComplexEquationSystems {
 	}
 
 	/**
-	 * Equation evaluator
-	 * Evaluates an equation replacing its unknowns with values
+	 * Equation evaluator: evaluates an equation replacing its unknowns with values.
 	 * @param m The matrix.
-	 * @param row
-	 * @param col
-	 * @param point
-	 * @return
+	 * @param row The row of the equation to evaluate.
+	 * @param col The column of the unknown left out of the substitution (the one being solved for).
+	 * @param point The matrix of values to substitute for the other unknowns.
+	 * @return The evaluated value of the unknown at col.
 	 */
 	static Complex eqEval(MatrixComplex m, int row, int col, MatrixComplex point) {
 		int colLen = m.cols();
@@ -412,7 +410,7 @@ class MatrixComplexEquationSystems {
 	 * Sets the row (rowIdx) of m with the values of rowMatrix
 	 * @param m The matrix.
 	 * @param rowIdx The row index to retrieve. 1st row is 0, and so on.
-	 * @param rowMatrix
+	 * @param rowMatrix The row of values to set.
 	 */
 	static void setRow(MatrixComplex m, int rowIdx, MatrixComplex rowMatrix) {
 		m.complexMatrix[rowIdx] = rowMatrix.complexMatrix[0].clone();
@@ -430,10 +428,10 @@ class MatrixComplexEquationSystems {
 	}
 
 	/**
-	 * Sets colum colMatrix into m at colIdx column
+	 * Sets column colMatrix into m at colIdx column
 	 * @param m The matrix.
-	 * @param colIdx
-	 * @param colMatrix
+	 * @param colIdx The index of the column to set.
+	 * @param colMatrix The column of values to set.
 	 */
 	static void setCol(MatrixComplex m, int colIdx, MatrixComplex colMatrix) {
 		for (int row = 0; row < m.rows(); ++row)
@@ -751,7 +749,7 @@ class MatrixComplexEquationSystems {
 	}
 
 	/**
-	 * Returns the sub-matrix formed with rows an columns indicated in the parameters "rows" and "columns".
+	 * Returns the sub-matrix formed with rows and columns indicated in the parameters "rows" and "columns".
 	 * @param m The matrix.
 	 * @param rows A list of integers of the rows to be taken.
 	 * @param cols A list of integers of the columns to be taken.
@@ -767,7 +765,7 @@ class MatrixComplexEquationSystems {
 	}
 
 	/**
-	 * Returns the sub-matrix formed with rows an columns indicated in the parameters "rows" and "columns" as a list of comma separated values.
+	 * Returns the sub-matrix formed with rows and columns indicated in the parameters "rows" and "columns" as a list of comma separated values.
 	 * @param m The matrix.
 	 * @param Srows A string with a list of integers separated by commas of the rows to be taken.
 	 * @param Scols A string with a list of integers separated by commas of the columns to be taken.

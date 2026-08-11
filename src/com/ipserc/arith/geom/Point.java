@@ -6,8 +6,12 @@ import com.ipserc.arith.vectorcomplex.*;
 public class Point extends MatrixComplex {
 
 	private final static String HEADINFO = "Point --- INFO: ";
-	private final static String VERSION = "1.1 (2026_0807_1200)";
+	private final static String VERSION = "1.2 (2026_0811_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0811_1200)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte
+	 * de la generación de la documentación de la API.
 	 *
 	 * 1.1 (2026_0807_1200)
 	 * Point(int dim): fixed an off-by-one, super(1, dim+1) allocated one column too many, so a
@@ -29,7 +33,7 @@ public class Point extends MatrixComplex {
 	 */
 	
 	/**
-	 * Prints Class Version
+	 * Prints the class version.
 	 */
 	public static void version() {
 		System.out.println(HEADINFO + "VERSION:" + VERSION); 
@@ -42,14 +46,14 @@ public class Point extends MatrixComplex {
 	 */
 
 	/**
-	 * Instantiates an empty Point
+	 * Instantiates an empty Point.
 	 */
 	public Point() {
 		super();
 	}
 
 	/**
-	 * Intantiates a null Point of dimension dim
+	 * Instantiates a null Point of dimension dim.
 	 * @param dim The dimension of the space of the point
 	 */
 	public Point(int dim) {
@@ -60,8 +64,8 @@ public class Point extends MatrixComplex {
 	}
 
 	/**
-	 * Intantiates a Point with ist coordinates as String
-	 * @param coords The point coordinates as String comma separated
+	 * Instantiates a Point from its coordinates given as a String.
+	 * @param coords The point coordinates as a comma-separated String
 	 */
 	public Point(String coords) {
 		super(coords);
@@ -92,7 +96,7 @@ public class Point extends MatrixComplex {
 	 * Returns the distance between two points using the norm of order pnorm
 	 * @param point The other point as Point
 	 * @param pnorm The order of the norm
-	 * @return
+	 * @return The distance
 	 */
 	public double distance(Point point, int pnorm) {
 		return point.minus(this).p_norm(pnorm);
@@ -105,9 +109,9 @@ public class Point extends MatrixComplex {
 	 */
 
 	/**
-	 * Adds two points by returning the vector that points the sum point
+	 * Adds two points, returning the vector that points to their sum.
 	 * @param point The other point
-	 * @return The vector that points the sum point
+	 * @return The vector that points to the sum point
 	 */
 	public VectorComplex plus(Point point) {
 		VectorComplex vector = new VectorComplex(this.dim());
@@ -118,9 +122,9 @@ public class Point extends MatrixComplex {
 	}
 
 	/**
-	 * Differentiates two points by returning the vector that points the difference point
+	 * Subtracts one point from another, returning the vector that points to their difference.
 	 * @param point The other point
-	 * @return The vector that points the difference point
+	 * @return The vector that points to the difference point
 	 */
 	public VectorComplex minus(Point point) {
 		VectorComplex vector = new VectorComplex(this.dim());

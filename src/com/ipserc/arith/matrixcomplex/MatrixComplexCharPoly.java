@@ -295,7 +295,7 @@ class MatrixComplexCharPoly {
 	 * Used in coefCP(int order)
 	 * @param order The order of the cofactors' matrix.
 	 * @param v The array of the rows included.
-	 * @return Aa array with the indexes of the included rows
+	 * @return An array with the indexes of the included rows
 	 */
 	private static int[] includedRows(int order, int[] v) {
 		int includedRows[] = new int[order];
@@ -424,7 +424,7 @@ class MatrixComplexCharPoly {
 
 	/**
 	 * Calculates the Hermitian matrix (or self-adjoint matrix).
-	 * The Hermitian matrix (or self-adjoint matrix) is a complex square matrix that is equal to its own conjugate transposeâ€”that is, the element in the i-th row and j-th column is equal to the complex conjugate of the element in the j-th row and i-th column, for all indices i and j.
+	 * The Hermitian matrix (or self-adjoint matrix) is a complex square matrix that is equal to its own conjugate transpose -- that is, the element in the i-th row and j-th column is equal to the complex conjugate of the element in the j-th row and i-th column, for all indices i and j.
 	 * Hermitian matrices can be understood as the complex extension of real symmetric matrices.
 	 * @param m The matrix.
 	 * @return The Hermitian matrix.

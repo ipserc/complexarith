@@ -98,9 +98,9 @@ class MatrixComplexRank {
 	}
 
 	/**
-	 * Major Independent Lineal submatrix. Traverse the different minors of the matrix untils the first not dependent linear minor
+	 * Major independent linear submatrix. Traverses the different minors of the matrix until the first linearly independent one.
 	 * @param m The matrix.
-	 * @return The major independet lineal minor
+	 * @return The major independent linear minor
 	 */
 	static MatrixComplex majorIL(MatrixComplex m) {
 		final boolean DEBUG_ON = false;
@@ -548,7 +548,7 @@ class MatrixComplexRank {
 	}
 
 	/**
-	 * Indicates if the array is square or nor
+	 * Indicates whether the array is square or not
 	 * @param m The matrix.
 	 * @return true for square matrix, false otherwise
 	 */

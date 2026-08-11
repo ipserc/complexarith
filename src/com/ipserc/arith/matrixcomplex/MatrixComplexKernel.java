@@ -10,19 +10,19 @@ import com.ipserc.arith.syseq.Syseq;
  * {@code lambda}, via {@code Syseq}), and {@code nullspaceBasis()} (a genuine basis of the
  * nullspace, one vector per free column, via its own Gauss-Jordan reduction).
  * <p>
- * Extracted from {@code MatrixComplex.java} (Decimotercera sesion, Etapa 3 sub-fase E de la
- * reestructuracion, ver {@code Claude/ComplexArithRev.md}) -- last sub-fase of Etapa 3, same
- * pattern as {@code MatrixComplexEquationSystems} (sub-fase A+B), {@code MatrixComplexRank}
- * (sub-fase C) and {@code MatrixComplexOrtho} (sub-fase D): every method here is {@code static},
+ * Extracted from {@code MatrixComplex.java} (thirteenth session, Stage 3 sub-phase E of the
+ * restructuring, see {@code Claude/ComplexArithRev.md}) -- last sub-phase of Stage 3, same
+ * pattern as {@code MatrixComplexEquationSystems} (sub-phase A+B), {@code MatrixComplexRank}
+ * (sub-phase C) and {@code MatrixComplexOrtho} (sub-phase D): every method here is {@code static},
  * takes the {@link MatrixComplex} instance as an explicit parameter, and reads it only through
  * already-public members ({@code getItem}, {@code setItem}, {@code times}, {@code rows},
  * {@code cols}, {@code augment}, {@code copy}, {@code swapRows}, {@code Ftransf}, {@code inverse})
- * -- no visibility needed widening for this sub-fase, unlike A+B/C/D. {@code MatrixComplex.java}'s
+ * -- no visibility widening needed for this sub-phase, unlike A+B/C/D. {@code MatrixComplex.java}'s
  * own public methods keep their exact signatures, delegating to these in one line each -- the
  * public API is unchanged.
  * <p>
  * {@code dotprod(MatrixComplex,MatrixComplex)} originally lived physically at the start of this
- * section in the pre-split file, but moved to {@code MatrixComplexOrtho} in sub-fase D instead
+ * section in the pre-split file, but moved to {@code MatrixComplexOrtho} in sub-phase D instead
  * (its only four call sites are all inside the Gram-Schmidt family), per the restructuring plan --
  * nothing from that helper carries over here.
  */
@@ -62,7 +62,7 @@ class MatrixComplexKernel {
 	}
 
 	/**
-	 * Calulates the Kernel of a base
+	 * Calculates the kernel of a matrix.
 	 * @param m The matrix.
 	 * @param lambda Value of lambda parameter used to calculate solutions in indeterminate systems.
 	 * @return The kernel vector components
@@ -78,7 +78,7 @@ class MatrixComplexKernel {
 	}
 
 	/**
-	 * Calulates the Kernel of a base using Complex.ONE as seed
+	 * Calculates the kernel of a matrix, using Complex.ONE as seed.
 	 * @param m The matrix.
 	 * @return The kernel vector components
 	 */

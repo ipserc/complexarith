@@ -1,27 +1,27 @@
 /**
- * Una matriz cuadrada "A" se dice que es diagonalizable si es semejante a una matriz diagonal. 
- * Es decir, si mediante un cambio de base puede reducirse a una forma diagonal. 
- * En este caso, la matriz podrá descomponerse de la forma A=P·D·P⁻¹. En donde "P" es una matriz invertible cuyos 
- * vectores columna son vectores propios de A, y D es una matriz diagonal formada por los valores propios de A.
- * 
- * Si la matriz A es semejante ortogonalmente a una matriz diagonal, es decir, si la matriz P es ortogonal 
- * se dice entonces que la matriz A es diagonalizable ortogonalmente, pudiendo escribirse como A=PDP^t. 
- * El teorema espectral garantiza que cualquier matriz cuadrada simétrica con coeficientes reales es ortogonalmente diagonalizable. 
- * En este caso P está formada por una base ortonormal de vectores propios de la matriz siendo los valores propios reales. 
- * La matriz P es por tanto ortogonal y los vectores filas de P⁻¹ son los vectores columnas de P.
- * 
- * Sea A ∈ M(n×n) de (K) una matriz cuadrada con valores en un cuerpo K, se dice que la matriz A es diagonalizable si, y sólo si, 
- * A se puede descomponer de la forma:
+ * A square matrix "A" is said to be diagonalizable if it is similar to a diagonal matrix.
+ * That is, if it can be reduced to a diagonal form through a change of basis.
+ * In that case, the matrix can be decomposed as A=P·D·P⁻¹, where "P" is an invertible matrix whose
+ * column vectors are eigenvectors of A, and D is a diagonal matrix formed by the eigenvalues of A.
+ * <p>
+ * If A is orthogonally similar to a diagonal matrix, i.e. if P is orthogonal, then A is said to be
+ * orthogonally diagonalizable, and can be written as A=PDP^t. The spectral theorem guarantees that
+ * any real symmetric square matrix is orthogonally diagonalizable. In that case P is formed by an
+ * orthonormal basis of eigenvectors of the matrix, and the eigenvalues are real. P is therefore
+ * orthogonal, and the row vectors of P⁻¹ are the column vectors of P.
+ * <p>
+ * Let A ∈ M(n×n) over a field K be a square matrix. A is said to be diagonalizable if, and only if,
+ * A can be decomposed as:
  * 	A=P·D·P⁻¹
- * Donde:
- *	D es una matriz diagonal cuya diagonal principal está formada por los elementos de σ(A), 
- *  apareciendo cada uno tantas veces como indique su multiplicidad algebraica, siendo σ(A) 
- *  el espectro de A, es decir, el conjunto de autovalores de la matriz A:
- *  	σ(A) = {λi ∈ K | A·v = λi·v ∀ i = 1, 2,..., n} 
- *  P es la matriz cuyas columnas son los vectores que constituyen una base del subespacio 
- *  propio asociado a cada λi, siguiendo el orden establecido en D,
- *  esto es, los vectores que forman el núcleo de la matriz (A − λ i I):
- *  	P = (v1|v2|...|vn ), vj ∈ ker(A − λi·I) ∀ i, j = 1,..., n
+ * where:
+ *	D is a diagonal matrix whose main diagonal is formed by the elements of σ(A), each one
+ *  appearing as many times as its algebraic multiplicity indicates, σ(A) being the spectrum of A,
+ *  i.e. the set of eigenvalues of A:
+ *  	σ(A) = {λi ∈ K | A·v = λi·v ∀ i = 1, 2,..., n}
+ *  P is the matrix whose columns are the vectors that form a basis of the eigenspace associated
+ *  with each λi, following the order established in D, i.e. the vectors that form the kernel of
+ *  the matrix (A − λi·I):
+ *  	P = (v1|v2|...|vn), vj ∈ ker(A − λi·I) ∀ i, j = 1,..., n
  */
 package com.ipserc.arith.factorization;
 
@@ -39,8 +39,14 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.5 (2026_0807_2359)";
+	private final static String VERSION = "1.6 (2026_0811_1800)";
 	/* VERSION Release Note
+	 * 1.6 (2026_0811_1800)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
+	 * la generación de la documentación de la API. De paso, corregida una descripción incorrecta en
+	 * el Javadoc de diagonalize(): decía que D contenía los autovectores y P los autovalores, al
+	 * revés de lo que hace realmente el código (D=autovalores, P=autovectores).
+	 *
 	 * 1.5 (2026_0807_2359)
 	 * Diagfactor(MatrixComplex): mismo bug de aliasing por clone() superficial encontrado en
 	 * Schurfactor/LUfactor/QRfactor esta sesion -- "matrix.complexMatrix.clone()" comparte las
@@ -159,15 +165,15 @@ public class Diagfactor extends MatrixComplex {
 	
 	/**
 	 * Returns true if the matrix has been diagonalized successfully
-	 * @return True if the has been diagonalized successfully
+	 * @return True if it has been diagonalized successfully
 	 */
 	public boolean isSimilar() {
 		return factorized;
 	}
-	
+
 	/**
 	 * Returns true if the matrix has been diagonalized successfully
-	 * @return True if the has been diagonalized successfully
+	 * @return True if it has been diagonalized successfully
 	 */
 	public boolean isEquivalent( ) {
 		return factorized;		
@@ -180,7 +186,7 @@ public class Diagfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Indicates if the Matrix would be or not diagonalizable 
+	 * Indicates whether the matrix is diagonalizable.
 	 * If for every eigenvalue of A, the geometric multiplicity equals the algebraic multiplicity, then A is said to be diagonalizable.
 	 * @param eigenspace The Eigenspace object
 	 * @return true if the matrix is diagonalizable, otherwise false
@@ -196,7 +202,7 @@ public class Diagfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Factorizes the matrix using a diagonal matrix of eigenvectors (D) and a eigenvalue matrix (P)
+	 * Factorizes the matrix into a diagonal matrix of eigenvalues (D) and an eigenvector matrix (P).
 	 * The factorization gives A=P·D·P⁻¹
 	 */
 	public void diagonalize() {

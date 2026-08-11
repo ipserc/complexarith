@@ -14,8 +14,8 @@ import java.text.NumberFormat;
  * {@code MatrixComplex}, {@code Eigenspace}, {@code Polynom}, {@code Laplace}, {@code Fourier},
  * {@code Z}, {@code Spline} -- and ~200 test files) need zero changes.
  * <p>
- * No longer has an EXACT/APPROXIMATED mode (removed 9 agosto 2026, Vigesimosegunda sesion,
- * ver Claude/ComplexArithRev.md): {@code ZERO_THRESHOLD_EXACT} is now the sole "is this zero"
+ * No longer has an EXACT/APPROXIMATED mode (removed August 9, 2026, 22nd session,
+ * see Claude/ComplexArithRev.md): {@code ZERO_THRESHOLD_EXACT} is now the sole "is this zero"
  * threshold, used unconditionally everywhere (algorithms and display alike).
  * {@code ZERO_THRESHOLD_APPROX} survives only as an independent, fixed loose tolerance used
  * directly by a handful of convergence guards ({@code Syseqnum}, {@code sqrtTriangular()},
@@ -173,7 +173,7 @@ final class ComplexState {
 	}
 
 	/**
-	 * Stores the Precision parameters for recover them later. Reentrant: each call pushes a new
+	 * Stores the Precision parameters to recover them later. Reentrant: each call pushes a new
 	 * backup, so nested store/restore pairs on the same thread do not clobber each other.
 	 */
 	static void storePrecision() {
@@ -302,8 +302,8 @@ final class ComplexState {
 	}
 
 	/**
-	 * getFixedStatus
-	 * @return
+	 * Gets the Fixed notation status.
+	 * @return True if fixed notation is enabled.
 	 */
 	static Boolean getFixedStatus() {
 		return state().FIXED_NOTATION;
@@ -392,7 +392,7 @@ final class ComplexState {
 	}
 
 	/**
-	 * Sets the number format from the Locale("en", "UK"). Sets the number of Max an Min digits.
+	 * Configures the number format for the Locale("en", "UK") and sets the maximum and minimum number of digits.
 	 */
 	static void setDigits() {
 		Locale locale = new Locale("en", "UK");

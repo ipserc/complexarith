@@ -66,12 +66,12 @@ class MatrixComplexFormat {
 	 * The columns are separated by commas.
 	 * <p>
 	 * Every item is right-padded to the width of the single longest item's string representation
-	 * across the WHOLE matrix (not per-column) -- a peticion del usuario (8 agosto 2026), para que
-	 * la presentacion salga "cuadrada": todas las celdas del mismo ancho, columnas apiladas en la
-	 * misma posicion en cada fila, sin necesidad de que el terminal use una fuente monoespaciada
-	 * distinta por columna. Un ancho por columna habria desperdiciado menos espacio en columnas de
-	 * numeros pequenos junto a columnas de numeros grandes, pero no habria dado una cuadricula
-	 * uniforme -- ver el hilo de la conversacion para la decision explicita.
+	 * across the WHOLE matrix (not per-column) -- at the user's request (8 August 2026), so the
+	 * printout comes out "square": every cell the same width, columns stacked at the same position
+	 * on every row, without needing the terminal to use a different monospaced width per column. A
+	 * per-column width would have wasted less space in columns of small numbers sitting next to
+	 * columns of large numbers, but would not have produced a uniform grid -- see the conversation
+	 * thread for the explicit decision.
 	 * @param m The matrix.
 	 * @return The string representation of the matrix.
 	 */

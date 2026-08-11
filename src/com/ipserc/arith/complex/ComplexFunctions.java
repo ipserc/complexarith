@@ -12,7 +12,7 @@ import java.util.function.Function;
  * here keeps an exact one-line delegator on {@code Complex} with the same signature, so external
  * callers (7 library classes and ~200 test files) need zero changes.
  * <p>
- * Extracted verbatim (Sexta sesion, paso 2, Fase 2.5) from {@code Complex.java}'s "FUNCTIONS" and
+ * Extracted verbatim (6th session, step 2, phase 2.5) from {@code Complex.java}'s "FUNCTIONS" and
  * "TRIGONOMETRICS" sections. Two design notes:
  * <ul>
  * <li>{@code power(Complex)}/{@code power(double)}/{@code power(int)} were INSTANCE methods on
@@ -263,8 +263,8 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * Funtion modulus
-	 * @param z
+	 * Function modulus.
+	 * @param z the complex number
 	 * @return The modulus of the complex z
 	 */
 	static double mod(Complex z) {
@@ -272,8 +272,8 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * Function absolute value
-	 * @param z
+	 * Function absolute value (alias for {@link #mod(Complex)}).
+	 * @param z the complex number
 	 * @return The modulus of the complex z
 	 */
 	static double abs(Complex z) {
@@ -290,9 +290,9 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 *
-	 * @param d
-	 * @return
+	 * Gamma function of a real number, {@code Gamma(d)}. Convenience overload of {@link #gamma(Complex)}.
+	 * @param d the argument, as a real number
+	 * @return the gamma value
 	 */
 	static Complex gamma(double d) {
 		Complex z = new Complex(d,0);
@@ -300,9 +300,10 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 *
-	 * @param z
-	 * @return
+	 * The gamma function, {@code Gamma(z)}. Default entry point, delegates to {@link #gamma_fast(Complex)}
+	 * (Lanczos approximation).
+	 * @param z the gamma parameter as Complex
+	 * @return the gamma value
 	 */
 	static Complex gamma(Complex z) {
 		return gamma_fast(z);
@@ -341,9 +342,9 @@ final class ComplexFunctions {
 	 * Gamma function calculated by the integtral of t.power(z.minus(ONE))).times(Complex.exp(t.opposite()) dt
 	 * @param z the gamma parameter as Complex
 	 * @return the gamma value
-	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): for Re(z)<1 the integrand
+	 * @apiNote BUG FIXED (26th session, dedicated mathematical audit): for Re(z)<1 the integrand
 	 * {@code t^(z-1)*e^-t} has an integrable singularity at t=0 (already flagged as a known,
-	 * deliberately out-of-scope gap in {@code ComplexCalculus.integrate}'s own Sexta-sesion
+	 * deliberately out-of-scope gap in {@code ComplexCalculus.integrate}'s own 6th-session
 	 * apiNote), which the uniform-grid Simpson quadrature there cannot resolve -- measured error up
 	 * to 4 orders of magnitude (Re(z)=0.1 gave 32449 instead of the true value ~9.51). The one
 	 * internal caller ({@link #gamma_zones}) never reaches this domain, but this is public API
@@ -404,7 +405,7 @@ final class ComplexFunctions {
 	 * exercises {@code getMaxDecimals()} in 0..3 with these two methods (TestGamma01-04 all use 5),
 	 * so this fix does not change any existing regression output.
 	 * <p>
-	 * SCOPE DECISION (Sexta sesion, auditoria matematica): deliberately left slow, not touched
+	 * SCOPE DECISION (6th session, dedicated mathematical audit): deliberately left slow, not touched
 	 * further. This is a direct implementation of the Weierstrass canonical product for Gamma --
 	 * its O(1/k^2)-per-term convergence is the mathematical nature of that formula, not an
 	 * implementation defect (the real bug above is already fixed). No caller in this library
@@ -413,7 +414,7 @@ final class ComplexFunctions {
 	 * mean replacing the Weierstrass product with something like Lanczos, which would defeat its
 	 * purpose as a reference implementation to compare against the fast path -- so it stays as-is.
 	 * <p>
-	 * SEPARATE BUG FIXED (Vigesimosexta sesion, auditoria matematica): the slowness above was
+	 * SEPARATE BUG FIXED (26th session, dedicated mathematical audit): the slowness above was
 	 * never the problem -- the STOPPING CRITERION was. Each per-term correction is O(1/i^2) (from
 	 * expanding ln(1+z/i)-z/i), so stopping once one term's delta drops below the requested
 	 * tolerance silently ignores that the remaining tail (sum of all later O(1/k^2) terms) is
@@ -422,8 +423,8 @@ final class ComplexFunctions {
 	 * ratio itself grows with more requested decimals, since more decimals -> larger i at exit ->
 	 * a worse i-fold underestimate) -- e.g. gamma_weiertrass(5) at the default 5 decimals returned
 	 * 23.99942 instead of 24, an error 58x looser than requested. This is the exact same tail-decay
-	 * mismatch already diagnosed and fixed in {@link #zeta_re}'s Euler-Maclaurin correction (Sexta
-	 * sesion) -- never carried over to this method. Fixed by requiring the delta to be below
+	 * mismatch already diagnosed and fixed in {@link #zeta_re}'s Euler-Maclaurin correction (6th
+	 * session) -- never carried over to this method. Fixed by requiring the delta to be below
 	 * {@code convergenceThreshold/i} instead of {@code convergenceThreshold}: since delta_i =
 	 * O(C/i^2) and the true remaining tail ~ O(C/i), delta_i &lt; threshold/i implies C/i^2 &lt;
 	 * threshold/i, i.e. C/i (the tail) &lt; threshold -- self-calibrating without needing to derive
@@ -481,7 +482,7 @@ final class ComplexFunctions {
 	 * requested precision, and the dead pre-switch line divided by zero for
 	 * {@code getMaxDecimals()==0}. Same fix applied here.
 	 * <p>
-	 * SCOPE DECISION (Sexta sesion, auditoria matematica): deliberately left slow, not touched
+	 * SCOPE DECISION (6th session, dedicated mathematical audit): deliberately left slow, not touched
 	 * further -- see the identical rationale on {@link #gamma_weiertrass} just above. This is a
 	 * direct implementation of Euler's limit definition of Gamma; its O(1/k^2)-per-term
 	 * convergence is that formula's mathematical nature, not a defect. No caller in this library
@@ -489,7 +490,7 @@ final class ComplexFunctions {
 	 * {@link #gamma_zones}, only exercised by {@code TestGamma01}/{@code TestGamma02}): production
 	 * code calls {@code gamma()}, which always uses {@link #gamma_fast} (Lanczos).
 	 * <p>
-	 * SEPARATE BUG FIXED (Vigesimosexta sesion, auditoria matematica): identical stopping-criterion
+	 * SEPARATE BUG FIXED (26th session, dedicated mathematical audit): identical stopping-criterion
 	 * defect as {@link #gamma_weiertrass}'s (see its apiNote for the full derivation) -- same fix
 	 * applied here ({@code convergenceThreshold/n} instead of {@code convergenceThreshold}).
 	 */
@@ -533,10 +534,11 @@ final class ComplexFunctions {
 	}
 
 	/**
+	 * Gamma function via the Nemes approximation. See:
 	 * https://math.stackexchange.com/questions/19236/algorithm-to-compute-gamma-function
 	 * http://www.rskey.org/CMS/index.php/the-library/11
-	 * @param z
-	 * @return
+	 * @param z the gamma parameter as Complex
+	 * @return the gamma value
 	 */
 	static Complex gamma_nemes(Complex z) {
 		// gammaVal/Val are private accumulators (fresh objects, not shared constants), so each
@@ -551,9 +553,10 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * https://es.wikipedia.org/wiki/Aproximaci%C3%B3n_de_Lanczos
-	 * @param z
-	 * @return
+	 * Gamma function via the Lanczos approximation. See:
+	 * https://en.wikipedia.org/wiki/Lanczos_approximation
+	 * @param z the gamma parameter as Complex
+	 * @return the gamma value
 	 */
 	static Complex gamma_fast(Complex z) {
 		Complex result;
@@ -579,9 +582,9 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * The factorial for integers
-	 * @param n
-	 * @return
+	 * The factorial for integers.
+	 * @param n the non-negative integer
+	 * @return n! as a double
 	 */
 	static double factorial(int n) {
 		double fact = 1.0;
@@ -592,11 +595,11 @@ final class ComplexFunctions {
 
 	/**
 	 * The complex factorial via the Gamma function: n! = Gamma(n+1).
-	 * @param n
-	 * @return
-	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): was {@code gamma(n)}, which
+	 * @param n the argument
+	 * @return n! as a Complex
+	 * @apiNote BUG FIXED (26th session, dedicated mathematical audit): was {@code gamma(n)}, which
 	 * computes {@code Gamma(n) = (n-1)!}, not {@code n!} -- off by the same one-factorial shift
-	 * already found and fixed in {@link #binomialCoef(Complex, Complex)} (Sexta sesion), but left
+	 * already found and fixed in {@link #binomialCoef(Complex, Complex)} (6th session), but left
 	 * unfixed here. Verified: {@code factorial(5+0i)} returned {@code 24} (=Gamma(5)=4!) instead of
 	 * {@code 120} (=5!=Gamma(6)). Zero callers anywhere in this codebase (production or tests), so
 	 * this was a real but entirely latent bug, never exercised.
@@ -849,9 +852,11 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * Solo vale para s.rep() > 1 - Only for Re(s) > 1
-	 * @param s
-	 * @return
+	 * The Riemann zeta function via the Euler product over primes, {@code zeta(s) = Prod_p 1/(1-p^-s)},
+	 * reading the prime list from {@code ./data/primes_n.txt}. Only valid for Re(s) &gt; 1; delegates to
+	 * {@link #zeta(Complex)} otherwise.
+	 * @param s the s parameter of the zeta function
+	 * @return the Riemann zeta function value
 	 */
 	static Complex zeta_primes(Complex s) {
 		long prime;
@@ -895,10 +900,10 @@ final class ComplexFunctions {
 	/**
 	 * The Riemann's zeta function, via {@code eta(s)/(1-2^(1-s))} (Sondow/Weisstein, "Riemann Zeta
 	 * Function", https://mathworld.wolfram.com/RiemannZetaFunction.html).
-	 * @param s
-	 * @return
-	 * @apiNote The series itself now lives in {@link #eta(Complex)} (Bloque C, "nuevos
-	 * instrumentos matematicos", see {@code Claude/ComplexArithRev.md}) -- see that method's
+	 * @param s the s parameter of the zeta function
+	 * @return the Riemann's zeta function value
+	 * @apiNote The series itself now lives in {@link #eta(Complex)} (new math instruments roadmap,
+	 * block C, see {@code Claude/ComplexArithRev.md}) -- see that method's
 	 * @apiNote for the convergence/stopping-criterion history (previously documented here, before
 	 * the extraction).
 	 */
@@ -915,7 +920,7 @@ final class ComplexFunctions {
 	 * @apiNote Sondow/Weisstein's globally convergent series for eta (an Euler transform of the
 	 * alternating zeta series, see https://mathworld.wolfram.com/DirichletEtaFunction.html) is the
 	 * SAME sum {@link #zeta_havil(Complex)} used to compute internally, before dividing by
-	 * (1-2^(1-s)) -- extracted here (Bloque C, "nuevos instrumentos matematicos") instead of
+	 * (1-2^(1-s)) -- extracted here (new math instruments roadmap, block C) instead of
 	 * duplicating the loop; zeta_havil now delegates to this and just adds that division.
 	 * <p>
 	 * The outer sum's n-th term carries a 1/2^(n+1) prefactor (geometric decay), so its
@@ -1009,10 +1014,10 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * The complex binomial coefficient with integer arguments
-	 * @param n
-	 * @param k
-	 * @return
+	 * The complex binomial coefficient with integer arguments.
+	 * @param n the upper index
+	 * @param k the lower index
+	 * @return C(n,k) as a Complex
 	 * @apiNote Computed via the standard incremental-ratio product C(n,k)=Prod_{i=1}^{k}(n-k+i)/i
 	 * instead of the previous factorial(n)/factorial(k)/factorial(n-k). The factorial approach
 	 * forms three independent huge numbers (up to 169!~=4.27e304, near double's overflow ceiling,
@@ -1037,10 +1042,10 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * The complex binomial coefficient with integer arguments
-	 * @param n
-	 * @param k
-	 * @return
+	 * The complex binomial coefficient with Complex arguments.
+	 * @param n the upper index
+	 * @param k the lower index
+	 * @return C(n,k) as a Complex
 	 */
 	static Complex binomialCoef(Complex n, Complex k) {
 		// C(n,k) = n!/(k!(n-k)!) = gamma(n+1)/(gamma(k+1)*gamma(n-k+1)); gamma(m) = (m-1)!, so the
@@ -1091,9 +1096,9 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * TODO
-	 * @param zd
-	 * @return
+	 * Convenience overload of {@link #sin(Complex)} for a real (double) argument.
+	 * @param zd the argument, as a real number
+	 * @return the sine of zd
 	 */
 	static Complex sin(double zd) {
 		Complex z = new Complex(); z.setComplexRec(zd, 0);
@@ -1367,7 +1372,7 @@ final class ComplexFunctions {
 	 * Returns a new Complex Object which value is the arccosine of 'z'.
 	 * @param z The complex number
 	 * @return The new Complex Object arccosine of 'z'.
-	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): the previous body computed
+	 * @apiNote BUG FIXED (26th session, dedicated mathematical audit): the previous body computed
 	 * arccos independently via {@code log(z+sqrt(z^2-1))/(-i)}, a separate closed form from
 	 * {@link #arcsin(Complex)}'s {@code log(iz+sqrt(1-z^2))/i}. Verified {@code sqrt(z^2-1) ==
 	 * i*sqrt(1-z^2)} numerically (the two square roots ARE branch-consistent), yet the fundamental
@@ -1533,7 +1538,7 @@ final class ComplexFunctions {
 	}
 
 	/**
-	 * Returns the value of the Chebyshev polynomial of degree at a poinnt
+	 * Returns the value of the Chebyshev polynomial of degree at a point
 	 * @param degree The degree of the polynomial
 	 * @param cx The point
 	 * @return The value of the Chebyshev polynomial
@@ -1629,7 +1634,7 @@ final class ComplexFunctions {
 	 * {@code new Complex(0,0).isPureReal()==false}. This is a real, preexisting quirk in
 	 * {@code Complex} itself (affects every caller of {@code isInteger}/{@code isPureReal} at
 	 * exactly zero, well beyond this block), reported to the user rather than fixed here -- out of
-	 * scope for "nuevos instrumentos matematicos" and too wide a blast radius to fix inline. This
+	 * scope for the "new math instruments" roadmap and too wide a blast radius to fix inline. This
 	 * local check is safe because nu here is always a directly-constructed value (e.g.
 	 * {@code new Complex(n, 0)}), never a computed/noisy one, so exact equality is fine.
 	 */

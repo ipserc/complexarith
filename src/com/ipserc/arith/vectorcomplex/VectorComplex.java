@@ -8,8 +8,14 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.12 (2026_0809_0938)";
+	private final static String VERSION = "1.13 (2026_0811_2015)";
 	/* VERSION Release Note
+	 * 1.13 (2026_0811_2015)
+	 * Comentarios Javadoc revisados como parte de la generación de la documentación de la API: ya
+	 * estaban en inglés casi en su totalidad, solo se han corregido algunas erratas menores
+	 * ("tha is"->"that is", "orhogonal"->"orthogonal", "other wise"->"otherwise"). Sin cambios
+	 * funcionales.
+	 *
 	 * 1.12 (2026_0809_0938)
 	 * isNormal(MatrixComplex,int)/isNormal(): el umbral Complex.zero_treshold() (dependiente del
 	 * modo EXACT/APPROXIMATED global) sustituido por Complex.zero_treshold_exact() (fijo). Parte
@@ -254,7 +260,7 @@ public class VectorComplex extends MatrixComplex {
 	}
 	
 	/**
-	 * Checks whether A VECTOR OF A BASE is normal, tha is, its norm is equals 1
+	 * Checks whether a vector of a base is normal, that is, its norm equals 1.
 	 * @param row The row of the vector in the base
 	 * @return True if is normal, false otherwise
 	 */
@@ -264,7 +270,7 @@ public class VectorComplex extends MatrixComplex {
 	}
 
 	/**
-	 * Checks whether a vector is normal, tha is, its norm is equals 1
+	 * Checks whether a vector is normal, that is, its norm equals 1.
 	 * @param row The row of the vector in the base
 	 * @return True if is normal, false otherwise
 	 */
@@ -275,7 +281,7 @@ public class VectorComplex extends MatrixComplex {
 
 	/**
 	 * Using the Gram-Schmidt method, a new orthogonal basis is calculated from a vector space basis.  
-	 * @return The orhogonal basis
+	 * @return The orthogonal basis
 	 */
 	public MatrixComplex orthogonal() {
 		return this.base().gramSchmidt();
@@ -375,7 +381,7 @@ public class VectorComplex extends MatrixComplex {
 	/**
 	 * Checks whether base is a basis of the vectorial space or not.
 	 * @param base the basis to checked.
-	 * @return true if is a basis, false other wise.
+	 * @return true if it is a basis, false otherwise.
 	 */
 	public static boolean isBase(MatrixComplex base) {
 		if (!base.isSquare()) return false;

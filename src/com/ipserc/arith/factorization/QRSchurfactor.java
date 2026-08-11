@@ -1,36 +1,35 @@
 /*
- * Factorizacion de Schur via iteracion QR con desplazamiento de Wilkinson, con deflacion.
+ * Schur factorization via QR iteration with Wilkinson shift and deflation.
 
-    Aplicable a: una matriz compleja A cuadrada n por n.
+    Applicable to: an n-by-n complex square matrix A.
 
-    Factorizacion: A = Q*T*Q^H donde Q es unitaria n por n y T es triangular superior (forma de
-    Schur), con los autovalores de A en la diagonal de T.
+    Factorization: A = Q*T*Q^H, where Q is n-by-n unitary and T is upper triangular (Schur form),
+    with the eigenvalues of A on the diagonal of T.
 
-    Metodo de calculo (Etapas 1-3 de la hoja de ruta QR-con-desplazamientos, ver
-    Claude/ComplexArithRev.md y el plan mutable-rolling-stardust.md):
-    1. Reduccion previa a forma de Hessenberg (Hessenbergfactor, Etapa 1).
-    2. Iteracion QR SIN desplazamiento sobre la ventana activa [0..hi] (Etapa 2): H_(k+1)=Qk^H*H_k*Qk.
-    3. Desplazamiento de Wilkinson (Etapa 3, esta version): en vez de factorizar H directamente, se
-       factoriza (H-mu*I) donde mu es el autovalor del bloque 2x2 final de la ventana activa mas
-       cercano a la esquina inferior derecha -- acelera la convergencia de lineal a (generalmente)
-       cubica, y resuelve el caso de autovalores de modulo igual que la Etapa 2 dejaba sin converger
-       (el desplazamiento se calcula localmente del bloque 2x2, no depende de la separacion GLOBAL
-       de modulos del espectro).
-    4. Deflacion: cuando la subdiagonal en (hi,hi-1) se anula (dentro de tolerancia), ese autovalor
-       ya esta aislado en H[hi][hi] y la ventana activa se reduce en uno.
+    Computation method (Stages 1-3 of the QR-with-shifts roadmap, see
+    Claude/ComplexArithRev.md and the mutable-rolling-stardust.md plan):
+    1. Preliminary reduction to Hessenberg form (Hessenbergfactor, Stage 1).
+    2. QR iteration WITHOUT shift over the active window [0..hi] (Stage 2): H_(k+1)=Qk^H*H_k*Qk.
+    3. Wilkinson shift (Stage 3, this version): instead of factorizing H directly, (H-mu*I) is
+       factorized, where mu is the eigenvalue of the active window's trailing 2x2 block closest to
+       its bottom-right corner -- this accelerates convergence from linear to (generally) cubic,
+       and resolves the equal-modulus eigenvalue case that Stage 2 left non-convergent (the shift
+       is computed LOCALLY from the 2x2 block, independent of the GLOBAL modulus separation of the
+       spectrum).
+    4. Deflation: once the subdiagonal at (hi,hi-1) vanishes (within tolerance), that eigenvalue is
+       already isolated in H[hi][hi] and the active window shrinks by one.
 
-    Trabaja siempre en aritmetica compleja pura: cada autovalor complejo se deflaciona de uno en
-    uno, sin el tratamiento especial de bloques 2x2 que necesitaria una forma de Schur real -- lo
-    cual, de paso, simplifica tambien el propio calculo del desplazamiento (raiz cuadrada compleja
-    directa via Complex.sqrt(), sin distinguir casos real/complejo).
+    Always works in pure complex arithmetic: each complex eigenvalue is deflated one at a time,
+    with no need for the special 2x2-block handling a real Schur form would require -- which, as a
+    side effect, also simplifies the shift computation itself (a direct complex square root via
+    Complex.sqrt(), with no separate real/complex case).
 
-    KNOWN LIMITATION heredada de cualquier variante de "desplazamiento simple" (single-shift) de la
-    iteracion QR, RESUELTA: cada EXCEPTIONAL_SHIFT_INTERVAL (10) iteraciones consecutivas sin
-    deflacionar, un desplazamiento EXCEPCIONAL ad-hoc (formula estandar de LAPACK, ver
-    exceptionalShift()) sustituye al de Wilkinson -- rompe el raro ciclo sin depender de resolver
-    el bloque 2x2 que puede estar atrapado en el. MAX_ITERS_PER_EIGENVALUE se conserva como red de
-    seguridad final para el caso, aun mas raro, de que ni siquiera el desplazamiento excepcional
-    progrese.
+    KNOWN LIMITATION inherited from any "single-shift" variant of the QR iteration, RESOLVED: every
+    EXCEPTIONAL_SHIFT_INTERVAL (10) consecutive iterations without deflating, an ad-hoc EXCEPTIONAL
+    shift (standard LAPACK formula, see exceptionalShift()) replaces the Wilkinson shift -- breaking
+    the rare cycle without depending on resolving the 2x2 block that may be stuck in it.
+    MAX_ITERS_PER_EIGENVALUE is kept as a final safety net for the even rarer case where not even
+    the exceptional shift makes progress.
  */
 
 package com.ipserc.arith.factorization;
@@ -39,29 +38,29 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
 /**
- *
+ * Schur factorization of a complex square matrix via QR iteration on its Hessenberg form, using a
+ * Wilkinson shift with an exceptional-shift fallback and deflation.
  * @author ipserc
  *
  */
 public class QRSchurfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "QRSchurfactor --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0809_1018)";
+	private final static String VERSION = "1.5 (2026_0811_2020)";
 
 	/**
-	 * Cota de iteraciones QR admitidas para deflacionar UN autovalor antes de declarar que la
-	 * iteracion no converge. Con el desplazamiento de Wilkinson (Etapa 3) la convergencia suele
-	 * ser cubica -- unas pocas iteraciones por autovalor, incluso para casos adversarios (modulo
-	 * igual, autovalores repetidos) -- asi que esta cota es una red de seguridad generosa, no el
-	 * caso esperado.
+	 * Bound on the number of QR iterations allowed to deflate ONE eigenvalue before the iteration
+	 * is declared non-convergent. With the Wilkinson shift (Stage 3), convergence is usually cubic
+	 * -- a handful of iterations per eigenvalue, even for adversarial cases (equal modulus, repeated
+	 * eigenvalues) -- so this bound is a generous safety net, not the expected case.
 	 */
 	private final static int MAX_ITERS_PER_EIGENVALUE = 300;
 
 	/**
-	 * Cada este numero de iteraciones QR consecutivas sin deflacionar, se usa un desplazamiento
-	 * EXCEPCIONAL (ver {@link #factorize()}) en vez del de Wilkinson, para escapar de los raros
-	 * casos en que el propio desplazamiento de Wilkinson entra en un ciclo sin progreso. Mismo
-	 * umbral clasico usado por LAPACK ({@code dlahqr}/{@code zlahqr}).
+	 * Every this many consecutive QR iterations without deflating, an EXCEPTIONAL shift (see
+	 * {@link #factorize()}) is used instead of the Wilkinson shift, to escape the rare cases where
+	 * the Wilkinson shift itself enters a non-progressing cycle. Same classic threshold used by
+	 * LAPACK ({@code dlahqr}/{@code zlahqr}).
 	 */
 	private final static int EXCEPTIONAL_SHIFT_INTERVAL = 10;
 
@@ -71,6 +70,11 @@ public class QRSchurfactor extends MatrixComplex {
 	private MatrixComplex cSchur;
 
 	/* VERSION Release Note
+	 *
+	 * 1.5 (2026_0811_2020)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
+	 * la generación de la documentación de la API. También traducido a inglés el comentario de
+	 * cabecera del fichero.
 	 *
 	 * 1.4 (2026_0809_1018)
 	 * El chequeo de vector despreciable en la iteracion QR (stableHouseholderQ) usaba Complex.zero(),
@@ -133,8 +137,8 @@ public class QRSchurfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Instancia y factoriza una matriz compleja cuadrada expresada como String.
-	 * @param strMatrix La matriz en formato String (filas separadas por ";", columnas por ",").
+	 * Instantiates and factorizes a complex square matrix expressed as a String.
+	 * @param strMatrix The matrix in String format (rows separated by ";", columns by ",").
 	 */
 	public QRSchurfactor(String strMatrix) {
 		super(strMatrix);
@@ -142,8 +146,8 @@ public class QRSchurfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Instancia y factoriza una matriz compleja cuadrada ya construida como MatrixComplex.
-	 * @param matrix La matriz a factorizar.
+	 * Instantiates and factorizes a complex square matrix already built as a MatrixComplex.
+	 * @param matrix The matrix to factorize.
 	 */
 	public QRSchurfactor(MatrixComplex matrix) {
 		super();
@@ -158,24 +162,23 @@ public class QRSchurfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Calcula la factorizacion de Schur A = Q*T*Q^H via reduccion a Hessenberg (Hessenbergfactor)
-	 * seguida de iteracion QR con desplazamiento de Wilkinson y deflacion.
+	 * Computes the Schur factorization A = Q*T*Q^H via reduction to Hessenberg form
+	 * (Hessenbergfactor) followed by QR iteration with Wilkinson shift and deflation.
 	 * <p>
-	 * En cada paso, en vez de factorizar la ventana activa H directamente (Etapa 2), se factoriza
-	 * {@code H-mu*I} (mu = {@link #wilkinsonShift(MatrixComplex, int)}) y se aplica la MISMA
-	 * actualizacion por semejanza {@code H := Qk^H*H*Qk} sobre la {@code H} SIN desplazar -- el
-	 * desplazamiento cancela algebraicamente ({@code Qk} viene de {@code H-mu*I=Qk*Rk}, luego
-	 * {@code Rk*Qk+mu*I = Qk^H*(H-mu*I)*Qk+mu*I = Qk^H*H*Qk}), asi que solo hace falta un termino
-	 * {@code Qk^H*H*Qk} en el codigo, igual que en la Etapa 2.
+	 * At each step, instead of factorizing the active window H directly (Stage 2), {@code H-mu*I}
+	 * is factorized (mu = {@link #wilkinsonShift(MatrixComplex, int)}), and the SAME similarity
+	 * update {@code H := Qk^H*H*Qk} is applied to the UNshifted {@code H} -- the shift cancels
+	 * algebraically ({@code Qk} comes from {@code H-mu*I=Qk*Rk}, so
+	 * {@code Rk*Qk+mu*I = Qk^H*(H-mu*I)*Qk+mu*I = Qk^H*H*Qk}), so only one {@code Qk^H*H*Qk} term
+	 * is needed in the code, same as in Stage 2.
 	 * <p>
-	 * <b>KNOWN LIMITATION heredada de cualquier variante de desplazamiento simple (single-shift),
-	 * resuelta:</b> cada {@link #EXCEPTIONAL_SHIFT_INTERVAL} iteraciones consecutivas sin
-	 * deflacionar, {@link #exceptionalShift(MatrixComplex, int)} (formula ad-hoc estandar de
-	 * LAPACK) sustituye al desplazamiento de Wilkinson para el caso raro en que este ultimo entra
-	 * en un ciclo sin progreso -- {@code MAX_ITERS_PER_EIGENVALUE} se conserva como red de
-	 * seguridad final.
-	 * @throws IllegalArgumentException si la matriz no es cuadrada, o si la iteracion no converge
-	 * dentro de la cota de iteraciones (ver arriba).
+	 * <b>KNOWN LIMITATION inherited from any single-shift variant, resolved:</b> every
+	 * {@link #EXCEPTIONAL_SHIFT_INTERVAL} consecutive iterations without deflating,
+	 * {@link #exceptionalShift(MatrixComplex, int)} (standard ad-hoc LAPACK formula) replaces the
+	 * Wilkinson shift for the rare case where the latter enters a non-progressing cycle --
+	 * {@code MAX_ITERS_PER_EIGENVALUE} is kept as a final safety net.
+	 * @throws IllegalArgumentException if the matrix is not square, or if the iteration does not
+	 * converge within the iteration bound (see above).
 	 */
 	public void factorize() {
 		factorized = false;
@@ -234,18 +237,18 @@ public class QRSchurfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Desplazamiento de Wilkinson: el autovalor del bloque 2x2 final de la ventana activa
-	 * ({@code H[hi-1][hi-1..hi], H[hi][hi-1..hi]}) mas cercano a la esquina inferior derecha
-	 * {@code H[hi][hi]} -- eleccion estandar (Golub &amp; Van Loan) que acelera la convergencia y,
-	 * al ser puramente LOCAL (no depende de la separacion de modulos del espectro completo, a
-	 * diferencia de la iteracion sin desplazar de la Etapa 2), tambien resuelve el caso de
-	 * autovalores de modulo igual. Generalizado a complejos de forma directa: las dos raices del
-	 * bloque 2x2 se obtienen con la formula cuadratica de siempre, usando {@code Complex.sqrt()}
-	 * (que ya respeta el corte de rama principal de este proyecto) en vez de necesitar un caso
-	 * aparte para discriminante negativo como haria falta en aritmetica real.
-	 * @param h La matriz completa (solo se leen las 4 entradas del bloque 2x2 final de la ventana activa).
-	 * @param hi El indice superior de la ventana activa (el bloque 2x2 usa las filas/columnas hi-1,hi).
-	 * @return El desplazamiento mu.
+	 * Wilkinson shift: the eigenvalue of the active window's trailing 2x2 block
+	 * ({@code H[hi-1][hi-1..hi], H[hi][hi-1..hi]}) closest to the bottom-right corner
+	 * {@code H[hi][hi]} -- the standard choice (Golub &amp; Van Loan) that accelerates convergence
+	 * and, being purely LOCAL (independent of the modulus separation of the full spectrum, unlike
+	 * the unshifted iteration of Stage 2), also resolves the equal-modulus eigenvalue case.
+	 * Generalized to complex numbers directly: the two roots of the 2x2 block are obtained with the
+	 * usual quadratic formula, using {@code Complex.sqrt()} (which already respects this project's
+	 * principal branch cut) instead of needing a separate case for a negative discriminant as real
+	 * arithmetic would require.
+	 * @param h The full matrix (only the 4 entries of the active window's trailing 2x2 block are read).
+	 * @param hi The upper index of the active window (the 2x2 block uses rows/columns hi-1,hi).
+	 * @return The shift mu.
 	 */
 	private static Complex wilkinsonShift(MatrixComplex h, int hi) {
 		Complex a = h.getItem(hi - 1, hi - 1);
@@ -264,15 +267,15 @@ public class QRSchurfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Desplazamiento EXCEPCIONAL: formula ad-hoc estandar (Francis/Wilkinson, la misma que usan
-	 * las implementaciones de referencia {@code dlahqr}/{@code zlahqr} de LAPACK) para escapar de
-	 * un raro estancamiento del desplazamiento de Wilkinson -- perturba el ultimo elemento
-	 * diagonal con la suma de las dos magnitudes subdiagonales mas recientes, en vez de resolver
-	 * el bloque 2x2 final (que es precisamente lo que puede estar atrapado en un ciclo). Al no
-	 * depender de esa resolucion, no puede heredar el mismo ciclo que causo el estancamiento.
-	 * @param h La matriz completa (solo se leen 2-3 entradas cerca de la esquina de la ventana activa).
-	 * @param hi El indice superior de la ventana activa.
-	 * @return El desplazamiento mu.
+	 * EXCEPTIONAL shift: standard ad-hoc formula (Francis/Wilkinson, the same one used by the
+	 * reference LAPACK implementations {@code dlahqr}/{@code zlahqr}) to escape a rare stall of the
+	 * Wilkinson shift -- perturbs the last diagonal element with the sum of the two most recent
+	 * subdiagonal magnitudes, instead of resolving the trailing 2x2 block (which is precisely what
+	 * may be stuck in a cycle). Since it does not depend on that resolution, it cannot inherit the
+	 * same cycle that caused the stall.
+	 * @param h The full matrix (only 2-3 entries near the active window's corner are read).
+	 * @param hi The upper index of the active window.
+	 * @return The shift mu.
 	 */
 	private static Complex exceptionalShift(MatrixComplex h, int hi) {
 		double s = h.getItem(hi, hi - 1).mod();
@@ -281,22 +284,22 @@ public class QRSchurfactor extends MatrixComplex {
 	}
 
 	/**
-	 * QR de Householder con la convencion de signo NUMERICAMENTE ESTABLE
-	 * (alpha = -sign(x0)*||x||, en vez de +sign(x0)*||x|| como {@code QRfactor.qrHouseholder()}).
+	 * Householder QR with the NUMERICALLY STABLE sign convention
+	 * (alpha = -sign(x0)*||x||, instead of +sign(x0)*||x|| as in {@code QRfactor.qrHouseholder()}).
 	 * <p>
-	 * No se reutiliza {@code QRfactor.qrHouseholder()} aqui a proposito: su convencion de signo
-	 * (heredada tambien por {@code Hessenbergfactor} hasta que este mismo hallazgo se corrigio ahi)
-	 * sufre cancelacion catastrofica en {@code v[0]} cuando la columna a reflejar ya esta casi
-	 * alineada con {@code e1} (x[0]~=||x||) -- justo lo que ocurre en TODOS los pasos de esta
-	 * iteracion salvo el primero, a medida que la ventana activa converge. Confirmado
-	 * empiricamente: con la convencion de {@code QRfactor}, la subdiagonal se estanca en un
-	 * residuo de {@code ~1e-8} en vez de seguir bajando hacia la precision de maquina. Con
-	 * {@code alpha} de signo opuesto, {@code v[0] = -(sign(x0)*||x||+x0)} suma magnitudes del
-	 * mismo signo en vez de restar dos cantidades casi iguales, y la convergencia llega a
-	 * {@code ~1e-15}. Devuelve solo {@code Q} (unitaria); {@code R} no hace falta aqui, se
-	 * recupera implicitamente via la transformacion por semejanza en {@code factorize()}.
-	 * @param active La ventana activa (matriz cuadrada) a factorizar.
-	 * @return La matriz Q, unitaria, tal que {@code Q^H*active} es triangular superior.
+	 * {@code QRfactor.qrHouseholder()} is deliberately NOT reused here: its sign convention (also
+	 * inherited by {@code Hessenbergfactor} until this same finding was fixed there) suffers
+	 * catastrophic cancellation in {@code v[0]} when the column to reflect is already nearly
+	 * aligned with {@code e1} (x[0]~=||x||) -- exactly what happens at EVERY step of this iteration
+	 * except the first, as the active window converges. Confirmed empirically: with
+	 * {@code QRfactor}'s convention, the subdiagonal stalls at a residual of {@code ~1e-8} instead
+	 * of continuing to drop toward machine precision. With the opposite-sign {@code alpha},
+	 * {@code v[0] = -(sign(x0)*||x||+x0)} adds magnitudes of the same sign instead of subtracting
+	 * two nearly-equal quantities, and convergence reaches {@code ~1e-15}. Returns only {@code Q}
+	 * (unitary); {@code R} is not needed here, it is recovered implicitly via the similarity
+	 * transformation in {@code factorize()}.
+	 * @param active The active window (square matrix) to factorize.
+	 * @return The unitary matrix Q such that {@code Q^H*active} is upper triangular.
 	 */
 	private static MatrixComplex stableHouseholderQ(MatrixComplex active) {
 		int m = active.rows();
@@ -337,8 +340,8 @@ public class QRSchurfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Devuelve la matriz unitaria Q tal que A = Q*T*Q^H.
-	 * @return La matriz Q de la factorizacion.
+	 * Returns the unitary matrix Q such that A = Q*T*Q^H.
+	 * @return The Q matrix of the factorization.
 	 */
 	public MatrixComplex getQ() {
 		if (!factorized) System.out.println(HEADINFO + "the matrix hasn't been factorized.");
@@ -346,8 +349,8 @@ public class QRSchurfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Devuelve la matriz T (forma de Schur, triangular superior) tal que A = Q*T*Q^H.
-	 * @return La matriz de Schur de la factorizacion.
+	 * Returns the matrix T (Schur form, upper triangular) such that A = Q*T*Q^H.
+	 * @return The Schur matrix of the factorization.
 	 */
 	public MatrixComplex getSchur() {
 		if (!factorized) System.out.println(HEADINFO + "the matrix hasn't been factorized.");
@@ -355,8 +358,8 @@ public class QRSchurfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Devuelve los autovalores de la matriz original, tomados de la diagonal de la forma de Schur.
-	 * @return Vector columna (n x 1) con los autovalores.
+	 * Returns the eigenvalues of the original matrix, taken from the diagonal of the Schur form.
+	 * @return A column vector (n x 1) with the eigenvalues.
 	 */
 	public MatrixComplex getEigenvalues() {
 		if (!factorized) System.out.println(HEADINFO + "the matrix hasn't been factorized.");
@@ -367,8 +370,8 @@ public class QRSchurfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Devuelve el estado de la factorizacion.
-	 * @return true si la factorizacion se completo sin excepcion.
+	 * Returns the factorization status.
+	 * @return true if the factorization completed without an exception.
 	 */
 	public boolean factorized() {
 		return factorized;

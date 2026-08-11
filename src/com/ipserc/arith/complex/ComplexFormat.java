@@ -171,8 +171,8 @@ final class ComplexFormat {
 	}
 
 	/**
-	 * Formats the number according with a ZERO_THRESHOLD and SIGNIFICATIVE decimals.
-	 * Tries to return pretty integers keeping the maximum of decimals for reals.
+	 * Formats the number according to a ZERO_THRESHOLD and a number of significant decimals.
+	 * Tries to return clean-looking integers while keeping the maximum number of decimals for real values.
 	 * @param number The number to be formatted.
 	 * @return The formatted number.
 	 */

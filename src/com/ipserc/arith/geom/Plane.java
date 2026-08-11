@@ -16,8 +16,12 @@ public class Plane {
 	private Point point;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0810_2340)";
+	private final static String VERSION = "1.5 (2026_0811_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.5 (2026_0811_1200)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte
+	 * de la generación de la documentación de la API.
 	 *
 	 * 1.4 (2026_0810_2340)
 	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 6 de la hoja de ruta
@@ -89,7 +93,7 @@ public class Plane {
 	 */
 	
 	/**
-	 * Prints Class Version
+	 * Prints the class version.
 	 */
 	public static void version() {
 		System.out.println(HEADINFO + "VERSION:" + VERSION); 
@@ -189,7 +193,7 @@ public class Plane {
 	 * ***********************************************
 	 */
 	/**
-	 * returns the normal vector of the plane
+	 * Returns the normal vector of the plane
 	 * @return The normal vector as Vector
 	 */
 	public VectorComplex normal() {
@@ -197,7 +201,7 @@ public class Plane {
 	}
 
 	/**
-	 * returns the point of the plane given in its definition
+	 * Returns the point of the plane given in its definition
 	 * @return The given point as Point
 	 */
 	public Point point() {
@@ -279,7 +283,7 @@ public class Plane {
 	}
 
 	/**
-	 * Given a point it calculates the projection of the point as the intersection point of the line which passes by the point and has the normal vector of the plane as director vector. 
+	 * Given a point, calculates its projection as the intersection point of the line that passes through the point and has the normal vector of the plane as its director vector.
 	 * @param point The given point as Point
 	 * @return the projection point
 	 */
@@ -291,7 +295,7 @@ public class Plane {
 	}
 	
 	/**
-	 * Given a point it calculates the projection of the point as the intersection point of the line which passes by the point and has the normal vector of the plane as director vector. 
+	 * Given a point, calculates its projection as the intersection point of the line that passes through the point and has the normal vector of the plane as its director vector.
 	 * @param sPoint The given point as String
 	 * @return the projection point
 	 */
@@ -367,7 +371,7 @@ public class Plane {
 	 * Returns the distance between the plane and a line given as direction vector and a point
 	 * @param sDirection The direction vector of the line as String
 	 * @param sPoint A point of the line as String
-	 * @return
+	 * @return The distance
 	 */
 	public double distanceLine(String sDirection, String sPoint) {
 		Line line = new Line(sDirection, sPoint);
@@ -376,7 +380,7 @@ public class Plane {
 
 	/**
 	 * Returns the distance between the plane and another plane
-	 * @param plane The other plines as Plane
+	 * @param plane The other plane as Plane
 	 * @return The distance
 	 */
 	public double distance(Plane plane) {
@@ -399,7 +403,7 @@ public class Plane {
 	}
 
 	/**
-	 * Private Method. Returns the vector pointed from the origin to the point
+	 * Private method. Returns the vector pointed from the origin to the point
 	 * @param point The point as Point
 	 * @return The vector
 	 */

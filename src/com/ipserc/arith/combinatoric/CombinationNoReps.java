@@ -5,8 +5,12 @@ import java.util.*;
 
 public class CombinationNoReps {
 	private final static String HEADINFO = "Combinatoric --- INFO: ";
-	private final static String VERSION = "1.1 (2026_0807_1300)";
+	private final static String VERSION = "1.2 (2026_0811_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0811_1200)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte
+	 * de la generación de la documentación de la API.
 	 *
 	 * 1.1 (2026_0807_1300)
 	 * - factorial(int): guarda num<0 -- antes recursaba infinitamente hasta StackOverflowError

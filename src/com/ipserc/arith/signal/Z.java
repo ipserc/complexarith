@@ -100,7 +100,7 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Creates an instance of the Z object, using the sampled values ​​of the function.
+	 * Creates an instance of the Z object, using the sampled values of the function.
 	 * It requires the following information before to start with the values sampled:
 	 * 	loLimit: The lower limit of the points to use with the function.
 	 * 	upLimit: The upper limit of the points to use with the function.
@@ -116,7 +116,7 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Creates an instance of the Z object, using the sampled values ​​of the function.
+	 * Creates an instance of the Z object, using the sampled values of the function.
 	 * It requires the following information before to start with the values sampled:
 	 * 	loLimit: The lower limit of the points to use with the function.
 	 * 	upLimit: The upper limit of the points to use with the function.
@@ -485,7 +485,7 @@ public class Z extends MatrixComplex {
 	/**
 	 * Calculates the DZT (Discrete Z Transform) at N points z_k = radius*e^(j*2*pi*k/N),
 	 * equivalent to evaluating X(z_k) = SUM_n x[n]*z_k^(-n). radius=1 samples exactly on the unit
-	 * circle, reducing exactly to the DFT of the samples (caso de referencia verificable contra
+	 * circle, reducing exactly to the DFT of the samples (a verifiable reference case against
 	 * Fourier.DFT()).
 	 * @param sampleFreq The frequency used to sample the function.
 	 * @param radius The radius r of the sampling ring. Must be strictly positive.
@@ -626,30 +626,30 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Enumerative for plotting the DZT in different operators
-	 * COMPLEX. Plots the values of the coefficients in Rectangular representation.
-	 * MAGNITUDE. Plots the values of the coefficients in Polar representation.
-	 * SQUARE. Plots the square values of the coefficients in Rectangular representation.
+	 * Enum for plotting the DZT with different operators.
+	 * COMPLEX. Plots the values of the coefficients in rectangular representation.
+	 * MAGNITUDE. Plots the values of the coefficients in polar representation.
+	 * SQUARE. Plots the squared values of the coefficients in rectangular representation.
 	 */
 	public static enum e_operator {
 		COMPLEX, MAGNITUDE, SQUARE;
 	}
 
 	/**
-	 * Enumerative for the two kinds of x axis units
-	 * SAMP. x axis represents the index of the coefficients
-	 * FREC. x axix represents the frequency associated to the coefficient
+	 * Enum for the two kinds of x-axis units.
+	 * SAMP. The x axis represents the index of the coefficients.
+	 * FREC. The x axis represents the frequency associated with the coefficient.
 	 */
 	public static  enum e_domain {
 		SAMP, FREC;
 	}
 
 	/**
-	 * Does the operations required for the different views
-	 * @param cNum The Complex number to operate with.
-	 * @param operator The operator as defined in e_operator
-	 * @param logscale True if the cNum should be non-negative to be plotted in logarithmic scale
-	 * @return  the number operated
+	 * Performs the operation required for the different views.
+	 * @param cNum The Complex number to operate on.
+	 * @param operator The operator as defined in e_operator.
+	 * @param logscale True if cNum should be non-negative to be plotted on a logarithmic scale.
+	 * @return The resulting number.
 	 */
 	private Complex eval(Complex cNum, e_operator operator, boolean logscale) {
 		switch (operator) {
@@ -721,11 +721,13 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Does the plot of the DZT graphic in the domain of Coefficients
-	 * @param Title The title of the polt
-	 * @param domain The domain in which plot the DZT
-	 * @param operator The operator used
-	 * @param logscale True in y axis should be set in logarithmic scale
+	 * Plots the DZT graphic in the domain of the coefficients.
+	 * @param Title The title of the plot.
+	 * @param showIm True to plot the imaginary part.
+	 * @param lineStyle The line style used for the plot.
+	 * @apiNote The Javadoc previously listed {@code domain}/{@code operator}/{@code logscale} as
+	 * parameters, but the method's actual signature is {@code (String, boolean, e_lineStyle)} --
+	 * corrected to match, no behavior change.
 	 */
 	public void plotDZTSync(String Title, boolean showIm, e_lineStyle lineStyle) {
 		plotDZT(Title, showIm, lineStyle, SimpleGnuplot.e_syncMode.SYNC);

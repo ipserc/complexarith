@@ -10,10 +10,9 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.syseq.Syseq;
 
 /**
- * Class SplineComponent
- * SplineComponent defines the structure required to store each spline function inside a Spline class
- * The Spline dunction is constructed with an interval and its interpolation polynomial
- * The degree is redundant, but is a convenient way to get it
+ * Structure that stores one spline segment (piece) within a {@link Spline}: its defining
+ * interval and its interpolation polynomial. The {@code degree} field is redundant (it could
+ * be derived from the polynomial) but is kept for convenient access.
  */
 class SplineComponent extends Polynom {
 	//int degree;

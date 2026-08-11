@@ -7,7 +7,7 @@ import com.ipserc.arith.complex.Complex;
  * (default {@code toString()}, coefficient listing, constructor-statement round-trip) and export
  * to the syntax of external CAS/plotting tools (Maxima, Wolfram, GNU Octave, GNUPlot).
  * <p>
- * Extracted from {@code Polynom.java} (Décima sesión, ver {@code Claude/ComplexArithRev.md}) to
+ * Extracted from {@code Polynom.java} (10th session, see {@code Claude/ComplexArithRev.md}) to
  * separate presentation from the resolution/arithmetic core, same pattern already used for
  * {@code Complex.java}'s {@code ComplexFormat} (Sexta sesión, Paso 2): every method here is
  * {@code static}, takes the {@link Polynom} instance as an explicit parameter, and reads it only
@@ -47,7 +47,7 @@ class PolynomFormat {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the one used by Maxima (Computer Algebra System).
+	 * Constructs the polynomial as a string, in the format used by Maxima (Computer Algebra System).
 	 * @param p The polynomial.
 	 * @return The Maxima's polynomial representation as a string.
 	 */
@@ -59,7 +59,7 @@ class PolynomFormat {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the one used by Maxima (Computer Algebra System)
+	 * Constructs the polynomial as a string, in the format used by Maxima (Computer Algebra System)
 	 * appending a text before.
 	 * @param p The polynomial.
 	 * @param text The text at the beginning of the string.
@@ -117,7 +117,7 @@ class PolynomFormat {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the one used by Wolfram.
+	 * Constructs the polynomial as a string, in the format used by Wolfram.
 	 * @param p The polynomial.
 	 * @return The Wolfram Mathematica's polynomial representation as a string.
 	 */
@@ -126,7 +126,7 @@ class PolynomFormat {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the one used by Wolfram appending a text before.
+	 * Constructs the polynomial as a string, in the format used by Wolfram appending a text before.
 	 * @param p The polynomial.
 	 * @param text The text at the beginning of the string.
 	 * @return The Wolfram Mathematica's polynomial representation as a string.

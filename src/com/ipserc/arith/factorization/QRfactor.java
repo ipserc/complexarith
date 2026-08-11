@@ -1,15 +1,15 @@
 /*
- * Factorización QR o triangularización ortogonal
+ * QR factorization, also known as orthogonal triangularization.
 
-    Aplicable a: una matriz A m por n.
+    Applicable to: an m-by-n matrix A.
 
-    Factorización: A = Q R donde Q es una matriz ortogonal m por m, y R es una matriz triangular superior m por n.
+    Factorization: A = Q R, where Q is an m-by-m orthogonal matrix and R is an m-by-n upper triangular matrix.
 
-    Métodos de cálculo: La factorización QR puede calcularse mediante el proceso de ortogonalización de Gram-Schmidt 
-    aplicado a las columnas de A, mediante el uso de transformaciones de Householder y mediante transformaciones de Givens.
+    Computation methods: the QR factorization can be computed via the Gram-Schmidt orthogonalization process
+    applied to the columns of A, via Householder transformations, or via Givens transformations.
 
-    Notas: La factorización QR puede utilizarse para "resolver" el sistema de ecuaciones lineales Ax = b cuando el 
-    número de ecuaciones es distinto al de incógnitas.
+    Notes: the QR factorization can be used to "solve" the linear system of equations Ax = b when the number of
+    equations differs from the number of unknowns.
 
  */
 
@@ -19,7 +19,8 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.complex.*;
 
 /**
- * 
+ * QR factorization (orthogonal triangularization) of a complex matrix, computed via Householder
+ * transformations or via any of the four Gram-Schmidt variants inherited from {@code MatrixComplexOrtho}.
  * @author ipserc
  *
  */
@@ -29,8 +30,14 @@ public class QRfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "QRfactor --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0810_2330)";
+	private final static String VERSION = "1.5 (2026_0811_2010)";
 	/* VERSION Release Note
+	 *
+	 * 1.5 (2026_0811_2010)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
+	 * la generación de la documentación de la API. De paso, corregidas varias erratas de redacción
+	 * ("Factorices"->"Factorizes", "Housholder"->"Householder", "Aproximation"->"Approximation",
+	 * "evalute"->"evaluate") y traducido a inglés el comentario de cabecera del fichero.
 	 *
 	 * 1.4 (2026_0810_2330)
 	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 4 de la hoja de ruta
@@ -144,11 +151,11 @@ public class QRfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Package-private Method (widened from private so {@code Hessenbergfactor} can reuse it without
-	 * duplicating the same Householder sign convention). Aproximation of the sign function for complex
-	 * numbers to use in the Housholder decomposition.
-	 * @param complexMatrix Complex number to evalute the sign.
-	 * @return The sign evaluated.
+	 * Package-private method (widened from private so {@code Hessenbergfactor} can reuse it without
+	 * duplicating the same Householder sign convention). Approximation of the sign function for
+	 * complex numbers, used in the Householder decomposition.
+	 * @param complexMatrix Complex number to evaluate the sign of.
+	 * @return The evaluated sign.
 	 */
 	static Complex signHH(Complex complexMatrix) {
 		Complex signHH = new Complex();
@@ -179,13 +186,13 @@ public class QRfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * QR decomposition using the Housholder transformation. Factorices the array using the QR decomposition.
-	 * QR decomposition (also called a QR factorization) of a matrix is a decomposition of a matrix A into a product A = QR of an orthogonal matrix Q and an upper triangular matrix R. 
+	 * QR decomposition using the Householder transformation. Factorizes the array using the QR decomposition.
+	 * QR decomposition (also called a QR factorization) of a matrix is a decomposition of a matrix A into a product A = QR of an orthogonal matrix Q and an upper triangular matrix R.
 	 * QR decomposition is often used to solve the linear least squares problem, and is the basis for a particular eigenvalue algorithm, the QR algorithm.
-	 * QR algorithm is an eigenvalue algorithm: that is, a procedure to calculate the eigenvalues and eigenvectors of a matrix. 
+	 * The QR algorithm is an eigenvalue algorithm: that is, a procedure to calculate the eigenvalues and eigenvectors of a matrix.
 	 * The QR transformation was developed in the late 1950s by John G. F. Francis and by Vera N. Kublanovskaya, working independently.
-	 * The basic idea is to perform a QR decomposition, writing the matrix as a product of an orthogonal matrix and an upper triangular matrix, multiply the factors in the reverse order, and iterate.
-	 * [Source Wikipedia]
+	 * The basic idea is to perform a QR decomposition, writing the matrix as a product of an orthogonal matrix and an upper triangular matrix, multiply the factors in reverse order, and iterate.
+	 * [Source: Wikipedia]
 	 */
 	public void qrHouseholder() {
 		int rowLen = this.complexMatrix.length;
@@ -234,7 +241,7 @@ public class QRfactor extends MatrixComplex {
 	}
 
 	/**
-	 * QR decomposition using the Gram - Schmidt factorization. Factorices the array using the QR decomposition.
+	 * QR decomposition using the Gram - Schmidt factorization. Factorizes the array using the QR decomposition.
 	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): {@code
 	 * MatrixComplexOrtho.gramSchmidt()} (and its 3 siblings) orthogonalize their argument's ROWS
 	 * (the vector-per-row convention used throughout this codebase, e.g. {@code
@@ -261,7 +268,7 @@ public class QRfactor extends MatrixComplex {
 	}
 
 	/**
-	 * QR decomposition using the Gram - Schmidt Full factorization. Factorices the array using the QR decomposition.
+	 * QR decomposition using the Gram - Schmidt Full factorization. Factorizes the array using the QR decomposition.
 	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): see {@link
 	 * #qrGramSchmidt()}'s apiNote -- identical fix (transpose before and after).
 	 */
@@ -273,7 +280,7 @@ public class QRfactor extends MatrixComplex {
 	}
 
 	/**
-	 * QR decomposition using the Gram - Schmidt Modified factorization. Factorices the array using the QR decomposition.
+	 * QR decomposition using the Gram - Schmidt Modified factorization. Factorizes the array using the QR decomposition.
 	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): see {@link
 	 * #qrGramSchmidt()}'s apiNote -- identical fix (transpose before and after).
 	 */
@@ -285,7 +292,7 @@ public class QRfactor extends MatrixComplex {
 	}
 
 	/**
-	 * QR decomposition using the Gram - Schmidt Modified Full factorization. Factorices the array using the QR decomposition.
+	 * QR decomposition using the Gram - Schmidt Modified Full factorization. Factorizes the array using the QR decomposition.
 	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): see {@link
 	 * #qrGramSchmidt()}'s apiNote -- identical fix (transpose before and after).
 	 */

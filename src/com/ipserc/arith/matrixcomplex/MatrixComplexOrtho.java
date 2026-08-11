@@ -12,16 +12,16 @@ import com.ipserc.arith.complex.Complex;
  * {@code normalize()}/{@code normalizeByRows()}/{@code normalizeByCols()}, and the private
  * {@code dotprod(MatrixComplex,MatrixComplex)} helper they all share.
  * <p>
- * Extracted from {@code MatrixComplex.java} (Decimotercera sesion, Etapa 3 sub-fase D de la
- * reestructuracion, ver {@code Claude/ComplexArithRev.md}) -- same pattern as
- * {@code MatrixComplexEquationSystems} (sub-fase A+B), {@code MatrixComplexRank} (sub-fase C),
- * {@code MatrixComplexFormat} (Etapa 1) and {@code MatrixComplexFunctions} (Etapa 2): every method
+ * Extracted from {@code MatrixComplex.java} (thirteenth session, Stage 3 sub-phase D of the
+ * restructuring, see {@code Claude/ComplexArithRev.md}) -- same pattern as
+ * {@code MatrixComplexEquationSystems} (sub-phase A+B), {@code MatrixComplexRank} (sub-phase C),
+ * {@code MatrixComplexFormat} (Stage 1) and {@code MatrixComplexFunctions} (Stage 2): every method
  * here is {@code static}, takes the {@link MatrixComplex} instance as an explicit parameter, and
  * reads it only through already-public members plus {@code MatrixComplex}'s debug helper
- * ({@code trace(...)}, package-private since Etapa 2, referenced here qualified as
- * {@code MatrixComplex.trace(...)}) and {@code HEADINFO} (package-private since sub-fase A+B,
- * referenced here qualified as {@code MatrixComplex.HEADINFO}). No visibility needed widening for
- * this sub-fase -- every other helper this block calls ({@code times}, {@code adjoint},
+ * ({@code trace(...)}, package-private since Stage 2, referenced here qualified as
+ * {@code MatrixComplex.trace(...)}) and {@code HEADINFO} (package-private since sub-phase A+B,
+ * referenced here qualified as {@code MatrixComplex.HEADINFO}). No visibility widening needed for
+ * this sub-phase -- every other helper this block calls ({@code times}, {@code adjoint},
  * {@code augment}, {@code Ftransf}, {@code copyCol}, {@code copyRow}, {@code initMatrixRandomInt},
  * {@code euc_norm}, {@code divides}) was already public. {@code MatrixComplex.java}'s own public
  * methods keep their exact signatures, delegating to these in one line each -- the public API is
@@ -31,7 +31,7 @@ import com.ipserc.arith.complex.Complex;
  * instance method reading {@code this} as the first operand) stays {@code private} here, called
  * directly as a sibling static method by the four Gram-Schmidt variants that use it (no public
  * delegator ever existed for it -- it lives physically at the start of the file's next section
- * (Kronecker/kernel/nullspace, sub-fase E) but its only four call sites are all inside this Gram-
+ * (Kronecker/kernel/nullspace, sub-phase E) but its only four call sites are all inside this Gram-
  * Schmidt family, so it moves with D per the restructuring plan, avoiding a needless
  * package-private widening between D and E).
  * <p>
@@ -42,7 +42,7 @@ import com.ipserc.arith.complex.Complex;
  * {@code m.rows()} instead of {@code m.cols()}, and dropping a spurious final {@code .transpose()});
  * (2) a deeper, preexisting algorithmic bug found while verifying fix (1): the method reused
  * {@code augmentedMatrix.triangle()} (i.e. {@code triangleUp()}) for its Gaussian elimination step,
- * but that method's proactive partial pivoting (Octava sesion, commit {@code db4c912}) swaps to the
+ * but that method's proactive partial pivoting (eighth session, commit {@code db4c912}) swaps to the
  * row of largest modulus in each column -- this breaks the row-to-row correspondence between the
  * Gram matrix {@code G=m*m}{@code ^H} and {@code m} that the whole "eliminate {@code [G|m]}, read
  * back the {@code m}-block" trick depends on (it is, in effect, computing {@code L}{@code ^-1*m} via

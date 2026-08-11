@@ -1,32 +1,20 @@
-/*
- * Descomposición en valores singulares
- * 
- * /home/ipserc/Documentos/eBooks/Matematicas/SVD/42221-03.pdf
- * /home/ipserc/Documentos/eBooks/Matematicas/SVD/simetricas_y_ortogonales.pdf  (Pag. 34)	
- * /home/ipserc/Documentos/eBooks/Matematicas/SVD/TrefethenBau_Lec4_SVD.pdf
- * /home/ipserc/Documentos/eBooks/Matematicas/SVD/
-
-    Aplicable a: una matriz A m-por-n.
-
-    Factorización: A = U Σ VT, donde Σ es una matriz diagonal mxn, y U y V son matrices ortogonales mxm y nxn 
-    respectivamente, siendo VT la traspuesta de V. Los elementos de la diagonal de Σ son los valores singulares de A 
-    y son mayores o iguales a cero.
-
-    Notas: a la matriz V Σ + U T , donde Σ + es igual a la matriz Σ reemplazando los valores singulares por sus recíprocos, 
-    se le llama pseudoinversa de A.
-
-
- */
-
 package com.ipserc.arith.factorization;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.vectorcomplex.*;
 
 /**
- * 
+ * Singular value decomposition (SVD).
+ * <p>
+ * Applicable to: an m-by-n matrix A.
+ * <p>
+ * Factorization: A = U Σ V^T, where Σ is an mxn diagonal matrix, and U and V are mxm and nxn
+ * orthogonal matrices respectively, with V^T the transpose of V. The diagonal entries of Σ are
+ * A's singular values, and are greater than or equal to zero.
+ * <p>
+ * Notes: the matrix V Σ+ U^T, where Σ+ is Σ with each singular value replaced by its reciprocal,
+ * is called the pseudoinverse of A.
  * @author ipserc
- *
  */
 public class SVDfactor extends MatrixComplex {
 	public static enum SVDmethod {NONE, SVD, REDUCED};
@@ -38,13 +26,19 @@ public class SVDfactor extends MatrixComplex {
 	private MatrixComplex cU;
 
 	private final static String HEADINFO = "SVDfactor --- INFO: ";
-	private final static String VERSION = "1.4 (2026_0808_0200)";
+	private final static String VERSION = "1.5 (2026_0811_2025)";
 	private boolean factorized = false;
 	private boolean oriented = false;
 	private SVDmethod method = SVDmethod.NONE;
 
 
 	/* VERSION Release Note
+	 * 1.5 (2026_0811_2025)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
+	 * la generación de la documentación de la API. El comentario de cabecera del fichero se movió y
+	 * tradujo al Javadoc de clase, que estaba vacío. Corregidos 2 typos ("he method" -> "The method",
+	 * "factoriced" -> "factorized").
+	 *
 	 * 1.4 (2026_0808_0200)
 	 * Auditoria completa (primera vez, hasta ahora solo habia recibido el fix mecanico de aliasing
 	 * de la VERSION 1.3). Bug real encontrado y arreglado: factorizeSVD() decidia si un valor
@@ -128,7 +122,7 @@ public class SVDfactor extends MatrixComplex {
 	/**
 	 * Instantiates a complex array from a string, rows are separated with ";", cols are separated with ",".
 	 * @param strMatrix the string with the rows and columns.
-	 * @param method he method used to do the factorization
+	 * @param method The method used to do the factorization
 	 */
 	public SVDfactor(String strMatrix, final SVDmethod method) {
 		super(strMatrix);
@@ -165,8 +159,10 @@ public class SVDfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Private method. If the matrix to decompose has less rows the columns this method returns the adjoint of the matrix to do the factorization over it.
-	 * NOTA: Usamos la convencion (rowLen < colLen) para caraterizar el metodo como orinted lo que da una matriz V unitaria.
+	 * Private method. If the matrix to decompose has fewer rows than columns, this method returns
+	 * the adjoint of the matrix to perform the factorization over it.
+	 * @apiNote We use the convention (rowLen &lt; colLen) to characterize the method as "oriented",
+	 * which yields a unitary V matrix.
 	 * @return The adjoint matrix to decompose with the SVD factorization.
 	 */
 	private MatrixComplex orientMatrix() {
@@ -694,7 +690,7 @@ public class SVDfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Returns the value of factorized. factoriced is true if the S V D matrix have been found
+	 * Returns the value of factorized. factorized is true if the S, V, D matrices have been found
 	 * @return Trued if factorized, false otherwise
 	 */
 	public boolean factorized() {

@@ -31,7 +31,7 @@ final class ComplexCalculus {
 	private ComplexCalculus() {}
 
 	/**
-	 * Returns the Riemann integral of a Complex function along of the real line
+	 * Returns the Riemann integral of a Complex function along the real line
 	 * @param lolimit the lower limit of the integral
 	 * @param uplimit the upper limit of the integral
 	 * @param func the function to be integrated
@@ -181,7 +181,7 @@ final class ComplexCalculus {
 	/**
 	 * Returns the value of the derivative at the point point
 	 * @param point the point to calculate the derivative
-	 * @param func the complex function to derived
+	 * @param func the complex function to derive
 	 * @param precision The precision of the result
 	 * @return the complex value of the derivative at the point
 	 * @apiNote Central difference (f(point+h)-f(point-h))/(2h) with a DIAGONAL complex step
@@ -209,7 +209,7 @@ final class ComplexCalculus {
 	/**
 	 * Returns the value of the derivative at the point point
 	 * @param point the point to calculate the derivative
-	 * @param func the complex function to derived
+	 * @param func the complex function to derive
 	 * @param precision The precision of the result
 	 * @return the complex value of the derivative at the point
 	 */
@@ -237,9 +237,9 @@ final class ComplexCalculus {
 	}
 
 	/**
-	 * Determines if the value of the limit obtained is an indetermination or not
+	 * Determines whether the calculated limit value is an indeterminate form
 	 * @param limit The value of the limit calculated
-	 * @return True is is an indetermination, False if not
+	 * @return True if it is an indeterminate form, False otherwise
 	 */
 	private static boolean isIndetermination(Complex limit) {
 		//if (Double.isNaN(limit.mod)) return true;
@@ -271,9 +271,9 @@ final class ComplexCalculus {
 	}
 
 	/**
-	 * Calculates the limit of func at point of type double
+	 * Calculates the limit of func at a point of type Complex
 	 * @param func The function to evaluate for the limit
-	 * @param point The Complex point in which the function is evaluated
+	 * @param point The Complex point at which the function is evaluated
 	 * @return The Complex value of the limit
 	 */
 	static Complex limit(Function <Complex, Complex> func, Complex point) {
@@ -319,9 +319,9 @@ final class ComplexCalculus {
 	}
 
 	/**
-	 * Calculates the limit of func at point of type Complex
+	 * Calculates the limit of func at a point of type double
 	 * @param func The function to evaluate for the limit
-	 * @param point The Complex point in which the function is evaluated
+	 * @param point The real point at which the function is evaluated
 	 * @return The Complex value of the limit
 	 */
 	static Complex limit(Function <Complex, Complex> func, double point) {
@@ -330,7 +330,7 @@ final class ComplexCalculus {
 	}
 
 	/**
-	 * Calculates the limit of func at +Infinite or -Inifinite regarding param sign
+	 * Calculates the limit of func at +Infinite or -Infinite, depending on the sign parameter
 	 * @param func The function to evaluate for the limit
 	 * @param sign The sign of the Infinite
 	 * @return The Complex value of the limit
@@ -427,10 +427,10 @@ final class ComplexCalculus {
 	}
 
 	/**
-	 * Indicates if the function is continuous in the given point.
+	 * Indicates whether the function is continuous at the given point.
 	 * @param func The Complex function
-	 * @param point The point in which the continuity is evaluated. Complex.
-	 * @return True if the function in continuous. False in other case.
+	 * @param point The point at which continuity is evaluated. Complex.
+	 * @return True if the function is continuous. False otherwise.
 	 */
 	static boolean isContinuous(Function <Complex, Complex> func, Complex point) {
 		if (limit(func, point) != null) return true;
@@ -438,10 +438,10 @@ final class ComplexCalculus {
 	}
 
 	/**
-	 * Indicates if the function is continuous in the given point.
+	 * Indicates whether the function is continuous at the given point.
 	 * @param func The Complex function
-	 * @param point The point in which the continuity is evaluated. Double.
-	 * @return True if the function in continuous. False in other case.
+	 * @param point The point at which continuity is evaluated. Double.
+	 * @return True if the function is continuous. False otherwise.
 	 */
 	static boolean isContinuous(Function <Complex, Complex> func, double point) {
 		if (limit(func, point) != null) return true;

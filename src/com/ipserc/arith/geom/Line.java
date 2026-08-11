@@ -8,9 +8,13 @@ public class Line {
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.7 (2026_0810_2340)";
+	private final static String VERSION = "1.8 (2026_0811_1200)";
 	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
+	 *
+	 * 1.8 (2026_0811_1200)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte
+	 * de la generación de la documentación de la API.
 	 *
 	 * 1.7 (2026_0810_2340)
 	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 6 de la hoja de ruta
@@ -140,7 +144,7 @@ public class Line {
 	 */
 	
 	/**
-	 * Prints Class Version
+	 * Prints the class version.
 	 */
 	public static void version() {
 		System.out.println(HEADINFO + "VERSION:" + VERSION); 
@@ -216,15 +220,15 @@ public class Line {
 	
 	/**
 	 * Gets the director vector of the line
-	 * @return
+	 * @return The director vector
 	 */
 	public VectorComplex direction() {
 		return this.direction;
 	}
-	
+
 	/**
 	 * Gets the point of the line
-	 * @return
+	 * @return The point
 	 */
 	public Point point() {
 		return this.point;
@@ -238,13 +242,15 @@ public class Line {
 	
 	/**
 	 * Sets the director vector of the line
+	 * @param vector The new director vector
 	 */
 	public void direction(VectorComplex vector) {
 		this.direction = vector;
 	}
-	
+
 	/**
 	 * Sets the point of the line
+	 * @param point The new point
 	 */
 	public void point(Point point) {
 		this.point = point;
@@ -258,16 +264,16 @@ public class Line {
 
 	/**
 	 * Prints the line from the components of its vectorial equation
-	 * @param caption
+	 * @param caption The caption to print before the components
 	 */
 	public void print(String caption) {
 		System.out.println(caption);
 		this.direction.println(	"  direction:");
 		this.point.print(		"  point    :");
 	}
-	
+
 	/**
-	 * Prints the line from the components of its vectorial equation whit a caption
+	 * Prints the line from the components of its vectorial equation with a caption, followed by a blank line
 	 * @param caption The caption
 	 */
 	public void println(String caption) {
@@ -303,7 +309,7 @@ public class Line {
 	}
 
 	/**
-	 * Calculate the distance of a line to a given point, in any dimension: the norm of the vector
+	 * Calculates the distance of a line to a given point, in any dimension: the norm of the vector
 	 * from the point to its Hermitian projection onto the line (normalPoint()) -- valid for any
 	 * dimension and for complex-valued lines, unlike the previous crossprod()-based formula
 	 * (|PaPp x direction|/|direction|), only well-founded up to 7D (Hurwitz's theorem). For

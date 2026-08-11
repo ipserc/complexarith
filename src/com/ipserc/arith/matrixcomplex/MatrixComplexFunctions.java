@@ -449,10 +449,10 @@ class MatrixComplexFunctions {
 	}
 
 	/**
-	 * The "SINH" or "COSH" depending hypFunc. One method to rule them all
+	 * The "SINH" or "COSH" depending on hypFunc. One method to rule them all
 	 * @param m The matrix.
 	 * @param hypFunc hyptrigon.SINH for SINH, hyptrigon.COSH for COSH
-	 * @return
+	 * @return The SINH or COSH of the matrix, depending on hypFunc.
 	 */
 	private enum hyptrigon {SINH, COSH};
 	private static MatrixComplex trigonHyperbolycTaylor(MatrixComplex m, hyptrigon hypFunc) {
@@ -1360,7 +1360,7 @@ class MatrixComplexFunctions {
 	/**
 	 * Calculates the natural log in base 10 of the matrix log10(matrix)
 	 * @param m The matrix.
-	 * @return
+	 * @return The log10 of the matrix.
 	 */
 	static MatrixComplex log10(MatrixComplex m) {
 		return log(m).divides(MatrixComplex.__log10__);
@@ -1369,7 +1369,7 @@ class MatrixComplexFunctions {
 	/**
 	 * Calculates the log10 item to item of this matrix
 	 * @param m The matrix.
-	 * @return The log  item to item of this matrix
+	 * @return The log10 item to item of this matrix
 	 */
 	static MatrixComplex llog10(MatrixComplex m) {
 		MatrixComplex logMat = new MatrixComplex(m.rows(), m.cols());
@@ -1383,18 +1383,18 @@ class MatrixComplexFunctions {
 	/**
 	 * Calculates the natural log in Complex base "base" of the matrix logbase(matrix)
 	 * @param m The matrix.
-	 * @param base
-	 * @return
+	 * @param base The Complex base of the logarithm.
+	 * @return The log of the matrix in the given base.
 	 */
 	static MatrixComplex logbase(MatrixComplex m, Complex base) {
 		return log(m).divides(Complex.log(base));
 	}
 
 	/**
-	 * Calculates the natural log in Complex base "base" of the matrix logbase(matrix)
+	 * Calculates the log item to item, in Complex base "base", of the matrix logbase(matrix)
 	 * @param m The matrix.
-	 * @param base
-	 * @return
+	 * @param base The Complex base of the logarithm.
+	 * @return The log item to item of the matrix in the given base.
 	 */
 	static MatrixComplex llogbase(MatrixComplex m, Complex base) {
 		MatrixComplex logMat = new MatrixComplex(m.rows(), m.cols());
@@ -1406,20 +1406,20 @@ class MatrixComplexFunctions {
 	}
 
 	/**
-	 * Calculates the natural log in Real base "base" of the matrix logbase(matrix)
+	 * Calculates the natural log in real base "base" of the matrix logbase(matrix)
 	 * @param m The matrix.
-	 * @param base
-	 * @return
+	 * @param base The real base of the logarithm.
+	 * @return The log of the matrix in the given base.
 	 */
 	static MatrixComplex logbase(MatrixComplex m, double base) {
 		return log(m).divides(Math.log(base));
 	}
 
 	/**
-	 * Calculates the natural log in Real base "base" of the matrix logbase(matrix)
+	 * Calculates the log item to item, in real base "base", of the matrix logbase(matrix)
 	 * @param m The matrix.
-	 * @param base
-	 * @return
+	 * @param base The real base of the logarithm.
+	 * @return The log item to item of the matrix in the given base.
 	 */
 	static MatrixComplex llogbase(MatrixComplex m, double base) {
 		Complex cBase = new Complex(base);
@@ -1429,8 +1429,8 @@ class MatrixComplexFunctions {
 	/**
 	 * Calculates the log in complex matrix base "baseMat" of the matrix mat
 	 * @param m The matrix.
-	 * @param baseMat
-	 * @return
+	 * @param baseMat The matrix base of the logarithm.
+	 * @return The log of the matrix in the given matrix base.
 	 */
 	static MatrixComplex logbase(MatrixComplex m, MatrixComplex baseMat) {
 		return log(m).divides(log(baseMat));

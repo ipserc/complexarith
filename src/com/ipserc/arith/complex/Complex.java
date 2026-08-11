@@ -1,35 +1,15 @@
 /**
- *  Complex es una clase que permite definir y operar con números complejos.
+ *  Complex is a class that allows defining and operating with complex numbers.
  *  <p>
- *  Incorpora funciones aritméticas como la suma, la resta, el producto y la división por complejos.
- *  Se ha definido el producto 
+ *  It implements arithmetic operations such as addition, subtraction, multiplication and division of complex numbers.
+ *  <p>
  *  Compilation:  javac Complex.java
  *  Execution:    java Complex
  *
  *  Data type for complex numbers.
- *	
+ *
  *  Based on http://introcs.cs.princeton.edu/java/97data/Complex.java.html
  *  from http://introcs.cs.princeton.edu/java/32class/
- *  
- *  
- *  
- *  
- *
- *  
- *  
- *  
- *  
- *  
- *  
- *  
- *  
- *  
- *  
- *  
- *  
- *  
- *  
- *
  */
 package com.ipserc.arith.complex;
 
@@ -1407,8 +1387,8 @@ public class Complex {
 	/**
 	 * Checks if a number is pure real
 	 * @return True if the number is pure real
-	 * @apiNote BUG FIXED (Vigesimoctava sesion, investigacion dedicada del bug reportado en el
-	 * Bloque E de "nuevos instrumentos matematicos" -- ver Claude/ComplexArithRev.md): the previous
+	 * @apiNote BUG FIXED (28th session, dedicated investigation of the bug reported in Block E
+	 * of "new mathematical instruments" -- see Claude/ComplexArithRev.md): the previous
 	 * body had an extra {@code if (rePartNull()) return false;} guard, which excluded the number
 	 * ZERO from being "pure real" -- backwards, since zero is trivially a real number (and, by the
 	 * same standard convention, also purely imaginary at the same time; it is the one value both
@@ -1422,7 +1402,7 @@ public class Complex {
 	/**
 	 * Checks if a number is pure imaginary
 	 * @return True if the number is pure imaginary
-	 * @apiNote BUG FIXED (Vigesimoctava sesion): same issue as {@link #isPureReal()}'s @apiNote,
+	 * @apiNote BUG FIXED (28th session): same issue as {@link #isPureReal()}'s @apiNote,
 	 * mirrored -- the extra {@code if (imPartNull()) return false;} guard excluded zero. Now simply
 	 * "real part is null".
 	 */

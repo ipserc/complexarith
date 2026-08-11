@@ -8,7 +8,7 @@ import com.ipserc.arith.vectorcomplex.VectorComplex;
 public class Schurfactor extends MatrixComplex {
 	
 	private final static String HEADINFO = "Schurfactor --- INFO: ";
-	private final static String VERSION = "1.1 (2026_0807_1600)";
+	private final static String VERSION = "1.2 (2026_0811_2000)";
 	private final static int boxSize = 65;
 
 	private boolean factorized = false;
@@ -17,6 +17,10 @@ public class Schurfactor extends MatrixComplex {
 	private MatrixComplex cSchur;
 
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0811_2000)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte
+	 * de la generación de la documentación de la API.
 	 *
 	 * 1.1 (2026_0807_1600)
 	 * Schurfactor(MatrixComplex matrix): "this.complexMatrix = matrix.complexMatrix.clone();" was
@@ -66,17 +70,17 @@ public class Schurfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Constructor de la clase Schufactor a partir de una matriz compleja expresada como un string 
-	 * @param strMatrix La matriz compleja en formato string
+	 * Constructs a Schurfactor instance from a complex matrix expressed as a string.
+	 * @param strMatrix The complex matrix in string format
 	 */
 	public Schurfactor(String strMatrix) {
 		super(strMatrix);
 		factorize();
 	}
-	
+
 	/**
-	 * Constructor de la clase Schufactor a partir de una matriz compleja expresada cómo MatixCompplex 
-	 * @param strMatrix La matriz compleja en formato MatrixComplex
+	 * Constructs a Schurfactor instance from a complex matrix expressed as a MatrixComplex.
+	 * @param strMatrix The complex matrix as a MatrixComplex
 	 */
 	public Schurfactor(MatrixComplex matrix) {
 		super();
@@ -91,21 +95,21 @@ public class Schurfactor extends MatrixComplex {
 	private static boolean __DEBUG__ = false;
 	
 	/**
-	 * Activa el modo DEBUG
+	 * Turns DEBUG mode on.
 	 */
 	public static void debugON() {
 		__DEBUG__ = true;
 	}
 
 	/**
-	 * Desactiva el modo DEBUG
+	 * Turns DEBUG mode off.
 	 */
 	public static void debugOFF() {
 		__DEBUG__ = false;
 	}
 
 	/**
-	 * devuelve el estado del modo DEBUG
+	 * Returns the current state of DEBUG mode.
 	 */
 	public static boolean debug() {
 		return __DEBUG__;
@@ -115,8 +119,8 @@ public class Schurfactor extends MatrixComplex {
 	 * Methods
 	 */
 	/**
-	 * Realiza la factorización de la matriz. Si lo consigue pone el flag factorized a true. 
-	 * En caso contrario muestra un mesaje por pantalla indicado que no ha podido realizar la factorización.
+	 * Factorizes the matrix. On success, sets the factorized flag to true; otherwise, prints a
+	 * message indicating the factorization could not be performed.
 	 */
 	public void factorize() {
 		factorized = false;
@@ -139,12 +143,12 @@ public class Schurfactor extends MatrixComplex {
 	}
 	
 	/**
-	 * Método privado que resuelve de forma recursiva la factorización de Schur.
-	 * Las matrices definitivas se recuperan con getSchur y getU.
-	 * @param aMat La matriz a factorizar en cada iteraciñon
-	 * @param iteracion La iteración que va a llevar a acbo
-	 * @param rows El número de fila de la matriz original
-	 * @return La matriz obtenida para cada iteración
+	 * Private method that solves the Schur factorization recursively.
+	 * The final matrices are retrieved via getSchur and getU.
+	 * @param aMat The matrix to be factorized at each iteration
+	 * @param iteracion The iteration being carried out
+	 * @param rows The number of rows of the original matrix
+	 * @return The matrix obtained at each iteration
 	 */
 	private MatrixComplex Schur(MatrixComplex aMat, int iteracion, int rows) {
 		if (__DEBUG__) {

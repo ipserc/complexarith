@@ -9,8 +9,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * callers (e.g. {@code Syseq}, {@code Spline}, and many test files use {@code Complex.repeat(...)})
  * are unaffected.
  * <p>
- * Extracted verbatim from {@code Complex.java}'s "BOXES & TITLES" section (Sexta sesion, paso 2,
- * Fase 2.1): confirmed zero coupling to {@code Complex} instance fields or thread-local state --
+ * Extracted verbatim from {@code Complex.java}'s "BOXES & TITLES" section (Sixth session, step 2,
+ * Phase 2.1): confirmed zero coupling to {@code Complex} instance fields or thread-local state --
  * every method here takes only {@code (int size, String title/text, ...)} and does pure string/int
  * manipulation, so this was the lowest-risk section to extract first.
  */
@@ -19,7 +19,7 @@ final class ComplexBoxArt {
 	private ComplexBoxArt() {}
 
 	/**
-	 * Substitute of String.repeat(int n). This method is not available for Java 1.8 on Windows
+	 * Substitute for String.repeat(int n). This method is not available for Java 1.8 on Windows
 	 * @param str The String to repeat
 	 * @param n The number of times to repeat the string
 	 * @return The final String
@@ -50,7 +50,7 @@ final class ComplexBoxArt {
 	}
 
 	/**
-	 * Generates a BoxTitle from it components
+	 * Generates a BoxTitle from its components
 	 * @param size
 	 * @param title
 	 * @param csi
@@ -94,7 +94,7 @@ final class ComplexBoxArt {
 	}
 
 	/**
-	 * Returns a Title inside of a single line box
+	 * Returns a title inside a single-line box
 	 * @param size The minimum size of the box
 	 * @param title The text to put inside the box
 	 * @return The String representation of the box title
@@ -108,24 +108,25 @@ final class ComplexBoxArt {
 	}
 
 	/**
-	 * Returns a text inside of a equal-pipe box
+	 * Returns a title inside an equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
+	 * @param title The text to put inside the box
+	 * @return The String representation of the box title
 	 */
 	static String boxTitle2(int size, String title) {
 		return makeBoxTitle(size, title,
 							" ", "_", " ",
+
 							"/", "\\",
 							"|", "|",
 							"\\", "_", "/" , false);
 	}
 
 	/**
-	 * Returns a text inside of a equal-pipe box
+	 * Returns a title inside an angle-bracket box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
+	 * @param title The text to put inside the box
+	 * @return The String representation of the box title
 	 */
 	static String boxTitle3(int size, String title) {
 		return makeBoxTitle(size, title,
@@ -136,10 +137,10 @@ final class ComplexBoxArt {
 	}
 
 	/**
-	 * Returns a text inside of a equal-pipe box
+	 * Returns a title inside a plus-dash box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
+	 * @param title The text to put inside the box
+	 * @return The String representation of the box title
 	 */
 	static String boxTitle4(int size, String title) {
 		return makeBoxTitle(size, title,
@@ -150,10 +151,10 @@ final class ComplexBoxArt {
 	}
 
 	/**
-	 * Returns a text inside of a equal-pipe box
+	 * Returns a title inside a hash-equal box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
-	 * @return The String representation of the box text
+	 * @param title The text to put inside the box
+	 * @return The String representation of the box title
 	 */
 	static String boxTitle5(int size, String title) {
 		return makeBoxTitle(size, title,

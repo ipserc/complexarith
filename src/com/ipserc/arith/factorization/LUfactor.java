@@ -1,34 +1,28 @@
-/*
- * Factorización LU
-
-    Aplicable a: una matriz cuadrada A
-
-    Factorización: A = L U, donde L es una matriz triangular inferior y U es una matriz triangular superior
-
-    Notas: La factorización LU expresa el método de Gauss en forma matricial. En efecto, PA = LU donde P es una matriz 
-    de permutación. Los elementos de la diagonal principal de L son todos iguales a 1. Una condición suficiente de que 
-    exista la factorización es que la matriz A sea invertible.
-
-    Resolución del sistema de ecuaciones lineales Ax = b: primero se resuelve el sistema de ecuaciones Ly = b y después 
-    Ux = y.
-
-    Existencia: Una condición necesaria y suficiente es que todos los menores principales de A sean distintos de cero.1
-
-    Métodos de cálculo: método de Crout que obtiene una matriz U cuyos elementos de la diagonal son todos 1. 
-    El método de Doolittle es una modificación del mismo.
-
- */
-
-
 package com.ipserc.arith.factorization;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 
 /**
- * 
+ * LU factorization.
+ * <p>
+ * Applicable to: a square matrix A.
+ * <p>
+ * Factorization: A = L U, where L is a lower triangular matrix and U is an upper triangular
+ * matrix.
+ * <p>
+ * Notes: LU factorization expresses Gaussian elimination in matrix form. Indeed, PA = LU, where
+ * P is a permutation matrix. The entries on L's main diagonal are all equal to 1. A sufficient
+ * condition for the factorization to exist is that A be invertible.
+ * <p>
+ * Solving the linear system Ax = b: first solve Ly = b, then Ux = y.
+ * <p>
+ * Existence: a necessary and sufficient condition is that every leading principal minor of A be
+ * nonzero.
+ * <p>
+ * Computation methods: the Crout method, which obtains a U whose diagonal entries are all 1. The
+ * Doolittle method is a variant of the same idea.
  * @author ipserc
- *
  */
 public class LUfactor extends MatrixComplex {
 	public static enum LUmethod {NONE, PIVOT, CROUT, DOOLITTLE, CHOLESKY};
@@ -40,8 +34,14 @@ public class LUfactor extends MatrixComplex {
 	private LUmethod method = LUmethod.NONE;
 
 	private final static String HEADINFO = "LUfactor --- INFO: ";
-	private final static String VERSION = "1.5 (2026_0807_2300)";
+	private final static String VERSION = "1.6 (2026_0811_2020)";
 	/* VERSION Release Note
+	 *
+	 * 1.6 (2026_0811_2020)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
+	 * la generación de la documentación de la API. El comentario de cabecera del fichero (teoría de
+	 * la factorización LU, en español, antes del "package") se movió y tradujo al Javadoc de clase,
+	 * que estaba vacío.
 	 *
 	 * 1.5 (2026_0807_2300)
 	 * Auditoria de com.ipserc.arith.factorization.LUfactor (ver Claude/ComplexArithRev.md), 3
@@ -496,14 +496,14 @@ public class LUfactor extends MatrixComplex {
 	 * Returns the expression for LU Factorization for Maxima. expand is available. 
 	 * @param expand True if you want to expand the expressions
 	 * @return The LU Factorization expression
-	 * 
-	 * generalring - el anillo de las expresiones de Maxima
-	 * floatfield - el campo de los números decimales en coma flotante de doble precisión
-	 * complexfield - el campo de los números complejos decimales en coma flotante de doble precisión
-	 * crering - el anillo de las expresiones canónicas racionales (Canonical Rational Expression o CRE) de Maxima
-	 * rationalfield - el campo de los números racionales
-	 * runningerror - controla los errores de redondeo de las operaciones en coma flotante
-	 * noncommutingring - el anillo de las expresiones de Maxima en las que el producto es el operador no conmutativo "." 
+	 * <p>
+	 * generalring - Maxima's ring of general expressions
+	 * floatfield - the field of double-precision floating-point decimal numbers
+	 * complexfield - the field of double-precision floating-point complex decimal numbers
+	 * crering - Maxima's ring of Canonical Rational Expressions (CRE)
+	 * rationalfield - the field of rational numbers
+	 * runningerror - controls rounding errors of floating-point operations
+	 * noncommutingring - Maxima's ring of expressions in which product is the non-commutative "." operator
 	 */
 	public String toMaxima_lu_factor(boolean expand) {
 		String toMaxima;

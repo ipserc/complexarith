@@ -15,7 +15,7 @@ import java.util.Map;
  * {@code setTitle}/{@code addPlot(double[][]/String)}/{@code set}/{@code setPersist}/
  * {@code getPostInit}/{@code newGraph3D}/{@code plot}), nothing more.
  * <p>
- * Motivation (8 agosto 2026, a peticion del usuario): {@code GNUPlotExec.plot()} (the base of the
+ * Motivation (August 8, 2026, at the user's request): {@code GNUPlotExec.plot()} (the base of the
  * whole Panayotis chain) unconditionally calls {@code Process.waitFor()} after launching gnuplot --
  * confirmed by inspecting its bytecode (no source available for that dependency in this project).
  * On Windows, with a persistent window, that blocks the calling thread until the user closes the

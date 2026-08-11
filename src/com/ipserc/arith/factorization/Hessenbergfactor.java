@@ -85,8 +85,8 @@ public class Hessenbergfactor extends MatrixComplex {
 	 */
 
 	/**
-	 * Instancia y factoriza una matriz compleja cuadrada expresada como String.
-	 * @param strMatrix La matriz en formato String (filas separadas por ";", columnas por ",").
+	 * Instantiates and factorizes a square complex matrix expressed as a String.
+	 * @param strMatrix The matrix in String format (rows separated by ";", columns by ",").
 	 */
 	public Hessenbergfactor(String strMatrix) {
 		super(strMatrix);
@@ -94,8 +94,8 @@ public class Hessenbergfactor extends MatrixComplex {
 	}
 
 	/**
-	 * Instancia y factoriza una matriz compleja cuadrada ya construida como MatrixComplex.
-	 * @param matrix La matriz a factorizar.
+	 * Instantiates and factorizes a square complex matrix already built as a MatrixComplex.
+	 * @param matrix The matrix to factorize.
 	 */
 	public Hessenbergfactor(MatrixComplex matrix) {
 		super();

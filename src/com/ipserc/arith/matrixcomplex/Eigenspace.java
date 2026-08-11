@@ -302,20 +302,20 @@ public class Eigenspace extends MatrixComplex {
 	 */
 
 	 /**
-	  * Controls whether the eigenvectors are normalized or not
-	  * Only the eigenvectors, the solutions rest as they were calculated
+	  * Controls whether the eigenvectors are normalized or not.
+	  * Only the eigenvectors are affected; the solutions remain as they were calculated.
 	  */
 	 private static boolean normalizeVectors = false;
 
 	 /**
-	  * Sets the order in which the roots and solutions of the Characteristic polynomila are stored
+	  * Sets the order in which the roots and solutions of the characteristic polynomial are stored.
 	  */
 	 private static Order order = Order.DOWN;
 
 	/**
-	 * Enumeration that gives the value of the order in which the eigenvalues, and therefore, the eigenvectors are returned
-	 * DOWN: The eigenvalues are sorted from higher to lower
-	 * UP: The eigenvalues are sorted from lower to higher
+	 * Enumeration giving the order in which the eigenvalues, and therefore the eigenvectors, are returned.
+	 * DOWN: The eigenvalues are sorted from higher to lower.
+	 * UP: The eigenvalues are sorted from lower to higher.
 	 */
 	public enum Order {DOWN, UP};
 	
@@ -327,13 +327,13 @@ public class Eigenspace extends MatrixComplex {
 	private Complex seed;
 
 	/**
-	 * Factor multiplicativo sobre la tolerancia derivada de {@link MatrixComplex#bestNumDecs()}
-	 * para el agrupamiento de raices por DISTANCIA (ver {@link #groupingTolerance(int)}). Valor
-	 * medido, no arbitrario: barrido de tolFactor en {0.5,1,2,5,10} sobre ~600 casos de
-	 * multiplicidad conocida (real y compleja) mas un barrido companion de autovalores distintos
-	 * -- 0.5 es el unico valor que mejora o empata TODAS las metricas a la vez (agrupamiento real,
-	 * agrupamiento complejo Y falsos positivos); valores mas sueltos ganan mas en agrupamiento pero
-	 * pierden mas en falsos positivos. Ver Claude/ComplexArithRev.md, VERSION 1.10 de esta clase.
+	 * Multiplicative factor applied to the tolerance derived from {@link MatrixComplex#bestNumDecs()}
+	 * for grouping raw roots by DISTANCE (see {@link #groupingTolerance(int)}). A measured value, not
+	 * an arbitrary one: swept tolFactor over {0.5,1,2,5,10} against ~600 cases of known multiplicity
+	 * (real and complex) plus a companion sweep of distinct eigenvalues -- 0.5 is the only value that
+	 * improves or ties ALL metrics at once (real grouping, complex grouping, AND false positives);
+	 * looser values win more on grouping but lose more on false positives. See
+	 * Claude/ComplexArithRev.md, VERSION 1.10 of this class.
 	 */
 	private static final double GROUPING_TOL_FACTOR = 0.5;
 	
@@ -540,21 +540,21 @@ public class Eigenspace extends MatrixComplex {
 	}
 
 	/**
-	 * Via ALTERNATIVA de autovalores (Etapa 4 del plan QR-con-desplazamientos, ver
-	 * {@code Claude/ComplexArithRev.md} / plan mutable-rolling-stardust.md): reduccion a Hessenberg
-	 * + iteracion QR con desplazamiento de Wilkinson ({@code QRSchurfactor}), en vez del motor por
-	 * defecto de esta clase (polinomio caracteristico + Durand-Kerner/Aberth-Ehrlich, ver
-	 * {@link #eigenval()}/{@link #eigenvalues()}). NO sustituye al motor por defecto -- decision de
-	 * alcance deliberada de esta etapa, pendiente de comparacion exhaustiva antes de considerarlo.
+	 * Via an ALTERNATIVE eigenvalue path (Stage 4 of the QR-with-shifts plan, see
+	 * {@code Claude/ComplexArithRev.md} / plan mutable-rolling-stardust.md): reduction to Hessenberg
+	 * form + QR iteration with Wilkinson shift ({@code QRSchurfactor}), instead of this class's
+	 * default engine (characteristic polynomial + Durand-Kerner/Aberth-Ehrlich, see
+	 * {@link #eigenval()}/{@link #eigenvalues()}). Does NOT replace the default engine -- a
+	 * deliberate scope decision for this stage, pending an exhaustive comparison before considering
+	 * that.
 	 * <p>
-	 * A diferencia de {@link #eigenvalues()}, devuelve un valor por FILA de la matriz (una entrada
-	 * de la diagonal de la forma de Schur cada una), sin agrupar por multiplicidad ni promediar
-	 * repeticiones -- para un autovalor de multiplicidad {@code m}, aparecera {@code m} veces
-	 * (aproximadamente iguales, no exactamente, igual que las raices crudas de
-	 * {@link #roots()} antes de agrupar).
-	 * @return Los autovalores, uno por fila, en el orden en que aparecen en la diagonal de T.
-	 * @throws IllegalArgumentException si la matriz no es cuadrada, o si la iteracion QR no converge
-	 * (ver {@code QRSchurfactor.factorize()}).
+	 * Unlike {@link #eigenvalues()}, this returns one value per ROW of the matrix (one diagonal
+	 * entry of the Schur form each), without grouping by multiplicity or averaging repetitions --
+	 * for an eigenvalue of multiplicity {@code m}, it will appear {@code m} times (approximately
+	 * equal, not exactly, same as the raw roots from {@link #roots()} before grouping).
+	 * @return The eigenvalues, one per row, in the order they appear on T's diagonal.
+	 * @throws IllegalArgumentException if the matrix isn't square, or if the QR iteration doesn't
+	 * converge (see {@code QRSchurfactor.factorize()}).
 	 */
 	public MatrixComplex eigenvaluesQR() {
 		return new QRSchurfactor(this).getEigenvalues();
@@ -633,11 +633,11 @@ public class Eigenspace extends MatrixComplex {
 	}
 
 	/**
-	 * Tolerancia de DISTANCIA equivalente a "digits" decimales, para el agrupamiento de raices en
-	 * {@link #eigenval()} y la busqueda en {@link #arithmeticMultiplicity(Complex, int)}. Ver
-	 * {@link #GROUPING_TOL_FACTOR} para el porque del factor.
-	 * @param digits El numero de decimales de precision (tipicamente {@link MatrixComplex#bestNumDecs()}).
-	 * @return La tolerancia de distancia.
+	 * DISTANCE tolerance equivalent to "digits" decimal places, used for grouping roots in
+	 * {@link #eigenval()} and for the lookup in {@link #arithmeticMultiplicity(Complex, int)}. See
+	 * {@link #GROUPING_TOL_FACTOR} for why this factor is used.
+	 * @param digits The number of decimal places of precision (typically {@link MatrixComplex#bestNumDecs()}).
+	 * @return The distance tolerance.
 	 */
 	private static double groupingTolerance(int digits) {
 		return GROUPING_TOL_FACTOR * Math.pow(10, -digits);

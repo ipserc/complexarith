@@ -102,7 +102,7 @@ public class Laplace extends MatrixComplex  {
 	}
 	
 	/**
-	 * Creates an instance of the Laplace object, using the sampled values ​​of the function.
+	 * Creates an instance of the Laplace object, using the sampled values of the function.
 	 * It requires the following information before to start with the values sampled:
 	 * 	loLimit: The lower limit of the points to use with the function.
 	 * 	upLimit: The upper limit of the points to use with the function.
@@ -118,7 +118,7 @@ public class Laplace extends MatrixComplex  {
 	}
 
 	/**
-	 * Creates an instance of the Laplace object, using the sampled values ​​of the function.
+	 * Creates an instance of the Laplace object, using the sampled values of the function.
 	 * It requires the following information before to start with the values sampled:
 	 * 	loLimit: The lower limit of the points to use with the function.
 	 * 	upLimit: The upper limit of the points to use with the function.
@@ -475,11 +475,11 @@ public class Laplace extends MatrixComplex  {
 	 * **************** INTEGRATION METHODS FOR FOURIER SERIES ****************
 	 */
 	/**
-	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the real axe
+	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the real axis
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param expnz the function EXP((-2*pi*n*i/T)*z)
+	 * @param expz the function EXP((-2*pi*n*i/T)*z)
 	 * @param numDec the number of significant decimals 
 	 * @return The COMPLEX of the integral
 	 */
@@ -500,11 +500,11 @@ public class Laplace extends MatrixComplex  {
 	}
 	
 	/**
-	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the real axe
+	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the real axis
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param expnz the function EXP((-2*pi*n*i/T)*z)
+	 * @param expz the function EXP((-2*pi*n*i/T)*z)
 	 * @param numDec the number of significant decimals 
 	 * @return The COMPLEX of the integral
 	 */
@@ -548,11 +548,11 @@ public class Laplace extends MatrixComplex  {
 	}
 
 	/**
-	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the imaginary axe
+	 * Private method. Calculates the Riemann integral of a Complex function in the complex plane by projecting the vector that joins the limits over the imaginary axis
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param expnz the function EXP((-2*pi*n*i/T)*z)
+	 * @param expz the function EXP((-2*pi*n*i/T)*z)
 	 * @param numDec the number of significant decimals 
 	 * @return The COMPLEX of the integral
 	 */
@@ -599,9 +599,9 @@ public class Laplace extends MatrixComplex  {
 	 * **************** MATHEMATICAL METHODS ****************
 	 */
 	/**
-	 * Indicates if the function is continuous in the given point.
-	 * @param p The point in which the continuity is analyzed. Only the real part is evaluated.
-	 * @return True if the function in continuous. False in other case.
+	 * Indicates if the function is continuous at the given point.
+	 * @param p The point at which the continuity is analyzed. Only the real part is evaluated.
+	 * @return True if the function is continuous, false otherwise.
 	 */
 	private Boolean isContinue(Complex p) {
 		Complex fp, fp1;
@@ -864,30 +864,30 @@ public class Laplace extends MatrixComplex  {
 	}
 	
 	/**
-	 * Enumerative for plotting the DLT in different operators 
-	 * COMPLEX. Plots the values of the coefficients in Rectangular representation.
-	 * MAGNITUDE. Plots the values of the coefficients in Polar representation.
-	 * SQUARE. Plots the square values of the coefficients in Rectangular representation.
+	 * Enum for plotting the DLT with different operators.
+	 * COMPLEX. Plots the values of the coefficients in rectangular representation.
+	 * MAGNITUDE. Plots the values of the coefficients in polar representation.
+	 * SQUARE. Plots the squared values of the coefficients in rectangular representation.
 	 */
 	public static enum e_operator {
 		COMPLEX, MAGNITUDE, SQUARE;
 	}
-	
+
 	/**
-	 * Enumerative for the two kinds of x axis units
-	 * SAMP. x axis represents the index of the coefficients
-	 * FREC. x axix represents the frequency associated to the coefficient
+	 * Enum for the two kinds of x-axis units.
+	 * SAMP. The x axis represents the index of the coefficients.
+	 * FREC. The x axis represents the frequency associated with the coefficient.
 	 */
 	public static  enum e_domain {
 		SAMP, FREC;
 	}
 	
 	/**
-	 * Does the operations required for the different views
-	 * @param cNum The Complex number to operate with.
-	 * @param operator The operator as defined in e_operator
-	 * @param logscale True if the cNum should be non-negative to be plotted in logarithmic scale 
-	 * @return  the number operated
+	 * Performs the operation required for the different views.
+	 * @param cNum The Complex number to operate on.
+	 * @param operator The operator as defined in e_operator.
+	 * @param logscale True if cNum should be non-negative to be plotted on a logarithmic scale.
+	 * @return The resulting number.
 	 */
 	private Complex eval(Complex cNum, e_operator operator, boolean logscale) {
 		switch (operator) {
@@ -959,11 +959,13 @@ public class Laplace extends MatrixComplex  {
 	}
 
 	/**
-	 * Does the plot of the DLT graphic in the domain of Coefficients
-	 * @param Title The title of the polt
-	 * @param domain The domain in which plot the DLT
-	 * @param operator The operator used
-	 * @param logscale True in y axis should be set in logarithmic scale
+	 * Plots the DLT graphic in the domain of the coefficients.
+	 * @param Title The title of the plot.
+	 * @param showIm True to plot the imaginary part.
+	 * @param lineStyle The line style used for the plot.
+	 * @apiNote The Javadoc previously listed {@code domain}/{@code operator}/{@code logscale} as
+	 * parameters, but the method's actual signature is {@code (String, boolean, e_lineStyle)} --
+	 * corrected to match, no behavior change.
 	 */
 	public void plotDLTSync(String Title, boolean showIm, e_lineStyle lineStyle) {
 		plotDLT(Title, showIm, lineStyle, SimpleGnuplot.e_syncMode.SYNC);

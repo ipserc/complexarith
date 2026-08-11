@@ -3,6 +3,12 @@ package com.ipserc.arith.syseq;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.complex.*;
 
+/**
+ * Represents a system of linear equations with complex coefficients, stored as an augmented
+ * matrix (coefficients plus independent terms). Solves it as a particular solution plus n times
+ * the solution of the homogeneous system, and can export the system to the syntax of several
+ * external tools (Maxima, GNU Octave, MATLAB, Wolfram).
+ */
 public class Syseq extends MatrixComplex {
 	private MatrixComplex partsol;	// Solution for the system
 	private MatrixComplex homosol;	// Solution for the homogeneous system

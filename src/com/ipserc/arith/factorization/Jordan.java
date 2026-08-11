@@ -10,8 +10,15 @@ import java.util.List;
 public class Jordan extends Eigenspace {
 
 	private final static String HEADINFO = "Jordan --- INFO:";
-	private final static String VERSION = "1.5 (2026_0808_0130)";
+	private final static String VERSION = "1.6 (2026_0811_2015)";
 	/* VERSION Release Note
+	 *
+	 * 1.6 (2026_0811_2015)
+	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
+	 * la generación de la documentación de la API. De paso, corregida una descripción incorrecta en
+	 * el Javadoc de factorize(): decía que D contenía los autovectores y P los autovalores, al revés
+	 * de lo que hace realmente el código (J=autovalores en forma de Jordan, P=autovectores). También
+	 * se rellenó el Javadoc vacío de jordanForm().
 	 *
 	 * 1.5 (2026_0808_0130)
 	 * factorize(): el KNOWN LIMITATION heredado del buscador de raices (autovalores repetidos de
@@ -508,9 +515,12 @@ public class Jordan extends Eigenspace {
 	}
 
 	/**
-	 *
-	 * @param eigenValArray
-	 * @return
+	 * Builds the full Jordan matrix J by placing each eigenvalue's block(s) (see
+	 * {@link #block(int, List, Complex)}) at consecutive row/col offsets, advancing by each
+	 * eigenvalue's algebraic multiplicity.
+	 * @param eigenValArray One row per repetition of each eigenvalue (see
+	 * {@link #expandedEigenValues()}).
+	 * @return The Jordan matrix J.
 	 */
 	public MatrixComplex jordanForm(MatrixComplex eigenValArray) {
 		int rowLen = this.rows(); 
@@ -541,8 +551,8 @@ public class Jordan extends Eigenspace {
 	}
 
 	/**
-	 * Factorizes the matrix using a diagonal matrix of eigenvectors (D) and a eigenvalue matrix (P)
-	 * The factorization gives A=P·J·P⁻¹
+	 * Factorizes the matrix using a Jordan (block-diagonal) matrix of eigenvalues (J) and an
+	 * eigenvector matrix (P). The factorization gives A=P·J·P⁻¹
 	 * <p>
 	 * <b>Geometric multiplicity greater than 1 (multiple Jordan chains per eigenvalue) is now
 	 * handled correctly</b> (VERSION 1.3) via {@link #blockSizePartition(Complex, int)} +

@@ -22,8 +22,16 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.27 (2026_0810_2200)";
+	private final static String VERSION = "1.28 (2026_0811_2100)";
 	/* VERSION Release Note
+	 * 1.28 (2026_0811_2100)
+	 * Comentarios Javadoc corregidos (sin cambios funcionales), como parte de la generación de la
+	 * documentación de la API -- este fichero ya estaba mayormente en inglés; se corrigieron unas
+	 * pocas frases mal redactadas ("as string as the one used by X" -> "as a string, in the format
+	 * used by X", "resultant of evaluating" -> "resulting from evaluating", "to adecuate it" -> "to
+	 * adapt it") y se tradujeron las referencias de sesión sueltas en Javadoc real (no en el
+	 * changelog, que se mantiene en español).
+	 *
 	 * 1.27 (2026_0810_2200)
 	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 2 de la hoja de ruta
 	 * "Matematicas Aplicadas", ver Claude/ComplexArithRev.md) -- 3 bugs reales encontrados y
@@ -449,7 +457,7 @@ public class Polynom extends MatrixComplex {
 	 */
 	public Polynom(String cadena) {
 		super(cadena);
-		this.reverse(); // The array is inverted to adecuate it with the columns indexes
+		this.reverse(); // The array is inverted to adapt it with the columns indexes
 	}
 
 	/**
@@ -462,7 +470,7 @@ public class Polynom extends MatrixComplex {
 	 */
 	public MatrixComplex newPolynom(String cadena) {
 		Polynom polynom = new Polynom(cadena); 
-		polynom.reverse(); // The array is reversed to adecuate it with the columns indexes
+		polynom.reverse(); // The array is reversed to adapt it with the columns indexes
 		return polynom;   	
 	}
 
@@ -498,7 +506,7 @@ public class Polynom extends MatrixComplex {
 	 */
 
 	/**
-	 * Returns the remainder resultant of the polynomial division associated to the quotient.
+	 * Returns the remainder resulting from the polynomial division associated with the quotient.
 	 * @return The polynomial remainder.
 	 */
 	public Polynom getRemainder() {
@@ -551,14 +559,14 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the one used by Maxima (Computer Algebra System)
+	 * Constructs the polynomial as a string, in the format used by Maxima (Computer Algebra System)
 	 * @return The Maxima's polynomial representation as a string.
 	 */
 	public String toMaxima_poly() {
 		return PolynomFormat.toMaximaPoly(this);
 	}
 	/**
-	 * Constructs the polynomial as string as the one used by Maxima (Computer Algebra System) appending a text before
+	 * Constructs the polynomial as a string, in the format used by Maxima (Computer Algebra System) appending a text before
 	 * @param text The text at the beginning of the string
 	 * @return The Maxima's polynomial representation as a string.
 	 */
@@ -567,7 +575,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the expression for finding the roots of a polynomial as string as the one used by Maxima (Computer Algebra System)
+	 * Constructs the expression for finding the roots of a polynomial as a string, in the format used by Maxima (Computer Algebra System)
 	 * @return The Maxima's allroots command for a polynomial.
 	 */
 	public String toMaxima_roots() {
@@ -575,7 +583,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the expression for finding the roots of a polynomial as string as the one used by Maxima (Computer Algebra System) appending a text before
+	 * Constructs the expression for finding the roots of a polynomial as a string, in the format used by Maxima (Computer Algebra System) appending a text before
 	 * @param text The text at the beginning of the string
 	 * @return The Maxima's allroots command for a polynomial.
 	 */
@@ -584,7 +592,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the used by GNUPlot.
+	 * Constructs the polynomial as a string, in the format used by GNUPlot.
 	 * @return The GNUPlot's polynomial representation as a string.
 	 */
 	public String toGNUPlot_poly() {
@@ -592,7 +600,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the one used by Wolfram
+	 * Constructs the polynomial as a string, in the format used by Wolfram
 	 * @return The Wolfram Mathematica's polynomial representation as a string.
 	 */
 	public String toWolfram_poly() {
@@ -600,7 +608,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the one used by Wolfram appending a text before
+	 * Constructs the polynomial as a string, in the format used by Wolfram appending a text before
 	 * @param text The text at the beginning of the string
 	 * @return The Wolfram Mathematica's polynomial representation as a string.
 	 */
@@ -609,7 +617,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the expression for finding the roots of a polynomial as string as the one used by Wolfram
+	 * Constructs the expression for finding the roots of a polynomial as a string, in the format used by Wolfram
 	 * @return The Wolfram's roots command for a polynomial.
 	 */
 	public String toWolfram_roots() {
@@ -617,7 +625,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the expression for finding the roots of a polynomial as string as the one used by Wolfram appending a text before
+	 * Constructs the expression for finding the roots of a polynomial as a string, in the format used by Wolfram appending a text before
 	 * @param text The text at the beginning of the string
 	 * @return The Wolfram's roots command for a polynomial.
 	 */
@@ -626,7 +634,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the used by GNU Octave.
+	 * Constructs the polynomial as a string, in the format used by GNU Octave.
 	 * @return The Octave polynomial representation as a string.
 	 */
 	public String toOctave_poly() {
@@ -634,7 +642,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the polynomial as string as the used by GNU Octave appending a text before
+	 * Constructs the polynomial as a string, in the format used by GNU Octave appending a text before
 	 * @param text The text at the beginning of the string
 	 * @return The Octave polynomial representation as a string.
 	 */
@@ -643,7 +651,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the expression for finding the roots of a polynomial as string as the one used by Octave
+	 * Constructs the expression for finding the roots of a polynomial as a string, in the format used by Octave
 	 * @return The Octave's roots command for a polynomial.
 	 */
 	public String toOctave_roots() {
@@ -651,7 +659,7 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Constructs the expression for finding the roots of a polynomial as string as the one used by Octave  appending a text before
+	 * Constructs the expression for finding the roots of a polynomial as a string, in the format used by Octave  appending a text before
 	 * @param text The text at the beginning of the string
 	 * @return The Octave's roots command for a polynomial.
 	 */
@@ -717,7 +725,7 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * Calculates the result of evaluating a polynomial for a specific complex value. Shortcut to the preferred method.
 	 * @param value The value to use in the polynomial.
-	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 * @return The complex number resulting from evaluating the polynomial for "value".
 	 */	
 	public Complex eval(Complex value) {
 		return evalHorner(value);
@@ -726,7 +734,7 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * Calculates the result of evaluating a polynomial for a specific real value.
 	 * @param value The value to use in the polynomial.
-	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 * @return The complex number resulting from evaluating the polynomial for "value".
 	 */
 	public Complex eval(double value) {
 		Complex cNum = new Complex(value,0);
@@ -736,7 +744,7 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * Calculates the result of evaluating a polynomial for a specific complex value using the Horner method. 
 	 * @param value The value to use in the polynomial.
-	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 * @return The complex number resulting from evaluating the polynomial for "value".
 	 */
 	public Complex evalHorner(Complex value) {
 		int colLen = this.cols();
@@ -760,7 +768,7 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * Calculates the result of evaluating a polynomial for a specific complex value through the power on the value. 
 	 * @param value The value to use in the polynomial.
-	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 * @return The complex number resulting from evaluating the polynomial for "value".
 	 */
 	public Complex evalFact(Complex value) {
 		int rowLen = this.rows();
@@ -789,7 +797,7 @@ public class Polynom extends MatrixComplex {
 	 * FACTORED form (leading coefficient times the product of {@code (value - root)} for every
 	 * root), instead of the expanded monomial coefficients {@code evalHorner}/{@code evalFact} use.
 	 * <p>
-	 * Investigated (Decimonovena sesion, candidato de eval() numericamente estable) as the fix for
+	 * Investigated (19th session, numerically stable eval() candidate) as the fix for
 	 * a case {@code evalHorner}/{@code evalFact} cannot recover from: a polynomial built from
 	 * roots of extreme magnitude and/or high multiplicity (e.g. {@code (z-140-180i)^9}) loses the
 	 * information needed to evaluate near its own roots already at CONSTRUCTION time -- expanding
@@ -805,7 +813,7 @@ public class Polynom extends MatrixComplex {
 	 * @param roots The roots of the polynomial (one column, {@link #degree()} rows -- e.g. the
 	 * {@code MatrixComplex} returned by {@code solve()}/{@code solveRobust()}/...).
 	 * @param value The value to use in the polynomial.
-	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 * @return The complex number resulting from evaluating the polynomial for "value".
 	 */
 	public Complex evalFromRoots(MatrixComplex roots, Complex value) {
 		int degree = this.degree();
@@ -828,7 +836,7 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * Private method. Calculates the result of evaluating a NORMALIZED polynomial for a specific complex value.
 	 * @param value The value to use in the polynomial.
-	 * @return The complex number resultant of evaluating the polynomial for "value".
+	 * @return The complex number resulting from evaluating the polynomial for "value".
 	 */
 	private Complex evalNorm(Complex value) {
 		int rowLen = this.rows();
@@ -1313,8 +1321,8 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Selects between the two root-finding OUTPUT STRATEGIES this class supports (8 agosto 2026, a
-	 * peticion del usuario) -- both sit on top of the same {@link #solveRobust(double)} (Durand-
+	 * Selects between the two root-finding OUTPUT STRATEGIES this class supports (8 agosto 2026, at
+	 * the user's request) -- both sit on top of the same {@link #solveRobust(double)} (Durand-
 	 * Kerner with Aberth-Ehrlich fallback); neither this enum nor {@link #solveStatistic(double)}
 	 * change that iteration in any way, they only differ in how its already-converged output is
 	 * turned into the returned root list.
@@ -1328,8 +1336,8 @@ public class Polynom extends MatrixComplex {
 	 * as {@code n} IDENTICAL copies (multiplicity readable as "how many rows share this value")
 	 * instead of {@code n} merely-close estimates. Same idea already measured and shipped for
 	 * eigenvalues in {@code Eigenspace#eigenval()} (see {@code Claude/ComplexArithRev.md},
-	 * "Decimosexta sesion") -- ported here, not invented from scratch, but with 2 changes the
-	 * {@code Polynom}-specific calibration (Fase 2, same document) found necessary: the tolerance is
+	 * "16th session") -- ported here, not invented from scratch, but with 2 changes the
+	 * {@code Polynom}-specific calibration (Phase 2, same document) found necessary: the tolerance is
 	 * RELATIVE to root magnitude (an absolute tolerance copied from {@code Eigenspace} needed a
 	 * different value at every magnitude tested -- relative to magnitude, the SAME value works
 	 * uniformly from 0.1 to 200), and clustering uses CONNECTED COMPONENTS over all pairs within
@@ -1341,7 +1349,7 @@ public class Polynom extends MatrixComplex {
 	 * tested; multiplicity >=5 is not guaranteed (same kind of accepted residual {@code Eigenspace}
 	 * itself documents for multiplicity 3+).</li>
 	 * </ul>
-	 * <b>DETERMINISTIC stays the default PERMANENTLY, a deliberate decision (Fase 3, 8 agosto 2026,
+	 * <b>DETERMINISTIC stays the default PERMANENTLY, a deliberate decision (Phase 3, 8 agosto 2026,
 	 * not a placeholder pending more data):</b> confirmed by grep that {@link #solve()}/{@link
 	 * #solve(double)} have ZERO callers inside the library itself ({@code MatrixComplex.rank2()} and
 	 * {@code Eigenspace.eigenval()} both already call {@link #solveRobust(double)} directly, never
@@ -1361,7 +1369,7 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * RELATIVE tolerance for {@link #solveStatistic(double)}'s distance-based root clustering: two
 	 * raw roots {@code a}, {@code b} belong to the same cluster when {@code |a-b| / max(1,|a|,|b|)
-	 * <= ROOT_GROUPING_TOL_FACTOR}. Calibrated (Fase 2, 8 agosto 2026, see {@code
+	 * <= ROOT_GROUPING_TOL_FACTOR}. Calibrated (Phase 2, 8 agosto 2026, see {@code
 	 * Claude/ComplexArithRev.md}) against known-multiplicity polynomials (real roots, complex
 	 * conjugate pairs, and a multi-cluster degree-11 case) across magnitudes 0.1-200: this value
 	 * recovers multiplicity 2-4 in every case tested, at a false-positive risk (merging 2 genuinely
@@ -1718,7 +1726,7 @@ public class Polynom extends MatrixComplex {
 	 * Calculates the polynomial to the nth power
 	 * @param pot The exponent
 	 * @return The polynomial raised to the nth power
-	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): {@code pot<=0} returned
+	 * @apiNote BUG FIXED (26th session, dedicated mathematical audit): {@code pot<=0} returned
 	 * {@code new Polynom()}, the no-arg constructor -- which builds a genuinely EMPTY (0x0) matrix
 	 * via {@code MatrixComplex()}, not even a "zero polynomial", let alone the mathematically
 	 * correct {@code P^0=1}. Confirmed it wasn't just wrong in value but structurally broken:
@@ -2074,7 +2082,7 @@ public class Polynom extends MatrixComplex {
 	 * Hermite(1) = 2xi
 	 * @param degree The degree of the Hermite polynomial.
 	 * @return The Hermite polynomial of degree "degree".
-	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): the recurrence called the
+	 * @apiNote BUG FIXED (26th session, dedicated mathematical audit): the recurrence called the
 	 * sibling {@link #hermite(int)} (the REAL Hermite polynomials) instead of recursing on itself,
 	 * with an extra stray {@code .times(Complex.i)} on only the first recursive term -- unlike
 	 * every other recurrence in this class ({@link #hermite(int)}, {@link #hermiteP(int)}, {@link
@@ -2142,7 +2150,7 @@ public class Polynom extends MatrixComplex {
 	 * Legendre(1) = xi
 	 * @param degree The degree of the Legendre polynomial.
 	 * @return The Legendre polynomial of degree "degree".
-	 * @apiNote BUG FIXED (Vigesimosexta sesion, auditoria matematica): same defect as {@link
+	 * @apiNote BUG FIXED (26th session, dedicated mathematical audit): same defect as {@link
 	 * #hermiteI(int)} (see its apiNote for the full diagnosis) -- called the sibling {@link
 	 * #legendre(int)} (REAL Legendre polynomials) instead of recursing on itself, with an extra
 	 * stray {@code .times(Complex.i)}. Masked at degree 0/1 by the shared base cases, diverged from
