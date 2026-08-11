@@ -747,13 +747,17 @@ class MatrixComplexFunctions {
 	 * @param m The matrix.
 	 * @return The logarithm of a Matrix using Taylor's Extension
 	 * https://es.wikipedia.org/wiki/Logaritmo_de_una_matriz
-	 * @throws IllegalArgumentException if the series diverges (existing check), or if it fails to
+	 * @throws IllegalArgumentException if the series diverges (existing check), if it fails to
 	 * converge within {@link #LOG_TAYLOR_MAX_ITER} iterations (new safety net for the boundary
-	 * case the divergence check can miss).
+	 * case the divergence check can miss), or if {@code m} is the zero matrix ({@code log(0)} is a
+	 * genuine singularity, unlike {@code exp(0)=I} -- see the guard fix in {@link #exp}'s Javadoc
+	 * for the sibling bug this deliberately does NOT repeat: propagating the zero matrix here would
+	 * be a silently wrong "logarithm", not a valid sentinel).
 	 */
 	static MatrixComplex logTaylor(MatrixComplex m) {
 		MatrixComplex.trace("------------ logtaylor() ------------ ");
-		if (m.isNaN() || m.isNull() || m.isInfinite() ) return m;
+		if (m.isNaN() || m.isInfinite() ) return m;
+		if (m.isNull()) throw new IllegalArgumentException("logTaylor: log(0) is undefined (the zero matrix has no matrix logarithm).");
 		if (!m.isSquare()) {
 			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
@@ -902,13 +906,15 @@ class MatrixComplexFunctions {
 	 * Calculates the logarithm of a Matrix using Mercator's Extension summation log(1 + x)
 	 * @param m The matrix.
 	 * @return The logarithm of a Matrix using Mercator's Extension
-	 * @throws IllegalArgumentException if the series diverges (existing check), or if it fails to
+	 * @throws IllegalArgumentException if the series diverges (existing check), if it fails to
 	 * converge within {@link #LOG_MERCATOR_MAX_ITER} iterations (same boundary case as
-	 * {@link #logTaylor}).
+	 * {@link #logTaylor}), or if {@code m} is the zero matrix ({@code log(0)} is a genuine
+	 * singularity -- see {@link #logTaylor}'s Javadoc for why this is not a sentinel case).
 	 */
 	static MatrixComplex logMercator(MatrixComplex m) {
 		MatrixComplex.trace("------------ logMercator() ------------ ");
-		if (m.isNaN() || m.isNull() || m.isInfinite() ) return m;
+		if (m.isNaN() || m.isInfinite() ) return m;
+		if (m.isNull()) throw new IllegalArgumentException("logMercator: log(0) is undefined (the zero matrix has no matrix logarithm).");
 		if (!m.isSquare()) {
 			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
@@ -1015,10 +1021,13 @@ class MatrixComplexFunctions {
 	 * Not recommended to use
 	 * @param m The matrix.
 	 * @return The logarithm of a Matrix using Hyperbolic Arc Tangent's Extension
+	 * @throws IllegalArgumentException if {@code m} is the zero matrix ({@code log(0)} is a genuine
+	 * singularity -- see {@link #logTaylor}'s Javadoc for why this is not a sentinel case).
 	 */
 	static MatrixComplex logHat(MatrixComplex m) {
 		MatrixComplex.trace("------------ loghat() ------------ ");
-		if (m.isNaN() || m.isNull() || m.isInfinite() ) return m;
+		if (m.isNaN() || m.isInfinite() ) return m;
+		if (m.isNull()) throw new IllegalArgumentException("logHat: log(0) is undefined (the zero matrix has no matrix logarithm).");
 		if (m.rows() != m.cols()) {
 			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}
@@ -1199,11 +1208,14 @@ class MatrixComplexFunctions {
 	 * @throws IllegalArgumentException if this matrix is not square, if a Schur factorization
 	 * could not be found, if the scaling loop doesn't reach a near-identity diagonal within a
 	 * generous safety cap, or if the Mercator series fails to converge even after scaling (would
-	 * indicate a deeper problem, since scaling is specifically meant to guarantee convergence).
+	 * indicate a deeper problem, since scaling is specifically meant to guarantee convergence), or
+	 * if {@code m} is the zero matrix ({@code log(0)} is a genuine singularity -- see
+	 * {@link #logTaylor}'s Javadoc for why this is not a sentinel case).
 	 */
 	static MatrixComplex logm(MatrixComplex m) {
 		MatrixComplex.trace("------------ logm() ------------ ");
-		if (m.isNaN() || m.isNull() || m.isInfinite()) return m;
+		if (m.isNaN() || m.isInfinite()) return m;
+		if (m.isNull()) throw new IllegalArgumentException("logm: log(0) is undefined (the zero matrix has no matrix logarithm).");
 		if (!m.isSquare()) {
 			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");
 		}

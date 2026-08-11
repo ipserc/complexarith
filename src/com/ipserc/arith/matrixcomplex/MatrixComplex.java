@@ -22,8 +22,15 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.74 (2026_0811_2230)";
+	private final static String VERSION = "1.75 (2026_0811_2300)";
 	/* VERSION Release Note
+	 *
+	 * 1.75 (2026_0811_2300)
+	 * logTaylor()/logMercator()/logHat()/logm() fallan alto con IllegalArgumentException para la
+	 * matriz cero en vez de devolverla sin tocar -- log(0) es una singularidad genuina (al contrario
+	 * que exp(0)=I, ver la nota de la 1.72), así que el centinela isNull() heredado de la guarda
+	 * combinada isNaN()||isNull()||isInfinite() enmascaraba el caso en vez de señalarlo. isNaN()/
+	 * isInfinite() se siguen propagando igual que antes.
 	 *
 	 * 1.74 (2026_0811_2230)
 	 * Corregidos errores de generación de Javadoc preexistentes (@param desincronizados, referencias
