@@ -51,8 +51,13 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.41 (2026_0811_2130)";
+	private final static String VERSION = "1.42 (2026_0811_2301)";
 	/* VERSION Release Note
+	 * 1.42 (2026_0811_2301)
+	 * Reportado por el usuario tras revisar el HTML generado: el tipo anidado Representation no
+	 * tenía Javadoc real, así que su página en doc/ salía sin descripción -- mismo patrón ya visto
+	 * y arreglado en Eigenspace.java. Añadido el Javadoc real, sin cambios funcionales.
+	 *
 	 * 1.41 (2026_0811_2130)
 	 * Corregidos errores de generacion de Javadoc preexistentes (@param desincronizados tras
 	 * renombres historicos de parametros, '<'/'&' sin escapar interpretados como HTML) detectados
@@ -301,6 +306,7 @@ public class Complex {
 	public final static double EULER_MASC = 0.5772156649015328606065120900824024310421; // Constant of Euler-Mascheroni
 	public final static double LIM_INF = 2147483647; //2147483647
 
+	/** The 2 ways a complex number can be represented: RECTANGULAR (a+bi) or POLAR (modulus/phase). */
 	public static enum Representation {RECTANGULAR, POLAR};
 
 	/*

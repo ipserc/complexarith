@@ -3,14 +3,27 @@ package com.ipserc.arith.geom;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.vectorcomplex.*;
 
+/**
+ * A line in n-dimensional (possibly complex-valued) space, defined by a point and a direction
+ * vector ({@link VectorComplex}). Provides the usual analytic-geometry operations: distance to a
+ * point or to another line, intersection, parallelism/angle, and the perpendicular through a
+ * given point.
+ * @author ipserc
+ */
 public class Line {
 	private VectorComplex direction;
 	private Point point;
 	
 	private final static String HEADINFO = "Line --- INFO: ";
-	private final static String VERSION = "1.8 (2026_0811_1200)";
+	private final static String VERSION = "1.9 (2026_0811_2200)";
 	private final static double PARALLEL_TOLERANCE = 1e-9;
 	/* VERSION Release Note
+	 *
+	 * 1.9 (2026_0811_2200)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real (sin
+	 * bloque alguno antes del package/import, ni pegado a la declaración de la clase), así que su
+	 * página en doc/ salía sin descripción -- mismo patrón ya visto y arreglado en Eigenspace.java.
+	 * Añadido el Javadoc de clase real, sin cambios funcionales.
 	 *
 	 * 1.8 (2026_0811_1200)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte

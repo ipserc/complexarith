@@ -1,14 +1,4 @@
-/**
- * 
- */
 package com.ipserc.arith.matrixcomplex;
-
-
-
-/**
- * @author ipserc
- *
- */
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.factorization.Diagfactor;
@@ -17,11 +7,26 @@ import com.ipserc.arith.polynom.Polynom;
 import com.ipserc.arith.syseq.Syseq;
 import com.ipserc.arith.vectorcomplex.*;
 
+/**
+ * Eigenvalues and eigenvectors of a {@link MatrixComplex}. Builds the characteristic polynomial,
+ * solves it for its roots (the eigenvalues, via {@link Diagfactor}/{@link QRSchurfactor} as
+ * needed), and for each eigenvalue solves the associated homogeneous equation system to obtain
+ * its eigenvectors. Extended by {@link com.ipserc.arith.factorization.Jordan} for the defective
+ * (non-diagonalizable) case.
+ * @author ipserc
+ */
 public class Eigenspace extends MatrixComplex {
 
 	private final static String HEADINFO = "Eigenspace --- INFO: ";
-	private final static String VERSION = "1.16 (2026_0810_2230)";
+	private final static String VERSION = "1.17 (2026_0811_2200)";
 	/* VERSION Release Note
+	 *
+	 * 1.17 (2026_0811_2200)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenia Javadoc real (2
+	 * bloques /** * / sueltos antes del package/import, ninguno pegado a "public class
+	 * Eigenspace"), asi que su pagina en doc/ salia sin descripcion -- mismo patron ya visto y
+	 * arreglado en MatrixComplex.java en el bloque de limpieza de Javadoc de esta sesion. Anadido
+	 * el Javadoc de clase real, sin cambios funcionales.
 	 *
 	 * 1.16 (2026_0810_2230)
 	 * Auditoria matematica dedicada (Vigesimosexta sesion, bloque 3 de la hoja de ruta

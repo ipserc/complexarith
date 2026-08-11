@@ -3,10 +3,22 @@ package com.ipserc.arith.combinatoric;
 import java.util.List;
 import java.util.*;
 
+/**
+ * Combinations without repetition of {@code grade} elements taken {@code order} at a time:
+ * factorial/count helpers ({@link #factorial(int)}, {@link #numberOf(int, int)}) plus item-level
+ * generation utilities that enumerate the combinations themselves.
+ * @author ipserc
+ */
 public class CombinationNoReps {
 	private final static String HEADINFO = "Combinatoric --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0811_1200)";
+	private final static String VERSION = "1.3 (2026_0811_2200)";
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0811_2200)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real (sin
+	 * bloque alguno antes del package/import, ni pegado a la declaración de la clase), así que su
+	 * página en doc/ salía sin descripción -- mismo patrón ya visto y arreglado en Eigenspace.java.
+	 * Añadido el Javadoc de clase real, sin cambios funcionales.
 	 *
 	 * 1.2 (2026_0811_1200)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte

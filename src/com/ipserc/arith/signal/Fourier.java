@@ -18,6 +18,13 @@ import java.nio.file.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+/**
+ * Fourier analysis of a {@link Complex} function: discrete Fourier transform (DFT/IDFT) and
+ * continuous Fourier transform pair, plus plotting and raw-data file I/O for the resulting
+ * spectra. Shares most of its plotting/file-I/O machinery with its sibling transforms,
+ * {@link Laplace} (continuous) and {@link Z} (discrete).
+ * @author ipserc
+ */
 public class Fourier extends MatrixComplex {
 	private Function<Complex, Complex> func;
 	private Complex loLimit; 
@@ -35,8 +42,14 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.12 (2026_0811_2130)";
+	private final static String VERSION = "1.13 (2026_0811_2240)";
 	/* VERSION Release Note
+	 *
+	 * 1.13 (2026_0811_2240)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real (sin
+	 * ningún comentario antes del package/import), así que su página en doc/ salía sin descripción
+	 * -- mismo patrón ya visto y arreglado en Eigenspace.java. Añadido el Javadoc de clase real,
+	 * sin cambios funcionales.
 	 *
 	 * 1.12 (2026_0811_2130)
 	 * Corregidos errores de generación de Javadoc preexistentes (@param desincronizados, tag

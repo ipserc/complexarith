@@ -5,10 +5,19 @@ import com.ipserc.arith.matrixcomplex.Eigenspace;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.vectorcomplex.VectorComplex;
 
+/**
+ * Classical (unshifted) Schur factorization of a complex square matrix: A = U*T*U^H, where U is
+ * unitary and T is upper triangular (Schur form) with the eigenvalues of A on its diagonal.
+ * Computed by plain QR iteration without deflation or shifts, so convergence is only linear and
+ * can stall on eigenvalues of equal modulus -- see {@link QRSchurfactor} for the Wilkinson-shift
+ * variant used elsewhere in the project (Hessenberg reduction + deflation + shifts), which
+ * converges faster and resolves that equal-modulus case.
+ * @author ipserc
+ */
 public class Schurfactor extends MatrixComplex {
-	
+
 	private final static String HEADINFO = "Schurfactor --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0811_2130)";
+	private final static String VERSION = "1.4 (2026_0811_2215)";
 	private final static int boxSize = 65;
 
 	private boolean factorized = false;
@@ -17,6 +26,11 @@ public class Schurfactor extends MatrixComplex {
 	private MatrixComplex cSchur;
 
 	/* VERSION Release Note
+	 *
+	 * 1.4 (2026_0811_2215)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenia ningun Javadoc de
+	 * clase, asi que su pagina en doc/ salia sin descripcion -- mismo patron ya visto y arreglado
+	 * en Eigenspace.java. Anadido el Javadoc de clase real, sin cambios funcionales.
 	 *
 	 * 1.3 (2026_0811_2130)
 	 * Corregido error de generacion de Javadoc preexistente: el @param del constructor

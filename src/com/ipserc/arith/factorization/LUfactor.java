@@ -25,6 +25,7 @@ import com.ipserc.arith.matrixcomplex.*;
  * @author ipserc
  */
 public class LUfactor extends MatrixComplex {
+	/** The LU decomposition variant to use: none yet, partial pivoting, Crout, Doolittle, or Cholesky (symmetric positive-definite only). */
 	public static enum LUmethod {NONE, PIVOT, CROUT, DOOLITTLE, CHOLESKY};
 
 	private MatrixComplex cL;
@@ -34,8 +35,12 @@ public class LUfactor extends MatrixComplex {
 	private LUmethod method = LUmethod.NONE;
 
 	private final static String HEADINFO = "LUfactor --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0811_2020)";
+	private final static String VERSION = "1.7 (2026_0811_2302)";
 	/* VERSION Release Note
+	 * 1.7 (2026_0811_2302)
+	 * Reportado por el usuario tras revisar el HTML generado: el tipo anidado LUmethod no tenía
+	 * Javadoc real, así que su página en doc/ salía sin descripción -- mismo patrón ya visto y
+	 * arreglado en Eigenspace.java. Añadido el Javadoc real, sin cambios funcionales.
 	 *
 	 * 1.6 (2026_0811_2020)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de

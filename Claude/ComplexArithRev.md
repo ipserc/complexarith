@@ -3345,7 +3345,28 @@ A petición explícita del usuario ("bloque dedicado a limpiarlos"), tras el blo
 
 VERSION bumps de este bloque: `Complex` `1.40→1.41`, `MatrixComplex` `1.73→1.74`, `VectorComplex` `1.13→1.14`, `Polynom` `1.28→1.29`, `Fourier` `1.11→1.12`, `Jordan` `1.6→1.7`, `Schurfactor` `1.2→1.3`, `Spline` `1.1→1.2` (más los ya hechos en el bloque de traducción anterior). `Laplace`/`Z`/los ficheros package-private de apoyo no tienen `VERSION` propio, sin bump forzado.
 
-**Sin punto de retomada pendiente** — los 89 errores están cerrados del todo, `doc/` regenerado sin errores, listo para commitear.
+**Sin punto de retomada pendiente** — los 89 errores están cerrados del todo, `doc/` regenerado sin errores. Commiteado (`d239f4d`), pusheado a petición del usuario.
+
+## Continuación — hallazgo del usuario tras revisar el HTML: 20 clases/tipos sin Javadoc real (11 agosto 2026, commit pendiente)
+
+Tras hacer push, el usuario abrió `doc/com/ipserc/arith/matrixcomplex/package-summary.html` en el navegador y reportó que `MatrixComplexFunctions.hyptrigon` salía con la descripción vacía. Investigado: el `enum hyptrigon` (movido en el bloque de limpieza de errores de Javadoc de esta sesión, para dejar de colarse entre el Javadoc de `trigonHyperbolycTaylor()` y el propio método) se quedó sin su propio bloque Javadoc al moverlo — arreglado con un Javadoc de 1 línea (commit `faca474`).
+
+El usuario reportó a continuación que `Eigenspace` tenía el mismo problema. Investigado a fondo: `Eigenspace.java` tenía 2 bloques `/** ... */` sueltos ANTES del `package`/`import` (uno vacío, otro solo `@author ipserc`), ninguno pegado a `public class Eigenspace` — la clase no tenía Javadoc real en absoluto, solo huérfano. Arreglado a mano, consolidando en un Javadoc real de clase.
+
+**Dado el hallazgo, se hizo un escaneo automatizado de TODAS las páginas de clase/enum generadas** (no solo `package-summary.html`, sino cada página individual — el bug de `hyptrigon` solo era visible en el "Nested Class Summary", no en el resumen de paquete) buscando ausencia de `<div class="block">` justo después de la firma de tipo. Resultado: **19 sitios más con el mismo patrón**, además de `Eigenspace` (2017-era: hábito de poner una descripción antes del `package` y un `/** @author ipserc */` vacío pegado a la clase — ninguno de los 2 llega al doclet como descripción real de la clase). Repartidos en 5 forks paralelos (mismo enfoque que los bloques anteriores):
+
+- **Con contenido matemático sustancioso suelto antes del `package`, consolidado en el Javadoc real**: `Diagfactor.java` (diagonalización, A=P·D·P⁻¹), `Hessenbergfactor.java` (cabecera en español, un comentario `/* */` normal ni siquiera Javadoc — traducida y convertida).
+- **`/** */` vacío + `@author` vacío, Javadoc nuevo escrito de cero**: `Plane.java`.
+- **Sin ningún comentario de cabecera en absoluto, Javadoc nuevo escrito de cero** (leyendo la clase para describirla con precisión): `Jordan.java`, `Schurfactor.java`, `Line.java`, `Point.java`, `CombinationNoReps.java`, `Syseqnum.java`, `Fourier.java`, `Laplace.java`, `Z.java`, `VectorComplex.java`.
+- **Comando de shell residual sin valor descriptivo antes del `package` (basura histórica de 2017-2018), descartado**: `Polynom.java` — `/usr/lib/jvm/java-11-openjdk-amd64/bin/java ... TestComplex.plotPolynom`.
+- **`Spline.java`**: `/** @author */` suelto + `/** */` vacío pegado a `public class Spline` (que convive en el mismo fichero con `SplineComponent`, ya bien documentada) — consolidado.
+- **5 tipos anidados menores sin ningún Javadoc propio** (dentro de clases que sí tienen su propio Javadoc bueno): `Complex.Representation` (enum RECTANGULAR/POLAR), `ComplexState.State` (resultó ser una `private static final class`, no un enum como se esperaba), `LUfactor.LUmethod`, `SVDfactor.SVDmethod`, `SimpleGnuplot.SimpleGnuplotException` — añadida 1 línea a cada uno.
+
+**Verificación**: recompilación fresca completa de `com.ipserc.arith` (limpia). Regeneración completa de `doc/` — **0 errores de javadoc** (se mantiene desde el bloque anterior). Escaneo automatizado repetido sobre las 20 páginas corregidas más las ~180 restantes: **0 sitios con descripción vacía** en todo `com.ipserc.arith`. Escaneo del diff completo filtrando líneas añadidas que no sean comentario/blank/`VERSION =`: solo reordenamientos de `package`/`import` (movidos antes del bloque Javadoc consolidado, en `Diagfactor.java` y análogos), confirmado que no hay cambios de lógica en ningún fichero.
+
+VERSION bumps de este bloque: `MatrixComplexFunctions` (package-private, sin campo VERSION propio, sin bump), `Eigenspace` `1.16→1.17`, `Diagfactor` `1.6→1.7`, `Jordan` `1.7→1.8`, `Schurfactor` `1.3→1.4`, `Polynom` `1.29→1.30`, `Spline` `1.2→1.3`, `Syseqnum` `1.6→1.7`, `Fourier` `1.12→1.13`, `VectorComplex` `1.14→1.15`, `Complex` `1.41→1.42`, `LUfactor` `1.6→1.7`, `SVDfactor` `1.5→1.6` (más bumps en `CombinationNoReps`/`Line`/`Plane`/`Point`, ver diffs exactos). `Hessenbergfactor`/`ComplexState`/`SimpleGnuplot`/`Laplace`/`Z` no tienen campo `VERSION` propio, sin bump forzado.
+
+**Sin punto de retomada pendiente** — los 20 sitios están cerrados del todo, `doc/` regenerado sin errores ni descripciones vacías, listo para commitear.
 
 ---
 

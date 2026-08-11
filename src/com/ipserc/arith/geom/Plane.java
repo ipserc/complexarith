@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.ipserc.arith.geom;
 
 import com.ipserc.arith.complex.*;
@@ -8,16 +5,24 @@ import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.vectorcomplex.*;
 
 /**
+ * A plane in n-dimensional (possibly complex-valued) space, defined by a normal
+ * {@link VectorComplex} and a {@link Point}. Provides the usual analytic-geometry operations:
+ * distance to a point or to a {@link Line}, intersection, parallelism/angle, and projection.
  * @author ipserc
- *
  */
 public class Plane {
 	private VectorComplex normal;
 	private Point point;
 
 	private final static String HEADINFO = "Plane --- INFO: ";
-	private final static String VERSION = "1.5 (2026_0811_1200)";
+	private final static String VERSION = "1.6 (2026_0811_2200)";
 	/* VERSION Release Note
+	 *
+	 * 1.6 (2026_0811_2200)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real (un
+	 * bloque vacío antes del package, y otro solo con @author pegado a la clase), así que su página
+	 * en doc/ salía sin descripción -- mismo patrón ya visto y arreglado en Eigenspace.java.
+	 * Consolidado en un único Javadoc de clase real, sin cambios funcionales.
 	 *
 	 * 1.5 (2026_0811_1200)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte

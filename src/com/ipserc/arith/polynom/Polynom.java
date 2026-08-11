@@ -1,11 +1,5 @@
-/**
- * /usr/lib/jvm/java-11-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -classpath /home/ipserc/eclipse-workspace/complexarith/bin TestComplex.plotPolynom
- */
 package com.ipserc.arith.polynom;
-/**
- * @author ipserc
- *
- */
+
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.QRSchurfactor;
 import com.ipserc.arith.matrixcomplex.*;
@@ -14,6 +8,13 @@ import com.ipserc.arith.syseq.Syseq;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A single-variable complex polynomial, stored as a {@link MatrixComplex} row of coefficients.
+ * Provides arithmetic (addition, product, division with remainder, derivative), evaluation
+ * (direct, Horner's method, factored/root form), root finding, and export of the polynomial or
+ * its roots as a string formatted for Maxima, Wolfram, Octave, or GNUPlot.
+ * @author ipserc
+ */
 public class Polynom extends MatrixComplex {
 	private Complex[][] polyNorm;
 	private Polynom remainder;
@@ -22,8 +23,15 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.29 (2026_0811_2230)";
+	private final static String VERSION = "1.30 (2026_0811_2330)";
 	/* VERSION Release Note
+	 * 1.30 (2026_0811_2330)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real (un
+	 * comando de shell suelto sin valor descriptivo antes del package, y un `/** @author * /` vacío
+	 * pegado a la clase), así que su página en doc/ salía sin descripción -- mismo patrón ya visto y
+	 * arreglado en Eigenspace.java. Descartado el comando de shell (basura histórica) y añadido el
+	 * Javadoc de clase real, sin cambios funcionales.
+	 *
 	 * 1.29 (2026_0811_2230)
 	 * Corregidos errores de generación de Javadoc preexistentes (@param desincronizados, referencia
 	 * rota a Complex.exact() -- modo EXACT/APPROXIMATED ya eliminado del proyecto --, HTML mal

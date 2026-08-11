@@ -1,3 +1,9 @@
+package com.ipserc.arith.factorization;
+
+import com.ipserc.arith.complex.Complex;
+import com.ipserc.arith.matrixcomplex.Eigenspace;
+import com.ipserc.arith.matrixcomplex.MatrixComplex;
+
 /**
  * A square matrix "A" is said to be diagonalizable if it is similar to a diagonal matrix.
  * That is, if it can be reduced to a diagonal form through a change of basis.
@@ -22,16 +28,7 @@
  *  with each λi, following the order established in D, i.e. the vectors that form the kernel of
  *  the matrix (A − λi·I):
  *  	P = (v1|v2|...|vn), vj ∈ ker(A − λi·I) ∀ i, j = 1,..., n
- */
-package com.ipserc.arith.factorization;
-
-import com.ipserc.arith.complex.Complex;
-import com.ipserc.arith.matrixcomplex.Eigenspace;
-import com.ipserc.arith.matrixcomplex.MatrixComplex;
-
-/**
  * @author ipserc
- *
  */
 public class Diagfactor extends MatrixComplex {
 	private MatrixComplex cD;
@@ -39,8 +36,15 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0811_1800)";
+	private final static String VERSION = "1.7 (2026_0811_2200)";
 	/* VERSION Release Note
+	 * 1.7 (2026_0811_2200)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenia Javadoc real (el
+	 * bloque con la explicacion matematica estaba suelto antes del package/import, sin pegar a la
+	 * declaracion de la clase, y el bloque si pegado solo tenia @author), asi que su pagina en
+	 * doc/ salia sin descripcion -- mismo patron ya visto y arreglado en Eigenspace.java.
+	 * Consolidado en un unico Javadoc de clase real, sin cambios funcionales.
+	 *
 	 * 1.6 (2026_0811_1800)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
 	 * la generación de la documentación de la API. De paso, corregida una descripción incorrecta en

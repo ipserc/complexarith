@@ -56,6 +56,7 @@ final class ComplexState {
 	static final long DIGITS_DEF = (long)Math.pow(10, SIGNIFICATIVE_DEF);
 	static final int MAX_DECIMALS_DEFAULT = 8; //Member Variable
 
+	/** The per-thread bundle of mutable precision/format settings held by {@link #STATE}. */
 	private static final class State {
 		/* Precision Block */
 		double PRECISION = 1E-13; //1E-16; //1E-13;

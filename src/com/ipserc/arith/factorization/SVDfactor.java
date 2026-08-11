@@ -17,6 +17,7 @@ import com.ipserc.arith.vectorcomplex.*;
  * @author ipserc
  */
 public class SVDfactor extends MatrixComplex {
+	/** The SVD variant to use: none computed yet, the full decomposition, or the reduced (thin) form. */
 	public static enum SVDmethod {NONE, SVD, REDUCED};
 	
 	private static Boolean __DEBUG__ = false; 
@@ -26,13 +27,18 @@ public class SVDfactor extends MatrixComplex {
 	private MatrixComplex cU;
 
 	private final static String HEADINFO = "SVDfactor --- INFO: ";
-	private final static String VERSION = "1.5 (2026_0811_2025)";
+	private final static String VERSION = "1.6 (2026_0811_2303)";
 	private boolean factorized = false;
 	private boolean oriented = false;
 	private SVDmethod method = SVDmethod.NONE;
 
 
 	/* VERSION Release Note
+	 * 1.6 (2026_0811_2303)
+	 * Reportado por el usuario tras revisar el HTML generado: el tipo anidado SVDmethod no tenía
+	 * Javadoc real, así que su página en doc/ salía sin descripción -- mismo patrón ya visto y
+	 * arreglado en Eigenspace.java. Añadido el Javadoc real, sin cambios funcionales.
+	 *
 	 * 1.5 (2026_0811_2025)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
 	 * la generación de la documentación de la API. El comentario de cabecera del fichero se movió y

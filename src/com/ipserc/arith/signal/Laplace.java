@@ -15,6 +15,14 @@ import com.ipserc.arith.signal.Fourier.e_lineStyle;
 import com.ipserc.arith.signal.Fourier.e_operator;
 import com.ipserc.chronometer.*;
 
+/**
+ * Laplace transform of a {@link Complex} function: numerical evaluation, plotting and raw-data
+ * file I/O for the resulting spectrum. Sibling of {@link Fourier} (its own continuous transform)
+ * and {@link Z} (the discrete analogue of this transform); the three share most of their
+ * plotting/file-I/O machinery, extracted onto {@code Fourier}'s enums ({@code e_domain},
+ * {@code e_lineStyle}, {@code e_operator}) reused here.
+ * @author ipserc
+ */
 public class Laplace extends MatrixComplex  {
 	private Function<Complex, Complex> func;
 	private Complex loLimit; 

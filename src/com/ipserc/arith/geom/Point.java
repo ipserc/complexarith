@@ -3,11 +3,23 @@ package com.ipserc.arith.geom;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.vectorcomplex.*;
 
+/**
+ * A point in n-dimensional (possibly complex-valued) space, represented internally as a 1xN
+ * {@link MatrixComplex} row of coordinates. Used throughout {@code com.ipserc.arith.geom} as the
+ * base point of a {@link Line} or a {@link Plane}.
+ * @author ipserc
+ */
 public class Point extends MatrixComplex {
 
 	private final static String HEADINFO = "Point --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0811_1200)";
+	private final static String VERSION = "1.3 (2026_0811_2200)";
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0811_2200)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real (sin
+	 * bloque alguno antes del package/import, ni pegado a la declaración de la clase), así que su
+	 * página en doc/ salía sin descripción -- mismo patrón ya visto y arreglado en Eigenspace.java.
+	 * Añadido el Javadoc de clase real, sin cambios funcionales.
 	 *
 	 * 1.2 (2026_0811_1200)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte

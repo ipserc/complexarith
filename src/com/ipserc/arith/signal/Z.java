@@ -13,6 +13,12 @@ import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
 import com.ipserc.arith.plot.SimpleGnuplot;
 import com.ipserc.chronometer.*;
 
+/**
+ * Z-transform of a {@link Complex} sequence: numerical evaluation, plotting and raw-data file I/O
+ * for the resulting spectrum. The discrete analogue of {@link Laplace}, and sibling of
+ * {@link Fourier}; the three share most of their plotting/file-I/O machinery.
+ * @author ipserc
+ */
 public class Z extends MatrixComplex {
 	private Function<Complex, Complex> func;
 	private Complex loLimit;

@@ -5,11 +5,23 @@ import java.util.ArrayList;
 import com.ipserc.arith.complex.*; 
 import com.ipserc.arith.matrixcomplex.*;
 
+/**
+ * An n-dimensional complex vector, represented internally as a single-row {@link MatrixComplex}.
+ * Provides vector-specific operations on top of the inherited matrix ones: dot product, the
+ * n-dimensional generalization of the cross product, norms, normalization, and orthogonality
+ * checks.
+ * @author ipserc
+ */
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.14 (2026_0811_2230)";
+	private final static String VERSION = "1.15 (2026_0811_2300)";
 	/* VERSION Release Note
+	 * 1.15 (2026_0811_2300)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real, así
+	 * que su página en doc/ salía sin descripción -- mismo patrón ya visto y arreglado en
+	 * Eigenspace.java. Añadido el Javadoc real, sin cambios funcionales.
+	 *
 	 * 1.14 (2026_0811_2230)
 	 * Corregidos errores de generación de Javadoc preexistentes (@param desincronizados) detectados
 	 * al generar la documentación de la API -- sin cambios funcionales.

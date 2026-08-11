@@ -1,37 +1,31 @@
-/*
- * Reduccion a forma de Hessenberg superior por semejanza unitaria.
-
-    Aplicable a: una matriz compleja A cuadrada n por n.
-
-    Factorizacion: A = Q*H*Q^H donde Q es unitaria n por n y H es Hessenberg superior
-    (todas las entradas por debajo de la subdiagonal, H[i][j] con i>j+1, son nulas).
-
-    Metodo de calculo: n-2 reflectores de Householder complejos, cada uno anulando la
-    subcolumna por debajo de la subdiagonal en una columna, aplicados por semejanza
-    (H := Qk*H*Qk, no solo por la izquierda como en la factorizacion QR) para preservar
-    los autovalores de la matriz original en cada paso.
-
-    Es la Etapa 1 de la hoja de ruta QR-con-desplazamientos (ver plan mutable-rolling-stardust.md):
-    el metodo estandar de LAPACK/MATLAB para obtener autovalores sin formar nunca el
-    polinomio caracteristico explicitamente (formarlo ya es, en si mismo, numericamente
-    traicionero -- resultado de Wilkinson). Esta etapa solo reduce a Hessenberg; no calcula
-    autovalores todavia (eso es la Etapa 2, iteracion QR con deflacion).
- */
-
 package com.ipserc.arith.factorization;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
 /**
- *
+ * Reduction to upper Hessenberg form by unitary similarity.
+ * <p>
+ * Applicable to: an n-by-n complex square matrix A.
+ * <p>
+ * Factorization: A = Q*H*Q^H, where Q is n-by-n unitary and H is upper Hessenberg (every entry
+ * below the subdiagonal, H[i][j] with i&gt;j+1, is zero).
+ * <p>
+ * Computation method: n-2 complex Householder reflectors, each one annihilating the subcolumn
+ * below the subdiagonal in one column, applied by similarity (H := Qk*H*Qk, not just from the
+ * left as in QR factorization) to preserve the eigenvalues of the original matrix at every step.
+ * <p>
+ * This is Stage 1 of the QR-with-shifts roadmap (see plan mutable-rolling-stardust.md): the
+ * standard LAPACK/MATLAB method to obtain eigenvalues without ever forming the characteristic
+ * polynomial explicitly (forming it is itself numerically treacherous -- a Wilkinson result).
+ * This stage only reduces to Hessenberg form; it does not compute eigenvalues yet (that is
+ * Stage 2, QR iteration with deflation).
  * @author ipserc
- *
  */
 public class Hessenbergfactor extends MatrixComplex {
 
 	private final static String HEADINFO = "Hessenbergfactor --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0809_1018)";
+	private final static String VERSION = "1.4 (2026_0811_2205)";
 
 	private boolean factorized = false;
 
@@ -39,6 +33,14 @@ public class Hessenbergfactor extends MatrixComplex {
 	private MatrixComplex cH;
 
 	/* VERSION Release Note
+	 *
+	 * 1.4 (2026_0811_2205)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenia Javadoc real (la
+	 * cabecera con la explicacion matematica era un comentario de bloque normal en espanol, no
+	 * Javadoc, y estaba antes del package/import sin pegar a la declaracion de la clase), asi que
+	 * su pagina en doc/ salia sin descripcion -- mismo patron ya visto y arreglado en
+	 * Eigenspace.java. Traducida al ingles y convertida en el Javadoc real de la clase, sin
+	 * cambios funcionales.
 	 *
 	 * 1.3 (2026_0809_1018)
 	 * El chequeo de vector despreciable en la reduccion de Householder usaba Complex.zero(), otro

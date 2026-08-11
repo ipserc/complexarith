@@ -1,9 +1,4 @@
 package com.ipserc.arith.polynom;
-/**
- * 
- * @author ipserc
- *
- */
 
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.*;
@@ -34,13 +29,22 @@ class SplineComponent extends Polynom {
 }
 
 /**
- * 
- *
+ * Piecewise cubic (or lower-degree) spline interpolation through a set of points: builds one
+ * {@link SplineComponent} per interval, solving the tridiagonal system (via {@link Syseq}) for
+ * the natural, periodic, or complete (clamped-derivative) boundary condition, and evaluates the
+ * resulting piecewise polynomial at an arbitrary point by locating its owning interval.
+ * @author ipserc
  */
 public class Spline extends SplineComponent {
 	private final static String HEADINFO = "Spline --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0811_2130)";
+	private final static String VERSION = "1.3 (2026_0811_2300)";
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0811_2300)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase Spline no tenia Javadoc real
+	 * (bloque vacio antes de "public class Spline", y otro bloque suelto con solo @author antes del
+	 * import, sin pegar a ninguna declaracion) -- mismo patron ya visto y arreglado en Eigenspace.java.
+	 * Anadido el Javadoc de clase real, eliminado el bloque suelto. Sin cambios funcionales.
 	 *
 	 * 1.2 (2026_0811_2130)
 	 * Corregido error de generacion de Javadoc preexistente: walkInterval() (sin argumentos)

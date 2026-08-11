@@ -7,11 +7,28 @@ import com.ipserc.arith.complex.Complex;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Jordan canonical form of a (possibly non-diagonalizable) {@link MatrixComplex}: A = P*J*P⁻¹,
+ * where J is block-diagonal with a Jordan block per generalized eigenvector chain and P holds
+ * those chains as columns. Extends {@link Eigenspace} to build the Jordan chains for each
+ * eigenvalue whose geometric multiplicity is below its algebraic multiplicity (the defective
+ * case that plain diagonalization cannot handle), including geometric multiplicity greater than
+ * 1. After building P and J, {@code checkReconstruction()} verifies that P*J*P⁻¹ actually
+ * reproduces the original matrix and fails high (instead of returning silently wrong results)
+ * when it does not -- see that method's own Javadoc for the tolerance and known root-finder
+ * precision limits this depends on.
+ * @author ipserc
+ */
 public class Jordan extends Eigenspace {
 
 	private final static String HEADINFO = "Jordan --- INFO:";
-	private final static String VERSION = "1.7 (2026_0811_2130)";
+	private final static String VERSION = "1.8 (2026_0811_2210)";
 	/* VERSION Release Note
+	 *
+	 * 1.8 (2026_0811_2210)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenia ningun Javadoc de
+	 * clase, asi que su pagina en doc/ salia sin descripcion -- mismo patron ya visto y arreglado
+	 * en Eigenspace.java. Anadido el Javadoc de clase real, sin cambios funcionales.
 	 *
 	 * 1.7 (2026_0811_2130)
 	 * Corregido error de generacion de Javadoc preexistente: el {@link} a

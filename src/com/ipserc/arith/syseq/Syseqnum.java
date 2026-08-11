@@ -3,16 +3,28 @@ package com.ipserc.arith.syseq;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.complex.*;
 
+/**
+ * Iterative numerical solvers for a complex linear system Ax=b: conjugate gradient
+ * ({@code congrad()}, for symmetric positive-definite systems) and restarted GMRES with complex
+ * Givens rotations ({@code genminres()}, for general non-symmetric systems). Sibling of
+ * {@link Syseq}, which solves the same kind of system via direct (non-iterative) methods.
+ * @author ipserc
+ */
 public class Syseqnum extends MatrixComplex {
 	private boolean solved = false;
 	private MatrixComplex indTerm;
 	private MatrixComplex unkMatrix;
 	private int numIters = -1;
-	
+
 	private final static String HEADINFO = "Syseqnum --- INFO: ";
-	private final static String VERSION = "1.6 (2026_0811_2030)";
+	private final static String VERSION = "1.7 (2026_0811_2300)";
 	/* VERSION Release Note
 	 * 	Syseqnum: System Equation Solver by Numerical Methods
+	 *
+	 * 1.7 (2026_0811_2300)
+	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenia ningun Javadoc, asi
+	 * que su pagina en doc/ salia sin descripcion -- mismo patron ya visto y arreglado en
+	 * Eigenspace.java. Anadido el Javadoc de clase real. Sin cambios funcionales.
 	 *
 	 * 1.6 (2026_0811_2030)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de

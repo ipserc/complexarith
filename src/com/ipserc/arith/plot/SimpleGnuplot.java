@@ -209,6 +209,7 @@ public class SimpleGnuplot {
 		return cachedExe = "gnuplot"; // last resort: let the OS try to resolve it
 	}
 
+	/** Thrown when launching or communicating with the external {@code gnuplot} process fails. */
 	public static class SimpleGnuplotException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 
