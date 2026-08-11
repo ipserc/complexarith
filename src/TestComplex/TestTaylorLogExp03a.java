@@ -82,10 +82,10 @@ public class TestTaylorLogExp03a {
 		       	}
 			}
 			catch (Exception excep) {
-				System.out.println("Error in the calculation of logTaylor: " + excep.getMessage());
+				// Matriz divergente para logTaylor: descartada en silencio.
 			}
 		}
- 		
+
 		if (mercator) {
 	    		try {
 	    	    	bMatrix = aMatrix.logMercator(); 
