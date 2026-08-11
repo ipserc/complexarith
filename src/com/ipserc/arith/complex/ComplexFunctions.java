@@ -342,7 +342,7 @@ final class ComplexFunctions {
 	 * Gamma function calculated by the integtral of t.power(z.minus(ONE))).times(Complex.exp(t.opposite()) dt
 	 * @param z the gamma parameter as Complex
 	 * @return the gamma value
-	 * @apiNote BUG FIXED (26th session, dedicated mathematical audit): for Re(z)<1 the integrand
+	 * @apiNote BUG FIXED (26th session, dedicated mathematical audit): for Re(z)&lt;1 the integrand
 	 * {@code t^(z-1)*e^-t} has an integrable singularity at t=0 (already flagged as a known,
 	 * deliberately out-of-scope gap in {@code ComplexCalculus.integrate}'s own 6th-session
 	 * apiNote), which the uniform-grid Simpson quadrature there cannot resolve -- measured error up
@@ -781,11 +781,6 @@ final class ComplexFunctions {
 		return zeta_havil(s);
 	}
 
-	/**
-	 * The Riemann's zeta function. Only for Re(s) > 1
-	 * @param s The s parameter of the zeta function
-	 * @return The Riemann's zeta function value
-	 */
 	// B_2, B_4, B_6, B_8, B_10 (Bernoulli numbers), for the Euler-Maclaurin tail correction below.
 	private static final double[] ZETA_RE_BERNOULLI_2J = {1.0/6, -1.0/30, 1.0/42, -1.0/30, 5.0/66};
 
@@ -1404,7 +1399,7 @@ final class ComplexFunctions {
 	 * Private method. Closed-form arcsin(z) for |z| beyond SAFE_SQUARE_LIMIT, where z.power(2) would
 	 * overflow. Derived from asin(z) = -i*ln(iz + sqrt(1-z^2)): at this magnitude 1/z^2 underflows
 	 * to 0 in double precision, so sqrt(1-z^2) = eps*i*z EXACTLY (to full double precision), where
-	 * eps = +1 selects the principal branch (Re(sqrt(1-z^2)) >= 0) when Im(z) < 0, or Im(z) == 0 and
+	 * eps = +1 selects the principal branch (Re(sqrt(1-z^2)) &gt;= 0) when Im(z) &lt; 0, or Im(z) == 0 and
 	 * Re(z) >= 0; eps = -1 otherwise. Substituting gives asin(z) = pi/2 -+ i*ln(2z) (sign per eps).
 	 * Validated: matches the general formula exactly at the SAFE_SQUARE_LIMIT boundary (continuous
 	 * hand-off), and asin(z)+acos(z) == pi/2 holds exactly in all four quadrants and both axes.

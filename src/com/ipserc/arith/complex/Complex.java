@@ -51,8 +51,13 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.40 (2026_0811_0300)";
+	private final static String VERSION = "1.41 (2026_0811_2130)";
 	/* VERSION Release Note
+	 * 1.41 (2026_0811_2130)
+	 * Corregidos errores de generacion de Javadoc preexistentes (@param desincronizados tras
+	 * renombres historicos de parametros, '<'/'&' sin escapar interpretados como HTML) detectados
+	 * al generar la documentacion de la API -- sin cambios funcionales.
+	 *
 	 * 1.40 (2026_0811_0300)
 	 * Bug real preexistente arreglado (investigacion dedicada, a peticion del usuario): isPureReal()
 	 * devolvia false para el propio cero exacto (rePartNull() siendo cierto lo excluia en vez de
@@ -837,7 +842,7 @@ public class Complex {
 	}
 
 	/**
-	 * Express a complex number in GNUPlot format {<real>,<imag>}, where <real> and <imag> must be numerical constants.
+	 * Express a complex number in GNUPlot format {&lt;real&gt;,&lt;imag&gt;}, where &lt;real&gt; and &lt;imag&gt; must be numerical constants.
 	 * @return The string representation of a complex number in GNUPlot format
 	 */
 	public String toStringGNUPlot() {
@@ -1023,7 +1028,7 @@ public class Complex {
 	/**
 	 * Returns a text inside of a equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
+	 * @param title The text to put inside the box
 	 * @return The String representation of the box text
 	 */
 	public static String boxTitle2(int size, String title) {
@@ -1033,7 +1038,7 @@ public class Complex {
 	/**
 	 * Returns a text inside of a equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
+	 * @param title The text to put inside the box
 	 * @return The String representation of the box text
 	 */
 	public static String boxTitle3(int size, String title) {
@@ -1043,7 +1048,7 @@ public class Complex {
 	/**
 	 * Returns a text inside of a equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
+	 * @param title The text to put inside the box
 	 * @return The String representation of the box text
 	 */
 	public static String boxTitle4(int size, String title) {
@@ -1053,7 +1058,7 @@ public class Complex {
 	/**
 	 * Returns a text inside of a equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
+	 * @param title The text to put inside the box
 	 * @return The String representation of the box text
 	 */
 	public static String boxTitle5(int size, String title) {
@@ -1063,7 +1068,7 @@ public class Complex {
 	/**
 	 * Returns a text inside of a equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
+	 * @param title The text to put inside the box
 	 * @return The String representation of the box text
 	 */
 	public static String boxTitle6(int size, String title) {
@@ -1073,7 +1078,7 @@ public class Complex {
 	/**
 	 * Returns a text inside of a equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
+	 * @param title The text to put inside the box
 	 * @return The String representation of the box text
 	 */
 	public static String boxTitle7(int size, String title) {
@@ -1771,9 +1776,9 @@ public class Complex {
 	}
 
 	/**
-	 * Calculates the value of 'this' raised to the REAL number 'nExp'.
-	 * @param nExp The Complex Object to raise 'this'.
-	 * @return The new COmplex Object with the value of 'this' raised to 'nExp'.
+	 * Calculates the value of 'this' raised to the integer number 'iExp'.
+	 * @param iExp The integer exponent to raise 'this' to.
+	 * @return The new Complex Object with the value of 'this' raised to 'iExp'.
 	 */
 	public Complex power(int iExp) {
 		return ComplexFunctions.power(this, iExp);
@@ -1952,7 +1957,7 @@ public class Complex {
 
 	/**
 	 * Truncates a double number to decs decimals
-	 * @param complex The number to round
+	 * @param num The number to round
 	 * @param d The number of decimals
 	 * @return The rounded number
 	 * @apiNote Not called anywhere in this codebase except internally by {@link #trunc(Complex, int)},
@@ -1983,8 +1988,8 @@ public class Complex {
 	
 	/**
 	 * Rounds a double number to decs decimals
-	 * @param complex The number to round
-	 * @param d The number of decimals
+	 * @param value The number to round
+	 * @param decs The number of decimals
 	 * @return The rounded number
 	 */
 	public static double round(double value, int decs) {
@@ -2045,7 +2050,7 @@ public class Complex {
 
 	/**
 	 * Rounds a complex number to decs decimals using Polar Coordinates
-	 * @param num The complex number to round
+	 * @param complex The complex number to round
 	 * @param decs The number of decimals
 	 * @return The rounded complex number
 	 */

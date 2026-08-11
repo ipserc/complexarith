@@ -10,8 +10,13 @@ import java.util.List;
 public class Jordan extends Eigenspace {
 
 	private final static String HEADINFO = "Jordan --- INFO:";
-	private final static String VERSION = "1.6 (2026_0811_2015)";
+	private final static String VERSION = "1.7 (2026_0811_2130)";
 	/* VERSION Release Note
+	 *
+	 * 1.7 (2026_0811_2130)
+	 * Corregido error de generacion de Javadoc preexistente: el {@link} a
+	 * Polynom#solveAberth(double) no resolvia por no estar Polynom importado en este fichero --
+	 * cualificado con el paquete completo. Sin cambios funcionales.
 	 *
 	 * 1.6 (2026_0811_2015)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
@@ -564,7 +569,7 @@ public class Jordan extends Eigenspace {
 	 * <p>
 	 * <b>Remaining, independent limitation, inherent to the eigenvalue pipeline this class builds
 	 * on, not specific to Jordan factorization -- IRRESOLUBLE within floating-point arithmetic,
-	 * closed for good (see {@link Polynom#solveAberth(double)}'s own Javadoc for the full
+	 * closed for good (see {@link com.ipserc.arith.polynom.Polynom#solveAberth(double)}'s own Javadoc for the full
 	 * argument):</b> the Jordan form is a classically ill-posed computation (not a continuous
 	 * function of the matrix entries -- an arbitrarily small perturbation can change which
 	 * eigenvalues are exactly equal, and therefore the whole block structure). For a genuinely

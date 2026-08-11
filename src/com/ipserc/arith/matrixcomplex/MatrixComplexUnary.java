@@ -150,7 +150,9 @@ class MatrixComplexUnary {
 	}
 
 	/**
-	 * Upper Hessenberg matrices: a(i,j) = 0 for any pair i, j such that i <= j.
+	 * Lower Hessenberg matrices: this implementation requires a(i,j) = 0 for any pair i, j such that
+	 * i &lt;= j (diagonal included) -- stricter than the standard lower-Hessenberg definition, which
+	 * would also allow the first superdiagonal (j == i + 1) to be nonzero.
 	 * @param m The matrix.
 	 * @return True if the matrix is lower Hessenberg, false otherwise
 	 */

@@ -195,7 +195,7 @@ final class ComplexCalculus {
 	 * point's own ULP, silently collapsing point+h and point-h to the same value -- confirmed
 	 * empirically to give 100% relative error (or an outright 0 result) for |point| >= 1e9 at
 	 * ordinary precisions. Scaling by max(1,|point|) keeps h well above that floor for large
-	 * points while leaving it unchanged for |point|<=1 (the max(1,...) floor). The only current
+	 * points while leaving it unchanged for |point|&lt;=1 (the max(1,...) floor). The only current
 	 * caller ({@code TestIntegral01.java}, point=2+2i, |point|~2.83) has |point|>1, so its printed
 	 * result now uses a slightly larger step than before -- expected, and verified to still match
 	 * the analytic derivative (and to be more accurate, not less) at the requested precision.

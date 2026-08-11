@@ -124,7 +124,7 @@ public class Z extends MatrixComplex {
 	 * 	N: The number of values sampled
 	 * 	sampleFreq: The frequency used to sample the function
 	 *  filterData: The data facts if the samples describe a filter
-	 * After this, the N function samples expressed as 0.0000<separator>0.0000
+	 * After this, the N function samples expressed as {@code 0.0000<separator>0.0000}
 	 * @param pathSamples The path to the file with the sampled values.
 	 * @param separator The character used to separate the real part from the imaginary one.
 	 */
@@ -281,7 +281,7 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Saves the samples of the function analyzed as Re<separator>Im in a given file in text format.
+	 * Saves the samples of the function analyzed as {@code Re<separator>Im} in a given file in text format.
 	 * @param filePath The path to the file in which the data are saved.
 	 * @param separator The character to separate the real part from the imaginary one.
 	 * @return The status of the save operation.
@@ -306,7 +306,7 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Saves the coefficients of the DZT as Re<separator>Im in a given file in text format.
+	 * Saves the coefficients of the DZT as {@code Re<separator>Im} in a given file in text format.
 	 * @param filePath The path to the file in which the data are saved.
 	 * @param separator the character to separate the real part from the imaginary one.
 	 * @return The status of the save operation.
@@ -329,14 +329,14 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Reads the samples of the function as Re<separator>Im to be analyzed from a given file in text format.
+	 * Reads the samples of the function as {@code Re<separator>Im} to be analyzed from a given file in text format.
 	 * The file requires the following information before to start with the values sampled:
 	 * 	loLimit: The lower limit of the points to use with the function.
 	 * 	upLimit: The upper limit of the points to use with the function.
 	 * 	period: The period of the function, usually the distance between upper and lower limit.
 	 * 	N: The number of values sampled.
 	 * 	sampleFreq: The frequency used to sample the function.
-	 * After this, the N function samples expressed as 0.0000<separator>0.0000
+	 * After this, the N function samples expressed as {@code 0.0000<separator>0.0000}
 	 * if separator is null the sampled should be expressed as 0.0000+0.0000i
 	 * @param filePath The path to the file in which the data are stored.
 	 * @param separator The character to separate the real part from the imaginary one.
@@ -401,14 +401,14 @@ public class Z extends MatrixComplex {
 	}
 
 	/**
-	 * Reads the DZT coefficients of the transformed function as Re<separator>Im from a given file in text format.
+	 * Reads the DZT coefficients of the transformed function as {@code Re<separator>Im} from a given file in text format.
 	 * The file requires the following information before to start with the values sampled:
 	 * 	loLimit: The lower limit of the points to use with the function.
 	 * 	upLimit: The upper limit of the points to use with the function.
 	 * 	period: The period of the function, usually the distance between upper and lower limit.
 	 * 	N: The number of values sampled.
 	 * 	sampleFreq: The frequency used to sample the function.
-	 * After this, the N DZT coefficients expressed as 0.0000<separator>0.0000
+	 * After this, the N DZT coefficients expressed as {@code 0.0000<separator>0.0000}
 	 * if separator is null the sampled should be expressed as 0.0000+0.0000i
 	 * @param filePath The path to the file in which the data are stored.
 	 * @param separator The character to separate the real part from the imaginary one.
@@ -679,7 +679,7 @@ public class Z extends MatrixComplex {
 	 * @param showIm If true plots the imaginary part in the graphic.
 	 * <p>
 	 * Delegates to {@link MatrixComplexPlot#plot(String, int, MatrixComplex, boolean,
-	 * MatrixComplexPlot.e_lineStyle)} (8 agosto 2026) -- this method used to carry its own,
+	 * MatrixComplexPlot.e_lineStyle, SimpleGnuplot.e_syncMode)} (8 agosto 2026) -- this method used to carry its own,
 	 * byte-for-byte identical copy of that logic (also duplicated in {@code Fourier}/{@code
 	 * Laplace}). This class's own {@code e_lineStyle} keeps its exact public signature; only the
 	 * implementation moved, converted to {@code MatrixComplexPlot.e_lineStyle} at the boundary.

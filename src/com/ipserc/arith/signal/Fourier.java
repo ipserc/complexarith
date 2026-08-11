@@ -35,8 +35,13 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.11 (2026_0811_2010)";
+	private final static String VERSION = "1.12 (2026_0811_2130)";
 	/* VERSION Release Note
+	 *
+	 * 1.12 (2026_0811_2130)
+	 * Corregidos errores de generación de Javadoc preexistentes (@param desincronizados, tag
+	 * "<separator>" sin escapar interpretado como HTML, referencias rotas) detectados al generar
+	 * la documentación de la API -- sin cambios funcionales.
 	 *
 	 * 1.11 (2026_0811_2010)
 	 * Comentarios Javadoc revisados como parte de la generación de la documentación de la API: ya
@@ -240,7 +245,6 @@ public class Fourier extends MatrixComplex {
 	 *  filterData: The data facts if the samples describe a filter
 	 * After this, the N samples expressed as 0.0000+0.0000i
 	 * @param pathSamples The path to the file with the sampled values.
-	 * @param sampleFreq The sampling frequency ONLY for raw files
 	 */
 	public Fourier(String pathSamples) {
 		boolean readResult = false; 
@@ -264,7 +268,7 @@ public class Fourier extends MatrixComplex {
 	 * 	N: The number of values sampled
 	 * 	sampleFreq: The frequency used to sample the function
 	 *  filterData: The data facts if the samples describe a filter
-	 * After this, the N function samples expressed as 0.0000<separator>0.0000
+	 * After this, the N function samples expressed as 0.0000&lt;separator&gt;0.0000
 	 * @param pathSamples The path to the file with the sampled values.
 	 * @param separator The character used to separate the real part from the imaginary one.
 	 */
@@ -356,7 +360,7 @@ public class Fourier extends MatrixComplex {
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param expnz the function EXP((-2*pi*n*i/T)*z)
+	 * @param expz the function EXP((-2*pi*n*i/T)*z)
 	 * @param numDec the number of significant decimals 
 	 * @return The COMPLEX of the integral
 	 */
@@ -381,7 +385,7 @@ public class Fourier extends MatrixComplex {
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param expnz the function EXP((-2*pi*n*i/T)*z)
+	 * @param expz the function EXP((-2*pi*n*i/T)*z)
 	 * @param precision The precision of the result 
 	 * @return The COMPLEX of the integral
 	 */
@@ -429,7 +433,7 @@ public class Fourier extends MatrixComplex {
 	 * @param lolimit the lower limit of the integral expressed as Complex
 	 * @param uplimit the upper limit of the integral expressed as Complex
 	 * @param func the function to be integrated
-	 * @param expnz the function EXP((-2*pi*n*i/T)*z)
+	 * @param expz the function EXP((-2*pi*n*i/T)*z)
 	 * @param precision The precision of the result 
 	 * @return The COMPLEX of the integral
 	 */
@@ -608,7 +612,7 @@ public class Fourier extends MatrixComplex {
 	/**
 	 * Converts this class's own {@code e_lineStyle} to {@code MatrixComplexPlot}'s, at the boundary
 	 * with the shared plotting helper -- extracted (8 agosto 2026) once a 5th call site needed it;
-	 * before that it was a single inline ternary in {@link #plot}.
+	 * before that it was a single inline ternary in {@code plot} (no longer a method of this class).
 	 * @param lineStyle This class's line style.
 	 * @return The equivalent {@code MatrixComplexPlot.e_lineStyle}.
 	 */
@@ -623,7 +627,7 @@ public class Fourier extends MatrixComplex {
 	 * @param showIm If true plots the imaginary part in the graphic.
 	 * <p>
 	 * Delegates to {@link MatrixComplexPlot#plot(String, int, MatrixComplex, boolean,
-	 * MatrixComplexPlot.e_lineStyle)} (8 agosto 2026) -- this method used to carry its own,
+	 * MatrixComplexPlot.e_lineStyle, SimpleGnuplot.e_syncMode)} (8 agosto 2026) -- this method used to carry its own,
 	 * byte-for-byte identical copy of that logic (also duplicated in {@code Laplace}/{@code Z}).
 	 * This class's own {@code e_lineStyle} keeps its exact public signature; only the
 	 * implementation moved, converted to {@code MatrixComplexPlot.e_lineStyle} at the boundary.
@@ -830,11 +834,12 @@ public class Fourier extends MatrixComplex {
 	}
 	
 	/**
-	 * Saves the signal samples as a raw file with Codification:64 bit, Byte order:big-endian, Channels:1 (mono)for the sample frecuency given
-	 * This file can be loaded by a sound editor progrma as Audacity
-	 * @param filePathfile
-	 * @param data
-	 * @return
+	 * Saves the signal samples as a raw file with Codification:64 bit, Byte order:big-endian, Channels:1 (mono) for the sample frequency given.
+	 * This file can be loaded by a sound editor program such as Audacity.
+	 * @param filePath The path of the file to write.
+	 * @param dataOrig The signal samples to save.
+	 * @param normalize If true, normalizes the samples before saving.
+	 * @return True if the file was saved successfully.
 	 */
 	private Boolean saveRAWFile(String filePath, MatrixComplex dataOrig, boolean normalize) {	
 		Complex.storeFormatStatus();
@@ -909,7 +914,7 @@ public class Fourier extends MatrixComplex {
 
 	
 	/**
-	 * Saves the samples of the function analyzed as Re<separator>Im in a given file in text format.
+	 * Saves the samples of the function analyzed as Re&lt;separator&gt;Im in a given file in text format.
 	 * @param filePath The path to the file in which the data are saved.
 	 * @param separator The character to separate the real part from the imaginary one.
 	 * @return The status of the save operation.
@@ -949,7 +954,7 @@ public class Fourier extends MatrixComplex {
 	}
 
 	/**
-	 * Saves the coefficients of the DFT as Re<separator>Im in a given file in text format.
+	 * Saves the coefficients of the DFT as Re&lt;separator&gt;Im in a given file in text format.
 	 * @param filePath The path to the file in which the data are saved.
 	 * @param separator the character to separate the real part from the imaginary one.
 	 * @return The status of the save operation.
@@ -972,14 +977,14 @@ public class Fourier extends MatrixComplex {
 	}
 	
 	/**
-	 * Reads the samples of the function as Re<separator>Im to be analyzed from a given file in text format.
+	 * Reads the samples of the function as Re&lt;separator&gt;Im to be analyzed from a given file in text format.
 	 * The file requires the following information before to start with the values sampled:
 	 * 	loLimit: The lower limit of the points to use with the function.
 	 * 	upLimit: The upper limit of the points to use with the function.
 	 * 	period: The period of the function, usually the distance between upper and lower limit.
 	 * 	N: The number of values sampled.
 	 * 	sampleFreq: The frequency used to sample the function.
-	 * After this, the N function samples expressed as 0.0000<separator>0.0000
+	 * After this, the N function samples expressed as 0.0000&lt;separator&gt;0.0000
 	 * if separator is null the sampled should be expressed as 0.0000+0.0000i
 	 * @param filePath The path to the file in which the data are stored.
 	 * @param separator The character to separate the real part from the imaginary one.
@@ -1055,14 +1060,14 @@ public class Fourier extends MatrixComplex {
 	}
 	
 	/**
-	 * Reads the DFT coefficients of the transformed function as Re<separator>Im from a given file in text format.
+	 * Reads the DFT coefficients of the transformed function as Re&lt;separator&gt;Im from a given file in text format.
 	 * The file requires the following information before to start with the values sampled:
 	 * 	loLimit: The lower limit of the points to use with the function.
 	 * 	upLimit: The upper limit of the points to use with the function.
 	 * 	period: The period of the function, usually the distance between upper and lower limit.
 	 * 	N: The number of values sampled.
 	 * 	sampleFreq: The frequency used to sample the function.
-	 * After this, the N DFT coefficients expressed as 0.0000<separator>0.0000
+	 * After this, the N DFT coefficients expressed as 0.0000&lt;separator&gt;0.0000
 	 * if separator is null the sampled should be expressed as 0.0000+0.0000i
 	 * @param filePath The path to the file in which the data are stored.
 	 * @param separator The character to separate the real part from the imaginary one.

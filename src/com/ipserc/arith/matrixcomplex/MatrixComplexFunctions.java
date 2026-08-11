@@ -16,9 +16,9 @@ import com.ipserc.arith.factorization.Schurfactor;
  * parameter, and reads it only through already-public members plus {@code MatrixComplex}'s debug
  * helper {@code trace(...)} (widened from {@code private} to package-private for this exact
  * purpose) and {@code __log10__} (widened the same way). The convergence-deviation plot used by
- * the Taylor/Mercator loops now delegates to {@link MatrixComplexPlot#doPlot(String, double[][],
- * int)} (8 agosto 2026, moved there to deduplicate against {@code Fourier}/{@code Laplace}/{@code
- * Z}'s own plotting code -- see that class's Javadoc). {@code MatrixComplex.java}'s own public
+ * the Taylor/Mercator loops now delegates to {@code MatrixComplexPlot.doPlotSync(String,
+ * double[][], int)} (8 agosto 2026, moved there to deduplicate against {@code Fourier}/{@code
+ * Laplace}/{@code Z}'s own plotting code -- see that class's Javadoc). {@code MatrixComplex.java}'s own public
  * methods keep their exact signatures, delegating to these in one line each -- the public API is
  * unchanged.
  */
@@ -448,13 +448,13 @@ class MatrixComplexFunctions {
 		return exp(m.times(Complex.i));
 	}
 
+	private enum hyptrigon {SINH, COSH};
 	/**
 	 * The "SINH" or "COSH" depending on hypFunc. One method to rule them all
 	 * @param m The matrix.
 	 * @param hypFunc hyptrigon.SINH for SINH, hyptrigon.COSH for COSH
 	 * @return The SINH or COSH of the matrix, depending on hypFunc.
 	 */
-	private enum hyptrigon {SINH, COSH};
 	private static MatrixComplex trigonHyperbolycTaylor(MatrixComplex m, hyptrigon hypFunc) {
 		if (!m.isSquare()) {
 			throw new IllegalArgumentException("Not valid matrix: The matrix has to be square.");

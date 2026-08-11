@@ -22,8 +22,14 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.28 (2026_0811_2100)";
+	private final static String VERSION = "1.29 (2026_0811_2230)";
 	/* VERSION Release Note
+	 * 1.29 (2026_0811_2230)
+	 * Corregidos errores de generación de Javadoc preexistentes (@param desincronizados, referencia
+	 * rota a Complex.exact() -- modo EXACT/APPROXIMATED ya eliminado del proyecto --, HTML mal
+	 * formado por genéricos sin escapar como List<double[][]>) detectados al generar la
+	 * documentación de la API -- sin cambios funcionales.
+	 *
 	 * 1.28 (2026_0811_2100)
 	 * Comentarios Javadoc corregidos (sin cambios funcionales), como parte de la generación de la
 	 * documentación de la API -- este fichero ya estaba mayormente en inglés; se corrigieron unas
@@ -909,7 +915,7 @@ public class Polynom extends MatrixComplex {
 	/**
 	 * Finds the roots to a Nth degree equation with a determined precision using the Weierstrass method.
 	 * Durand-Kerner Method. Discovered by Karl Weierstrass in 1891 and rediscovered independently by Durand in 1960 and Kerner in 1966.
-	 * @param precision The precision used to identify a zero.
+	 * @param theprecision The precision used to identify a zero.
 	 * @return The column array with the solutions found.
 	 */
 	public MatrixComplex solveWeierstrass(double theprecision) {
@@ -1424,8 +1430,9 @@ public class Polynom extends MatrixComplex {
 
 	/**
 	 * {@code STATISTIC} root-finding strategy: runs {@link #solveRobust(double)} unchanged (same
-	 * iteration, same convergence criterion, same final rounding under {@link Complex#exact()} --
-	 * deliberately NOT toggling that flag here, since it also feeds the Durand-Kerner/Aberth
+	 * iteration, same convergence criterion, same final rounding under {@code Complex}'s
+	 * (since-removed) EXACT/APPROXIMATED rounding flag -- deliberately NOT toggling that flag here
+	 * at the time this was written, since it also fed the Durand-Kerner/Aberth
 	 * convergence check itself, not just the final rounding; the ~13 decimals it already leaves are
 	 * far finer than the ~{@code ε^(1/m)} scatter this method is meant to clean up, so there is
 	 * nothing to gain from forcing raw unrounded output, only a wider blast radius to reason about),
@@ -1857,8 +1864,8 @@ public class Polynom extends MatrixComplex {
 	}
 
 	/**
-	 * Plots different graphics in the same canvas from their list of ponts
-	 * @param pointsList The list with the points defined as List<double[][]>
+	 * Plots different graphics in the same canvas from their list of points
+	 * @param pointsList The list with the points defined as {@code List<double[][]>}
 	 * @param title the title of the graphic
 	 */
 	public void plotSync(List<double[][]> pointsList, String title) {
@@ -1887,7 +1894,7 @@ public class Polynom extends MatrixComplex {
 
 	/**
 	 * Plots the real component of different graphics in the same canvas from its definition of its points as complexes
-	 * @param pointsList The list with the points defined as <MatrixComplex>
+	 * @param pointsList The list with the points defined as {@code List<MatrixComplex>}
 	 * @param title the title of the graphic
 	 */
 	public void plotReSync(List<MatrixComplex> pointsList, String title) {
@@ -1908,7 +1915,7 @@ public class Polynom extends MatrixComplex {
 
 	/**
 	 * Plots the imaginary component of different graphics in the same canvas from its definition of its points as complexes
-	 * @param pointsList The list with the points defined as <MatrixComplex>
+	 * @param pointsList The list with the points defined as {@code List<MatrixComplex>}
 	 * @param title the title of the graphic
 	 */
 	public void plotImSync(List<MatrixComplex> pointsList, String title) {

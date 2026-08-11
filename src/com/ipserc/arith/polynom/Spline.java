@@ -39,8 +39,12 @@ class SplineComponent extends Polynom {
  */
 public class Spline extends SplineComponent {
 	private final static String HEADINFO = "Spline --- INFO: ";
-	private final static String VERSION = "1.1 (2026_0807_1500)";
+	private final static String VERSION = "1.2 (2026_0811_2130)";
 	/* VERSION Release Note
+	 *
+	 * 1.2 (2026_0811_2130)
+	 * Corregido error de generacion de Javadoc preexistente: walkInterval() (sin argumentos)
+	 * documentaba un @param "samples" inexistente y un @return vacio. Sin cambios funcionales.
 	 *
 	 * 1.1 (2026_0807_1500)
 	 * Audited interpolate3Natural() -- the natural cubic spline formula/construction itself is
@@ -504,9 +508,9 @@ public class Spline extends SplineComponent {
 	}
 
 	/**
-	 * 
-	 * @param samples
-	 * @return
+	 * Walks the whole spline, from the first component's lower limit to the last component's upper
+	 * limit.
+	 * @return The matrix of sampled points along the whole spline.
 	 */
 	public MatrixComplex walkInterval() {
 		Complex lolimit = this.component[0].interval.getItem(0,0).copy();

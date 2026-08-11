@@ -22,8 +22,13 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.73 (2026_0811_2100)";
+	private final static String VERSION = "1.74 (2026_0811_2230)";
 	/* VERSION Release Note
+	 *
+	 * 1.74 (2026_0811_2230)
+	 * Corregidos errores de generación de Javadoc preexistentes (@param desincronizados, referencias
+	 * rotas, tags mal escapados, HTML mal formado) detectados al generar la documentación de la API
+	 * -- sin cambios funcionales.
 	 *
 	 * 1.73 (2026_0811_2100)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte de
@@ -2096,7 +2101,7 @@ public class MatrixComplex {
 	
 	/**
 	 * This method returns the sum for this plus cNum*I, where I is the identity matrix.
-	 * @param cNum the complex number in String format to construct the diagonal matrix cNum*I.
+	 * @param strcNum the complex number in String format to construct the diagonal matrix cNum*I.
 	 * @return The matrix resulting from the matrices sum.
 	 */
 	public MatrixComplex plusMat(String strcNum) {
@@ -2204,7 +2209,7 @@ public class MatrixComplex {
 	
 	/**
 	 * This method returns the difference for this minus cNum*I, where I is the identity matrix.
-	 * @param cNum the complex number in String format to construct the diagonal matrix cNum*I.
+	 * @param strcNum the complex number in String format to construct the diagonal matrix cNum*I.
 	 * @return The matrix resulting from the matrices difference.
 	 */
 	public MatrixComplex minusMat(String strcNum) {
@@ -2462,7 +2467,7 @@ public class MatrixComplex {
 
 	/**
 	 * Calculates the power of a Matrix raised to an integer, power can be positive or negative
-	 * @param power The power at which the matrix is raised. Only integers are allowed
+	 * @param iExp The power at which the matrix is raised. Only integers are allowed
 	 * @return The matrix raised to power
 	 */
 	public MatrixComplex power(int iExp) {
@@ -3153,9 +3158,8 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Calculates the natural log in base 10 of the matrix log10(matrix)
-	 * @param matrix
-	 * @return
+	 * Calculates the natural log in base 10 of this matrix, log10(this)
+	 * @return The log10 of this matrix
 	 */
 	public MatrixComplex log10() {
 		return MatrixComplexFunctions.log10(this);
@@ -3193,20 +3197,18 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Calculates the natural log in Complex base "base" of the matrix logbase(matrix)
-	 * @param matrix
-	 * @param base
-	 * @return
+	 * Calculates the natural log of this matrix in complex base "base", logbase(this)
+	 * @param base The complex base of the logarithm
+	 * @return The log of this matrix in base "base"
 	 */
 	public MatrixComplex logbase(Complex base) {
 		return MatrixComplexFunctions.logbase(this, base);
 	}
 
 	/**
-	 * Calculates the natural log in Complex base "base" of the matrix logbase(matrix)
-	 * @param matrix
-	 * @param base
-	 * @return
+	 * Calculates the natural log item to item of this matrix in complex base "base", llogbase(this)
+	 * @param base The complex base of the logarithm
+	 * @return The item-to-item log of this matrix in base "base"
 	 */
 	public MatrixComplex llogbase(Complex base) {
 		return MatrixComplexFunctions.llogbase(this, base);
@@ -3233,20 +3235,18 @@ public class MatrixComplex {
 	}
 	
 	/**
-	 * Calculates the natural log in Real base "base" of the matrix logbase(matrix)
-	 * @param matrix
-	 * @param base
-	 * @return
+	 * Calculates the natural log of this matrix in real base "base", logbase(this)
+	 * @param base The real base of the logarithm
+	 * @return The log of this matrix in base "base"
 	 */
 	public MatrixComplex logbase(double base) {
 		return MatrixComplexFunctions.logbase(this, base);
 	}
 
 	/**
-	 * Calculates the natural log in Real base "base" of the matrix logbase(matrix)
-	 * @param matrix
-	 * @param base
-	 * @return
+	 * Calculates the natural log item to item of this matrix in real base "base", llogbase(this)
+	 * @param base The real base of the logarithm
+	 * @return The item-to-item log of this matrix in base "base"
 	 */
 	public MatrixComplex llogbase(double base) {
 		return MatrixComplexFunctions.llogbase(this, base);
@@ -3273,10 +3273,9 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Calculates the log in complex matrix base "baseMat" of the matrix mat
-	 * @param mat
-	 * @param baseMat
-	 * @return
+	 * Calculates the log of this matrix in complex matrix base "baseMat"
+	 * @param baseMat The matrix base of the logarithm
+	 * @return The log of this matrix in base "baseMat"
 	 */
 	public MatrixComplex logbase(MatrixComplex baseMat) {
 		return MatrixComplexFunctions.logbase(this, baseMat);
@@ -3296,20 +3295,20 @@ public class MatrixComplex {
 	
 	
 	/**
-	 * Calculates the power of a complex number raised a complex matrix
-	 * @param cBase
-	 * @param matrix
-	 * @return
+	 * Calculates the power of a complex number raised to a complex matrix
+	 * @param cBase The complex number to be raised
+	 * @param exponent The matrix exponent
+	 * @return cBase raised to the power of exponent
 	 */
 	public static MatrixComplex power(Complex cBase, MatrixComplex exponent) {
 		return exp(exponent.times(Complex.log(cBase)));
 	}
 		
 	/**
-	 * Calculates the power of a real number raised a complex matrix
-	 * @param base
-	 * @param matrix
-	 * @return
+	 * Calculates the power of a real number raised to a complex matrix
+	 * @param base The real number to be raised
+	 * @param exponent The matrix exponent
+	 * @return base raised to the power of exponent
 	 */
 	public static MatrixComplex power(double base, MatrixComplex exponent) {
 		Complex cBase = new Complex(base);
@@ -3570,7 +3569,7 @@ public class MatrixComplex {
 	}
 
 	/**
-	 * Upper Hessenberg matrices: a(i,j) = 0 for any pair i, j such that i <= j.
+	 * Lower Hessenberg matrices: a(i,j) = 0 for any pair i, j such that i &lt;= j.
 	 * @return True if the matrix is lower Hessenberg, false otherwise
 	 */
 	public boolean isHessenbergLower() {
@@ -3979,7 +3978,6 @@ public class MatrixComplex {
 
 	/**
 	 * Method for creating a square identity array of "this" matrix size
-	 * @param dim The size of Identity array
 	 * @return The Identity array
 	 */
 	public MatrixComplex eye() {

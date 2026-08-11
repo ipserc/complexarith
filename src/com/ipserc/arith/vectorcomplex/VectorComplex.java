@@ -8,8 +8,12 @@ import com.ipserc.arith.matrixcomplex.*;
 public class VectorComplex extends MatrixComplex {
 
 	private final static String HEADINFO = "VectorComplex --- INFO: ";
-	private final static String VERSION = "1.13 (2026_0811_2015)";
+	private final static String VERSION = "1.14 (2026_0811_2230)";
 	/* VERSION Release Note
+	 * 1.14 (2026_0811_2230)
+	 * Corregidos errores de generación de Javadoc preexistentes (@param desincronizados) detectados
+	 * al generar la documentación de la API -- sin cambios funcionales.
+	 *
 	 * 1.13 (2026_0811_2015)
 	 * Comentarios Javadoc revisados como parte de la generación de la documentación de la API: ya
 	 * estaban en inglés casi en su totalidad, solo se han corregido algunas erratas menores
@@ -179,7 +183,7 @@ public class VectorComplex extends MatrixComplex {
 	/**
 	 * Instantiates a new vector initialized with the values given in the row. row is a MatrixComplex one row dimensional array.
 	 * If the row has more than one row, the constructor returns null.
-	 * @param cadena The vector with the coefficients given by row.
+	 * @param row The vector with the coefficients given by row.
 	 */
 	public VectorComplex(MatrixComplex row) {
 		super(1, row.cols());
@@ -271,7 +275,6 @@ public class VectorComplex extends MatrixComplex {
 
 	/**
 	 * Checks whether a vector is normal, that is, its norm equals 1.
-	 * @param row The row of the vector in the base
 	 * @return True if is normal, false otherwise
 	 */
 	public boolean isNormal() {
@@ -561,9 +564,9 @@ public class VectorComplex extends MatrixComplex {
 	}
 
 	/**
-	 * 
-	 * @param coef
-	 * @return
+	 * Calculates the Levi-Civita symbol (permutation sign) for the given permutation of indices.
+	 * @param vCoef The permutation of indices
+	 * @return 1 if the permutation is even, -1 if odd, 0 if any index is repeated
 	 */
 	public int leviCivita(int[] vCoef) {
 		int[] coef = vCoef.clone();
@@ -1031,11 +1034,10 @@ public class VectorComplex extends MatrixComplex {
 	}
 	
 	/**
-	 * 
-	 * @param vectB1
-	 * @param baseB1
-	 * @param baseB2
-	 * @return
+	 * Changes the coordinates of this vector (expressed in base baseB1) to base baseB2.
+	 * @param baseB1 The base in which this vector is currently expressed
+	 * @param baseB2 The base to change the vector's coordinates to
+	 * @return This vector's coordinates expressed in base baseB2
 	 */
 	public VectorComplex baseChg(MatrixComplex baseB1, MatrixComplex baseB2) {
 		return new VectorComplex(matBaseChg(baseB1, baseB2).times(this.transpose()).transpose());

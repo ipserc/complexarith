@@ -8,7 +8,7 @@ import com.ipserc.arith.vectorcomplex.VectorComplex;
 public class Schurfactor extends MatrixComplex {
 	
 	private final static String HEADINFO = "Schurfactor --- INFO: ";
-	private final static String VERSION = "1.2 (2026_0811_2000)";
+	private final static String VERSION = "1.3 (2026_0811_2130)";
 	private final static int boxSize = 65;
 
 	private boolean factorized = false;
@@ -17,6 +17,11 @@ public class Schurfactor extends MatrixComplex {
 	private MatrixComplex cSchur;
 
 	/* VERSION Release Note
+	 *
+	 * 1.3 (2026_0811_2130)
+	 * Corregido error de generacion de Javadoc preexistente: el @param del constructor
+	 * Schurfactor(MatrixComplex) nombraba "strMatrix" (copiado del otro constructor) en vez de
+	 * "matrix", el nombre real del parametro. Sin cambios funcionales.
 	 *
 	 * 1.2 (2026_0811_2000)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte
@@ -80,7 +85,7 @@ public class Schurfactor extends MatrixComplex {
 
 	/**
 	 * Constructs a Schurfactor instance from a complex matrix expressed as a MatrixComplex.
-	 * @param strMatrix The complex matrix as a MatrixComplex
+	 * @param matrix The complex matrix as a MatrixComplex
 	 */
 	public Schurfactor(MatrixComplex matrix) {
 		super();

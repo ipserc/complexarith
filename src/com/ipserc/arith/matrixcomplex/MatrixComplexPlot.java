@@ -6,8 +6,9 @@ import com.ipserc.arith.plot.SimpleGnuplot;
  * Shared GNUPlot integration for {@link MatrixComplex} and the classes derived from it that plot
  * {@code MatrixComplex}-shaped sample data (row 0: x values, row 1: y values) -- {@code Fourier},
  * {@code Laplace} and {@code Z} (package {@code com.ipserc.arith.signal}) each used to carry their
- * own byte-for-byte identical copy of {@link #plot(String, int, MatrixComplex, boolean, e_lineStyle)}
- * and {@link #setLineStyle(e_lineStyle)}; consolidated here (8 agosto 2026, a peticion del usuario)
+ * own byte-for-byte identical copy of {@code plot(String, int, MatrixComplex, boolean, e_lineStyle,
+ * SimpleGnuplot.e_syncMode)} (and its {@code plotSync}/{@code plotAsync} wrappers) and
+ * {@link #setLineStyle(e_lineStyle)}; consolidated here (8 agosto 2026, a peticion del usuario)
  * to remove that duplication. Also picks up {@code MatrixComplexFunctions.doPlot()} (the deviation
  * plot used by the Taylor/Mercator convergence loops), the other plotting code that lived in the
  * {@code matrixcomplex} package.
@@ -15,7 +16,8 @@ import com.ipserc.arith.plot.SimpleGnuplot;
  * Unlike the package-private extraction pattern used elsewhere in this project ({@code
  * ComplexFormat}, {@code PolynomPlot}...), this class is {@code public}: {@code Fourier}/{@code
  * Laplace}/{@code Z} live in a different package ({@code com.ipserc.arith.signal}) and need to call
- * {@link #plot(String, int, MatrixComplex, boolean, e_lineStyle)} from there. Their OWN {@code
+ * {@code plot(String, int, MatrixComplex, boolean, e_lineStyle, SimpleGnuplot.e_syncMode)} from
+ * there. Their OWN {@code
  * plot(...)} methods keep their exact original signatures (including their own, separate {@code
  * e_lineStyle} enum -- deliberately NOT unified with this class's, to avoid changing their public
  * API) and delegate to this class's implementation, converting the enum value at the boundary.
@@ -31,8 +33,8 @@ import com.ipserc.arith.plot.SimpleGnuplot;
  * e_lineStyle)} (itself delegating here) -- only {@code Fourier} still carried raw, hand-duplicated
  * {@code JavaPlot} boilerplate in {@code plotSamples}/{@code plotSeries}/{@code plotCompare}/{@code
  * plotDFTsamp}/{@code plotDFTfrec}, because those plot pre-computed {@code double[][]} series (not
- * a single {@code MatrixComplex}) and had no matching helper to delegate to. {@link
- * #plotSeries(String, e_lineStyle, double[][]...)} (and its labeled/logscale overload) close that
+ * a single {@code MatrixComplex}) and had no matching helper to delegate to. {@code
+ * plotSeriesSync(String, e_lineStyle, double[][]...)} (and its labeled/logscale overload) close that
  * gap: they take already-computed series, so the domain-specific computation (which needs
  * {@code Fourier}'s private state and its {@code eval()}) stays in {@code Fourier}, only the
  * repeated {@code JavaPlot} construction/config tail moved here.

@@ -3325,7 +3325,27 @@ A petición del usuario ("continua con: generar la documentación de las API a p
 
 VERSION bumps de esta sesión (18 previos + 24 de estos forks, todos fechados 11 agosto 2026): `Complex` (`1.40`, sin bump adicional este bloque salvo el que ya traía), `MatrixComplex` `1.72→1.73`, `Polynom` `1.27→1.28`, `Fourier` `1.10→1.11`, `VectorComplex` `1.12→1.13`, `Schurfactor` `1.1→1.2`, `QRfactor`/`QRSchurfactor` `1.4→1.5`, `Syseqnum` `1.5→1.6`, `Jordan`/`LUfactor` `1.5→1.6`, `SVDfactor` `1.4→1.5` (más los 18 bumps ya hechos antes de esta sesión, ver diffs). Ficheros package-private sin `VERSION` propio (`MatrixComplexEquationSystems/Functions/Unary/CharPoly/Rank/Format/Plot`, `ComplexCalculus`, `PolynomFormat/Plot`, `ComplexParser`, `Laplace`, `Z`) sin bump, consistente con la convención.
 
-**Sin punto de retomada pendiente sobre este bloque** — los 42 ficheros de la API están traducidos/corregidos, compilación limpia verificada, HTML generado en `doc/`. Pendiente de decisión del usuario: (1) si commitear este bloque tal cual, (2) si abrir un bloque dedicado para los 89 errores de Javadoc preexistentes (desincronización firma/comentario, en su mayoría en `Complex.java`/`MatrixComplex.java`/`Fourier.java`), fuera de alcance de este encargo.
+**Sin punto de retomada pendiente sobre este bloque** — los 42 ficheros de la API están traducidos/corregidos, compilación limpia verificada, HTML generado en `doc/`. Commiteado (`8dc0282`).
+
+## Continuación — bloque dedicado: limpieza de los 89 errores de Javadoc preexistentes (11 agosto 2026, commit pendiente)
+
+A petición explícita del usuario ("bloque dedicado a limpiarlos"), tras el bloque anterior de traducción. Mismo enfoque de 5 forks en paralelo, uno por lote de ficheros, cada uno con la lista exacta de errores (fichero:línea:tipo) ya extraída de la generación de `doc/` previa.
+
+**Causas raíz encontradas, agrupadas por tipo** (89 errores, ninguno delataba un bug de comportamiento real — todos cosméticos/de sincronización Javadoc↔firma, excepto 2 hallazgos de interés menor anotados abajo):
+- **`@param name not found`** (la mayoría): nombres de parámetro desincronizados tras renombres históricos del código (proyecto autodidacta desde 2017) — `text`→`title`, `expnz`→`expz`, `numDec`→`precision`, `strMatrix`→`matrix`, parámetros de una sobrecarga distinta pegados por copy-paste en otra, y algún método sin argumentos que aún documentaba un `@param` fantasma (`eye()`, `isNormal()`, `walkInterval()`).
+- **`unknown tag: separator`** (14, en `Fourier`/`Laplace`/`Z`, bloque de código duplicado entre las 3 clases): NO era un `@separator` sin escapar como se sospechaba al principio, sino literal `&lt;separator&gt;`/`Re&lt;separator&gt;Im` en la prosa, que Javadoc interpretaba como una etiqueta HTML desconocida — escapado a `&amp;lt;.../&amp;gt;...`.
+- **`unknown tag: real`/`imag`/`MatrixComplex`**: mismo patrón, `&lt;real&gt;,&lt;imag&gt;` sin escapar en `Complex.toStringGNUPlot()`, y genéricos Java (`List&lt;MatrixComplex&gt;`) sin escapar en `Polynom.java` — todos envueltos en `{@code}`.
+- **`reference not found`**: `{@link}` rotos por métodos renombrados en reestructuraciones ya cerradas (`MatrixComplexPlot#doPlot`→`doPlotSync`, `plot`→`plotSync`/`plotAsync`, `Complex.exact()` que ya no existe desde que se eliminó el modo EXACT/APPROXIMATED) — convertidos a `{@code}` o corregidos al nombre real.
+- **`invalid use of @param`/`@return`**: un bloque Javadoc de `zeta_re()` que había quedado pegado a un campo (`ZETA_RE_BERNOULLI_2J`) en vez de al método real (que ya tenía su propio Javadoc correcto más abajo) — duplicado eliminado; y la declaración `private enum hyptrigon` que se colaba entre el Javadoc y el método real que documentaba en `MatrixComplexFunctions.java` — reordenada (única línea de código movida en todo el bloque, sin cambio de comportamiento).
+- **`malformed HTML`/`bad HTML entity`**: `<`/`>`/`&` sueltos sin escapar en varias clases (`i &lt;= j`, `BOXES &amp; TITLES`, `|point|&lt;=1`).
+
+**2 hallazgos de interés menor, corregidos solo en el texto** (no en lógica): `MatrixComplexUnary.isHessenbergLower()` tenía su Javadoc copiado literalmente de `isHessenbergUpper()` ("Upper" en vez de "Lower"), y de paso se anotó que el código exige también diagonal cero, más estricto que la definición matemática estándar de lower-Hessenberg (sin tocar el comportamiento, solo documentado el matiz).
+
+**Verificación**: recompilación fresca completa de `com.ipserc.arith` (limpia). Regeneración completa de `doc/` con los mismos flags de siempre — **0 errores** (frente a los 89 anteriores), 100 warnings sin cambios (avisos de estilo, no errores). Escaneo del diff completo desde el commit `8dc0282` filtrando líneas añadidas que no sean comentario/blank/`VERSION =`: una única línea de código detectada, el reordenamiento ya descrito de `hyptrigon` (confirmado que es solo mover la línea, no una reescritura).
+
+VERSION bumps de este bloque: `Complex` `1.40→1.41`, `MatrixComplex` `1.73→1.74`, `VectorComplex` `1.13→1.14`, `Polynom` `1.28→1.29`, `Fourier` `1.11→1.12`, `Jordan` `1.6→1.7`, `Schurfactor` `1.2→1.3`, `Spline` `1.1→1.2` (más los ya hechos en el bloque de traducción anterior). `Laplace`/`Z`/los ficheros package-private de apoyo no tienen `VERSION` propio, sin bump forzado.
+
+**Sin punto de retomada pendiente** — los 89 errores están cerrados del todo, `doc/` regenerado sin errores, listo para commitear.
 
 ---
 

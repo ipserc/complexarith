@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * callers (e.g. {@code Syseq}, {@code Spline}, and many test files use {@code Complex.repeat(...)})
  * are unaffected.
  * <p>
- * Extracted verbatim from {@code Complex.java}'s "BOXES & TITLES" section (Sixth session, step 2,
+ * Extracted verbatim from {@code Complex.java}'s "BOXES &amp; TITLES" section (Sixth session, step 2,
  * Phase 2.1): confirmed zero coupling to {@code Complex} instance fields or thread-local state --
  * every method here takes only {@code (int size, String title/text, ...)} and does pure string/int
  * manipulation, so this was the lowest-risk section to extract first.
@@ -167,7 +167,7 @@ final class ComplexBoxArt {
 	/**
 	 * Returns a text inside of a equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
+	 * @param title The text to put inside the box
 	 * @return The String representation of the box text
 	 */
 	static String boxTitle6(int size, String title) {
@@ -181,7 +181,7 @@ final class ComplexBoxArt {
 	/**
 	 * Returns a text inside of a equal-pipe box
 	 * @param size The minimum size of the box
-	 * @param text The text to put inside the box
+	 * @param title The text to put inside the box
 	 * @return The String representation of the box text
 	 */
 	static String boxTitle7(int size, String title) {
