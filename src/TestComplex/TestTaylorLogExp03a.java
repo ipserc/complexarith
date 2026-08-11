@@ -71,7 +71,7 @@ public class TestTaylorLogExp03a {
 
 		if (taylor) {
 	 		try {
-		    	bMatrix = aMatrix.logTaylor(); 
+		    	bMatrix = aMatrix.logTaylor();
 		       	if (!bMatrix.isInfinite() && !bMatrix.isNaN()) {
 		       		++contador;
 		       		printHeader(aMatrix);
@@ -82,7 +82,7 @@ public class TestTaylorLogExp03a {
 		       	}
 			}
 			catch (Exception excep) {
-				System.out.println("Error in the calculation of the exponential");
+				System.out.println("Error in the calculation of logTaylor: " + excep.getMessage());
 			}
 		}
  		
@@ -172,8 +172,10 @@ public class TestTaylorLogExp03a {
     }
 
     public static void doCalcs(MatrixComplex aMatrix) {
+        calcLogs(aMatrix);
+
         List<MatrixComplex> combinaciones = obtenerCombinaciones(aMatrix);
-        
+
         // Imprimimos las combinaciones obtenidas
         for (MatrixComplex combinacion : combinaciones) {
         	calcLogs(combinacion);
