@@ -448,6 +448,9 @@ class MatrixComplexFunctions {
 		return exp(m.times(Complex.i));
 	}
 
+	/**
+	 * Selects which hyperbolic trigonometric function {@link #trigonHyperbolycTaylor} computes.
+	 */
 	private enum hyptrigon {SINH, COSH};
 	/**
 	 * The "SINH" or "COSH" depending on hypFunc. One method to rule them all
