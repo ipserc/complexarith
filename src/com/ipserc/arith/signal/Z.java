@@ -27,11 +27,11 @@ public class Z extends MatrixComplex {
 	private int N;
 	private int sampleFreq;
 	private MatrixComplex samples;
-	private MatrixComplex series;
+	// private MatrixComplex series;
 	private MatrixComplex transform;
-	private Complex offset = new Complex();
+	// private Complex offset = new Complex();
 	private Boolean isSampled = false;
-	private Boolean isSerialized = false;
+	//private Boolean isSerialized = false;
 	private Boolean isTransformed = false;
 	private String filterData;
 	/** Radius r of the sampling ring z_k=r*e^(j*2*pi*k/N) used by DZT()/IDZT(). r=1 reduces exactly to the DFT. */

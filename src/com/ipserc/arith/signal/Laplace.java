@@ -10,9 +10,6 @@ import java.util.function.Function;
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.*;
 import com.ipserc.arith.plot.SimpleGnuplot;
-import com.ipserc.arith.signal.Fourier.e_domain;
-import com.ipserc.arith.signal.Fourier.e_lineStyle;
-import com.ipserc.arith.signal.Fourier.e_operator;
 import com.ipserc.chronometer.*;
 
 /**

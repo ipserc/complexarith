@@ -17,8 +17,6 @@ import java.lang.Double;
 import java.lang.Math;
 import java.math.*;
 import java.util.function.Function;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 /**
  * Complex class to work with complex numbers
@@ -51,8 +49,12 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.42 (2026_0811_2301)";
+	private final static String VERSION = "1.43 (2026_0812_1200)";
 	/* VERSION Release Note
+	 * 1.43 (2026_0812_1200)
+	 * Limpieza de restos: eliminados los imports java.util.ArrayDeque/Deque, sin uso alguno en el
+	 * fichero. Sin cambios funcionales.
+	 *
 	 * 1.42 (2026_0811_2301)
 	 * Reportado por el usuario tras revisar el HTML generado: el tipo anidado Representation no
 	 * tenía Javadoc real, así que su página en doc/ salía sin descripción -- mismo patrón ya visto

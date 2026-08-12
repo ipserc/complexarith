@@ -16,7 +16,6 @@ import java.io.FileOutputStream;
 import java.io.DataOutputStream;
 import java.nio.file.*;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  * Fourier analysis of a {@link Complex} function: discrete Fourier transform (DFT/IDFT) and
@@ -42,8 +41,12 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.13 (2026_0811_2240)";
+	private final static String VERSION = "1.14 (2026_0812_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.14 (2026_0812_1200)
+	 * Limpieza de restos: eliminado el import java.nio.ByteOrder, sin uso alguno en el fichero.
+	 * Sin cambios funcionales.
 	 *
 	 * 1.13 (2026_0811_2240)
 	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real (sin

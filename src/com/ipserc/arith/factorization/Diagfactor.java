@@ -1,6 +1,5 @@
 package com.ipserc.arith.factorization;
 
-import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.Eigenspace;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
@@ -36,8 +35,12 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.7 (2026_0811_2200)";
+	private final static String VERSION = "1.8 (2026_0812_1200)";
 	/* VERSION Release Note
+	 * 1.8 (2026_0812_1200)
+	 * Limpieza de restos: eliminado el import com.ipserc.arith.complex.Complex, sin uso alguno en
+	 * el fichero. Sin cambios funcionales.
+	 *
 	 * 1.7 (2026_0811_2200)
 	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenia Javadoc real (el
 	 * bloque con la explicacion matematica estaba suelto antes del package/import, sin pegar a la

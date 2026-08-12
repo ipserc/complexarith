@@ -2,12 +2,9 @@ package com.ipserc.arith.matrixcomplex;
 
 import java.lang.Math;
 
-import com.ipserc.arith.combinatoric.*;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.Diagfactor;
-import com.ipserc.arith.factorization.Schurfactor;
 import com.ipserc.arith.polynom.*;
-import com.ipserc.arith.syseq.Syseq;
 
 /**
  * MatrixComplex is a class that allows defining and operating with square and rectangular
@@ -22,8 +19,13 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.75 (2026_0811_2300)";
+	private final static String VERSION = "1.76 (2026_0812_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.76 (2026_0812_1200)
+	 * Limpieza de restos: eliminados los imports com.ipserc.arith.combinatoric.*,
+	 * com.ipserc.arith.factorization.Schurfactor y com.ipserc.arith.syseq.Syseq, sin uso alguno en
+	 * el fichero. Sin cambios funcionales.
 	 *
 	 * 1.75 (2026_0811_2300)
 	 * logTaylor()/logMercator()/logHat()/logm() fallan alto con IllegalArgumentException para la
