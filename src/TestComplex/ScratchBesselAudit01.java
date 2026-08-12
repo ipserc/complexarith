@@ -34,7 +34,7 @@ public class ScratchBesselAudit01 {
 		check("J_0(2)==0.2238907791", Complex.besselJ(new Complex(0, 0), new Complex(2, 0)).minus(new Complex(0.2238907791, 0)).mod(), 1e-8);
 
 		System.out.println("\n=== (3) Recurrencia J_(n-1)(z)+J_(n+1)(z)==(2n/z)*J_n(z) ===");
-		double[][] recPts = {{2.5, 0.0}, {1.3, 0.8}, {-0.7, 1.5}};
+		double[][] recPts = {{2.5, 0.0}, {1.3, 0.8}, {-0.7, 1.5}, {Math.log(2), Math.sqrt(3)}};
 		for (int n = 1; n <= 3; n++) {
 			for (double[] pt : recPts) {
 				Complex z = new Complex(pt[0], pt[1]);
@@ -53,7 +53,7 @@ public class ScratchBesselAudit01 {
 		}
 
 		System.out.println("\n=== (5) Orden semientero, forma cerrada ===");
-		double[][] halfPts = {{1.0, 0.0}, {2.3, 0.0}, {1.5, 0.6}};
+		double[][] halfPts = {{1.0, 0.0}, {2.3, 0.0}, {1.5, 0.6}, {Math.log(2), Math.sqrt(3)}};
 		for (double[] pt : halfPts) {
 			Complex z = new Complex(pt[0], pt[1]);
 			Complex scale = Complex.sqrt(new Complex(2, 0).divides(Complex.PI.times(z)));
@@ -79,7 +79,7 @@ public class ScratchBesselAudit01 {
 		check("Y_1(1)==-0.7812128213", Complex.besselY(new Complex(1, 0), new Complex(1, 0)).minus(new Complex(-0.7812128213, 0)).mod(), 1e-6);
 
 		System.out.println("\n=== (7) Wronskiano J_n(z)*Y_n'(z)-J_n'(z)*Y_n(z)==2/(pi*z) ===");
-		double[][] wronskPts = {{1.5, 0.0}, {2.2, 0.4}};
+		double[][] wronskPts = {{1.5, 0.0}, {2.2, 0.4}, {Math.log(2), Math.sqrt(3)}};
 		for (int n = 0; n <= 2; n++) {
 			Complex nC = new Complex(n, 0);
 			for (double[] pt : wronskPts) {
@@ -93,7 +93,7 @@ public class ScratchBesselAudit01 {
 		}
 
 		System.out.println("\n=== (8) Ecuacion diferencial de Bessel z^2*y''+z*y'+(z^2-n^2)*y==0 ===");
-		double[][] odePts = {{2.0, 0.0}, {1.8, 0.5}};
+		double[][] odePts = {{2.0, 0.0}, {1.8, 0.5}, {Math.log(2), Math.sqrt(3)}};
 		for (int n = 0; n <= 2; n++) {
 			Complex nC = new Complex(n, 0);
 			for (double[] pt : odePts) {
