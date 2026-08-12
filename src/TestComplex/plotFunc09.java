@@ -26,7 +26,9 @@ public class plotFunc09 {
 		double[][] points;
 			
 		try {
-			File myObj = new File("/home/ipserc/workspace_python/primes/puntos_funcion_primos.txt");
+			// NOTA: fichero generado externamente por un script Python; no lo genera este test,
+			// hay que copiarlo a <user.home>/ipserc/saco/primes/ antes de poder ejecutarlo.
+			File myObj = new File(TestScratchPaths.path("primes", "puntos_funcion_primos.txt"));
 			Scanner myReader = new Scanner(myObj);
 			// Get the number of lines --> the size of the array
 			while (myReader.hasNextLine()) {

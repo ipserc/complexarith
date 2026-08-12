@@ -41,6 +41,10 @@ public class TestFilter04 {
 	}
 
 	public static void main(String[] args) {
+		// NOTA: este test depende de ficheros de datos (signal_samples.txt/signal_dft.txt,
+		// dft_filt_signal_*.txt, convolution_*.txt) generados a mano en una sesión anterior,
+		// bajo <user.home>/ipserc/saco/fourier_20201023_2012 y .../2013 (ver TestScratchPaths).
+		// No los genera el propio test; hay que copiarlos ahí antes de poder ejecutarlo.
 		Fourier signalDFT1, signalDFT2, signalDFT;
 		Fourier signalConv1, signalConv2, signalConv;
 		Fourier signalDiff;
@@ -52,22 +56,22 @@ public class TestFilter04 {
 		 * SIGNAL SECTION
 		 *****************/
 		System.out.println(Complex.boxTextRandom(boxSize, "Signal Section"));
-		signalOrig = new Fourier("/home/ipserc/saco/fourier_20201023_2013/signal_samples.txt");
-		signalOrig.readDFT("/home/ipserc/saco/fourier_20201023_2013/signal_dft.txt");
+		signalOrig = new Fourier(TestScratchPaths.path("fourier_20201023_2013", "signal_samples.txt"));
+		signalOrig.readDFT(TestScratchPaths.path("fourier_20201023_2013", "signal_dft.txt"));
 		// PLOTING RESULTS
 		System.out.println("Original Signal Plotting results...");		
 		signalOrig.plotSamplesSync("Original Signal (Time) ", true, e_lineStyle.IMPULSES);
 		signalOrig.plotDFTSync("Original Signal Spectrum ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);	
 		
-		signalDFT1 = new Fourier("/home/ipserc/saco/fourier_20201023_2012/dft_filt_signal_samples.txt");
-		signalDFT1.readDFT("/home/ipserc/saco/fourier_20201023_2012/dft_filt_signal_dft.txt");
+		signalDFT1 = new Fourier(TestScratchPaths.path("fourier_20201023_2012", "dft_filt_signal_samples.txt"));
+		signalDFT1.readDFT(TestScratchPaths.path("fourier_20201023_2012", "dft_filt_signal_dft.txt"));
 		// PLOTING RESULTS
 		System.out.println("DFT1 Plotting results...");		
 		signalDFT1.plotSamplesSync("DFT1 (Time) ", true, e_lineStyle.IMPULSES);
 		signalDFT1.plotDFTSync("DFT1 Spectrum ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);	
 		
-		signalDFT2 = new Fourier("/home/ipserc/saco/fourier_20201023_2013/dft_filt_signal_samples.txt");
-		signalDFT2.readDFT("/home/ipserc/saco/fourier_20201023_2013/dft_filt_signal_dft.txt");
+		signalDFT2 = new Fourier(TestScratchPaths.path("fourier_20201023_2013", "dft_filt_signal_samples.txt"));
+		signalDFT2.readDFT(TestScratchPaths.path("fourier_20201023_2013", "dft_filt_signal_dft.txt"));
 		// PLOTING RESULTS
 		System.out.println("DFT2 Plotting results...");		
 		signalDFT2.plotSamplesSync("DFT2 (Time) ", true, e_lineStyle.IMPULSES);
@@ -79,15 +83,15 @@ public class TestFilter04 {
 		signalDFT.plotSamplesSync("DFT1+DFT2 ", true, e_lineStyle.IMPULSES);
 		signalDFT.plotDFTSync("DFT1+DFT2 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 
-		signalConv1 = new Fourier("/home/ipserc/saco/fourier_20201023_2012/convolution_samples.txt");
-		signalConv1.readDFT("/home/ipserc/saco/fourier_20201023_2012/convolution_dft.txt");
+		signalConv1 = new Fourier(TestScratchPaths.path("fourier_20201023_2012", "convolution_samples.txt"));
+		signalConv1.readDFT(TestScratchPaths.path("fourier_20201023_2012", "convolution_dft.txt"));
 		// PLOTING RESULTS
 		System.out.println("CONV1 Plotting results...");		
 		signalConv1.plotSamplesSync("CONV1 ", true, e_lineStyle.IMPULSES);
 		signalConv1.plotDFTSync("CONV1 ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
 		
-		signalConv2 = new Fourier("/home/ipserc/saco/fourier_20201023_2013/convolution_samples.txt");
-		signalConv2.readDFT("/home/ipserc/saco/fourier_20201023_2013/convolution_dft.txt");
+		signalConv2 = new Fourier(TestScratchPaths.path("fourier_20201023_2013", "convolution_samples.txt"));
+		signalConv2.readDFT(TestScratchPaths.path("fourier_20201023_2013", "convolution_dft.txt"));
 		// PLOTING RESULTS
 		System.out.println("CONV2 Plotting results...");		
 		signalConv2.plotSamplesSync("CONV2 ", true, e_lineStyle.IMPULSES);

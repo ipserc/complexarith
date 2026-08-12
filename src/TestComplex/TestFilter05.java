@@ -94,12 +94,12 @@ public class TestFilter05 {
 			signal.DFT(samplefreq);
 		
 			// SAVING DATA
-			signal.saveSamples("/home/ipserc/saco/signal_samples.txt");
-			signal.saveDFT("/home/ipserc/saco/signal_dft.txt");
+			signal.saveSamples(TestScratchPaths.path("signal_samples.txt"));
+			signal.saveDFT(TestScratchPaths.path("signal_dft.txt"));
 		}
 		else {
-			signal = new Fourier("/home/ipserc/saco/signal_samples.txt");
-			signal.readDFT("/home/ipserc/saco/signal_dft.txt");
+			signal = new Fourier(TestScratchPaths.path("signal_samples.txt"));
+			signal.readDFT(TestScratchPaths.path("signal_dft.txt"));
 			loLimit = signal.getLoLimit().rep();
 			upLimit = signal.getUpLimit().rep();
 			samplefreq = signal.getSampleFreq();			
@@ -132,13 +132,13 @@ public class TestFilter05 {
 			//filter.highPassFilter(gain, fInit, samplefreq);
 			
 			// SAVING DATA
-			filter.saveSamples("/home/ipserc/saco/filter_samples.txt");
-			filter.saveDFT("/home/ipserc/saco/filter_dft.txt");	
+			filter.saveSamples(TestScratchPaths.path("filter_samples.txt"));
+			filter.saveDFT(TestScratchPaths.path("filter_dft.txt"));
 
 		}
 		else {
-			filter = new Fourier("/home/ipserc/saco/filter_samples.txt");
-			filter.readDFT("/home/ipserc/saco/filter_dft.txt");
+			filter = new Fourier(TestScratchPaths.path("filter_samples.txt"));
+			filter.readDFT(TestScratchPaths.path("filter_dft.txt"));
 		}
 		
 		System.out.println("Filter " + filter.getFilterData());
@@ -160,12 +160,12 @@ public class TestFilter05 {
 			signalDFT = filter.filter(signal);
 			
 			// SAVING DATA
-			signalDFT.saveSamples("/home/ipserc/saco/dft_filt_signal_samples.txt");
-			signalDFT.saveDFT("/home/ipserc/saco/dft_filt_signal_dft.txt");
+			signalDFT.saveSamples(TestScratchPaths.path("dft_filt_signal_samples.txt"));
+			signalDFT.saveDFT(TestScratchPaths.path("dft_filt_signal_dft.txt"));
 		}
 		else {
-			signalDFT = new Fourier("/home/ipserc/saco/dft_filt_signal_samples.txt");
-			signalDFT.readDFT("/home/ipserc/saco/dft_filt_signal_dft.txt");			
+			signalDFT = new Fourier(TestScratchPaths.path("dft_filt_signal_samples.txt"));
+			signalDFT.readDFT(TestScratchPaths.path("dft_filt_signal_dft.txt"));
 		}
 
 		//PLOTING RESULTS
@@ -187,12 +187,12 @@ public class TestFilter05 {
 			//signalCONV = filter.convolution1(signal, 0);
 			
 			// SAVING DATA
-			signalCONV.saveSamples("/home/ipserc/saco/convolution_samples.txt");
-			signalCONV.saveDFT("/home/ipserc/saco/convolution_dft.txt");
+			signalCONV.saveSamples(TestScratchPaths.path("convolution_samples.txt"));
+			signalCONV.saveDFT(TestScratchPaths.path("convolution_dft.txt"));
 		}
 		else {
-			signalCONV = new Fourier("/home/ipserc/saco/convolution_samples.txt");
-			signalCONV.readDFT("/home/ipserc/saco/convolution_dft.txt");						
+			signalCONV = new Fourier(TestScratchPaths.path("convolution_samples.txt"));
+			signalCONV.readDFT(TestScratchPaths.path("convolution_dft.txt"));
 		}
 
 		//PLOTING RESULTS
@@ -207,30 +207,30 @@ public class TestFilter05 {
 		System.out.println("ORIG-DFT Plotting results...");		
 		signalDIFF.plotSamplesSync("ORIG-DFT", true, e_lineStyle.LINES);
 		signalDIFF.plotDFTSync("ORIG-DFT", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
-		//signalDiff.saveSamples("/home/ipserc/saco/diff_samples.txt");
+		//signalDiff.saveSamples(TestScratchPaths.path("diff_samples.txt"));
 
-		signalDIFF.saveSamples("/home/ipserc/saco/orig_minus_dft_signal_samples.txt");
-		signalDIFF.saveDFT("/home/ipserc/saco/orig_minus_dft_signal_dft.txt");
+		signalDIFF.saveSamples(TestScratchPaths.path("orig_minus_dft_signal_samples.txt"));
+		signalDIFF.saveDFT(TestScratchPaths.path("orig_minus_dft_signal_dft.txt"));
 
 		signalDIFF = signal.minus(signalCONV);
 		// PLOTING RESULTS
 		System.out.println("ORIG-CONV Plotting results...");		
 		signalDIFF.plotSamplesSync("ORIG-CONV", true, e_lineStyle.LINES);
 		signalDIFF.plotDFTSync("ORIG-CONV", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
-		//signalDiff.saveSamples("/home/ipserc/saco/diff_samples.txt");
+		//signalDiff.saveSamples(TestScratchPaths.path("diff_samples.txt"));
 
-		signalDIFF.saveSamples("/home/ipserc/saco/orig_minus_conv_signal_samples.txt");
-		signalDIFF.saveDFT("/home/ipserc/saco/orig_minus_conv_signal_dft.txt");
+		signalDIFF.saveSamples(TestScratchPaths.path("orig_minus_conv_signal_samples.txt"));
+		signalDIFF.saveDFT(TestScratchPaths.path("orig_minus_conv_signal_dft.txt"));
 
 		signalDIFF = signalDFT.minus(signalCONV);
 		// PLOTING RESULTS
 		System.out.println("DFT-CONV Plotting results...");		
 		signalDIFF.plotSamplesSync("DFT-CONV ", true, e_lineStyle.LINES);
 		signalDIFF.plotDFTSync("DFT-CONV ", e_domain.FREC, e_operator.MAGNITUDE, true, e_lineStyle.LINES);
-		//signalDiff.saveSamples("/home/ipserc/saco/diff_samples.txt");
+		//signalDiff.saveSamples(TestScratchPaths.path("diff_samples.txt"));
 
-		signalDIFF.saveSamples("/home/ipserc/saco/dft_minus_conv_signal_samples.txt");
-		signalDIFF.saveDFT("/home/ipserc/saco/dft_minus_conv_signal_dft.txt");
+		signalDIFF.saveSamples(TestScratchPaths.path("dft_minus_conv_signal_samples.txt"));
+		signalDIFF.saveDFT(TestScratchPaths.path("dft_minus_conv_signal_dft.txt"));
 
 		/**/
 	}

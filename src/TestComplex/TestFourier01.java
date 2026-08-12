@@ -8,8 +8,6 @@ import com.ipserc.arith.signal.Sigfunc;
 import com.ipserc.arith.signal.Fourier.e_domain;
 import com.ipserc.arith.signal.Fourier.e_lineStyle;
 import com.ipserc.arith.signal.Fourier.e_operator;
-import java.nio.file.Paths;
-import java.io.File;
 
 public class TestFourier01 {
 
@@ -234,16 +232,8 @@ public class TestFourier01 {
 	}
 	
 	private static void saveData(Fourier tFourier) {
-		// Construye la ruta base usando el home del usuario
-		String userHome = System.getProperty("user.home");
-		String basePath = Paths.get(userHome, "ipserc", "saco").toString();
-
-		// Crea los directorios si no existen
-		new File(basePath).mkdirs();
-
-		// Llama a tus métodos
-		tFourier.saveSamples(Paths.get(basePath, "samples.txt").toString());
-		tFourier.saveDFT(Paths.get(basePath, "dft.txt").toString());
+		tFourier.saveSamples(TestScratchPaths.path("samples.txt"));
+		tFourier.saveDFT(TestScratchPaths.path("dft.txt"));
 	}
 
 	public static void TestDFT(Function<Complex, Complex> func, int sampleFreq, double loLimit, double upLimit) {
@@ -287,7 +277,7 @@ public class TestFourier01 {
 	}
 
 	public static void TestSDFT() {
-		Fourier tFourier = new Fourier("/home/ipserc/saco/samples.txt");
+		Fourier tFourier = new Fourier(TestScratchPaths.path("samples.txt"));
 		tFourier.DFT(tFourier.getSampleFreq());
 		
 		tFourier.plotFunctionSync("Function", tFourier.getSampleFreq(), true, e_lineStyle.LINES);
@@ -301,7 +291,7 @@ public class TestFourier01 {
 
 	public static void TestIDFT() {
 		Fourier tFourier = new Fourier();
-		tFourier.readDFT("/home/ipserc/saco/dft.txt", "");
+		tFourier.readDFT(TestScratchPaths.path("dft.txt"), "");
 		tFourier.IDFT();
 		
 		tFourier.plotFunctionSync("Function", tFourier.getSampleFreq(), true, e_lineStyle.LINES);

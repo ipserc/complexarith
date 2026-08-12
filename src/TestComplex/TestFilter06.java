@@ -72,12 +72,12 @@ public class TestFilter06 {
 			signal1.DFT(samplefreq);
 		
 			// SAVING DATA
-			signal1.saveSamples("/home/ipserc/saco/signal_samples.txt");
-			signal1.saveDFT("/home/ipserc/saco/signal_dft.txt");
+			signal1.saveSamples(TestScratchPaths.path("signal_samples.txt"));
+			signal1.saveDFT(TestScratchPaths.path("signal_dft.txt"));
 		}
 		else {
-			signal1 = new Fourier("/home/ipserc/saco/signal_samples.txt");
-			signal1.readDFT("/home/ipserc/saco/signal_dft.txt");
+			signal1 = new Fourier(TestScratchPaths.path("signal_samples.txt"));
+			signal1.readDFT(TestScratchPaths.path("signal_dft.txt"));
 			loLimit = signal1.getLoLimit().rep();
 			upLimit = signal1.getUpLimit().rep();
 			samplefreq = signal1.getSampleFreq();			
@@ -94,12 +94,12 @@ public class TestFilter06 {
 			signal2.DFT(samplefreq);
 		
 			// SAVING DATA
-			signal2.saveSamples("/home/ipserc/saco/signal_samples.txt");
-			signal2.saveDFT("/home/ipserc/saco/signal_dft.txt");
+			signal2.saveSamples(TestScratchPaths.path("signal_samples.txt"));
+			signal2.saveDFT(TestScratchPaths.path("signal_dft.txt"));
 		}
 		else {
-			signal2 = new Fourier("/home/ipserc/saco/signal_samples.txt");
-			signal2.readDFT("/home/ipserc/saco/signal_dft.txt");
+			signal2 = new Fourier(TestScratchPaths.path("signal_samples.txt"));
+			signal2.readDFT(TestScratchPaths.path("signal_dft.txt"));
 			loLimit = signal2.getLoLimit().rep();
 			upLimit = signal2.getUpLimit().rep();
 			samplefreq = signal2.getSampleFreq();			
@@ -118,12 +118,12 @@ public class TestFilter06 {
 			signal3.DFT(samplefreq);
 		
 			// SAVING DATA
-			signal3.saveSamples("/home/ipserc/saco/signal_samples.txt");
-			signal3.saveDFT("/home/ipserc/saco/signal_dft.txt");
+			signal3.saveSamples(TestScratchPaths.path("signal_samples.txt"));
+			signal3.saveDFT(TestScratchPaths.path("signal_dft.txt"));
 		}
 		else {
-			signal3 = new Fourier("/home/ipserc/saco/signal_samples.txt");
-			signal3.readDFT("/home/ipserc/saco/signal_dft.txt");
+			signal3 = new Fourier(TestScratchPaths.path("signal_samples.txt"));
+			signal3.readDFT(TestScratchPaths.path("signal_dft.txt"));
 			loLimit = signal3.getLoLimit().rep();
 			upLimit = signal3.getUpLimit().rep();
 			samplefreq = signal3.getSampleFreq();			

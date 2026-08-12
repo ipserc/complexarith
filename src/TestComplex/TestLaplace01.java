@@ -188,7 +188,7 @@ public class TestLaplace01 {
 	}
 	
 	public static void TestSDLT() {
-		Laplace tLaplace = new Laplace("/home/ipserc/saco/samples.txt");
+		Laplace tLaplace = new Laplace(TestScratchPaths.path("samples.txt"));
 		tLaplace.DLT(tLaplace.getSampleFreq());
 		
 		tLaplace.plotFunctionSync("Function", tLaplace.getSampleFreq(), true, e_lineStyle.LINES);
@@ -202,7 +202,7 @@ public class TestLaplace01 {
 
 	public static void TestIDLT() {
 		Laplace tLaplace = new Laplace();
-		tLaplace.readDLT("/home/ipserc/saco/dft.txt", "");
+		tLaplace.readDLT(TestScratchPaths.path("dft.txt"), "");
 		tLaplace.IDLT();
 		
 		tLaplace.plotFunctionSync("Function", tLaplace.getSampleFreq(), true, e_lineStyle.LINES);
