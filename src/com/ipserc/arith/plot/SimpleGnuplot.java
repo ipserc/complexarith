@@ -35,7 +35,18 @@ public class SimpleGnuplot {
 	private String title;
 	private final Map<String, String> settings = new LinkedHashMap<>();
 	private final List<String> postInit = new ArrayList<>();
-	private final List<Object> plotTerms = new ArrayList<>(); // each element: double[][] (data block) or String (gnuplot expression)
+	private final List<Object> plotTerms = new ArrayList<>(); // each element: Term (data block, labeled) or String (gnuplot expression)
+
+	/** A labeled data block -- {@code data} is {@code double[][]} (flat) or {@code double[][][]} (grid); {@code label} is {@code null} for the default {@code "Series N"} title. */
+	private static final class Term {
+		final Object data;
+		final String label;
+
+		Term(Object data, String label) {
+			this.data = data;
+			this.label = label;
+		}
+	}
 	private boolean persist = false;
 	private boolean is3D = false;
 
@@ -67,7 +78,12 @@ public class SimpleGnuplot {
 
 	/** Adds a data series: each row is one point ({@code [x,y]} for 2D, {@code [x,y,z]} for 3D). */
 	public void addPlot(double[][] data) {
-		plotTerms.add(data);
+		addPlot(data, null);
+	}
+
+	/** Same as {@link #addPlot(double[][])}, but with an explicit legend title instead of the default {@code "Series N"}. */
+	public void addPlot(double[][] data, String label) {
+		plotTerms.add(new Term(data, label));
 	}
 
 	/**
@@ -82,7 +98,12 @@ public class SimpleGnuplot {
 	 * @param grid The grid of points, {@code grid[row][col] = {x, y, z}}.
 	 */
 	public void addPlotGrid(double[][][] grid) {
-		plotTerms.add(grid);
+		addPlotGrid(grid, null);
+	}
+
+	/** Same as {@link #addPlotGrid(double[][][])}, but with an explicit legend title instead of the default {@code "Series N"}. */
+	public void addPlotGrid(double[][][] grid, String label) {
+		plotTerms.add(new Term(grid, label));
 	}
 
 	/** Adds a native gnuplot expression term (e.g. {@code "sin(x)"}, {@code "[-2:4] x**2+1"}) --
@@ -144,8 +165,10 @@ public class SimpleGnuplot {
 				termClauses.add(expr + " title '" + escape(expr) + "'");
 			} else {
 				++seriesN;
-				termClauses.add("'-' title 'Series " + seriesN + "'");
-				dataBlocks.add(term);
+				Term t = (Term) term;
+				String label = t.label != null ? t.label : "Series " + seriesN;
+				termClauses.add("'-' title '" + escape(label) + "'");
+				dataBlocks.add(t.data);
 			}
 		}
 		sb.append(is3D ? "splot " : "plot ").append(String.join(", ", termClauses)).append('\n');

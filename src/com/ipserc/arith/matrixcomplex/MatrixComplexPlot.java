@@ -50,6 +50,31 @@ import com.ipserc.arith.plot.SimpleGnuplot;
  */
 public class MatrixComplexPlot {
 
+	/** A {@code double[nbrPoints][2 or 3]} series (2D or 3D point list) paired with an explicit
+	 * legend title, for the {@code plotSeries*}/{@code plotSeries3D*} overloads below that let
+	 * callers name each curve instead of the default {@code "Series N"}. */
+	public static final class NamedSeries {
+		public final String label;
+		public final double[][] data;
+
+		public NamedSeries(String label, double[][] data) {
+			this.label = label;
+			this.data = data;
+		}
+	}
+
+	/** A {@code double[rows][cols][3]} grid paired with an explicit legend title, for {@link
+	 * #plotGrid3D(String, boolean, SimpleGnuplot.e_syncMode, NamedGrid...)}. */
+	public static final class NamedGrid {
+		public final String label;
+		public final double[][][] grid;
+
+		public NamedGrid(String label, double[][][] grid) {
+			this.label = label;
+			this.grid = grid;
+		}
+	}
+
 	/**
 	 * Enumerative to set the style for gnuplot.
 	 * LINES: connects adjacent points with straight line segments.
@@ -110,8 +135,8 @@ public class MatrixComplexPlot {
 		// Plot the data
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.setTitle(title);
-		p.addPlot(dataRe);
-		if (showIm) p.addPlot(dataIm);
+		p.addPlot(dataRe, "Real");
+		if (showIm) p.addPlot(dataIm, "Imaginary");
 		p.set("zeroaxis", "");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid", "");
@@ -139,6 +164,18 @@ public class MatrixComplexPlot {
 		plotSeriesAsync(title, null, null, false, lineStyle, series);
 	}
 
+	/** Same as {@link #plotSeriesSync(String, e_lineStyle, double[][]...)}, but each series carries
+	 * its own legend title instead of the default {@code "Series N"}. */
+	public static void plotSeriesSync(String title, e_lineStyle lineStyle, NamedSeries... series) {
+		plotSeriesSync(title, null, null, false, lineStyle, series);
+	}
+
+	/** Same as {@link #plotSeriesSync(String, e_lineStyle, NamedSeries...)} but returns immediately
+	 * -- the plot window stays open independently, without blocking the caller. */
+	public static void plotSeriesAsync(String title, e_lineStyle lineStyle, NamedSeries... series) {
+		plotSeriesAsync(title, null, null, false, lineStyle, series);
+	}
+
 	/**
 	 * Plots one or more already-computed {@code [x,y]} series on the same canvas. Consolidates the
 	 * {@code JavaPlot} construction/configuration tail that used to be hand-duplicated across
@@ -163,14 +200,36 @@ public class MatrixComplexPlot {
 		plotSeries(title, x2label, xlabel, logscale, lineStyle, SimpleGnuplot.e_syncMode.ASYNC, series);
 	}
 
+	/** Same as {@link #plotSeriesSync(String, String, String, boolean, e_lineStyle, double[][]...)},
+	 * but each series carries its own legend title instead of the default {@code "Series N"}. */
+	public static void plotSeriesSync(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, NamedSeries... series) {
+		plotSeries(title, x2label, xlabel, logscale, lineStyle, SimpleGnuplot.e_syncMode.SYNC, series);
+	}
+
+	/** Same as {@link #plotSeriesSync(String, String, String, boolean, e_lineStyle, NamedSeries...)}
+	 * but returns immediately -- the plot window stays open independently, without blocking the
+	 * caller. */
+	public static void plotSeriesAsync(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, NamedSeries... series) {
+		plotSeries(title, x2label, xlabel, logscale, lineStyle, SimpleGnuplot.e_syncMode.ASYNC, series);
+	}
+
+	/** Same as {@link #plotSeries(String, String, String, boolean, e_lineStyle,
+	 * SimpleGnuplot.e_syncMode, NamedSeries...)}, but with unlabeled series (default {@code
+	 * "Series N"} titles) -- thin wrapper kept for source/binary compatibility with existing callers. */
+	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, double[][]... series) {
+		NamedSeries[] named = new NamedSeries[series.length];
+		for (int i = 0; i < series.length; ++i) named[i] = new NamedSeries(null, series[i]);
+		plotSeries(title, x2label, xlabel, logscale, lineStyle, mode, named);
+	}
+
 	/** Generic entry point every {@code plotSeriesSync}/{@code plotSeriesAsync} pair calls -- also
 	 * public so {@code Fourier}/{@code Laplace}/{@code Z} can thread their OWN {@code mode} straight
 	 * through. */
-	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, double[][]... series) {
+	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, NamedSeries... series) {
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.setTitle(title);
 		if (x2label != null) p.set("x2label", x2label);
-		for (double[][] s : series) p.addPlot(s);
+		for (NamedSeries s : series) p.addPlot(s.data, s.label);
 		p.set("zeroaxis", "");
 		if (xlabel != null) p.set("xlabel", xlabel);
 		p.set("style", setLineStyle(lineStyle));
@@ -228,6 +287,18 @@ public class MatrixComplexPlot {
 		plotSeries3DAsync(title, false, lineStyle, series);
 	}
 
+	/** Same as {@link #plotSeries3DSync(String, e_lineStyle3D, double[][]...)}, but each series
+	 * carries its own legend title instead of the default {@code "Series N"}. */
+	public static void plotSeries3DSync(String title, e_lineStyle3D lineStyle, NamedSeries... series) {
+		plotSeries3DSync(title, false, lineStyle, series);
+	}
+
+	/** Same as {@link #plotSeries3DSync(String, e_lineStyle3D, NamedSeries...)} but returns
+	 * immediately -- the plot window stays open independently, without blocking the caller. */
+	public static void plotSeries3DAsync(String title, e_lineStyle3D lineStyle, NamedSeries... series) {
+		plotSeries3DAsync(title, false, lineStyle, series);
+	}
+
 	/**
 	 * Plots one or more already-computed {@code [x,y,z]} series as a 3D {@code splot}. Consolidates
 	 * the {@code SimpleGnuplot} construction/configuration tail that used to be hand-duplicated
@@ -253,12 +324,33 @@ public class MatrixComplexPlot {
 		plotSeries3D(title, logscaleZ, lineStyle, SimpleGnuplot.e_syncMode.ASYNC, series);
 	}
 
-	/** Generic entry point every {@code plotSeries3DSync}/{@code plotSeries3DAsync} pair calls. */
+	/** Same as {@link #plotSeries3DSync(String, boolean, e_lineStyle3D, double[][]...)}, but each
+	 * series carries its own legend title instead of the default {@code "Series N"}. */
+	public static void plotSeries3DSync(String title, boolean logscaleZ, e_lineStyle3D lineStyle, NamedSeries... series) {
+		plotSeries3D(title, logscaleZ, lineStyle, SimpleGnuplot.e_syncMode.SYNC, series);
+	}
+
+	/** Same as {@link #plotSeries3DSync(String, boolean, e_lineStyle3D, NamedSeries...)} but returns
+	 * immediately -- the plot window stays open independently, without blocking the caller. */
+	public static void plotSeries3DAsync(String title, boolean logscaleZ, e_lineStyle3D lineStyle, NamedSeries... series) {
+		plotSeries3D(title, logscaleZ, lineStyle, SimpleGnuplot.e_syncMode.ASYNC, series);
+	}
+
+	/** Same as {@link #plotSeries3D(String, boolean, e_lineStyle3D, SimpleGnuplot.e_syncMode,
+	 * NamedSeries...)}, but with unlabeled series (default {@code "Series N"} titles) -- thin
+	 * wrapper kept for source/binary compatibility with existing callers. */
 	public static void plotSeries3D(String title, boolean logscaleZ, e_lineStyle3D lineStyle, SimpleGnuplot.e_syncMode mode, double[][]... series) {
+		NamedSeries[] named = new NamedSeries[series.length];
+		for (int i = 0; i < series.length; ++i) named[i] = new NamedSeries(null, series[i]);
+		plotSeries3D(title, logscaleZ, lineStyle, mode, named);
+	}
+
+	/** Generic entry point every {@code plotSeries3DSync}/{@code plotSeries3DAsync} pair calls. */
+	public static void plotSeries3D(String title, boolean logscaleZ, e_lineStyle3D lineStyle, SimpleGnuplot.e_syncMode mode, NamedSeries... series) {
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.newGraph3D();
 		p.setTitle(title);
-		for (double[][] s : series) p.addPlot(s);
+		for (NamedSeries s : series) p.addPlot(s.data, s.label);
 		p.set("zeroaxis", "");
 		p.set("style", setLineStyle3D(lineStyle));
 		if (logscaleZ) p.set("logscale", "z");
@@ -290,10 +382,18 @@ public class MatrixComplexPlot {
 	 * a given grid must have the same number of columns).
 	 */
 	public static void plotGrid3D(String title, boolean logscaleZ, SimpleGnuplot.e_syncMode mode, double[][][]... grids) {
+		NamedGrid[] named = new NamedGrid[grids.length];
+		for (int i = 0; i < grids.length; ++i) named[i] = new NamedGrid(null, grids[i]);
+		plotGrid3D(title, logscaleZ, mode, named);
+	}
+
+	/** Same as {@link #plotGrid3D(String, boolean, SimpleGnuplot.e_syncMode, double[][][]...)}, but
+	 * each grid carries its own legend title instead of the default {@code "Series N"}. */
+	public static void plotGrid3D(String title, boolean logscaleZ, SimpleGnuplot.e_syncMode mode, NamedGrid... grids) {
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.newGraph3D();
 		p.setTitle(title);
-		for (double[][][] g : grids) p.addPlotGrid(g);
+		for (NamedGrid g : grids) p.addPlotGrid(g.grid, g.label);
 		p.set("zeroaxis", "");
 		p.set("style", setLineStyle3D(e_lineStyle3D.LINES));
 		p.set("hidden3d", "");
@@ -329,6 +429,30 @@ public class MatrixComplexPlot {
 	/** Same as {@link #plotGrid3DSync(String, boolean, double[][][]...)} but returns immediately
 	 * -- the plot window stays open independently, without blocking the caller. */
 	public static void plotGrid3DAsync(String title, boolean logscaleZ, double[][][]... grids) {
+		plotGrid3D(title, logscaleZ, SimpleGnuplot.e_syncMode.ASYNC, grids);
+	}
+
+	/** Same as {@link #plotGrid3DSync(String, double[][][]...)}, but each grid carries its own
+	 * legend title instead of the default {@code "Series N"}. */
+	public static void plotGrid3DSync(String title, NamedGrid... grids) {
+		plotGrid3D(title, false, SimpleGnuplot.e_syncMode.SYNC, grids);
+	}
+
+	/** Same as {@link #plotGrid3DSync(String, NamedGrid...)} but returns immediately -- the plot
+	 * window stays open independently, without blocking the caller. */
+	public static void plotGrid3DAsync(String title, NamedGrid... grids) {
+		plotGrid3D(title, false, SimpleGnuplot.e_syncMode.ASYNC, grids);
+	}
+
+	/** Same as {@link #plotGrid3DSync(String, NamedGrid...)} but with an explicit logarithmic Z
+	 * axis flag. */
+	public static void plotGrid3DSync(String title, boolean logscaleZ, NamedGrid... grids) {
+		plotGrid3D(title, logscaleZ, SimpleGnuplot.e_syncMode.SYNC, grids);
+	}
+
+	/** Same as {@link #plotGrid3DSync(String, boolean, NamedGrid...)} but returns immediately --
+	 * the plot window stays open independently, without blocking the caller. */
+	public static void plotGrid3DAsync(String title, boolean logscaleZ, NamedGrid... grids) {
 		plotGrid3D(title, logscaleZ, SimpleGnuplot.e_syncMode.ASYNC, grids);
 	}
 

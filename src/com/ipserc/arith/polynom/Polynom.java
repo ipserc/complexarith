@@ -23,8 +23,15 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.30 (2026_0811_2330)";
+	private final static String VERSION = "1.31 (2026_0812_1400)";
 	/* VERSION Release Note
+	 * 1.31 (2026_0812_1400)
+	 * Nombres de curva personalizados (plan "quirky-wondering-yao.md"): plotSync/Async(List,title),
+	 * plotReSync/Async/plotImSync/Async/plotModSync/Async/plotPhaSync/Async(List<MatrixComplex>,title)
+	 * ganan el par gemelo con un List<String> labels paralelo a la lista de puntos, delegando en los
+	 * nuevos overloads homólogos de PolynomPlot. Los métodos existentes sin labels quedan intactos
+	 * (delegan con labels=null, mismo "Series N" de siempre). Sin cambios funcionales en el cálculo.
+	 *
 	 * 1.30 (2026_0811_2330)
 	 * Reportado por el usuario tras revisar el HTML generado: la clase no tenía Javadoc real (un
 	 * comando de shell suelto sin valor descriptivo antes del package, y un `/** @author * /` vacío
@@ -1884,6 +1891,16 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plot(pointsList, title, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotSync(List, String)}, but each curve carries its own legend title
+	 * ({@code labels}, parallel to {@code pointsList}) instead of the default {@code "Series N"}. */
+	public void plotSync(List<double[][]> pointsList, List<String> labels, String title) {
+		PolynomPlot.plot(pointsList, labels, title, e_syncMode.SYNC);
+	}
+
+	public void plotAsync(List<double[][]> pointsList, List<String> labels, String title) {
+		PolynomPlot.plot(pointsList, labels, title, e_syncMode.ASYNC);
+	}
+
 	public void plotSync(double[][] points, String title) {
 		PolynomPlot.plot(points, title, e_syncMode.SYNC);
 	}
@@ -1913,6 +1930,16 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotRe(pointsList, title, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotReSync(List, String)}, but each curve carries its own legend title
+	 * ({@code labels}, parallel to {@code pointsList}) instead of the default {@code "Series N"}. */
+	public void plotReSync(List<MatrixComplex> pointsList, List<String> labels, String title) {
+		PolynomPlot.plotRe(pointsList, labels, title, e_syncMode.SYNC);
+	}
+
+	public void plotReAsync(List<MatrixComplex> pointsList, List<String> labels, String title) {
+		PolynomPlot.plotRe(pointsList, labels, title, e_syncMode.ASYNC);
+	}
+
 	public void plotImSync(MatrixComplex points, String title) {
 		PolynomPlot.plotIm(points, title, e_syncMode.SYNC);
 	}
@@ -1932,6 +1959,16 @@ public class Polynom extends MatrixComplex {
 
 	public void plotImAsync(List<MatrixComplex> pointsList, String title) {
 		PolynomPlot.plotIm(pointsList, title, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotImSync(List, String)}, but each curve carries its own legend title
+	 * ({@code labels}, parallel to {@code pointsList}) instead of the default {@code "Series N"}. */
+	public void plotImSync(List<MatrixComplex> pointsList, List<String> labels, String title) {
+		PolynomPlot.plotIm(pointsList, labels, title, e_syncMode.SYNC);
+	}
+
+	public void plotImAsync(List<MatrixComplex> pointsList, List<String> labels, String title) {
+		PolynomPlot.plotIm(pointsList, labels, title, e_syncMode.ASYNC);
 	}
 
 	public void plotModSync(MatrixComplex points, String title) {
@@ -1955,6 +1992,16 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotMod(pointsList, title, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotModSync(List, String)}, but each curve carries its own legend title
+	 * ({@code labels}, parallel to {@code pointsList}) instead of the default {@code "Series N"}. */
+	public void plotModSync(List<MatrixComplex> pointsList, List<String> labels, String title) {
+		PolynomPlot.plotMod(pointsList, labels, title, e_syncMode.SYNC);
+	}
+
+	public void plotModAsync(List<MatrixComplex> pointsList, List<String> labels, String title) {
+		PolynomPlot.plotMod(pointsList, labels, title, e_syncMode.ASYNC);
+	}
+
 	public void plotPhaSync(MatrixComplex points, String title) {
 		PolynomPlot.plotPha(points, title, e_syncMode.SYNC);
 	}
@@ -1974,6 +2021,16 @@ public class Polynom extends MatrixComplex {
 
 	public void plotPhaAsync(List<MatrixComplex> pointsList, String title) {
 		PolynomPlot.plotPha(pointsList, title, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotPhaSync(List, String)}, but each curve carries its own legend title
+	 * ({@code labels}, parallel to {@code pointsList}) instead of the default {@code "Series N"}. */
+	public void plotPhaSync(List<MatrixComplex> pointsList, List<String> labels, String title) {
+		PolynomPlot.plotPha(pointsList, labels, title, e_syncMode.SYNC);
+	}
+
+	public void plotPhaAsync(List<MatrixComplex> pointsList, List<String> labels, String title) {
+		PolynomPlot.plotPha(pointsList, labels, title, e_syncMode.ASYNC);
 	}
 
 	/**

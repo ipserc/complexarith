@@ -175,10 +175,22 @@ class PolynomPlot {
 	 * @param title the title of the graphic.
 	 */
 	static void plot(List<double[][]> pointsList, String title, e_syncMode mode) {
+		plot(pointsList, null, title, mode);
+	}
+
+	/**
+	 * Same as {@link #plot(List, String, e_syncMode)}, but each curve carries its own legend title
+	 * instead of the default {@code "Series N"} -- {@code labels}, if not {@code null}, is read
+	 * positionally against {@code pointsList} (a {@code null} list, or a {@code null}/missing entry
+	 * at a given position, falls back to the default for that curve).
+	 * @param labels The label for each curve, parallel to {@code pointsList}, or {@code null}.
+	 */
+	static void plot(List<double[][]> pointsList, List<String> labels, String title, e_syncMode mode) {
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(title);
 		for(int i = 0; i < pointsList.size(); ++i) {
-			plt.addPlot(pointsList.get(i));
+			String label = labels != null && i < labels.size() ? labels.get(i) : null;
+			plt.addPlot(pointsList.get(i), label);
 		}
 		plt.set("zeroaxis", "");
 		plt.set("style","data lines");
@@ -225,6 +237,12 @@ class PolynomPlot {
 	 * @param title the title of the graphic.
 	 */
 	static void plotRe(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
+		plotRe(pointsList, null, title, mode);
+	}
+
+	/** Same as {@link #plotRe(List, String, e_syncMode)}, but each curve carries its own legend
+	 * title -- see {@link #plot(List, List, String, e_syncMode)} for the {@code labels} contract. */
+	static void plotRe(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -235,7 +253,7 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsRe);
 		}
-		plot(pointsListGraph, title, mode);
+		plot(pointsListGraph, labels, title, mode);
 	}
 
 	static void plotIm(MatrixComplex points, String title, e_syncMode mode) {
@@ -255,6 +273,12 @@ class PolynomPlot {
 	 * @param title the title of the graphic.
 	 */
 	static void plotIm(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
+		plotIm(pointsList, null, title, mode);
+	}
+
+	/** Same as {@link #plotIm(List, String, e_syncMode)}, but each curve carries its own legend
+	 * title -- see {@link #plot(List, List, String, e_syncMode)} for the {@code labels} contract. */
+	static void plotIm(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -265,7 +289,7 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, title, mode);
+		plot(pointsListGraph, labels, title, mode);
 	}
 
 	static void plotMod(MatrixComplex points, String title, e_syncMode mode) {
@@ -279,6 +303,12 @@ class PolynomPlot {
 	}
 
 	static void plotMod(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
+		plotMod(pointsList, null, title, mode);
+	}
+
+	/** Same as {@link #plotMod(List, String, e_syncMode)}, but each curve carries its own legend
+	 * title -- see {@link #plot(List, List, String, e_syncMode)} for the {@code labels} contract. */
+	static void plotMod(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -289,7 +319,7 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, title, mode);
+		plot(pointsListGraph, labels, title, mode);
 	}
 
 	static void plotPha(MatrixComplex points, String title, e_syncMode mode) {
@@ -303,6 +333,12 @@ class PolynomPlot {
 	}
 
 	static void plotPha(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
+		plotPha(pointsList, null, title, mode);
+	}
+
+	/** Same as {@link #plotPha(List, String, e_syncMode)}, but each curve carries its own legend
+	 * title -- see {@link #plot(List, List, String, e_syncMode)} for the {@code labels} contract. */
+	static void plotPha(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -313,7 +349,7 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, title, mode);
+		plot(pointsListGraph, labels, title, mode);
 	}
 
 	/**

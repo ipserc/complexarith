@@ -19,8 +19,16 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.76 (2026_0812_1200)";
+	private final static String VERSION = "1.77 (2026_0812_1400)";
 	/* VERSION Release Note
+	 *
+	 * 1.77 (2026_0812_1400)
+	 * MatrixComplexPlot: nombres de serie personalizados (plan "quirky-wondering-yao.md") -- nuevos
+	 * tipos NamedSeries/NamedGrid y el trío gemelo basado en NamedSeries/NamedGrid en cada familia
+	 * de métodos plotSeries, plotSeries3D y plotGrid3D (los overloads double[][]... existentes pasan
+	 * a delegar en ellos, sin cambiar ninguna firma preexistente); plot() (el par fijo Re/Im) usa
+	 * por defecto los labels "Real"/"Imaginary" en vez de "Series N". Sin cambios funcionales en el
+	 * cálculo, solo en el título de cada curva en el script de gnuplot generado.
 	 *
 	 * 1.76 (2026_0812_1200)
 	 * Limpieza de restos: eliminados los imports com.ipserc.arith.combinatoric.*,

@@ -41,8 +41,15 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.14 (2026_0812_1200)";
+	private final static String VERSION = "1.15 (2026_0812_1400)";
 	/* VERSION Release Note
+	 *
+	 * 1.15 (2026_0812_1400)
+	 * plotSeries/plotCompare/plotDFTsamp/plotDFTfrec pasan a llamar al nuevo overload
+	 * MatrixComplexPlot.plotSeries(...,NamedSeries...) con labels evidentes por contexto
+	 * ("Real"/"Imaginary", "Fourier Series"/"Function", "Modulus"/"Phase" según el operador) en vez
+	 * de dejar el título por defecto "Series N". Sin cambios de firma pública, sin cambios
+	 * funcionales en el cálculo.
 	 *
 	 * 1.14 (2026_0812_1200)
 	 * Limpieza de restos: eliminado el import java.nio.ByteOrder, sin uso alguno en el fichero.
@@ -731,9 +738,11 @@ public class Fourier extends MatrixComplex {
 		}
 
 		if (showIm) {
-			MatrixComplexPlot.plotSeries(title, null, null, false, toMCStyle(lineStyle), mode, dataRe, dataIm);
+			MatrixComplexPlot.plotSeries(title, null, null, false, toMCStyle(lineStyle), mode,
+					new MatrixComplexPlot.NamedSeries("Real", dataRe), new MatrixComplexPlot.NamedSeries("Imaginary", dataIm));
 		} else {
-			MatrixComplexPlot.plotSeries(title, null, null, false, toMCStyle(lineStyle), mode, dataRe);
+			MatrixComplexPlot.plotSeries(title, null, null, false, toMCStyle(lineStyle), mode,
+					new MatrixComplexPlot.NamedSeries("Real", dataRe));
 		}
 	}
 
@@ -772,7 +781,8 @@ public class Fourier extends MatrixComplex {
 			datafu[t][1] = samples.complexMatrix[1][t].rep();
 		}
 
-		MatrixComplexPlot.plotSeries("Fourier Series vs Function", null, null, false, toMCStyle(lineStyle), mode, dataFF, datafu);
+		MatrixComplexPlot.plotSeries("Fourier Series vs Function", null, null, false, toMCStyle(lineStyle), mode,
+				new MatrixComplexPlot.NamedSeries("Fourier Series", dataFF), new MatrixComplexPlot.NamedSeries("Function", datafu));
 	}
 
 	/*
@@ -1501,7 +1511,10 @@ public class Fourier extends MatrixComplex {
 
 		String x2label = (domain == e_domain.SAMP ? "\"Samples' Index\"" : "\"Spectrum in Hz\"");
 		String xlabel = domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"";
-		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), mode, dataRe, dataIm);
+		String labelRe = operator == e_operator.COMPLEX ? "Real" : "Modulus";
+		String labelIm = operator == e_operator.COMPLEX ? "Imaginary" : "Phase";
+		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), mode,
+				new MatrixComplexPlot.NamedSeries(labelRe, dataRe), new MatrixComplexPlot.NamedSeries(labelIm, dataIm));
 	}
 
 	/**
@@ -1541,7 +1554,10 @@ public class Fourier extends MatrixComplex {
 
 		String x2label = (domain == e_domain.SAMP ? "\"Samples' Index\"" : "\"Spectrum in Hz\"");
 		String xlabel = domain == e_domain.SAMP ? "\"SAMPLES\"" : "\"Hz\"";
-		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), mode, dataRe, dataIm);
+		String labelRe = operator == e_operator.COMPLEX ? "Real" : "Modulus";
+		String labelIm = operator == e_operator.COMPLEX ? "Imaginary" : "Phase";
+		MatrixComplexPlot.plotSeries(Title, x2label, xlabel, logscale, toMCStyle(lineStyle), mode,
+				new MatrixComplexPlot.NamedSeries(labelRe, dataRe), new MatrixComplexPlot.NamedSeries(labelIm, dataIm));
 	}
 
 	/*
