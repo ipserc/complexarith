@@ -3732,11 +3732,25 @@ A petición del usuario ("Empieza con Deutsch-Jozsa"), primera extensión del Ro
 
 `DeutschJozsa.VERSION`: `1.0` (clase nueva).
 
-**Estado del repo**: commit `3f9588f` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
+**Estado del repo**: commit `3f9588f` pusheado a petición del usuario junto con `ba6f54f` (su registro en este documento).
+
+## Continuación de la Trigesimoséptima sesión (13 agosto 2026) -- algoritmo de Bernstein-Vazirani (commit `7ca087f`)
+
+A petición del usuario ("Continúa con Bernstein-Vazirani"), segunda extensión del Rol Física/Mecánica Cuántica tras Deutsch-Jozsa.
+
+**Refactor previo**: `DeutschJozsa.java` (`VERSION` `1.0→1.1`, sin cambios de comportamiento en la API pública) -- `hadamardChain()`/el cuerpo de `probabilityAllZero()` extraídos a `runCircuit()` (paquete-visible), el mismo circuito `H^(n+1)`-oráculo-`H^n` que Bernstein-Vazirani necesita, evitando duplicarlo (mismo patrón `circuitState()` ya usado por `Teleportation`).
+
+**Implementado**: `BernsteinVazirani.java` (nuevo) -- `oracleFunction(secret,n)` construye `f(x)=(secret·x) mod 2` para un secreto oculto de n bits; `findSecret(f,n)` ejecuta `DeutschJozsa.runCircuit(f,n)` y lee qué estado base del registro de entrada tiene probabilidad 1 (marginando la ancilla) -- para `f` lineal, ese estado es EXACTAMENTE `|secret>`, recuperado con una única consulta al oráculo (frente a n consultas clásicas en el peor caso).
+
+**Verificación**: `ScratchBernsteinVaziraniAudit01.java` (nuevo, conservado, **7/7 OK**): `findSecret()` recupera CADA secreto posible exactamente, n=1..6 (exhaustivo, no una muestra); el oráculo de secreto=0 es simultáneamente `DeutschJozsa`-constante y `BernsteinVazirani`-secreto-0 sobre el MISMO objeto función (puente de verificación cruzada entre los 2 algoritmos); el oráculo de secreto=todo-unos es `DeutschJozsa`-equilibrado; rechazo de una `f` no lineal genuina (delta en x=0). **Hallazgo real durante la verificación, no un bug**: una función CONSTANTE colapsa al MISMO resultado que secreto=0 -- el circuito no puede distinguirlas, la función constante solo aporta una fase global que no perturba la interferencia -- documentado en el propio test en vez de descartado como contraejemplo inválido (el primer intento de "rechazar constante-1 como no lineal" falló porque, de hecho, sí colapsa determinísticamente). Recompilación fresca completa limpia, `ecj -21` sin avisos nuevos. `TestBell01` (12/12), `ScratchTeleportationAudit01` (9/9), `ScratchTimeEvolutionAudit01` (11/11), `ScratchQubitsNAudit01` (16/16), `ScratchDensityMatrixAudit01` (18/18), `ScratchBellTestNQubitAudit01` (12/12), `ScratchDecoherenceAudit01` (10/10), `ScratchBlochSphereAudit01` (12/12) y `ScratchDeutschJozsaAudit01` (8/8, tras el refactor de `runCircuit()`) sin regresión.
+
+`BernsteinVazirani.VERSION`: `1.0` (clase nueva).
+
+**Estado del repo**: commit `7ca087f` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
 
 **Sin punto de retomada pendiente** de este bloque. Candidatos abiertos para la próxima sesión, ninguno urgente:
-1. Otros algoritmos cuánticos de juguete -- Grover a pequeña escala, Bernstein-Vazirani (variante más simple de Deutsch-Jozsa que además revela la cadena secreta completa, no solo constante/equilibrada).
-2. Ruido/decoherencia con más de un canal encadenado, teleportación con canales ruidosos -- combinar `Decoherence` con `Teleportation`/`DeutschJozsa`.
+1. Otros algoritmos cuánticos de juguete -- Grover a pequeña escala (el candidato "más grande" que queda de los mencionados hasta ahora).
+2. Ruido/decoherencia con más de un canal encadenado, teleportación con canales ruidosos -- combinar `Decoherence` con `Teleportation`/`DeutschJozsa`/`BernsteinVazirani`.
 3. Multiplot/subplots en la capa de plotting -- descartado explícitamente hace 3 sesiones, candidato aparte si se retoma.
 4. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)` -- dejado fuera a propósito, mismo patrón mecánico si hace falta.
 5. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
