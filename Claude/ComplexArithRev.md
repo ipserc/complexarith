@@ -3772,10 +3772,24 @@ A petición del usuario ("Combina Decoherence con Teleportation"), primera combi
 
 `NoisyTeleportation.VERSION`: `1.0` (clase nueva).
 
-**Estado del repo**: commit `aac50ad` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
+**Estado del repo**: commit `aac50ad` pusheado a petición del usuario junto con `d63777c` (su registro en este documento).
+
+## Continuación de la Trigesimoséptima sesión (14 agosto 2026) -- Deutsch-Jozsa con ruido, segunda combinación cruzada `Decoherence`+`DeutschJozsa` (commit `6de93f2`)
+
+A petición del usuario ("Combina Decoherence con DeutschJozsa"), segunda combinación cruzada entre ejercicios del Rol Física/Mecánica Cuántica, tras `NoisyTeleportation`.
+
+**Implementado**: `NoisyDeutschJozsa.java` (nuevo) -- aplica un canal de ruido (`Decoherence`) a un qubit del registro de n+1 qubits justo tras preparar el estado, antes de que corra ningún circuito, recasteado en el formalismo de matriz densidad (`DensityMatrix`). `probabilityAllZero(f,n,kraus,noisyQubit)` -- análogo con ruido de `DeutschJozsa.probabilityAllZero()`, leyendo directamente las entradas diagonales relevantes de la matriz densidad (que SON las probabilidades, sin necesitar proyector/traza, a diferencia de `NoisyTeleportation` que mide 2 qubits conjuntamente).
+
+**2 hallazgos reales durante la propia verificación** (ninguno un bug, ambos llevaron a reescribir las expectativas iniciales del test, que eran incorrectas -- el primer intento asumía "el ruido siempre degrada" sin comprobarlo primero): (1) el ruido en la ANCILLA NUNCA cambia `probabilityAllZero()` para una `f` CONSTANTE (se queda EXACTAMENTE en `1.0` bajo cualquier canal, cualquier intensidad, incluso `amplitudeDamping(1.0)` que fuerza la ancilla a un estado completamente distinto) -- una `f` constante nunca entrelaza la ancilla con el registro de entrada, así que el `H^n` final siempre deshace exactamente el `H^n` inicial independientemente del estado de la ancilla; pero SÍ degrada una `f` EQUILIBRADA, con fórmula cerrada exacta para `depolarizing` (`p/2`) y `amplitudeDamping` (`gamma`). (2) el ruido en un qubit de ENTRADA es justo al revés: degrada una `f` CONSTANTE (`bitFlip` da la fórmula cerrada exacta `1-p`, ese qubit es parte de lo que se mide), pero `amplitudeDamping`/`phaseFlip` en un qubit de entrada NO tienen ningún efecto para ninguna `f`, porque los qubits de entrada arrancan EXACTAMENTE en `|0>`, el punto fijo de esos 2 canales. Documentado con detalle en el propio Javadoc de `probabilityAllZero()` como hallazgo verificado.
+
+**Verificación**: `ScratchNoisyDeutschJozsaAudit01.java` (nuevo, conservado, **6/6 OK** tras la reescritura): no-op channel coincide exactamente con `DeutschJozsa.probabilityAllZero()`; robustez exacta ante ruido en la ancilla para `f` constante (3 canales); fórmulas cerradas exactas (`p/2`, `gamma`) para `f` equilibrada bajo ruido en la ancilla; fórmula cerrada exacta (`1-p`) para `f` constante bajo `bitFlip` en un qubit de entrada; invariancia exacta de `amplitudeDamping`/`phaseFlip` en un qubit de entrada; acotación `[0,1]` bajo ruido máximo. Recompilación fresca completa limpia, `ecj -21` sin avisos nuevos. `TestBell01` (12/12), `ScratchTeleportationAudit01` (9/9), `ScratchTimeEvolutionAudit01` (11/11), `ScratchQubitsNAudit01` (16/16), `ScratchDensityMatrixAudit01` (18/18), `ScratchBellTestNQubitAudit01` (12/12), `ScratchDecoherenceAudit01` (10/10), `ScratchBlochSphereAudit01` (12/12), `ScratchDeutschJozsaAudit01` (8/8), `ScratchBernsteinVaziraniAudit01` (7/7), `ScratchGroverAudit01` (9/9) y `ScratchNoisyTeleportationAudit01` (8/8) sin regresión.
+
+`NoisyDeutschJozsa.VERSION`: `1.0` (clase nueva).
+
+**Estado del repo**: commit `6de93f2` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
 
 **Sin punto de retomada pendiente** de este bloque. Candidatos abiertos para la próxima sesión, ninguno urgente:
-1. Otras combinaciones cruzadas -- oráculos ruidosos para `DeutschJozsa`/`BernsteinVazirani`/`Grover` (aplicar `Decoherence` al registro antes/durante el circuito), o encadenar más de un canal de `Decoherence` en la misma ejecución.
+1. Otras combinaciones cruzadas -- oráculos ruidosos para `BernsteinVazirani`/`Grover` (mismo patrón `NoisyDeutschJozsa` ya establecido, y con la lección de esta sesión de verificar dónde importa el ruido antes de asumirlo), o encadenar más de un canal de `Decoherence` en la misma ejecución.
 2. Multiplot/subplots en la capa de plotting -- descartado explícitamente hace 3 sesiones, candidato aparte si se retoma.
 3. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)` -- dejado fuera a propósito, mismo patrón mecánico si hace falta.
 4. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
