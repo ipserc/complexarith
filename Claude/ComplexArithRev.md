@@ -3559,6 +3559,36 @@ A petición explícita del usuario ("Quiero empezar con el enfoque en mecánica 
 
 ### SESIÓN PAUSADA — Trigesimoquinta sesión (13 agosto 2026), a petición del usuario ("Paramos por ahora. Guarda todo el contexto... Cuando vuelva a conectar me recuerdas por donde seguir")
 
+## Trigesimosexta sesión (13 agosto 2026) — Rol Física/Mecánica Cuántica, 2 candidatos más de la hoja de ruta: n qubits + matriz densidad/traza parcial/entropía de von Neumann (PAUSADA)
+
+A petición del usuario ("Continuar Rol Física/Mecánica Cuántica"), retomados los 2 primeros candidatos catalogados al cierre de la Trigesimoquinta sesión, en el orden sugerido allí.
+
+**Candidato 1 — generalización a n qubits** (commit `6f59e8a`). Tras una pregunta de alcance resuelta por el usuario ("solo la capa básica"), añadidos a `Qubits.java` (`VERSION` `1.0→1.1`): `ket(int... bits)` (construye {@code |b1...bn>} encadenando `kroneckerprod`, misma convención de bits MSB-first que ya usaba `bellPhiPlus()` a mano), `ghz(int n)` (generaliza `bellPhiPlus()` -- su caso `n=2` -- al estado GHZ máximamente entrelazado de n qubits), `operatorOnQubit(op, qubitIndex, nQubits)` (levanta un operador de 1 qubit al espacio de Hilbert completo, `I⊗...⊗op⊗...⊗I`, necesario para aplicar puertas/medidas locales a un registro de n qubits). Alcance acotado a esta capa básica, sin generalizar `BellTest.correlation()`/`chsh()` todavía (candidato aparte, dejado catalogado). Verificado con `ScratchQubitsNAudit01.java` (nuevo, conservado, 16/16 OK): `ket()` coincide con kron manual, `ghz(2)==bellPhiPlus()`, `ghz(n)` normalizado y no nulo solo en `|00..0>`/`|11..1>` para n=3/5, `operatorOnQubit` actúa localmente y deja identidad en el resto (verificado con autovalores de Z en kets de 3 qubits), validación de argumentos en los 3 métodos nuevos. `TestBell01` (12/12) sin regresión.
+
+**Candidato 2 — matriz densidad + traza parcial + entropía de von Neumann** (commit `40ace1b`). `DensityMatrix.java` (nuevo, paralelo a `BellTest.java`): `of(state)=|psi><psi|`; `partialTrace(rho, nQubits, traceOutQubits...)` generalizado a **cualquier subconjunto** de qubits (no solo el último) -- suma sobre la subbase trazada usando el mismo convenio de bits MSB-first que `Qubits.ket()`, con helpers privados `bitsOf(value,width)`/`indexOf(bits)` para ida y vuelta entre índice lineal y bits por qubit; `vonNeumannEntropy(rho) = -sum(lambda_i*log2(lambda_i))` reutilizando el motor existente `Eigenspace.roots()` (ya cuenta cada autovalor con su multiplicidad algebraica, sin necesitar `arithmeticMultiplicity()` aparte). Sirve como testigo estándar de entrelazamiento: la entropía de un subsistema reducido de un estado global puro es 0 si es separable, mayor que 0 si está entrelazado con el resto. Verificado con `ScratchDensityMatrixAudit01.java` (nuevo, conservado, 18/18 OK) -- resultado central: el par de Bell reducido a 1 qubit da `I/2` con `S=1 bit` (el testigo de entrelazamiento funciona); además proyector puro/traza=1, `S(estado puro)=0`, `S(I/2)=1 bit`, estado producto reduce a puro, GHZ(3) reducido a 1 o 2 qubits da `S=1 bit` en ambos casos, traza parcial de todos los qubits da la traza completa `[[1]]`, validación de argumentos (dimensión, índices duplicados/fuera de rango, lista vacía). `TestBell01` (12/12) y `ScratchQubitsNAudit01` (16/16) sin regresión.
+
+**Verificación de ambos bloques**: recompilación fresca completa de `com.ipserc.arith` (JDK 21 real, con el classpath externo `com.ipserc.chronometer.Chronometer` copiado desde `classes/` al scratch, ver lección de la Decimosexta/Trigesimotercera sesión) limpia. `ecj -21` sin avisos nuevos en ningún fichero tocado (solo el patrón ya aceptado de `VERSION` sin uso programático).
+
+**Nota de proceso**: al llegar, `BellTest.java` ya tenía una línea en blanco añadida al principio del fichero en el árbol de trabajo, sin relación con ningún cambio de esta sesión (no se tocó ese fichero en ninguno de los 2 commits) -- dejada fuera de ambos commits a propósito, sin investigar el origen (mismo patrón habitual de ediciones ajenas en paralelo).
+
+`Qubits.VERSION` `1.0→1.1`. `DensityMatrix.VERSION`: `1.0` (clase nueva).
+
+**Estado del repo al pausar**: ambos commits (`6f59e8a`, `40ace1b`) pusheados a petición del usuario. `HEAD==origin/master` confirmado. Sin tocar (ediciones del usuario en paralelo en Eclipse, patrón habitual): `Claude/ClaudeRevisionComplexArith.txt`, `src/TestComplex/ScratchErfAudit01.java`/`TestDiag02.java`/`plotFunc01.java`/`plotFunc08.java`, y la línea en blanco suelta de `BellTest.java` mencionada arriba; `.claude/`/`Claude/Commands.txt` siguen sin trackear, sin investigar.
+
+**Sin punto de retomada pendiente** de trabajo en curso. El Rol Física/Mecánica Cuántica sigue abierto y en marcha: candidatos abiertos para la próxima sesión, orden sugerido no comprometido:
+1. **Evolución temporal** con un Hamiltoniano simple -- `U(t)=exp(-iHt)`, `MatrixComplexFunctions.exp()` ya disponible y conectado (`logm()`/`exp()`, ver sesiones anteriores), solo falta la capa de vocabulario físico.
+2. **Algoritmo cuántico de juguete** (p.ej. teleportación -- combinaría medida+entrelazamiento+corrección clásica con las piezas ya construidas: `Qubits`/`BellTest`/`DensityMatrix`).
+3. Generalizar `BellTest.correlation()`/`chsh()` a operadores en subconjuntos arbitrarios de qubits de un sistema de n -- dejado fuera a propósito en el Candidato 1 de esta sesión.
+4. Diagonalización genérica del operador de medida en `BellTest` (hoy usa la fórmula cerrada 2x2 `spinEigenket`) -- solo tendría sentido si se generalizara a operadores de medida arbitrarios.
+5. Ruido/decoherencia, visualización (esfera de Bloch) -- candidatos de fondo, sin urgencia.
+6. Multiplot/subplots en la capa de plotting -- descartado explícitamente hace 2 sesiones, candidato aparte si se retoma.
+7. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)` -- dejado fuera a propósito, mismo patrón mecánico si hace falta.
+8. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
+9. `TestFilter04.java`/`plotFunc09.java` -- siguen marcados (ruta portable + comentario) pero sin poder ejecutarse por falta de datos de entrada.
+10. Cualquier otra cosa que el usuario traiga.
+
+### SESIÓN PAUSADA — Trigesimosexta sesión (13 agosto 2026), a petición del usuario ("Paramos por ahora. Guarda todo el contexto... Cuando vuelva a conectar me recuerdas por donde seguir")
+
 **Estado del repo al pausar**: `master`==`origin/master`==`7927350`. Sin tocar (ediciones del usuario en paralelo en Eclipse, patrón habitual): `Claude/ClaudeRevisionComplexArith.txt`, `src/TestComplex/ScratchErfAudit01.java`/`TestDiag02.java`/`plotFunc01.java`/`plotFunc08.java`; `.claude/`/`Claude/Commands.txt` siguen sin trackear.
 
 **Sin punto de retomada pendiente** de trabajo en curso — ambos bloques de la sesión (plotting más potente, Rol Física/Mecánica Cuántica adelantado) cerrados, verificados y pusheados del todo. Candidatos abiertos para la próxima sesión, ninguno urgente:
