@@ -3,6 +3,7 @@ package com.ipserc.arith.polynom;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.QRSchurfactor;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.NamedSeries;
 import com.ipserc.arith.plot.CanvasOptions;
 import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
 import com.ipserc.arith.syseq.Syseq;
@@ -24,8 +25,13 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.32 (2026_0813_0739)";
+	private final static String VERSION = "1.33 (2026_0813_0827)";
 	/* VERSION Release Note
+	 * 1.33 (2026_0813_0827)
+	 * Nuevos plotSeriesSync/plotSeriesAsync(List<NamedSeries>,...) -- cada curva lleva su propio
+	 * label y PlotStyle (color/width/dashtype/pointtype) en vez de una lista paralela de labels
+	 * sin estilo. Nombre distinto de plotXxx (no un overload mas) porque List<NamedSeries> y
+	 * List<double[][]> comparten erasure -- Java no permite sobrecargar solo por tipo generico.
 	 * 1.32 (2026_0813_0739)
 	 * Nuevos overloads con CanvasOptions en los metodos plotXxxSync/Async (extra configuracion
 	 * gnuplot: rangos, posicion de leyenda, exportacion a fichero, etc.), parte del bloque de
@@ -1987,6 +1993,34 @@ public class Polynom extends MatrixComplex {
 
 	public void plotAsync(List<double[][]> pointsList, List<String> labels, String title, CanvasOptions options) {
 		PolynomPlot.plot(pointsList, labels, title, e_syncMode.ASYNC, options);
+	}
+
+	/**
+	 * Same as {@link #plotSync(List, List, String)}, but each curve's label AND {@link
+	 * com.ipserc.arith.plot.PlotStyle} come from a {@link NamedSeries} instead of a separate
+	 * parallel {@code labels} list -- lets each curve have its own color/width/dashtype/pointtype,
+	 * which the labels-only overloads can't express. Named {@code plotSeriesXxx} (not an overload
+	 * of {@code plotXxx}) because {@code List<NamedSeries>} and {@code List<double[][]>} erase to
+	 * the same raw {@code List} -- Java forbids overloading on generic type argument alone.
+	 * @param series The curves to plot, each already paired with its label and (optional) style.
+	 * @param title The plot title.
+	 */
+	public void plotSeriesSync(List<NamedSeries> series, String title) {
+		PolynomPlot.plotSeries(series, title, e_syncMode.SYNC);
+	}
+
+	public void plotSeriesAsync(List<NamedSeries> series, String title) {
+		PolynomPlot.plotSeries(series, title, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotSeriesSync(List, String)}, with extra raw gnuplot configuration
+	 * (ranges, legend position, export to file, ...) -- see {@link CanvasOptions}. */
+	public void plotSeriesSync(List<NamedSeries> series, String title, CanvasOptions options) {
+		PolynomPlot.plotSeries(series, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotSeriesAsync(List<NamedSeries> series, String title, CanvasOptions options) {
+		PolynomPlot.plotSeries(series, title, e_syncMode.ASYNC, options);
 	}
 
 	public void plotSync(double[][] points, String title) {

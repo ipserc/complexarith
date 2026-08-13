@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.NamedSeries;
 import com.ipserc.arith.plot.CanvasOptions;
 import com.ipserc.arith.plot.SimpleGnuplot;
 import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
@@ -220,6 +221,31 @@ class PolynomPlot {
 			String label = labels != null && i < labels.size() ? labels.get(i) : null;
 			plt.addPlot(pointsList.get(i), label);
 		}
+		plt.set("zeroaxis", "");
+		plt.set("style","data lines");
+		plt.set("mxtics","10");
+		plt.set("mytics","10");
+		plt.set("grid","xtics mxtics ytics mytics");
+		options.apply(plt);
+		plt.plot(mode);
+	}
+
+	/**
+	 * Same as {@link #plot(List, List, String, e_syncMode)}, but each curve's label AND {@code
+	 * PlotStyle} come from a {@link NamedSeries} instead of a separate parallel {@code labels}
+	 * list -- same shape {@code MatrixComplexPlot.plotSeries(NamedSeries...)} already uses. Named
+	 * {@code plotSeries} (not another {@code plot} overload) because {@code List<NamedSeries>} and
+	 * {@code List<double[][]>} share the same erasure -- Java forbids overloading on generic type
+	 * argument alone.
+	 */
+	static void plotSeries(List<NamedSeries> series, String title, e_syncMode mode) {
+		plotSeries(series, title, mode, CanvasOptions.NONE);
+	}
+
+	static void plotSeries(List<NamedSeries> series, String title, e_syncMode mode, CanvasOptions options) {
+		SimpleGnuplot plt = new SimpleGnuplot();
+		plt.setTitle(title);
+		for (NamedSeries s : series) plt.addPlot(s.data, s.label, s.style);
 		plt.set("zeroaxis", "");
 		plt.set("style","data lines");
 		plt.set("mxtics","10");

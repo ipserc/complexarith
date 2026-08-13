@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
+import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.NamedSeries;
 import com.ipserc.arith.plot.CanvasOptions;
 import com.ipserc.arith.plot.PlotStyle;
 import com.ipserc.arith.plot.SimpleGnuplot;
@@ -120,6 +123,29 @@ public class ScratchPlotPowerAudit01 {
 		String sPolyExport = readAndClearCapture();
 		check("Polynom.plotExpressionSync(...,CanvasOptions.withOutputFile) -> pngcairo", sPolyExport.contains("set terminal pngcairo"));
 		check("Polynom.plotExpressionSync(...,CanvasOptions.withOutputFile) -> NO windows terminal", !sPolyExport.contains("set terminal windows"));
+
+		// --- Polynom.plotSeriesSync(List<NamedSeries>,...): label + PlotStyle per curve, no parallel labels list ---
+		double[][] pointsA = { { 0, 0 }, { 1, 1 } };
+		double[][] pointsB = { { 0, 0 }, { 1, -1 } };
+		List<NamedSeries> namedList = new ArrayList<>();
+		namedList.add(new NamedSeries("Curva Roja", pointsA, new PlotStyle("red", 2, null, null, null)));
+		namedList.add(new NamedSeries("Curva Simple", pointsB)); // sin estilo -> gnuplot decide
+		Polynom polySeries = new Polynom(1);
+		polySeries.plotSeriesSync(namedList, "polynom plotSeriesSync");
+		String sPolySeries = readAndClearCapture();
+		check("Polynom.plotSeriesSync(List<NamedSeries>,...) -> title 'Curva Roja'", sPolySeries.contains("title 'Curva Roja'"));
+		check("Polynom.plotSeriesSync(List<NamedSeries>,...) -> title 'Curva Simple'", sPolySeries.contains("title 'Curva Simple'"));
+		check("Polynom.plotSeriesSync(List<NamedSeries>,...) -> styled curve has 'linecolor rgb ''red'''",
+				sPolySeries.contains("title 'Curva Roja' with lines linecolor rgb 'red' linewidth 2"));
+		check("Polynom.plotSeriesSync(List<NamedSeries>,...) -> unstyled curve has no 'with' fragment",
+				sPolySeries.contains("title 'Curva Simple'") && !sPolySeries.contains("title 'Curva Simple' with"));
+
+		Polynom polySeriesOpts = new Polynom(1);
+		CanvasOptions seriesOptions = new CanvasOptions().withSetting("yrange", "[-3:3]");
+		polySeriesOpts.plotSeriesSync(namedList, "polynom plotSeriesSync canvas options", seriesOptions);
+		String sPolySeriesOpts = readAndClearCapture();
+		check("Polynom.plotSeriesSync(List<NamedSeries>,title,CanvasOptions) -> 'set yrange [-3:3]'",
+				sPolySeriesOpts.contains("set yrange [-3:3]"));
 
 		System.out.println();
 		System.out.println(ok + "/" + total + " OK");
