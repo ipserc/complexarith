@@ -20,7 +20,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.1 (2026_0813_1830)";
+	private final static String VERSION = "1.2 (2026_0813_2200)";
 
 	private Qubits() {}
 
@@ -71,6 +71,20 @@ public final class Qubits {
 		MatrixComplex m = new MatrixComplex(2, 2);
 		m.setItem(0, 0, 1.0); m.setItem(0, 1, 0.0);
 		m.setItem(1, 0, 0.0); m.setItem(1, 1, -1.0);
+		return m;
+	}
+
+	/**
+	 * The Hadamard gate, {@code (1/sqrt2)*[[1,1],[1,-1]]} -- maps {@code |0>}/{@code |1>} to the
+	 * equal-superposition states {@code |+>}/{@code |->}, the standard gate used to prepare a
+	 * qubit for measurement in the X basis (e.g. the Bell-basis measurement of quantum
+	 * teleportation, see {@code Teleportation}).
+	 */
+	public static MatrixComplex hadamard() {
+		double s = 1.0 / Math.sqrt(2.0);
+		MatrixComplex m = new MatrixComplex(2, 2);
+		m.setItem(0, 0, s); m.setItem(0, 1, s);
+		m.setItem(1, 0, s); m.setItem(1, 1, -s);
 		return m;
 	}
 
@@ -174,6 +188,58 @@ public final class Qubits {
 		MatrixComplex result = (qubitIndex == 0) ? op : identity2();
 		for (int i = 1; i < nQubits; ++i) {
 			result = result.kroneckerprod((i == qubitIndex) ? op : identity2());
+		}
+		return result;
+	}
+
+	/**
+	 * A controlled two-qubit gate lifted to act on qubits {@code controlIndex}/{@code targetIndex}
+	 * of an {@code nQubits}-qubit system, leaving every other qubit untouched -- {@code
+	 * |0><0|_control (x) I_target (x) rest + |1><1|_control (x) op_target (x) rest}, the standard
+	 * "apply {@code op} to the target iff the control is {@code |1>}" construction (e.g. {@code
+	 * CNOT = controlledGate(pauliX(),control,target,nQubits)}). {@code controlIndex}/{@code
+	 * targetIndex} need not be adjacent -- each of the 2 terms is built the same way {@link
+	 * #operatorOnQubit(MatrixComplex, int, int)} builds a single-site operator, just with 2
+	 * non-identity sites instead of 1.
+	 * @param op The 2x2 single-qubit operator applied to the target when the control is {@code |1>}
+	 * (e.g. {@link #pauliX()} for {@code CNOT}).
+	 * @param controlIndex The 0-based index of the control qubit.
+	 * @param targetIndex The 0-based index of the target qubit, must differ from {@code controlIndex}.
+	 * @param nQubits The total number of qubits in the register, must be at least 2.
+	 * @return The {@code 2^nQubits x 2^nQubits} lifted controlled operator.
+	 * @throws IllegalArgumentException if {@code nQubits<2}, either index is out of range, or
+	 * {@code controlIndex==targetIndex}.
+	 */
+	public static MatrixComplex controlledGate(MatrixComplex op, int controlIndex, int targetIndex, int nQubits) {
+		if (nQubits < 2) {
+			throw new IllegalArgumentException("controlledGate() needs at least 2 qubits, got " + nQubits);
+		}
+		if (controlIndex < 0 || controlIndex >= nQubits || targetIndex < 0 || targetIndex >= nQubits) {
+			throw new IllegalArgumentException("controlIndex=" + controlIndex + "/targetIndex=" + targetIndex
+					+ " out of range for nQubits=" + nQubits);
+		}
+		if (controlIndex == targetIndex) {
+			throw new IllegalArgumentException("controlIndex and targetIndex must differ, both were " + controlIndex);
+		}
+		MatrixComplex proj0 = ket0().times(ket0().adjoint());
+		MatrixComplex proj1 = ket1().times(ket1().adjoint());
+		return twoSiteOperator(proj0, identity2(), controlIndex, targetIndex, nQubits)
+				.plus(twoSiteOperator(proj1, op, controlIndex, targetIndex, nQubits));
+	}
+
+	/**
+	 * Builds {@code opA (x) opB (x) I (x) ... (x) I}, chained left to right, with {@code opA} at
+	 * position {@code indexA}, {@code opB} at position {@code indexB} and {@link #identity2()}
+	 * everywhere else -- the 2-site generalization of the single-site chain in {@link
+	 * #operatorOnQubit(MatrixComplex, int, int)}, used by {@link #controlledGate(MatrixComplex,
+	 * int, int, int)}.
+	 */
+	private static MatrixComplex twoSiteOperator(MatrixComplex opA, MatrixComplex opB, int indexA, int indexB, int nQubits) {
+		MatrixComplex site0 = (indexA == 0) ? opA : (indexB == 0) ? opB : identity2();
+		MatrixComplex result = site0;
+		for (int i = 1; i < nQubits; ++i) {
+			MatrixComplex site = (i == indexA) ? opA : (i == indexB) ? opB : identity2();
+			result = result.kroneckerprod(site);
 		}
 		return result;
 	}
