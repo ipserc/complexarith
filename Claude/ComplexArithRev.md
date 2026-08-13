@@ -3712,7 +3712,7 @@ A petición del usuario ("Continúa con la esfera de Bloch"), retomado el últim
 
 **Con esto se cierra del todo la hoja de ruta del Rol Física/Mecánica Cuántica** catalogada al cierre de la Trigesimosexta sesión: los 7 candidatos (n qubits, matriz densidad + traza parcial + entropía de von Neumann, evolución temporal, teletransportación, `BellTest` generalizado a n qubits, ruido/decoherencia, esfera de Bloch) están implementados y verificados, con varios puentes de verificación cruzada entre ejercicios (`BellTest`↔`DensityMatrix`, `BlochSphere`↔`Decoherence`↔`TimeEvolution`). El paquete `com.ipserc.arith.quantum` queda con 7 clases: `Qubits`, `BellTest`, `DensityMatrix`, `TimeEvolution`, `Teleportation`, `Decoherence`, `BlochSphere`.
 
-**Estado del repo**: commit `16204d4` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
+**Estado del repo**: commit `16204d4` pusheado a petición del usuario junto con `0a0159e` (su registro en este documento).
 
 **Sin punto de retomada pendiente** de este bloque ni de la hoja de ruta del Rol Física/Mecánica Cuántica. Candidatos de fondo, todos SIN relación con el Rol Física, sin urgencia:
 1. Ruido/decoherencia con más de un canal encadenado, teleportación con canales ruidosos, algoritmos cuánticos más grandes (Deutsch-Jozsa, Grover a pequeña escala) -- extensiones del Rol Física, ninguna catalogada explícitamente todavía, a proponer si el usuario quiere seguir en este rol.
@@ -3721,6 +3721,27 @@ A petición del usuario ("Continúa con la esfera de Bloch"), retomado el últim
 4. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
 5. `TestFilter04.java`/`plotFunc09.java` -- siguen marcados (ruta portable + comentario) pero sin poder ejecutarse por falta de datos de entrada.
 6. Cualquier otra cosa que el usuario traiga.
+
+## Continuación de la Trigesimoséptima sesión (13 agosto 2026) -- algoritmo de Deutsch-Jozsa (commit `3f9588f`)
+
+A petición del usuario ("Empieza con Deutsch-Jozsa"), primera extensión del Rol Física/Mecánica Cuántica tras cerrar la hoja de ruta de 7 candidatos.
+
+**Implementado**: `DeutschJozsa.java` (nuevo) -- `oracle(f,n)` construye `U_f:|x>|y>->|x>|y XOR f(x)>` como matriz de permutación `2^(n+1)x2^(n+1)` directamente de la tabla de verdad de `f` (`java.util.function.IntPredicate`, oráculo caja negra, sin simular ningún circuito para `f` en sí); `probabilityAllZero(f,n)` ejecuta el circuito completo (`H^(n+1)`, oráculo, `H^n` solo en el registro de entrada, vía `Qubits.hadamard()`/`kroneckerprod` encadenado) y devuelve la probabilidad del resultado todo-ceros; `isConstant(f,n)` da el veredicto (`true`=constante, `false`=equilibrada) con una ÚNICA consulta al oráculo, fallando alto si `f` no cumple la promesa constante-o-equilibrada.
+
+**Verificación**: `ScratchDeutschJozsaAudit01.java` (nuevo, conservado, **8/8 OK**): `oracle(f,n)` unitario y autoinverso (4 `f` × n=1..4); tabla de verdad del oráculo exacta para cada `x`; `isConstant()` acierta en funciones constantes y equilibradas (incluidas 5 tablas de verdad equilibradas distintas generadas por fuerza bruta, no solo los 2 ejemplos de mano -- paridad y bit más significativo) hasta n=6; `probabilityAllZero()` sale **exactamente** `1.0`/`0.0` a precisión `double` completa (no solo aproximada dentro de una tolerancia), confirmando la garantía "no hay tercera posibilidad" del algoritmo; rechazo explícito de una `f` que no es ni constante ni equilibrada (viola la promesa). Recompilación fresca completa limpia, `ecj -21` sin avisos nuevos. `TestBell01` (12/12), `ScratchTeleportationAudit01` (9/9), `ScratchTimeEvolutionAudit01` (11/11), `ScratchQubitsNAudit01` (16/16), `ScratchDensityMatrixAudit01` (18/18), `ScratchBellTestNQubitAudit01` (12/12), `ScratchDecoherenceAudit01` (10/10) y `ScratchBlochSphereAudit01` (12/12) sin regresión.
+
+`DeutschJozsa.VERSION`: `1.0` (clase nueva).
+
+**Estado del repo**: commit `3f9588f` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
+
+**Sin punto de retomada pendiente** de este bloque. Candidatos abiertos para la próxima sesión, ninguno urgente:
+1. Otros algoritmos cuánticos de juguete -- Grover a pequeña escala, Bernstein-Vazirani (variante más simple de Deutsch-Jozsa que además revela la cadena secreta completa, no solo constante/equilibrada).
+2. Ruido/decoherencia con más de un canal encadenado, teleportación con canales ruidosos -- combinar `Decoherence` con `Teleportation`/`DeutschJozsa`.
+3. Multiplot/subplots en la capa de plotting -- descartado explícitamente hace 3 sesiones, candidato aparte si se retoma.
+4. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)` -- dejado fuera a propósito, mismo patrón mecánico si hace falta.
+5. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
+6. `TestFilter04.java`/`plotFunc09.java` -- siguen marcados (ruta portable + comentario) pero sin poder ejecutarse por falta de datos de entrada.
+7. Cualquier otra cosa que el usuario traiga.
 
 ---
 
