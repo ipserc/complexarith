@@ -20,7 +20,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.0 (2026_0813_1606)";
+	private final static String VERSION = "1.1 (2026_0813_1830)";
 
 	private Qubits() {}
 
@@ -98,5 +98,83 @@ public final class Qubits {
 	 */
 	public static MatrixComplex spinOperator(double theta) {
 		return pauliZ().times(Math.cos(theta)).plus(pauliX().times(Math.sin(theta)));
+	}
+
+	/**
+	 * The computational-basis state {@code |b1 b2 ... bn>} of {@code n=bits.length} qubits, as a
+	 * {@code 2^n x 1} column vector -- built by encoding each {@code bits[i]} as {@link #ket0()}/
+	 * {@link #ket1()} and chaining {@link MatrixComplex#kroneckerprod(MatrixComplex)} left to
+	 * right, the same construction {@link #bellPhiPlus()} already used by hand for the fixed 2-qubit
+	 * case.
+	 * @param bits The classical bit string, one entry per qubit, each {@code 0} or {@code 1}, MSB
+	 * (qubit 1) first. Must have at least 1 entry.
+	 * @return The {@code 2^bits.length x 1} basis ket.
+	 * @throws IllegalArgumentException if {@code bits} is empty or contains a value other than
+	 * {@code 0}/{@code 1}.
+	 */
+	public static MatrixComplex ket(int... bits) {
+		if (bits.length == 0) {
+			throw new IllegalArgumentException("ket() needs at least 1 bit");
+		}
+		MatrixComplex state = singleBitKet(bits[0]);
+		for (int i = 1; i < bits.length; ++i) {
+			state = state.kroneckerprod(singleBitKet(bits[i]));
+		}
+		return state;
+	}
+
+	private static MatrixComplex singleBitKet(int bit) {
+		if (bit == 0) { return ket0(); }
+		if (bit == 1) { return ket1(); }
+		throw new IllegalArgumentException("ket() bits must be 0 or 1, got " + bit);
+	}
+
+	/**
+	 * The {@code n}-qubit GHZ (Greenberger-Horne-Zeilinger) state {@code (|00...0> + |11...1>) /
+	 * sqrt(2)} -- the natural generalization of {@link #bellPhiPlus()} (its {@code n=2} case) to
+	 * more than 2 qubits: still maximally entangled (not separable into any tensor product of
+	 * per-qubit states), with perfectly correlated all-0/all-1 outcomes under a computational-basis
+	 * measurement.
+	 * @param n Number of qubits, must be at least 2 (an entangled state needs at least 2 subsystems).
+	 * @return The {@code 2^n x 1} normalized GHZ state.
+	 * @throws IllegalArgumentException if {@code n<2}.
+	 */
+	public static MatrixComplex ghz(int n) {
+		if (n < 2) {
+			throw new IllegalArgumentException("ghz() needs at least 2 qubits, got " + n);
+		}
+		int[] allZeros = new int[n];
+		int[] allOnes = new int[n];
+		java.util.Arrays.fill(allOnes, 1);
+		return ket(allZeros).plus(ket(allOnes)).normalizeByCols();
+	}
+
+	/**
+	 * A single-qubit operator lifted to act on qubit {@code qubitIndex} of an {@code nQubits}-qubit
+	 * system, leaving every other qubit untouched -- {@code I (x) ... (x) op (x) ... (x) I}, {@code
+	 * op} at position {@code qubitIndex} (0-based, MSB first, matching {@link #ket(int...)}'s bit
+	 * order) and {@link #identity2()} everywhere else, chained left to right with {@link
+	 * MatrixComplex#kroneckerprod(MatrixComplex)}. Needed because {@link MatrixComplex#times(MatrixComplex)}
+	 * on a {@code 2^n x 2^n} state only accepts an operator of matching dimension -- this is how a
+	 * local single-qubit gate/measurement is embedded into the full Hilbert space of an n-qubit
+	 * register.
+	 * @param op The 2x2 single-qubit operator (e.g. {@link #pauliZ()}, {@link #spinOperator(double)}).
+	 * @param qubitIndex The 0-based index of the qubit {@code op} acts on, {@code 0<=qubitIndex<nQubits}.
+	 * @param nQubits The total number of qubits in the register, must be at least 1.
+	 * @return The {@code 2^nQubits x 2^nQubits} lifted operator.
+	 * @throws IllegalArgumentException if {@code nQubits<1} or {@code qubitIndex} is out of range.
+	 */
+	public static MatrixComplex operatorOnQubit(MatrixComplex op, int qubitIndex, int nQubits) {
+		if (nQubits < 1) {
+			throw new IllegalArgumentException("operatorOnQubit() needs at least 1 qubit, got " + nQubits);
+		}
+		if (qubitIndex < 0 || qubitIndex >= nQubits) {
+			throw new IllegalArgumentException("qubitIndex=" + qubitIndex + " out of range for nQubits=" + nQubits);
+		}
+		MatrixComplex result = (qubitIndex == 0) ? op : identity2();
+		for (int i = 1; i < nQubits; ++i) {
+			result = result.kroneckerprod((i == qubitIndex) ? op : identity2());
+		}
+		return result;
 	}
 }
