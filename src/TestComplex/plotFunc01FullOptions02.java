@@ -20,40 +20,52 @@ import com.ipserc.arith.plot.SimpleGnuplot;
  * {@code exp}/{@code sinh}/... de verdad) es <i>package-private</i> -- no se puede referenciar
  * desde {@code TestComplex}. Pero, segun su propio Javadoc de clase, "every public method that
  * moved here keeps an exact one-line delegator on Complex with the same signature" -- por eso
- * {@code Complex.sin(Complex)}, {@code Complex.cos(Complex)}, {@code Complex.exp(Complex)}, etc.
+ * {@code Complex.sin(Complex)}, {@code Complex.cos(Complex)}, {@code Complex.tan(Complex)}, etc.
  * son la via publica para usarlas, y encajan exactamente en {@code Function<Complex,Complex>} via
- * referencia a metodo ({@code Complex::sin}, {@code Complex::exp}...).
+ * referencia a metodo ({@code Complex::sin}, {@code Complex::tan}...).
  * <p>
- * {@code plotFunc01.signalSin(Complex,double,double)} no es mas que {@code amplitud *
- * exp(i*2*pi*freq*t)} con {@code exp} fijo -- generalizada aqui a {@code amplitud *
- * f(i*2*pi*freq*t)}, {@code calcFunc(Complex::exp)} reproduce exactamente esa misma senal.
+ * {@code plotFunc01.signalSin(Complex,double,double)} calcula {@code amplitud *
+ * exp(i*2*pi*freq*t)} -- una exponencial COMPLEJA (fase imaginaria pura), que traza un circulo.
+ * Aqui {@link #calcFunc(String, Function)} aplica {@code complexFunc} a un angulo REAL
+ * ({@code 2*pi/freq*t}, sin el factor {@code i}), no a esa misma fase imaginaria -- por eso
+ * {@code calcFunc("exp", Complex::exp)} NO reproduce {@code signalSin}: con angulo real,
+ * {@code exp} crece sin oscilar (mala elección para comparar en una sola grafica), mientras que
+ * {@code sin}/{@code cos}/{@code tan} de un angulo real SI oscilan igual que sus equivalentes
+ * reales de toda la vida (parte imaginaria nula), que es justo lo que compara
+ * {@link #doPlotComparacion(CalcResultFunc...)} mas abajo.
  */
 public class plotFunc01FullOptions02 {
 
+	// Rango fijo del eje Y compartido por las 3 gráficas de esta demo (doPlot y doPlotComparacion),
+	// suficiente para las 4 funciones usadas en main() (sin/cos/tan/log con amplitud 2).
 	private static String stYrange = "[-6.5:6.5]";
 	public record CalcResultFunc(String nombreFuncion, Complex amplitud, double[][] dataRe, double[][] dataIm) {}
 
 	/**
-	 * Calcula la senal {@code amplitud * complexFunc(2*pi*freq*t)} para {@code t=0..samples},
+	 * Calcula la senal {@code amplitud * complexFunc(2*pi/freq*t)} para {@code t=0..samples},
 	 * con {@code complexFunc} como parametro -- cualquier funcion {@code Complex -> Complex} de
-	 * {@code ComplexFunctions.java} vale, via su delegador publico en {@code Complex}.
+	 * {@code ComplexFunctions.java} vale, via su delegador publico en {@code Complex}. El angulo
+	 * es REAL (no {@code i*angulo}) -- ver Javadoc de la clase para por que.
 	 * @param nombreFuncion Nombre de la funcion (solo para etiquetar la grafica), p.ej. {@code "tan"}.
-	 * @param complexFunc La funcion a aplicar al angulo complejo, p.ej. {@code Complex::tan}/{@code Complex::sin}/{@code Complex::cos}.
+	 * @param complexFunc La funcion a aplicar al angulo, p.ej. {@code Complex::tan}/{@code Complex::sin}/{@code Complex::cos}.
 	 */
 	private static CalcResultFunc calcFunc(String nombreFuncion, Function<Complex, Complex> complexFunc) {
 		double freq = 60;
-		long samples = (long) (freq * 4); // 2 ciclos completos, suficientes puntos para ver la curva. OJO: samples en t^-1
+		// samples=freq*4: con angulo=2*pi/freq*t, un ciclo completo (2*pi) se recorre cada
+		// t=freq unidades -- 4*freq muestras equivalen entonces a 4 ciclos completos.
+		long samples = (long) (freq * 4);
 
 		MatrixComplex data = new MatrixComplex((int) samples + 1, 1);
 		Complex amplitud = new Complex("2");
 		double twoPI = 2 * Math.PI;
 		for (int t = 0; t <= samples; ++t) {
-			Complex angulo = new Complex( twoPI / freq * t); //Complex.i.times(towPI * freq * t);
+			// Angulo REAL (sin el factor "i" que si lleva plotFunc01.signalSin) -- ver Javadoc de clase.
+			Complex angulo = new Complex(twoPI / freq * t);
 			data.complexMatrix[t][0] = amplitud.times(complexFunc.apply(angulo));
 		}
 
 		/*
-		 * Split the payload in real an imag parts
+		 * Separa la senal en parte real e imaginaria.
 		 */
 		double[][] dataRe = new double[(int) samples + 1][2];
 		double[][] dataIm = new double[(int) samples + 1][2];
@@ -69,7 +81,8 @@ public class plotFunc01FullOptions02 {
 
 	/** Demo completa (PlotStyle + CanvasOptions + Sync/Async + exportar a fichero) para UNA sola
 	 * senal -- igual que {@link plotFunc01FullOptions}, pero ahora {@code resultado} puede venir
-	 * de cualquier funcion de {@code ComplexFunctions.java}, no solo {@code exp}. */
+	 * de cualquier funcion de {@code ComplexFunctions.java} pasada a {@link #calcFunc}, no solo
+	 * la fija a {@code exp} de la version anterior. */
 	private static void doPlot(CalcResultFunc resultado) {
 		Complex amplitud = resultado.amplitud();
 		double[][] dataRe = resultado.dataRe();
@@ -101,7 +114,10 @@ public class plotFunc01FullOptions02 {
 				e_lineStyle.LINES, SimpleGnuplot.e_syncMode.ASYNC, opciones, curvaRe, curvaIm);
 		System.out.println("[Async] ...esto sale ENSEGUIDA, sin esperar a que cierres la ventana anterior");
 
-		// --- 4) Exportar a fichero PNG, sin abrir ninguna ventana ---
+		// --- 4) Exportar a fichero PNG, sin abrir ninguna ventana. ASYNC aqui (a diferencia de
+		// plotFunc01FullOptions.java, que usa SYNC para este paso): el println de abajo puede
+		// salir ANTES de que gnuplot termine de escribir el fichero -- si se necesita la garantia
+		// de que ya esta escrito antes de seguir, usar SYNC (ver Claude/GuiaPlotting.md, S2).
 		String rutaExport = System.getProperty("java.io.tmpdir") + "plotFunc01_" + resultado.nombreFuncion() + "_export.png";
 		CanvasOptions exportar = new CanvasOptions()
 				.withSetting("yrange", stYrange)
@@ -132,19 +148,19 @@ public class plotFunc01FullOptions02 {
 	}
 
 	public static void main(String[] args) {
-		// calcFunc(Complex::exp) reproduce EXACTAMENTE plotFunc01.signalSin -- misma demo completa
-		// (PlotStyle/CanvasOptions/Sync/Async/exportar) que en plotFunc01FullOptions.java.
+		// Demo completa (PlotStyle/CanvasOptions/Sync/Async/exportar), igual que
+		// plotFunc01FullOptions.java pero con "tan" (Complex::tan) en vez de "exp" fijo.
 		CalcResultFunc resultadoTan = calcFunc("tan", Complex::tan);
 		doPlot(resultadoTan);
 
-		// El resto de funciones de ComplexFunctions.java, pasadas como el mismo parametro --
-		// ninguna necesita su propio metodo signalXxx en plotFunc01.java.
+		// Mas funciones de ComplexFunctions.java, pasadas como el mismo parametro -- ninguna
+		// necesita su propio metodo signalXxx en plotFunc01.java.
 		CalcResultFunc resultadoSin = calcFunc("sin", Complex::sin);
 		CalcResultFunc resultadoCos = calcFunc("cos", Complex::cos);
 		CalcResultFunc resultadoLn = calcFunc("ln", Complex::log);
 
 		// Comparacion de las 4 en un solo canvas, cada una con su color -- demuestra NamedSeries +
 		// PlotStyle con datos que vienen realmente de calcFunc(ComplexFunctions...).
-		doPlotComparacion(resultadoSin, resultadoCos,resultadoTan, resultadoLn);
+		doPlotComparacion(resultadoSin, resultadoCos, resultadoTan, resultadoLn);
 	}
 }
