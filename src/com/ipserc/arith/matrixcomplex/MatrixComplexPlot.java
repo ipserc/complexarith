@@ -1,5 +1,7 @@
 package com.ipserc.arith.matrixcomplex;
 
+import com.ipserc.arith.plot.CanvasOptions;
+import com.ipserc.arith.plot.PlotStyle;
 import com.ipserc.arith.plot.SimpleGnuplot;
 
 /**
@@ -56,10 +58,18 @@ public class MatrixComplexPlot {
 	public static final class NamedSeries {
 		public final String label;
 		public final double[][] data;
+		public final PlotStyle style;
 
 		public NamedSeries(String label, double[][] data) {
+			this(label, data, null);
+		}
+
+		/** Same as {@link #NamedSeries(String, double[][])}, but with an explicit {@link PlotStyle}
+		 * instead of gnuplot's own default look for this curve. */
+		public NamedSeries(String label, double[][] data, PlotStyle style) {
 			this.label = label;
 			this.data = data;
+			this.style = style;
 		}
 	}
 
@@ -68,10 +78,18 @@ public class MatrixComplexPlot {
 	public static final class NamedGrid {
 		public final String label;
 		public final double[][][] grid;
+		public final PlotStyle style;
 
 		public NamedGrid(String label, double[][][] grid) {
+			this(label, grid, null);
+		}
+
+		/** Same as {@link #NamedGrid(String, double[][][])}, but with an explicit {@link PlotStyle}
+		 * instead of gnuplot's own default look for this surface. */
+		public NamedGrid(String label, double[][][] grid, PlotStyle style) {
 			this.label = label;
 			this.grid = grid;
+			this.style = style;
 		}
 	}
 
@@ -121,6 +139,13 @@ public class MatrixComplexPlot {
 	 * {@code Fourier}/{@code Laplace}/{@code Z} (a different package) can thread their OWN
 	 * {@code mode} straight through instead of re-implementing the sync/async branch themselves. */
 	public static void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
+		plot(title, nbrSamples, data, showIm, lineStyle, mode, CanvasOptions.NONE);
+	}
+
+	/** Same as {@link #plot(String, int, MatrixComplex, boolean, e_lineStyle, SimpleGnuplot.e_syncMode)},
+	 * with extra raw gnuplot configuration (ranges, legend position, export to file, ...) -- see
+	 * {@link CanvasOptions}. */
+	public static void plot(String title, int nbrSamples, MatrixComplex data, boolean showIm, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, CanvasOptions options) {
 		// Split the data into Re and Im parts
 		double dataRe[][] = new double[nbrSamples][2];
 		double dataIm[][] = new double[nbrSamples][2];
@@ -140,10 +165,7 @@ public class MatrixComplexPlot {
 		p.set("zeroaxis", "");
 		p.set("style", setLineStyle(lineStyle));
 		p.set("grid", "");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(p);
 		p.plot(mode);
 	}
 
@@ -222,23 +244,37 @@ public class MatrixComplexPlot {
 		plotSeries(title, x2label, xlabel, logscale, lineStyle, mode, named);
 	}
 
+	/** Same as {@link #plotSeries(String, String, String, boolean, e_lineStyle,
+	 * SimpleGnuplot.e_syncMode, NamedSeries...)}, but with unlabeled series (default {@code
+	 * "Series N"} titles) -- thin wrapper kept for source/binary compatibility with existing callers. */
+	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, CanvasOptions options, double[][]... series) {
+		NamedSeries[] named = new NamedSeries[series.length];
+		for (int i = 0; i < series.length; ++i) named[i] = new NamedSeries(null, series[i]);
+		plotSeries(title, x2label, xlabel, logscale, lineStyle, mode, options, named);
+	}
+
+	/** Same as {@link #plotSeries(String, String, String, boolean, e_lineStyle,
+	 * SimpleGnuplot.e_syncMode, CanvasOptions, NamedSeries...)}, without extra {@link CanvasOptions}
+	 * -- thin wrapper kept for source/binary compatibility with existing callers. */
+	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, NamedSeries... series) {
+		plotSeries(title, x2label, xlabel, logscale, lineStyle, mode, CanvasOptions.NONE, series);
+	}
+
 	/** Generic entry point every {@code plotSeriesSync}/{@code plotSeriesAsync} pair calls -- also
 	 * public so {@code Fourier}/{@code Laplace}/{@code Z} can thread their OWN {@code mode} straight
-	 * through. */
-	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, NamedSeries... series) {
+	 * through. {@code options} carries extra raw gnuplot configuration (ranges, legend position,
+	 * export to file, ...) -- see {@link CanvasOptions}. */
+	public static void plotSeries(String title, String x2label, String xlabel, boolean logscale, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode, CanvasOptions options, NamedSeries... series) {
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.setTitle(title);
 		if (x2label != null) p.set("x2label", x2label);
-		for (NamedSeries s : series) p.addPlot(s.data, s.label);
+		for (NamedSeries s : series) p.addPlot(s.data, s.label, s.style);
 		p.set("zeroaxis", "");
 		if (xlabel != null) p.set("xlabel", xlabel);
 		p.set("style", setLineStyle(lineStyle));
 		if (logscale) p.set("logscale", "y");
 		p.set("grid", "");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(p);
 		p.plot(mode);
 	}
 
@@ -345,20 +381,26 @@ public class MatrixComplexPlot {
 		plotSeries3D(title, logscaleZ, lineStyle, mode, named);
 	}
 
-	/** Generic entry point every {@code plotSeries3DSync}/{@code plotSeries3DAsync} pair calls. */
+	/** Same as {@link #plotSeries3D(String, boolean, e_lineStyle3D, SimpleGnuplot.e_syncMode,
+	 * CanvasOptions, NamedSeries...)}, without extra {@link CanvasOptions} -- thin wrapper kept for
+	 * source/binary compatibility with existing callers. */
 	public static void plotSeries3D(String title, boolean logscaleZ, e_lineStyle3D lineStyle, SimpleGnuplot.e_syncMode mode, NamedSeries... series) {
+		plotSeries3D(title, logscaleZ, lineStyle, mode, CanvasOptions.NONE, series);
+	}
+
+	/** Generic entry point every {@code plotSeries3DSync}/{@code plotSeries3DAsync} pair calls.
+	 * {@code options} carries extra raw gnuplot configuration ({@code pm3d}/palette, ranges, export
+	 * to file, ...) -- see {@link CanvasOptions}. */
+	public static void plotSeries3D(String title, boolean logscaleZ, e_lineStyle3D lineStyle, SimpleGnuplot.e_syncMode mode, CanvasOptions options, NamedSeries... series) {
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.newGraph3D();
 		p.setTitle(title);
-		for (NamedSeries s : series) p.addPlot(s.data, s.label);
+		for (NamedSeries s : series) p.addPlot(s.data, s.label, s.style);
 		p.set("zeroaxis", "");
 		p.set("style", setLineStyle3D(lineStyle));
 		if (logscaleZ) p.set("logscale", "z");
 		p.set("grid", "");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(p);
 		p.plot(mode);
 	}
 
@@ -387,22 +429,28 @@ public class MatrixComplexPlot {
 		plotGrid3D(title, logscaleZ, mode, named);
 	}
 
-	/** Same as {@link #plotGrid3D(String, boolean, SimpleGnuplot.e_syncMode, double[][][]...)}, but
-	 * each grid carries its own legend title instead of the default {@code "Series N"}. */
+	/** Same as {@link #plotGrid3D(String, boolean, SimpleGnuplot.e_syncMode, CanvasOptions,
+	 * NamedGrid...)}, without extra {@link CanvasOptions} -- thin wrapper kept for source/binary
+	 * compatibility with existing callers. */
 	public static void plotGrid3D(String title, boolean logscaleZ, SimpleGnuplot.e_syncMode mode, NamedGrid... grids) {
+		plotGrid3D(title, logscaleZ, mode, CanvasOptions.NONE, grids);
+	}
+
+	/** Same as {@link #plotGrid3D(String, boolean, SimpleGnuplot.e_syncMode, NamedGrid...)}, but
+	 * each grid carries its own legend title instead of the default {@code "Series N"}. {@code
+	 * options} carries extra raw gnuplot configuration ({@code pm3d}/palette, ranges, export to
+	 * file, ...) -- see {@link CanvasOptions}. */
+	public static void plotGrid3D(String title, boolean logscaleZ, SimpleGnuplot.e_syncMode mode, CanvasOptions options, NamedGrid... grids) {
 		SimpleGnuplot p = new SimpleGnuplot();
 		p.newGraph3D();
 		p.setTitle(title);
-		for (NamedGrid g : grids) p.addPlotGrid(g.grid, g.label);
+		for (NamedGrid g : grids) p.addPlotGrid(g.grid, g.label, g.style);
 		p.set("zeroaxis", "");
 		p.set("style", setLineStyle3D(e_lineStyle3D.LINES));
 		p.set("hidden3d", "");
 		if (logscaleZ) p.set("logscale", "z");
 		p.set("grid", "");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(p);
 		p.plot(mode);
 	}
 
@@ -482,10 +530,6 @@ public class MatrixComplexPlot {
 		p.set("zeroaxis", "");
 		p.set("style", "data lines");
 		p.set("grid", "");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		p.setPersist(true);
-		p.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
 		p.plot(mode);
 	}
 }

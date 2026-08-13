@@ -35,20 +35,40 @@ public class SimpleGnuplot {
 	private String title;
 	private final Map<String, String> settings = new LinkedHashMap<>();
 	private final List<String> postInit = new ArrayList<>();
-	private final List<Object> plotTerms = new ArrayList<>(); // each element: Term (data block, labeled) or String (gnuplot expression)
+	private final List<Object> plotTerms = new ArrayList<>(); // each element: Term (data block, labeled) or ExprTerm (native expression, labeled) or String (native expression, legacy)
 
-	/** A labeled data block -- {@code data} is {@code double[][]} (flat) or {@code double[][][]} (grid); {@code label} is {@code null} for the default {@code "Series N"} title. */
+	/** A labeled data block -- {@code data} is {@code double[][]} (flat) or {@code double[][][]} (grid); {@code label} is {@code null} for the default {@code "Series N"} title; {@code style} is {@code null} for gnuplot's own default look. */
 	private static final class Term {
 		final Object data;
 		final String label;
+		final PlotStyle style;
 
-		Term(Object data, String label) {
+		Term(Object data, String label, PlotStyle style) {
 			this.data = data;
 			this.label = label;
+			this.style = style;
 		}
 	}
-	private boolean persist = false;
+
+	/** A native gnuplot expression term with an explicit style -- kept separate from the plain
+	 * {@code String} case (added via {@link #addPlot(String)}) so that path stays byte-identical
+	 * to before this class supported per-series styling. */
+	private static final class ExprTerm {
+		final String expression;
+		final PlotStyle style;
+
+		ExprTerm(String expression, PlotStyle style) {
+			this.expression = expression;
+			this.style = style;
+		}
+	}
+
+	/** {@code null} means "not set by the caller" -- see {@link #launch(boolean)} for the default
+	 * this resolves to. */
+	private Boolean persist;
 	private boolean is3D = false;
+	private String outputFile;
+	private String terminal;
 
 	public void setTitle(String title) {
 		this.title = title;
@@ -66,6 +86,29 @@ public class SimpleGnuplot {
 		this.persist = persist;
 	}
 
+	/**
+	 * Routes the plot to a file instead of an interactive window: emits {@code set terminal
+	 * pngcairo size 1024,768} + {@code set output '<path>'} ahead of every other setting, and
+	 * forces the process to run without {@code -persist} (there is no window to keep open). For
+	 * any other output format, use {@link #setTerminal(String)} plus a raw {@code set("output",
+	 * "'<path>'")} instead.
+	 * @param path The output file path (extension should match the terminal, e.g. {@code .png}).
+	 */
+	public void setOutputFile(String path) {
+		this.outputFile = path;
+	}
+
+	/**
+	 * Raw escape hatch for any gnuplot terminal not covered by {@link #setOutputFile(String)}
+	 * (e.g. {@code "svg size 800,600"}, {@code "pdfcairo"}). Emitted verbatim as {@code set
+	 * terminal <rawSpec>} ahead of every other setting. Ignored if {@link #setOutputFile(String)}
+	 * was also called -- that convenience method takes precedence.
+	 * @param rawSpec The raw terminal spec, without the leading {@code "set terminal "}.
+	 */
+	public void setTerminal(String rawSpec) {
+		this.terminal = rawSpec;
+	}
+
 	/** Raw gnuplot commands appended verbatim after the settings, before the plot/splot command. */
 	public List<String> getPostInit() {
 		return postInit;
@@ -78,12 +121,18 @@ public class SimpleGnuplot {
 
 	/** Adds a data series: each row is one point ({@code [x,y]} for 2D, {@code [x,y,z]} for 3D). */
 	public void addPlot(double[][] data) {
-		addPlot(data, null);
+		addPlot(data, null, null);
 	}
 
 	/** Same as {@link #addPlot(double[][])}, but with an explicit legend title instead of the default {@code "Series N"}. */
 	public void addPlot(double[][] data, String label) {
-		plotTerms.add(new Term(data, label));
+		addPlot(data, label, null);
+	}
+
+	/** Same as {@link #addPlot(double[][], String)}, but with an explicit {@link PlotStyle}
+	 * instead of gnuplot's own default look for the series (color/width/dashtype/pointtype). */
+	public void addPlot(double[][] data, String label, PlotStyle style) {
+		plotTerms.add(new Term(data, label, style));
 	}
 
 	/**
@@ -98,18 +147,29 @@ public class SimpleGnuplot {
 	 * @param grid The grid of points, {@code grid[row][col] = {x, y, z}}.
 	 */
 	public void addPlotGrid(double[][][] grid) {
-		addPlotGrid(grid, null);
+		addPlotGrid(grid, null, null);
 	}
 
 	/** Same as {@link #addPlotGrid(double[][][])}, but with an explicit legend title instead of the default {@code "Series N"}. */
 	public void addPlotGrid(double[][][] grid, String label) {
-		plotTerms.add(new Term(grid, label));
+		addPlotGrid(grid, label, null);
+	}
+
+	/** Same as {@link #addPlotGrid(double[][][], String)}, but with an explicit {@link PlotStyle}
+	 * instead of gnuplot's own default look for the surface. */
+	public void addPlotGrid(double[][][] grid, String label, PlotStyle style) {
+		plotTerms.add(new Term(grid, label, style));
 	}
 
 	/** Adds a native gnuplot expression term (e.g. {@code "sin(x)"}, {@code "[-2:4] x**2+1"}) --
 	 * gnuplot evaluates it directly, no sampling in Java. */
 	public void addPlot(String expression) {
 		plotTerms.add(expression);
+	}
+
+	/** Same as {@link #addPlot(String)}, but with an explicit {@link PlotStyle} for the curve. */
+	public void addPlot(String expression, PlotStyle style) {
+		plotTerms.add(new ExprTerm(expression, style));
 	}
 
 	/**
@@ -134,7 +194,13 @@ public class SimpleGnuplot {
 		String script = buildScript();
 		String exe = resolveGnuplotExecutable();
 		try {
-			ProcessBuilder pb = persist ? new ProcessBuilder(exe, "-persist") : new ProcessBuilder(exe);
+			// outputFile != null => rendering to a file, no window to keep alive -- ignore
+			// whatever persist may have been set to. Otherwise: honor an explicit setPersist(),
+			// or fall back to the project's long-standing default (persistent window, so the
+			// native zoom doesn't freeze -- see DEFAULT_TERMINAL below) when the caller never
+			// called setPersist() at all.
+			boolean effectivePersist = outputFile == null && (persist != null ? persist : true);
+			ProcessBuilder pb = effectivePersist ? new ProcessBuilder(exe, "-persist") : new ProcessBuilder(exe);
 			Process proc = pb.start();
 			try (OutputStream out = proc.getOutputStream()) {
 				out.write(script.getBytes(StandardCharsets.UTF_8));
@@ -146,8 +212,21 @@ public class SimpleGnuplot {
 		}
 	}
 
+	// The literal terminal directive every caller of this class used to append by hand to
+	// getPostInit() -- see the class Javadoc's "SOLUCION" note history. Centralized here (instead
+	// of repeated ~20 times across MatrixComplexPlot/PolynomPlot) as the implicit default when
+	// neither setOutputFile(String) nor setTerminal(String) was called -- byte-identical script
+	// output for every caller that never touches those 2 new methods.
+	private static final String DEFAULT_TERMINAL = "set terminal windows";
+
 	private String buildScript() {
 		StringBuilder sb = new StringBuilder();
+		if (outputFile != null) {
+			sb.append("set terminal pngcairo size 1024,768\n");
+			sb.append("set output '").append(escape(outputFile)).append("'\n");
+		} else if (terminal != null) {
+			sb.append("set terminal ").append(terminal).append('\n');
+		}
 		for (Map.Entry<String, String> e : settings.entrySet()) {
 			sb.append("set ").append(e.getKey());
 			if (e.getValue() != null && !e.getValue().isEmpty()) sb.append(' ').append(e.getValue());
@@ -155,6 +234,9 @@ public class SimpleGnuplot {
 		}
 		if (title != null) sb.append("set title '").append(escape(title)).append("'\n");
 		for (String raw : postInit) sb.append(raw).append('\n');
+		if (outputFile == null && terminal == null && !postInit.contains(DEFAULT_TERMINAL)) {
+			sb.append(DEFAULT_TERMINAL).append('\n');
+		}
 
 		List<String> termClauses = new ArrayList<>();
 		List<Object> dataBlocks = new ArrayList<>(); // each element: double[][] (flat) or double[][][] (grid)
@@ -163,11 +245,14 @@ public class SimpleGnuplot {
 			if (term instanceof String) {
 				String expr = (String) term;
 				termClauses.add(expr + " title '" + escape(expr) + "'");
+			} else if (term instanceof ExprTerm) {
+				ExprTerm et = (ExprTerm) term;
+				termClauses.add(et.expression + " title '" + escape(et.expression) + "'" + styleClause(et.style));
 			} else {
 				++seriesN;
 				Term t = (Term) term;
 				String label = t.label != null ? t.label : "Series " + seriesN;
-				termClauses.add("'-' title '" + escape(label) + "'");
+				termClauses.add("'-' title '" + escape(label) + "'" + styleClause(t.style));
 				dataBlocks.add(t.data);
 			}
 		}
@@ -198,6 +283,22 @@ public class SimpleGnuplot {
 
 	private static String escape(String s) {
 		return s.replace("'", "\\'");
+	}
+
+	/** Builds the {@code with ...} clause fragment for a per-series {@link PlotStyle}, or {@code ""}
+	 * (no fragment at all) for {@code null}/{@link PlotStyle#DEFAULT} -- so the script stays
+	 * byte-identical for every series that doesn't opt into custom styling. When any field is set
+	 * but {@link PlotStyle#plotWith} isn't, gnuplot still needs a style keyword after {@code with}
+	 * to attach linecolor/linewidth/dashtype/pointtype to -- {@code "lines"} is used, matching the
+	 * project's own default ({@code set style data lines}) everywhere it's used today. */
+	private static String styleClause(PlotStyle style) {
+		if (style == null || style.isDefault()) return "";
+		StringBuilder sb = new StringBuilder(" with ").append(style.plotWith != null ? style.plotWith : "lines");
+		if (style.color != null) sb.append(" linecolor rgb '").append(escape(style.color)).append('\'');
+		if (style.lineWidth != null) sb.append(" linewidth ").append(style.lineWidth);
+		if (style.dashType != null) sb.append(" dashtype ").append(style.dashType);
+		if (style.pointType != null) sb.append(" pointtype ").append(style.pointType);
+		return sb.toString();
 	}
 
 	// Cached after first resolution -- same absolute-path-first strategy Panayotis's own

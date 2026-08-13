@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
+import com.ipserc.arith.plot.CanvasOptions;
 import com.ipserc.arith.plot.SimpleGnuplot;
 import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
 
@@ -38,10 +39,26 @@ import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
  * pair the user asked for lives one layer up, on {@code Polynom.java}'s public methods (the actual
  * call sites), which pick the {@code e_syncMode} literal and pass it down to a single generic
  * method here. No back-compat aliases: the old always-blocking method names are gone.
+ * <p>
+ * Continuation (13 agosto 2026, at the user's request, "hacer la clase plot más potente"): the
+ * {@code --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM ---} boilerplate ({@code setPersist(true)} +
+ * {@code getPostInit().add("set terminal windows")}), repeated by hand in every method below, is
+ * now {@link SimpleGnuplot}'s own implicit default when a caller never calls {@code
+ * setOutputFile}/{@code setTerminal} -- see {@code SimpleGnuplot#DEFAULT_TERMINAL}. Every generic
+ * entry point here also gained a {@link CanvasOptions} overload (extra raw gnuplot configuration --
+ * ranges, legend position, export to file, {@code pm3d}/palette, annotations -- see that class's
+ * Javadoc), following the same "generic method + trivial wrapper" pattern already used for {@code
+ * e_syncMode}: the pre-existing overloads without {@code CanvasOptions} become one-line wrappers
+ * passing {@link CanvasOptions#NONE}, so no existing call site (here or in {@code Polynom.java})
+ * changes behavior.
  */
 class PolynomPlot {
 
 	static void plotExpression(Polynom p, String gnuPlotExpression, double loLimit, double upLimit, e_syncMode mode) {
+		plotExpression(p, gnuPlotExpression, loLimit, upLimit, mode, CanvasOptions.NONE);
+	}
+
+	static void plotExpression(Polynom p, String gnuPlotExpression, double loLimit, double upLimit, e_syncMode mode, CanvasOptions options) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.addPlot(gnuPlotExpression);
@@ -49,14 +66,15 @@ class PolynomPlot {
 		plt.addPlot("[" + loLimit + ":" + upLimit + "] " + p.toGNUPlot_poly());
 		plt.set("zeroaxis", "");
 		plt.set("samples", Double.toString(samples));
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plotExpression(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
+		plotExpression(p, loLimit, upLimit, mode, CanvasOptions.NONE);
+	}
+
+	static void plotExpression(Polynom p, double loLimit, double upLimit, e_syncMode mode, CanvasOptions options) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(p.toString());
@@ -64,14 +82,15 @@ class PolynomPlot {
 		plt.set("xrange", "[" + loLimit + ":" + upLimit + "]");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot(p.toGNUPlot_poly());
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plotExpressionRe(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
+		plotExpressionRe(p, loLimit, upLimit, mode, CanvasOptions.NONE);
+	}
+
+	static void plotExpressionRe(Polynom p, double loLimit, double upLimit, e_syncMode mode, CanvasOptions options) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re(" + p.toString() + ")");
@@ -80,14 +99,15 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("real("+ p.toGNUPlot_poly() + ")");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plotExpressionIm(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
+		plotExpressionIm(p, loLimit, upLimit, mode, CanvasOptions.NONE);
+	}
+
+	static void plotExpressionIm(Polynom p, double loLimit, double upLimit, e_syncMode mode, CanvasOptions options) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Im(" + p.toString() + ")");
@@ -96,14 +116,15 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("imag("+ p.toGNUPlot_poly() + ")");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plotExpressionReIm(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
+		plotExpressionReIm(p, loLimit, upLimit, mode, CanvasOptions.NONE);
+	}
+
+	static void plotExpressionReIm(Polynom p, double loLimit, double upLimit, e_syncMode mode, CanvasOptions options) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re() Im() " + p.toString());
@@ -112,14 +133,15 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("real(" + p.toGNUPlot_poly() + "), imag("+ p.toGNUPlot_poly() + ")");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plotExpressionRepIm(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
+		plotExpressionRepIm(p, loLimit, upLimit, mode, CanvasOptions.NONE);
+	}
+
+	static void plotExpressionRepIm(Polynom p, double loLimit, double upLimit, e_syncMode mode, CanvasOptions options) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Re() Im() " + p.toString());
@@ -128,14 +150,15 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("real(" + p.toGNUPlot_poly() + ") / imag("+ p.toGNUPlot_poly() + ")");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plotExpressionAbs(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
+		plotExpressionAbs(p, loLimit, upLimit, mode, CanvasOptions.NONE);
+	}
+
+	static void plotExpressionAbs(Polynom p, double loLimit, double upLimit, e_syncMode mode, CanvasOptions options) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Abs("+p.toString()+")");
@@ -144,14 +167,15 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("abs(" + p.toGNUPlot_poly() + ")");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plotExpressionPhase(Polynom p, double loLimit, double upLimit, e_syncMode mode) {
+		plotExpressionPhase(p, loLimit, upLimit, mode, CanvasOptions.NONE);
+	}
+
+	static void plotExpressionPhase(Polynom p, double loLimit, double upLimit, e_syncMode mode, CanvasOptions options) {
 		double samples = (upLimit - loLimit) * Polynom.sampleBase;
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle("Phase("+p.toString()+")");
@@ -161,10 +185,7 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(samples));
 		plt.addPlot("atan(real(" + p.toGNUPlot_poly() + ")/imag("+ p.toGNUPlot_poly() + "))");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
@@ -186,6 +207,13 @@ class PolynomPlot {
 	 * @param labels The label for each curve, parallel to {@code pointsList}, or {@code null}.
 	 */
 	static void plot(List<double[][]> pointsList, List<String> labels, String title, e_syncMode mode) {
+		plot(pointsList, labels, title, mode, CanvasOptions.NONE);
+	}
+
+	/** Generic entry point for the whole {@code plot}/{@code plotRe}/{@code plotIm}/{@code
+	 * plotMod}/{@code plotPha} (list) family -- see {@link CanvasOptions} for the extra raw gnuplot
+	 * configuration {@code options} carries (ranges, legend position, export to file, ...). */
+	static void plot(List<double[][]> pointsList, List<String> labels, String title, e_syncMode mode, CanvasOptions options) {
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(title);
 		for(int i = 0; i < pointsList.size(); ++i) {
@@ -197,14 +225,18 @@ class PolynomPlot {
 		plt.set("mxtics","10");
 		plt.set("mytics","10");
 		plt.set("grid","xtics mxtics ytics mytics");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plot(double[][] points, String title, e_syncMode mode) {
+		plot(points, title, mode, CanvasOptions.NONE);
+	}
+
+	/** Generic entry point for the whole {@code plot}/{@code plotRe}/{@code plotIm}/{@code
+	 * plotMod}/{@code plotPha} (single-series) family -- see {@link CanvasOptions} for the extra
+	 * raw gnuplot configuration {@code options} carries. */
+	static void plot(double[][] points, String title, e_syncMode mode, CanvasOptions options) {
 		SimpleGnuplot plt = new SimpleGnuplot();
 		plt.setTitle(title);
 		plt.addPlot(points);
@@ -213,21 +245,22 @@ class PolynomPlot {
 		plt.set("mxtics","10");
 		plt.set("mytics","10");
 		plt.set("grid","xtics mxtics ytics mytics");
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 
 	static void plotRe(MatrixComplex points, String title, e_syncMode mode) {
+		plotRe(points, title, mode, CanvasOptions.NONE);
+	}
+
+	static void plotRe(MatrixComplex points, String title, e_syncMode mode, CanvasOptions options) {
 		int samples = points.rows();
 		double[][] pointsRe = new double[samples][2];
 		for (int i = 0; i < samples; ++i) {
 			pointsRe[i][0] = points.getItem(i, 0).rep();
 			pointsRe[i][1] = points.getItem(i, 1).rep();
 		}
-		plot(pointsRe, title, mode);
+		plot(pointsRe, title, mode, options);
 	}
 
 	/**
@@ -243,6 +276,11 @@ class PolynomPlot {
 	/** Same as {@link #plotRe(List, String, e_syncMode)}, but each curve carries its own legend
 	 * title -- see {@link #plot(List, List, String, e_syncMode)} for the {@code labels} contract. */
 	static void plotRe(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode) {
+		plotRe(pointsList, labels, title, mode, CanvasOptions.NONE);
+	}
+
+	/** Same as {@link #plotRe(List, List, String, e_syncMode)}, with extra {@link CanvasOptions}. */
+	static void plotRe(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode, CanvasOptions options) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -253,17 +291,21 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsRe);
 		}
-		plot(pointsListGraph, labels, title, mode);
+		plot(pointsListGraph, labels, title, mode, options);
 	}
 
 	static void plotIm(MatrixComplex points, String title, e_syncMode mode) {
+		plotIm(points, title, mode, CanvasOptions.NONE);
+	}
+
+	static void plotIm(MatrixComplex points, String title, e_syncMode mode, CanvasOptions options) {
 		int samples = points.rows();
 		double[][] pointsIm = new double[samples][2];
 		for (int i = 0; i < samples; ++i) {
 			pointsIm[i][0] = points.getItem(i, 0).imp();
 			pointsIm[i][1] = points.getItem(i, 1).imp();
 		}
-		plot(pointsIm, title, mode);
+		plot(pointsIm, title, mode, options);
 	}
 
 	/**
@@ -279,6 +321,11 @@ class PolynomPlot {
 	/** Same as {@link #plotIm(List, String, e_syncMode)}, but each curve carries its own legend
 	 * title -- see {@link #plot(List, List, String, e_syncMode)} for the {@code labels} contract. */
 	static void plotIm(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode) {
+		plotIm(pointsList, labels, title, mode, CanvasOptions.NONE);
+	}
+
+	/** Same as {@link #plotIm(List, List, String, e_syncMode)}, with extra {@link CanvasOptions}. */
+	static void plotIm(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode, CanvasOptions options) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -289,17 +336,21 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, labels, title, mode);
+		plot(pointsListGraph, labels, title, mode, options);
 	}
 
 	static void plotMod(MatrixComplex points, String title, e_syncMode mode) {
+		plotMod(points, title, mode, CanvasOptions.NONE);
+	}
+
+	static void plotMod(MatrixComplex points, String title, e_syncMode mode, CanvasOptions options) {
 		int samples = points.rows();
 		double[][] pointsMod = new double[samples][2];
 		for (int i = 0; i < samples; ++i) {
 			pointsMod[i][0] = points.getItem(i, 0).mod();
 			pointsMod[i][1] = points.getItem(i, 1).mod();
 		}
-		plot(pointsMod, title, mode);
+		plot(pointsMod, title, mode, options);
 	}
 
 	static void plotMod(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
@@ -309,6 +360,11 @@ class PolynomPlot {
 	/** Same as {@link #plotMod(List, String, e_syncMode)}, but each curve carries its own legend
 	 * title -- see {@link #plot(List, List, String, e_syncMode)} for the {@code labels} contract. */
 	static void plotMod(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode) {
+		plotMod(pointsList, labels, title, mode, CanvasOptions.NONE);
+	}
+
+	/** Same as {@link #plotMod(List, List, String, e_syncMode)}, with extra {@link CanvasOptions}. */
+	static void plotMod(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode, CanvasOptions options) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -319,17 +375,21 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, labels, title, mode);
+		plot(pointsListGraph, labels, title, mode, options);
 	}
 
 	static void plotPha(MatrixComplex points, String title, e_syncMode mode) {
+		plotPha(points, title, mode, CanvasOptions.NONE);
+	}
+
+	static void plotPha(MatrixComplex points, String title, e_syncMode mode, CanvasOptions options) {
 		int samples = points.rows();
 		double[][] pointsPha = new double[samples][2];
 		for (int i = 0; i < samples; ++i) {
 			pointsPha[i][0] = points.getItem(i, 0).pha();
 			pointsPha[i][1] = points.getItem(i, 1).pha();
 		}
-		plot(pointsPha, title, mode);
+		plot(pointsPha, title, mode, options);
 	}
 
 	static void plotPha(List<MatrixComplex> pointsList, String title, e_syncMode mode) {
@@ -339,6 +399,11 @@ class PolynomPlot {
 	/** Same as {@link #plotPha(List, String, e_syncMode)}, but each curve carries its own legend
 	 * title -- see {@link #plot(List, List, String, e_syncMode)} for the {@code labels} contract. */
 	static void plotPha(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode) {
+		plotPha(pointsList, labels, title, mode, CanvasOptions.NONE);
+	}
+
+	/** Same as {@link #plotPha(List, List, String, e_syncMode)}, with extra {@link CanvasOptions}. */
+	static void plotPha(List<MatrixComplex> pointsList, List<String> labels, String title, e_syncMode mode, CanvasOptions options) {
 		List<double[][]> pointsListGraph = new ArrayList<double[][]>();
 		int samples = pointsList.get(0).rows();
 		for(int l = 0; l < pointsList.size(); ++l) {
@@ -349,7 +414,7 @@ class PolynomPlot {
 			}
 			pointsListGraph.add(pointsIm);
 		}
-		plot(pointsListGraph, labels, title, mode);
+		plot(pointsListGraph, labels, title, mode, options);
 	}
 
 	/**
@@ -377,6 +442,10 @@ class PolynomPlot {
 	}
 
 	static void plotRe(Polynom p, double[][] points, e_syncMode mode) {
+		plotRe(p, points, mode, CanvasOptions.NONE);
+	}
+
+	static void plotRe(Polynom p, double[][] points, e_syncMode mode, CanvasOptions options) {
 		double lolimit = points[0][0];
 		double uplimit = points[points.length-1][0];
 		SimpleGnuplot plt = new SimpleGnuplot();
@@ -387,10 +456,7 @@ class PolynomPlot {
 		plt.set("key", "noautotitle");
 		plt.set("samples", Double.toString(Polynom.sampleBase));
 		plt.addPlot(points);
-		// --- SOLUCION PARA QUE NO SE CONGELE EL ZOOM (METODOS NATIVOS) ---
-		plt.setPersist(true);
-		plt.getPostInit().add("set terminal windows");
-		// -------------------------------------------------------------
+		options.apply(plt);
 		plt.plot(mode);
 	}
 

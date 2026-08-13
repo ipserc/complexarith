@@ -3,6 +3,7 @@ package com.ipserc.arith.polynom;
 import com.ipserc.arith.complex.*;
 import com.ipserc.arith.factorization.QRSchurfactor;
 import com.ipserc.arith.matrixcomplex.*;
+import com.ipserc.arith.plot.CanvasOptions;
 import com.ipserc.arith.plot.SimpleGnuplot.e_syncMode;
 import com.ipserc.arith.syseq.Syseq;
 import java.util.ArrayList;
@@ -23,8 +24,12 @@ public class Polynom extends MatrixComplex {
 	public static int maxRootIter = 5000;
 
 	private final static String HEADINFO = "Polynom --- INFO: ";
-	private final static String VERSION = "1.31 (2026_0812_1400)";
+	private final static String VERSION = "1.32 (2026_0813_0739)";
 	/* VERSION Release Note
+	 * 1.32 (2026_0813_0739)
+	 * Nuevos overloads con CanvasOptions en los metodos plotXxxSync/Async (extra configuracion
+	 * gnuplot: rangos, posicion de leyenda, exportacion a fichero, etc.), parte del bloque de
+	 * "capa de plotting mas potente" (Trigesimoquinta sesion). Ninguna firma existente cambia.
 	 * 1.31 (2026_0812_1400)
 	 * Nombres de curva personalizados (plan "quirky-wondering-yao.md"): plotSync/Async(List,title),
 	 * plotReSync/Async/plotImSync/Async/plotModSync/Async/plotPhaSync/Async(List<MatrixComplex>,title)
@@ -1787,6 +1792,16 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotExpression(this, GNUplotExpression, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotExpressionSync(String, double, double)}, with extra raw gnuplot
+	 * configuration (ranges, legend position, export to file, ...) -- see {@link CanvasOptions}. */
+	public void plotExpressionSync(String GNUplotExpression,double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpression(this, GNUplotExpression, loLimit, upLimit, e_syncMode.SYNC, options);
+	}
+
+	public void plotExpressionAsync(String GNUplotExpression,double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpression(this, GNUplotExpression, loLimit, upLimit, e_syncMode.ASYNC, options);
+	}
+
 	/**
 	 * Plots the polynomial as a expression between loLimit and upLimit.
 	 * @param loLimit Lower limit of the plot.
@@ -1798,6 +1813,15 @@ public class Polynom extends MatrixComplex {
 
 	public void plotExpressionAsync(double loLimit, double upLimit) {
 		PolynomPlot.plotExpression(this, loLimit, upLimit, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotExpressionSync(double, double)}, with extra {@link CanvasOptions}. */
+	public void plotExpressionSync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpression(this, loLimit, upLimit, e_syncMode.SYNC, options);
+	}
+
+	public void plotExpressionAsync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpression(this, loLimit, upLimit, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -1813,6 +1837,15 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotExpressionRe(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotExpressionReSync(double, double)}, with extra {@link CanvasOptions}. */
+	public void plotExpressionReSync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionRe(this, loLimit, upLimit, e_syncMode.SYNC, options);
+	}
+
+	public void plotExpressionReAsync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionRe(this, loLimit, upLimit, e_syncMode.ASYNC, options);
+	}
+
 	/**
 	 * Plots the Imaginary part of the polynomial as a expression between loLimit and upLimit.
 	 * @param loLimit Lower limit of the plot.
@@ -1824,6 +1857,15 @@ public class Polynom extends MatrixComplex {
 
 	public void plotExpressionImAsync(double loLimit, double upLimit) {
 		PolynomPlot.plotExpressionIm(this, loLimit, upLimit, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotExpressionImSync(double, double)}, with extra {@link CanvasOptions}. */
+	public void plotExpressionImSync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionIm(this, loLimit, upLimit, e_syncMode.SYNC, options);
+	}
+
+	public void plotExpressionImAsync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionIm(this, loLimit, upLimit, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -1839,6 +1881,15 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotExpressionReIm(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotExpressionReImSync(double, double)}, with extra {@link CanvasOptions}. */
+	public void plotExpressionReImSync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionReIm(this, loLimit, upLimit, e_syncMode.SYNC, options);
+	}
+
+	public void plotExpressionReImAsync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionReIm(this, loLimit, upLimit, e_syncMode.ASYNC, options);
+	}
+
 	/**
 	 * Plots the nosenses Real Imaginary parts of the polynomial as a expression between loLimit and upLimit in the same graphic.
 	 * @param loLimit Lower limit of the plot.
@@ -1850,6 +1901,15 @@ public class Polynom extends MatrixComplex {
 
 	public void plotExpressionRepImAsync(double loLimit, double upLimit) {
 		PolynomPlot.plotExpressionRepIm(this, loLimit, upLimit, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotExpressionRepImSync(double, double)}, with extra {@link CanvasOptions}. */
+	public void plotExpressionRepImSync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionRepIm(this, loLimit, upLimit, e_syncMode.SYNC, options);
+	}
+
+	public void plotExpressionRepImAsync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionRepIm(this, loLimit, upLimit, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -1865,6 +1925,15 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotExpressionAbs(this, loLimit, upLimit, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotExpressionAbsSync(double, double)}, with extra {@link CanvasOptions}. */
+	public void plotExpressionAbsSync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionAbs(this, loLimit, upLimit, e_syncMode.SYNC, options);
+	}
+
+	public void plotExpressionAbsAsync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionAbs(this, loLimit, upLimit, e_syncMode.ASYNC, options);
+	}
+
 	/**
 	 * Plots the phase (atan(Re/Im)) of the polynomial as a expression between loLimit and upLimit in the same graphic.
 	 * @param loLimit Lower limit of the plot.
@@ -1876,6 +1945,15 @@ public class Polynom extends MatrixComplex {
 
 	public void plotExpressionPhaseAsync(double loLimit, double upLimit) {
 		PolynomPlot.plotExpressionPhase(this, loLimit, upLimit, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotExpressionPhaseSync(double, double)}, with extra {@link CanvasOptions}. */
+	public void plotExpressionPhaseSync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionPhase(this, loLimit, upLimit, e_syncMode.SYNC, options);
+	}
+
+	public void plotExpressionPhaseAsync(double loLimit, double upLimit, CanvasOptions options) {
+		PolynomPlot.plotExpressionPhase(this, loLimit, upLimit, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -1901,6 +1979,16 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plot(pointsList, labels, title, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotSync(List, List, String)}, with extra raw gnuplot configuration
+	 * (ranges, legend position, export to file, ...) -- see {@link CanvasOptions}. */
+	public void plotSync(List<double[][]> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plot(pointsList, labels, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotAsync(List<double[][]> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plot(pointsList, labels, title, e_syncMode.ASYNC, options);
+	}
+
 	public void plotSync(double[][] points, String title) {
 		PolynomPlot.plot(points, title, e_syncMode.SYNC);
 	}
@@ -1909,12 +1997,30 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plot(points, title, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotSync(double[][], String)}, with extra {@link CanvasOptions}. */
+	public void plotSync(double[][] points, String title, CanvasOptions options) {
+		PolynomPlot.plot(points, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotAsync(double[][] points, String title, CanvasOptions options) {
+		PolynomPlot.plot(points, title, e_syncMode.ASYNC, options);
+	}
+
 	public void plotReSync(MatrixComplex points, String title) {
 		PolynomPlot.plotRe(points, title, e_syncMode.SYNC);
 	}
 
 	public void plotReAsync(MatrixComplex points, String title) {
 		PolynomPlot.plotRe(points, title, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotReSync(MatrixComplex, String)}, with extra {@link CanvasOptions}. */
+	public void plotReSync(MatrixComplex points, String title, CanvasOptions options) {
+		PolynomPlot.plotRe(points, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotReAsync(MatrixComplex points, String title, CanvasOptions options) {
+		PolynomPlot.plotRe(points, title, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -1940,12 +2046,30 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotRe(pointsList, labels, title, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotReSync(List, List, String)}, with extra {@link CanvasOptions}. */
+	public void plotReSync(List<MatrixComplex> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plotRe(pointsList, labels, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotReAsync(List<MatrixComplex> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plotRe(pointsList, labels, title, e_syncMode.ASYNC, options);
+	}
+
 	public void plotImSync(MatrixComplex points, String title) {
 		PolynomPlot.plotIm(points, title, e_syncMode.SYNC);
 	}
 
 	public void plotImAsync(MatrixComplex points, String title) {
 		PolynomPlot.plotIm(points, title, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotImSync(MatrixComplex, String)}, with extra {@link CanvasOptions}. */
+	public void plotImSync(MatrixComplex points, String title, CanvasOptions options) {
+		PolynomPlot.plotIm(points, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotImAsync(MatrixComplex points, String title, CanvasOptions options) {
+		PolynomPlot.plotIm(points, title, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -1971,12 +2095,30 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotIm(pointsList, labels, title, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotImSync(List, List, String)}, with extra {@link CanvasOptions}. */
+	public void plotImSync(List<MatrixComplex> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plotIm(pointsList, labels, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotImAsync(List<MatrixComplex> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plotIm(pointsList, labels, title, e_syncMode.ASYNC, options);
+	}
+
 	public void plotModSync(MatrixComplex points, String title) {
 		PolynomPlot.plotMod(points, title, e_syncMode.SYNC);
 	}
 
 	public void plotModAsync(MatrixComplex points, String title) {
 		PolynomPlot.plotMod(points, title, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotModSync(MatrixComplex, String)}, with extra {@link CanvasOptions}. */
+	public void plotModSync(MatrixComplex points, String title, CanvasOptions options) {
+		PolynomPlot.plotMod(points, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotModAsync(MatrixComplex points, String title, CanvasOptions options) {
+		PolynomPlot.plotMod(points, title, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -2002,12 +2144,30 @@ public class Polynom extends MatrixComplex {
 		PolynomPlot.plotMod(pointsList, labels, title, e_syncMode.ASYNC);
 	}
 
+	/** Same as {@link #plotModSync(List, List, String)}, with extra {@link CanvasOptions}. */
+	public void plotModSync(List<MatrixComplex> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plotMod(pointsList, labels, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotModAsync(List<MatrixComplex> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plotMod(pointsList, labels, title, e_syncMode.ASYNC, options);
+	}
+
 	public void plotPhaSync(MatrixComplex points, String title) {
 		PolynomPlot.plotPha(points, title, e_syncMode.SYNC);
 	}
 
 	public void plotPhaAsync(MatrixComplex points, String title) {
 		PolynomPlot.plotPha(points, title, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotPhaSync(MatrixComplex, String)}, with extra {@link CanvasOptions}. */
+	public void plotPhaSync(MatrixComplex points, String title, CanvasOptions options) {
+		PolynomPlot.plotPha(points, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotPhaAsync(MatrixComplex points, String title, CanvasOptions options) {
+		PolynomPlot.plotPha(points, title, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -2031,6 +2191,15 @@ public class Polynom extends MatrixComplex {
 
 	public void plotPhaAsync(List<MatrixComplex> pointsList, List<String> labels, String title) {
 		PolynomPlot.plotPha(pointsList, labels, title, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotPhaSync(List, List, String)}, with extra {@link CanvasOptions}. */
+	public void plotPhaSync(List<MatrixComplex> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plotPha(pointsList, labels, title, e_syncMode.SYNC, options);
+	}
+
+	public void plotPhaAsync(List<MatrixComplex> pointsList, List<String> labels, String title, CanvasOptions options) {
+		PolynomPlot.plotPha(pointsList, labels, title, e_syncMode.ASYNC, options);
 	}
 
 	/**
@@ -2062,6 +2231,15 @@ public class Polynom extends MatrixComplex {
 
 	public void plotReAsync(double[][] points) {
 		PolynomPlot.plotRe(this, points, e_syncMode.ASYNC);
+	}
+
+	/** Same as {@link #plotReSync(double[][])}, with extra {@link CanvasOptions}. */
+	public void plotReSync(double[][] points, CanvasOptions options) {
+		PolynomPlot.plotRe(this, points, e_syncMode.SYNC, options);
+	}
+
+	public void plotReAsync(double[][] points, CanvasOptions options) {
+		PolynomPlot.plotRe(this, points, e_syncMode.ASYNC, options);
 	}
 
 
