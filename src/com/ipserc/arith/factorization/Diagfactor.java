@@ -1,5 +1,6 @@
 package com.ipserc.arith.factorization;
 
+import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.Eigenspace;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
@@ -35,8 +36,22 @@ public class Diagfactor extends MatrixComplex {
 	private boolean factorized = false;
 
 	private final static String HEADINFO = "Diagfactor --- INFO: ";
-	private final static String VERSION = "1.8 (2026_0812_1200)";
+	private final static String VERSION = "1.9 (2026_0813_2100)";
 	/* VERSION Release Note
+	 * 1.9 (2026_0813_2100)
+	 * BUG FIXED (encontrado durante la verificacion del Candidato 1 del Rol Fisica/Mecanica
+	 * Cuantica -- evolucion temporal U(t)=exp(-i*H*t), ver Claude/ComplexArithRev.md): D se
+	 * construia a partir de eigenspace.roots() mientras que P se construia a partir de
+	 * eigenspace.solutions() -- ambos ordenados de forma INDEPENDIENTE por Eigenspace.eigenval()
+	 * con un comparador que solo mira la parte real, asi que cualquier par de autovalores con la
+	 * misma parte real (par complejo-conjugado, o imaginarios puros como +-i de un generador
+	 * skew-Hermitico) es un empate que el quicksort (no estable) puede dejar en orden distinto en
+	 * roots() que en eigenvalues()/solutions(). Confirmado con A=-i*PauliX: P*D*P^-1 no
+	 * reconstruia A en absoluto (norma de diferencia ~2.83, no ruido numerico). Arreglado
+	 * construyendo D a partir de eigenspace.eigenvalues() (mismo orden que solutions()),
+	 * repitiendo cada autovalor tantas veces como su multiplicidad aritmetica -- mismo avance de
+	 * indice que ya usa Eigenspace.eigenvectors3() para rellenar solutions().
+	 *
 	 * 1.8 (2026_0812_1200)
 	 * Limpieza de restos: eliminado el import com.ipserc.arith.complex.Complex, sin uso alguno en
 	 * el fichero. Sin cambios funcionales.
@@ -254,10 +269,26 @@ public class Diagfactor extends MatrixComplex {
 		// P: Transformation Matrix, the eigenvalues in columns
 		cP = eigenspace.solutions().transpose();
 
-		// D: diagonal eigenvalues square root matrix
+		// D: diagonal eigenvalues matrix, built from eigenspace.eigenvalues() -- NOT
+		// eigenspace.roots() (BUG FIXED, see Diagfactor VERSION release note): roots() and
+		// eigenvalues() are sorted independently by Eigenspace.eigenval() with a real-part-only
+		// comparator, so any pair of eigenvalues sharing the same real part (a complex-conjugate
+		// pair, or purely imaginary eigenvalues like the +-i of a skew-Hermitian generator) is a
+		// tie that quicksort (not stable) can leave in a DIFFERENT relative order in roots() than
+		// in eigenvalues()/solutions() -- while P's columns (from solutions()) are always in
+		// eigenvalues() order. Walking eigenvalues() here, repeating each entry by its own
+		// arithmetic multiplicity (column 1), keeps D in lockstep with the same rowEig advance
+		// eigenspace.eigenvectors3() already uses to fill solutions().
 		cD = new MatrixComplex(rowLen, colLen);
-		for (int i = 0; i < colLen; ++i)
-			cD.complexMatrix[i][i] = eigenspace.roots().complexMatrix[i][0];
+		int rowEig = 0;
+		MatrixComplex eigvals = eigenspace.eigenvalues();
+		for (int i = 0; i < eigvals.rows() && rowEig < rowLen; ++i) {
+			Complex eigenval = eigvals.getItem(i, 0);
+			int arithMult = (int) Math.round(eigvals.getItem(i, 1).rep());
+			for (int k = 0; k < arithMult && rowEig < rowLen; ++k, ++rowEig) {
+				cD.complexMatrix[rowEig][rowEig] = eigenval;
+			}
+		}
 		//cD.println("--- Diagonal");
 		//(cP.times(cD).times(cP.inverse())).println("A=P·D·P⁻¹");
 		factorized = true;
