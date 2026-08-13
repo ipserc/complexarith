@@ -34,20 +34,21 @@ public class plotFunc01FullOptions02 {
 	public record CalcResultFunc(String nombreFuncion, Complex amplitud, double[][] dataRe, double[][] dataIm) {}
 
 	/**
-	 * Calcula la senal {@code amplitud * complexFunc(i*2*pi*freq*t)} para {@code t=0..samples},
+	 * Calcula la senal {@code amplitud * complexFunc(2*pi*freq*t)} para {@code t=0..samples},
 	 * con {@code complexFunc} como parametro -- cualquier funcion {@code Complex -> Complex} de
 	 * {@code ComplexFunctions.java} vale, via su delegador publico en {@code Complex}.
-	 * @param nombreFuncion Nombre de la funcion (solo para etiquetar la grafica), p.ej. {@code "exp"}.
-	 * @param complexFunc La funcion a aplicar al angulo complejo, p.ej. {@code Complex::exp}/{@code Complex::sin}/{@code Complex::cos}.
+	 * @param nombreFuncion Nombre de la funcion (solo para etiquetar la grafica), p.ej. {@code "tan"}.
+	 * @param complexFunc La funcion a aplicar al angulo complejo, p.ej. {@code Complex::tan}/{@code Complex::sin}/{@code Complex::cos}.
 	 */
 	private static CalcResultFunc calcFunc(String nombreFuncion, Function<Complex, Complex> complexFunc) {
 		double freq = 60;
-		long samples = (long) (freq * 4); // 2 ciclos completos, suficientes puntos para ver la curva
+		long samples = (long) (freq * 4); // 2 ciclos completos, suficientes puntos para ver la curva. OJO: samples en t^-1
 
 		MatrixComplex data = new MatrixComplex((int) samples + 1, 1);
 		Complex amplitud = new Complex("2");
+		double twoPI = 2 * Math.PI;
 		for (int t = 0; t <= samples; ++t) {
-			Complex angulo = new Complex(2 * Math.PI / freq * t); //Complex.i.times(Complex.DOS_PI * (1 / freq) * t);
+			Complex angulo = new Complex( twoPI / freq * t); //Complex.i.times(towPI * freq * t);
 			data.complexMatrix[t][0] = amplitud.times(complexFunc.apply(angulo));
 		}
 
