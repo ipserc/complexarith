@@ -3760,10 +3760,22 @@ A petición del usuario ("Continúa con Grover a pequeña escala"), tercera exte
 
 `Grover.VERSION`: `1.0` (clase nueva).
 
-**Estado del repo**: commit `516dd5d` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
+**Estado del repo**: commit `516dd5d` pusheado a petición del usuario junto con `f4550b7` (su registro en este documento).
+
+## Continuación de la Trigesimoséptima sesión (14 agosto 2026) -- teletransportación con ruido, primera combinación cruzada `Decoherence`+`Teleportation` (commit `aac50ad`)
+
+A petición del usuario ("Combina Decoherence con Teleportation"), primera combinación cruzada entre ejercicios del Rol Física/Mecánica Cuántica, tras cerrar los algoritmos de juguete (Deutsch-Jozsa, Bernstein-Vazirani, Grover).
+
+**Implementado**: `NoisyTeleportation.java` (nuevo) -- aplica un canal de ruido (`Decoherence`, cualquier familia) a un qubit del registro de 3 qubits ANTES del circuito local de Alice, recasteado en el formalismo de matriz densidad (`DensityMatrix`) ya que un canal puede volver genuinamente mixto un estado que `Teleportation` solo representa como vector puro. `probabilityOfOutcome()`/`correctedDensityMatrixForOutcome()`/`fidelityForOutcome()` por rama, y `averageFidelity()` (suma ponderada por probabilidad, calculada SIN normalizar cada rama individualmente -- la normalización y el peso de probabilidad se cancelan algebraicamente, evitando dividir por una probabilidad casi nula).
+
+**Verificación, con un puente de verificación especialmente fuerte**: `ScratchNoisyTeleportationAudit01.java` (nuevo, conservado, **8/8 OK**): canal sin efecto (`p=0`) da `averageFidelity()=1.0` EXACTO para 5 estados × 3 qubits con ruido; **con `p=0`, `correctedDensityMatrixForOutcome()` coincide EXACTAMENTE con `DensityMatrix.of()` del propio `Teleportation.correctedStateForOutcome()`** -- la maquinaria nueva de matriz densidad concuerda con la implementación de vector puro ya verificada en la Trigesimoséptima sesión, la comprobación más directa posible de que el nuevo camino de cálculo es correcto; preservación de traza con ruido real; `averageFidelity()` decrece estrictamente con más ruido `depolarizing` en el par de Bell compartido (5 estados × 5 probabilidades); ruido en el propio qubit de Alice (no solo en el recurso compartido) también degrada la fidelidad, mismo marco sin casos especiales; `amplitudeDamping` (familia de canal distinta, asimétrica) también degrada; `correctedDensityMatrixForOutcome()` siempre devuelve una matriz densidad válida (traza 1, hermítica) incluso con ruido fuerte. Recompilación fresca completa limpia, `ecj -21` sin avisos nuevos. `TestBell01` (12/12), `ScratchTeleportationAudit01` (9/9), `ScratchTimeEvolutionAudit01` (11/11), `ScratchQubitsNAudit01` (16/16), `ScratchDensityMatrixAudit01` (18/18), `ScratchBellTestNQubitAudit01` (12/12), `ScratchDecoherenceAudit01` (10/10), `ScratchBlochSphereAudit01` (12/12), `ScratchDeutschJozsaAudit01` (8/8), `ScratchBernsteinVaziraniAudit01` (7/7) y `ScratchGroverAudit01` (9/9) sin regresión.
+
+`NoisyTeleportation.VERSION`: `1.0` (clase nueva).
+
+**Estado del repo**: commit `aac50ad` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
 
 **Sin punto de retomada pendiente** de este bloque. Candidatos abiertos para la próxima sesión, ninguno urgente:
-1. Ruido/decoherencia con más de un canal encadenado, teleportación con canales ruidosos -- combinar `Decoherence` con `Teleportation`/`DeutschJozsa`/`BernsteinVazirani`/`Grover`.
+1. Otras combinaciones cruzadas -- oráculos ruidosos para `DeutschJozsa`/`BernsteinVazirani`/`Grover` (aplicar `Decoherence` al registro antes/durante el circuito), o encadenar más de un canal de `Decoherence` en la misma ejecución.
 2. Multiplot/subplots en la capa de plotting -- descartado explícitamente hace 3 sesiones, candidato aparte si se retoma.
 3. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)` -- dejado fuera a propósito, mismo patrón mecánico si hace falta.
 4. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
