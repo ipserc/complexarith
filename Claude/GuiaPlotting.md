@@ -251,3 +251,100 @@ polinomio.plotSeriesSync(curvas, "comparación");
 
 - **Multiplot/subplots** (varias gráficas en un mismo canvas) — decisión consciente de dejarlo fuera de esta pasada porque obligaría a separar "construir el script" de "lanzar el proceso" dentro de `SimpleGnuplot`, un cambio de arquitectura mayor e independiente de todo lo de arriba.
 - **`PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>, ...)`** — ver nota de alcance en la sección 4.
+
+## 10. Ejemplo completo: `plotFunc01FullOptions02.java`
+
+Todo lo de arriba junto, en un fichero real del repo (`src/TestComplex/plotFunc01FullOptions02.java`) — vale la pena leerlo entero porque encadena las 6 piezas de esta guía sobre una única señal.
+
+### El punto de partida: generalizar `plotFunc01.signalSin`
+
+`plotFunc01.signalSin(Complex,double,double)` calcula `amplitud * exp(i*2*pi*freq*t)` — la función `exp` viene fija. La idea de este fichero es sacar esa función como parámetro:
+
+```java
+private static CalcResultFunc calcFunc(String nombreFuncion, Function<Complex, Complex> complexFunc) {
+    double freq = 60;
+    long samples = (long) (freq * 4);
+
+    MatrixComplex data = new MatrixComplex((int) samples + 1, 1);
+    Complex amplitud = new Complex("2");
+    double twoPI = 2 * Math.PI;
+    for (int t = 0; t <= samples; ++t) {
+        Complex angulo = new Complex(twoPI / freq * t);   // angulo REAL, sin el factor "i"
+        data.complexMatrix[t][0] = amplitud.times(complexFunc.apply(angulo));
+    }
+    // ... separa data en dataRe/dataIm (double[][]) ...
+    return new CalcResultFunc(nombreFuncion, amplitud, dataRe, dataIm);
+}
+```
+
+**El truco**: las funciones reales de `sin`/`cos`/`tan`/`exp`/... viven en `com.ipserc.arith.complex.ComplexFunctions`, una clase *package-private* — no se puede referenciar desde `TestComplex`. Pero cada una tiene un delegador público en `Complex.java` con la misma firma (`Complex.sin(Complex)`, `Complex.cos(Complex)`, `Complex.exp(Complex)`...), que encaja exactamente en `Function<Complex,Complex>` vía referencia a método: `Complex::sin`, `Complex::cos`, `Complex::exp`. Eso es lo que se pasa como `complexFunc`.
+
+**Un matiz importante, no obvio a la primera**: como el ángulo aquí es REAL (no `i*ángulo` como en `signalSin`), `calcFunc("exp", Complex::exp)` **no** reproduce la señal original — con ángulo real, `exp` crece sin oscilar. En cambio `sin`/`cos`/`tan` de un ángulo real sí oscilan igual que sus equivalentes reales de toda la vida (parte imaginaria nula), que es justo lo que se compara más abajo.
+
+### La demo completa, para una sola función
+
+```java
+private static void doPlot(CalcResultFunc resultado) {
+    // 1) PlotStyle: cada curva con su propio color/grosor/tipo de línea
+    NamedSeries curvaRe = new NamedSeries("Real", resultado.dataRe(),
+        new PlotStyle("red", 2, null, null, "linespoints"));
+    NamedSeries curvaIm = new NamedSeries("Imaginaria", resultado.dataIm(),
+        new PlotStyle("blue", 2, 2, null, "lines"));
+
+    // 2) CanvasOptions: rango del eje Y, leyenda arriba a la derecha, anotación de texto
+    CanvasOptions opciones = new CanvasOptions()
+        .withSetting("yrange", stYrange)
+        .withSetting("key", "top right box")
+        .withPostInit("set label 'amplitud = " + resultado.amplitud().rep() + "' at graph 0.02,0.95");
+
+    // 3) Sync vs Async: la misma gráfica, dos veces, para ver la diferencia en los println
+    MatrixComplexPlot.plotSeries(titulo + " (Sync)", null, null, false,
+        e_lineStyle.LINES, SimpleGnuplot.e_syncMode.SYNC, opciones, curvaRe, curvaIm);
+    MatrixComplexPlot.plotSeries(titulo + " (Async)", null, null, false,
+        e_lineStyle.LINES, SimpleGnuplot.e_syncMode.ASYNC, opciones, curvaRe, curvaIm);
+
+    // 4) Exportar a fichero PNG, sin abrir ninguna ventana
+    CanvasOptions exportar = new CanvasOptions().withSetting("yrange", stYrange).withOutputFile(rutaExport);
+    MatrixComplexPlot.plotSeries(titulo + " (export)", null, null, false,
+        e_lineStyle.LINES, SimpleGnuplot.e_syncMode.ASYNC, exportar, curvaRe, curvaIm);
+}
+```
+
+En el fichero real, cada uno de estos 4 pasos va rodeado de `System.out.println(...)` — es la forma más directa de *ver* la diferencia Sync/Async al ejecutarlo en Eclipse: con `Sync` el mensaje de "después" no sale hasta que cierras la ventana; con `Async` sale enseguida (sección 2).
+
+Nota sobre el paso 4: usa `Async`, no `Sync` — a propósito, para que se note que el `println("Grafica exportada a ...")` puede salir *antes* de que gnuplot termine de escribir el fichero. Si esa garantía importa, la sección 2 ya lo dice: usar `Sync` para exportar.
+
+### Comparar varias funciones a la vez
+
+```java
+private static void doPlotComparacion(CalcResultFunc... resultados) {
+    NamedSeries[] curvas = new NamedSeries[resultados.length];
+    String[] colores = { "red", "blue", "dark-green", "orange", "purple" };
+    for (int i = 0; i < resultados.length; ++i) {
+        curvas[i] = new NamedSeries("Re(" + resultados[i].nombreFuncion() + ")", resultados[i].dataRe(),
+            new PlotStyle(colores[i % colores.length], 2, null, null, "lines"));
+    }
+    CanvasOptions opciones = new CanvasOptions().withSetting("yrange", stYrange).withSetting("key", "top right box");
+    MatrixComplexPlot.plotSeries("comparación", null, null, false,
+        e_lineStyle.LINES, SimpleGnuplot.e_syncMode.ASYNC, opciones, curvas);
+}
+```
+
+Esta es la pieza que junta **calcular con `ComplexFunctions` vía parámetro** (sección 4 de esta guía, adaptada aquí a `MatrixComplexPlot` en vez de `Polynom`) con **una lista de curvas, cada una con su propio color**, en un solo canvas — la misma idea de "lista de `NamedSeries` con estilo" que `Polynom.plotSeriesSync` (sección 4), aquí construida a mano como array en vez de `List`.
+
+### Todo junto en `main()`
+
+```java
+public static void main(String[] args) {
+    CalcResultFunc resultadoTan = calcFunc("tan", Complex::tan);
+    doPlot(resultadoTan);                                   // demo completa para "tan"
+
+    CalcResultFunc resultadoSin = calcFunc("sin", Complex::sin);
+    CalcResultFunc resultadoCos = calcFunc("cos", Complex::cos);
+    CalcResultFunc resultadoLn  = calcFunc("ln", Complex::log);
+
+    doPlotComparacion(resultadoSin, resultadoCos, resultadoTan, resultadoLn); // las 4 juntas
+}
+```
+
+Ninguna de las 4 funciones (`tan`/`sin`/`cos`/`log`) necesitó su propio método `signalXxx` en `plotFunc01.java` — es justo el punto de pasar la función como parámetro.
