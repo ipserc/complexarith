@@ -27,7 +27,14 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class DeutschJozsa {
 
-	private final static String VERSION = "1.0 (2026_0813_2359)";
+	private final static String VERSION = "1.1 (2026_0813_2359)";
+	/* VERSION Release Note
+	 * 1.1 (2026_0813_2359)
+	 * hadamardChain()/el cuerpo de probabilityAllZero() extraidos a runCircuit() (paquete-visible)
+	 * para que BernsteinVazirani.findSecret() reuse el mismo circuito H-oraculo-H sin duplicarlo --
+	 * los 2 algoritmos comparten la forma exacta del circuito, solo difieren en que hacen con el
+	 * estado final. Sin cambios de comportamiento en la API publica existente.
+	 */
 
 	private DeutschJozsa() {}
 
@@ -62,8 +69,10 @@ public final class DeutschJozsa {
 
 	/** {@code H (x) H (x) ... (x) H}, {@code count} copies chained left to right -- the "apply
 	 * Hadamard to every qubit of this block" step the algorithm's circuit needs twice (once on
-	 * every qubit including the ancilla, once on just the input register). */
-	private static MatrixComplex hadamardChain(int count) {
+	 * every qubit including the ancilla, once on just the input register). Package-visible so
+	 * {@link BernsteinVazirani} (same {@code H^(x)(n+1)}/{@code H^(x)n} shape, different oracle
+	 * function) can reuse it instead of duplicating the chain-building loop. */
+	static MatrixComplex hadamardChain(int count) {
 		MatrixComplex result = Qubits.hadamard();
 		for (int i = 1; i < count; ++i) {
 			result = result.kroneckerprod(Qubits.hadamard());
@@ -72,20 +81,17 @@ public final class DeutschJozsa {
 	}
 
 	/**
-	 * The full Deutsch-Jozsa circuit's measurement probability of the all-zero outcome on the first
-	 * {@code n} qubits (marginalizing over the ancilla): prepare {@code |0>^n|1>}, apply {@code
-	 * H^(x)(n+1)}, apply {@link #oracle(IntPredicate, int)}, apply {@code H^(x)n} to the input
-	 * register only (identity on the ancilla), then sum the squared amplitudes of the 2 basis states
-	 * with {@code x=0} (ancilla {@code 0} or {@code 1}). Exposed as its own method (not just inlined
-	 * into {@link #isConstant(IntPredicate, int)}) so a caller/test can see the raw probability
-	 * instead of only the boolean verdict.
-	 * @param f The Boolean function under test.
+	 * The full "phase-kickback oracle" circuit shape both {@link DeutschJozsa} and {@link
+	 * BernsteinVazirani} use: prepare {@code |0>^n|1>}, apply {@code H^(x)(n+1)}, apply {@code
+	 * U_f}, apply {@code H^(x)n} to the input register only (identity on the ancilla). Package-
+	 * visible so {@link BernsteinVazirani#findSecret(IntPredicate, int)} can reuse it verbatim
+	 * instead of duplicating this 4-line circuit -- the 2 algorithms differ only in what they do
+	 * with the resulting state, not in how they build it.
+	 * @param f The Boolean function the oracle {@link #oracle(IntPredicate, int)} implements.
 	 * @param n The number of input qubits, must be at least 1.
-	 * @return The probability, EXACTLY {@code 1.0} if {@code f} is constant, EXACTLY {@code 0.0} if
-	 * {@code f} is balanced (up to floating-point rounding) -- the algorithm's whole point is that
-	 * there is no third possibility for a genuinely constant-or-balanced {@code f}.
+	 * @return The {@code 2^(n+1) x 1} final state, before any measurement.
 	 */
-	public static double probabilityAllZero(IntPredicate f, int n) {
+	static MatrixComplex runCircuit(IntPredicate f, int n) {
 		int[] initBits = new int[n + 1];
 		initBits[n] = 1; // ancilla starts at |1>, everything else at |0>
 		MatrixComplex state = Qubits.ket(initBits);
@@ -93,8 +99,24 @@ public final class DeutschJozsa {
 		state = hadamardChain(n + 1).times(state);
 		state = oracle(f, n).times(state);
 		MatrixComplex hadamardOnInputOnly = hadamardChain(n).kroneckerprod(Qubits.identity2());
-		state = hadamardOnInputOnly.times(state);
+		return hadamardOnInputOnly.times(state);
+	}
 
+	/**
+	 * The full Deutsch-Jozsa circuit's measurement probability of the all-zero outcome on the first
+	 * {@code n} qubits (marginalizing over the ancilla): {@link #runCircuit(IntPredicate, int)},
+	 * then the sum of the squared amplitudes of the 2 basis states with {@code x=0} (ancilla
+	 * {@code 0} or {@code 1}). Exposed as its own method (not just inlined into {@link
+	 * #isConstant(IntPredicate, int)}) so a caller/test can see the raw probability instead of only
+	 * the boolean verdict.
+	 * @param f The Boolean function under test.
+	 * @param n The number of input qubits, must be at least 1.
+	 * @return The probability, EXACTLY {@code 1.0} if {@code f} is constant, EXACTLY {@code 0.0} if
+	 * {@code f} is balanced (up to floating-point rounding) -- the algorithm's whole point is that
+	 * there is no third possibility for a genuinely constant-or-balanced {@code f}.
+	 */
+	public static double probabilityAllZero(IntPredicate f, int n) {
+		MatrixComplex state = runCircuit(f, n);
 		double amp0 = state.getItem(0, 0).mod();
 		double amp1 = state.getItem(1, 0).mod();
 		return amp0 * amp0 + amp1 * amp1;
