@@ -1,8 +1,8 @@
+
 package com.ipserc.arith.quantum;
 
 import java.util.Random;
 
-import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
 /**
@@ -29,7 +29,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class BellTest {
 
-	private final static String VERSION = "1.0 (2026_0813_1606)";
+	private final static String VERSION = "1.1 (2026_0813_2030)";
 
 	private BellTest() {}
 
@@ -46,14 +46,7 @@ public final class BellTest {
 	 * the same way {@code Jordan.checkReconstruction()} fails loud elsewhere in this project).
 	 */
 	public static double correlation(MatrixComplex state, MatrixComplex opA, MatrixComplex opB) {
-		MatrixComplex observable = opA.kroneckerprod(opB);
-		Complex expectation = state.adjoint().times(observable).times(state).getItem(0, 0);
-		if (!expectation.isPureReal()) {
-			throw new IllegalStateException("Bell correlation <state|A(tensor)B|state> came out complex "
-					+ "(Im=" + expectation.imp() + ") -- expected a real expectation value; check that "
-					+ "opA/opB are Hermitian");
-		}
-		return expectation.rep();
+		return TimeEvolution.expectationValue(state, opA.kroneckerprod(opB));
 	}
 
 	/**
