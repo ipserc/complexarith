@@ -3613,7 +3613,7 @@ A petición del usuario ("Empieza con evolución temporal U(t)=exp(-i*H*t)"), re
 
 `Diagfactor.VERSION` `1.8→1.9`. `BellTest.VERSION` `1.0→1.1`. `TimeEvolution.VERSION`: `1.0` (clase nueva).
 
-**Estado del repo**: ambos commits (`eb8f377` el fix de `Diagfactor`, `e6eda1a` `TimeEvolution`+refactor de `BellTest`) creados localmente -- pendiente de decidir con el usuario si se pushean. Sin tocar (ediciones del usuario en paralelo en Eclipse, patrón habitual): `Claude/ClaudeRevisionComplexArith.txt`, `src/TestComplex/ScratchErfAudit01.java`/`TestDiag02.java`/`plotFunc01.java`/`plotFunc08.java`; `.claude/`/`Claude/Commands.txt` siguen sin trackear, sin investigar.
+**Estado del repo**: ambos commits (`eb8f377` el fix de `Diagfactor`, `e6eda1a` `TimeEvolution`+refactor de `BellTest`), más `aa5623c` (registro de esta sección en este documento), pusheados a petición del usuario. `HEAD==origin/master==aa5623c` confirmado. Sin tocar (ediciones del usuario en paralelo en Eclipse, patrón habitual): `Claude/ClaudeRevisionComplexArith.txt`, `src/TestComplex/ScratchErfAudit01.java`/`TestDiag02.java`/`plotFunc01.java`/`plotFunc08.java`; `.claude/`/`Claude/Commands.txt` siguen sin trackear, sin investigar.
 
 **Sin punto de retomada pendiente** de este bloque. El Rol Física/Mecánica Cuántica sigue abierto y en marcha: candidatos abiertos para la próxima sesión, orden sugerido no comprometido:
 1. **Algoritmo cuántico de juguete** (p.ej. teleportación -- combinaría medida+entrelazamiento+corrección clásica con las piezas ya construidas: `Qubits`/`BellTest`/`DensityMatrix`/`TimeEvolution`).
@@ -3625,6 +3625,30 @@ A petición del usuario ("Empieza con evolución temporal U(t)=exp(-i*H*t)"), re
 7. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
 8. `TestFilter04.java`/`plotFunc09.java` -- siguen marcados (ruta portable + comentario) pero sin poder ejecutarse por falta de datos de entrada.
 9. Cualquier otra cosa que el usuario traiga.
+
+## Continuación de la Trigesimoséptima sesión (13 agosto 2026) -- teletransportación cuántica (commit `6d9680c`)
+
+A petición del usuario ("Empieza con teletransportación cuántica"), retomado el siguiente candidato de la hoja de ruta.
+
+**Implementado**: `Qubits.java` (`VERSION` `1.1→1.2`) gana `hadamard()` (puerta de 1 qubit, mismo patrón que `pauliX/Y/Z`) y `controlledGate(op,control,target,nQubits)` (generaliza `operatorOnQubit()` a puertas controladas de 2 qubits -- `CNOT=controlledGate(pauliX,...)` -- control/target no necesitan ser adyacentes). `Teleportation.java` (nuevo): `circuitState(psi)` (`psi` entrelazado con un par de Bell, `CNOT` + `Hadamard` del lado de Alice, el truco estándar de expresar la medida en base de Bell como medida en base computacional tras un circuito), `probabilityOfOutcome(psi,m1,m2)`, `correctedStateForOutcome(psi,m1,m2)` y `simulate(psi,rng)` (muestreo Monte Carlo por regla de Born, mismo patrón que `BellTest.simulateCorrelation`).
+
+**Tabla de corrección derivada analíticamente antes de escribir código** (no asumida de memoria, lección aprendida del bug de convención de ángulos de la Trigesimoquinta sesión en `BellTest.chsh()`): expandiendo `psi⊗Phi+` a través de `CNOT` y `Hadamard` en la base de Pauli, el estado sin corregir del qubit de Bob para el resultado `(m1,m2)` sale `X^m2·Z^m1·psi` salvo un factor de escala real positivo -- así que la corrección es `Z^m1` aplicado después de `X^m2`. Coincide con la convención de libro de texto (a diferencia del caso de `BellTest`, aquí no hay una parametrización de ángulo ambigua de por medio).
+
+**Verificación**: `ScratchTeleportationAudit01.java` (nuevo, conservado, **9/9 OK**): `hadamard()` unitaria y autoinversa; `controlledGate(pauliX,...)` reproduce la tabla de verdad completa de `CNOT`; rechazo de `control==target`; `probabilityOfOutcome` sale **exactamente 0.25** para los 4 resultados, en 5 `psi` distintos (el sello distintivo de que la medida de Alice no lleva ninguna información sobre `psi`); `correctedStateForOutcome` sale **exactamente igual** a `psi` (no solo salvo fase global) para los 4 resultados × 5 `psi`; `simulate()` recupera `psi` exactamente en 1000 tiradas (5 `psi` × 200), visitando las 4 ramas de medida. Recompilación fresca completa de `com.ipserc.arith` (JDK 21 real) limpia. `ecj -21` sin avisos nuevos (import `Complex` sin usar detectado y quitado antes del commit). `TestBell01` (12/12), `ScratchQubitsNAudit01` (16/16), `ScratchDensityMatrixAudit01` (18/18) y `ScratchTimeEvolutionAudit01` (11/11) sin regresión.
+
+`Qubits.VERSION` `1.1→1.2`. `Teleportation.VERSION`: `1.0` (clase nueva).
+
+**Estado del repo**: commit `6d9680c` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre (ver arriba).
+
+**Sin punto de retomada pendiente** de este bloque. El Rol Física/Mecánica Cuántica sigue abierto y en marcha: candidatos abiertos para la próxima sesión, orden sugerido no comprometido:
+1. Generalizar `BellTest.correlation()`/`chsh()` a operadores en subconjuntos arbitrarios de qubits de un sistema de n -- dejado fuera a propósito hace 2 sesiones.
+2. Diagonalización genérica del operador de medida en `BellTest` (hoy usa la fórmula cerrada 2x2 `spinEigenket`) -- solo tendría sentido si se generalizara a operadores de medida arbitrarios.
+3. Ruido/decoherencia, visualización (esfera de Bloch) -- candidatos de fondo, sin urgencia.
+4. Multiplot/subplots en la capa de plotting -- descartado explícitamente hace 3 sesiones, candidato aparte si se retoma.
+5. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)` -- dejado fuera a propósito, mismo patrón mecánico si hace falta.
+6. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
+7. `TestFilter04.java`/`plotFunc09.java` -- siguen marcados (ruta portable + comentario) pero sin poder ejecutarse por falta de datos de entrada.
+8. Cualquier otra cosa que el usuario traiga.
 
 ---
 
