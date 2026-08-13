@@ -3746,16 +3746,29 @@ A petición del usuario ("Continúa con Bernstein-Vazirani"), segunda extensión
 
 `BernsteinVazirani.VERSION`: `1.0` (clase nueva).
 
-**Estado del repo**: commit `7ca087f` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
+**Estado del repo**: commit `7ca087f` pusheado a petición del usuario junto con `4eab0b4` (su registro en este documento).
+
+## Continuación de la Trigesimoséptima sesión (13 agosto 2026) -- algoritmo de búsqueda de Grover a pequeña escala (commit `516dd5d`)
+
+A petición del usuario ("Continúa con Grover a pequeña escala"), tercera extensión del Rol Física/Mecánica Cuántica tras Deutsch-Jozsa y Bernstein-Vazirani.
+
+**Implementado**: `Grover.java` (nuevo) -- `oracle(target,n)` (volteo de fase diagonal en `|target>`), `diffusion(n)` (inversión respecto a la media, `D=2|s><s|-I` vía la identidad estándar `H^n·(2|0..0><0..0|-I)·H^n`, reusando `DeutschJozsa.hadamardChain()` paquete-visible), `initialState(n)` (superposición uniforme), `optimalIterations(n)` (`floor(pi/4·sqrt(N))`), `run()`/`search()` (aplica las iteraciones y devuelve el estado/probabilidad final).
+
+**Verificación, con 2 hallazgos reales durante la propia auditoría** (ninguno un bug en `Grover.java`, ambos en el diseño del test): `ScratchGroverAudit01.java` (nuevo, conservado, **9/9 OK** tras corregir ambos): (1) el primer intento de un margen de seguridad "≥10× la base clásica `1/N`" en el test era matemáticamente erróneo para `N` pequeña -- `10/N` puede superar `1`, un techo imposible, dando falsos negativos (confirmado con `N=8`: probabilidad real `0.945`, muy buena, pero por debajo del techo roto `10/8=1.25`) -- sustituido por comparaciones directas sin márgenes inventados. (2) `N=2` (n=1) resultó ser una degeneración matemática genuina del ángulo de rotación: `theta=asin(1/sqrt(2))=45°`, y cualquier múltiplo impar de 45° da `sin²=0.5` exacto -- Grover no da NINGUNA ventaja para `N=2` (la suposición inicial del test, "probabilidad 1 exacta", era incorrecta y quedó atrapada por el propio test fallando). Verificado además: oráculo/difusión unitarios; superposición inicial exacta; `search()` encuentra CUALQUIER objetivo con probabilidad ≥0.5 (n=2..6, todos los objetivos) y supera la base clásica `1/64` en ≥50× en n=6; la probabilidad medida coincide EXACTAMENTE con la fórmula cerrada `sin²((2k+1)·theta)`; la sobre-rotación (la probabilidad NO crece monótonamente, cae de nuevo tras el punto óptimo) confirmada dentro de 1 periodo completo calculado analíticamente, no con un margen fijo adivinado. Recompilación fresca completa limpia, `ecj -21` sin avisos nuevos. `TestBell01` (12/12), `ScratchTeleportationAudit01` (9/9), `ScratchTimeEvolutionAudit01` (11/11), `ScratchQubitsNAudit01` (16/16), `ScratchDensityMatrixAudit01` (18/18), `ScratchBellTestNQubitAudit01` (12/12), `ScratchDecoherenceAudit01` (10/10), `ScratchBlochSphereAudit01` (12/12), `ScratchDeutschJozsaAudit01` (8/8) y `ScratchBernsteinVaziraniAudit01` (7/7) sin regresión.
+
+**Nota de proceso de entorno**: `search()`/`run()` con `n` grande (probado hasta n=8, dim=256) son notablemente lentos en este entorno -- `MatrixComplex` no está optimizado para álgebra densa, y cada iteración de Grover multiplica matrices `2^n x 2^n` completas. Un barrido ingenuo sobre "todos los objetivos × varias iteraciones" con n=8 tardó más del timeout de 120s del Bash tool y hubo que matarlo (`TaskStop`) y acotar el alcance de la batería a n≤6 para las comprobaciones exhaustivas. A tener en cuenta si se retoma este algoritmo con `n` mayor en el futuro.
+
+`Grover.VERSION`: `1.0` (clase nueva).
+
+**Estado del repo**: commit `516dd5d` creado localmente -- pendiente de decidir con el usuario si se pushea. Sin tocar: mismos ficheros ajenos de siempre.
 
 **Sin punto de retomada pendiente** de este bloque. Candidatos abiertos para la próxima sesión, ninguno urgente:
-1. Otros algoritmos cuánticos de juguete -- Grover a pequeña escala (el candidato "más grande" que queda de los mencionados hasta ahora).
-2. Ruido/decoherencia con más de un canal encadenado, teleportación con canales ruidosos -- combinar `Decoherence` con `Teleportation`/`DeutschJozsa`/`BernsteinVazirani`.
-3. Multiplot/subplots en la capa de plotting -- descartado explícitamente hace 3 sesiones, candidato aparte si se retoma.
-4. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)` -- dejado fuera a propósito, mismo patrón mecánico si hace falta.
-5. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
-6. `TestFilter04.java`/`plotFunc09.java` -- siguen marcados (ruta portable + comentario) pero sin poder ejecutarse por falta de datos de entrada.
-7. Cualquier otra cosa que el usuario traiga.
+1. Ruido/decoherencia con más de un canal encadenado, teleportación con canales ruidosos -- combinar `Decoherence` con `Teleportation`/`DeutschJozsa`/`BernsteinVazirani`/`Grover`.
+2. Multiplot/subplots en la capa de plotting -- descartado explícitamente hace 3 sesiones, candidato aparte si se retoma.
+3. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)` -- dejado fuera a propósito, mismo patrón mecánico si hace falta.
+4. `.claude/` y `Claude/Commands.txt` -- siguen como `??` sin trackear, sin investigar todavía qué son ni de dónde vienen.
+5. `TestFilter04.java`/`plotFunc09.java` -- siguen marcados (ruta portable + comentario) pero sin poder ejecutarse por falta de datos de entrada.
+6. Cualquier otra cosa que el usuario traiga.
 
 ---
 
