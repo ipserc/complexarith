@@ -3,8 +3,9 @@
 Librería Java para aritmética y álgebra lineal en el cuerpo complejo (ℂ), sin dependencias
 externas. Empezó en 2017 como un proyecto personal para modelar los números complejos en Java y
 ha ido creciendo hasta cubrir matrices complejas, factorizaciones matriciales clásicas, polinomios,
-sistemas de ecuaciones, geometría y las transformadas de señal habituales (Fourier, Laplace, Z) —
-todo sobre el mismo tipo `Complex` de base.
+sistemas de ecuaciones, geometría, las transformadas de señal habituales (Fourier, Laplace, Z) y,
+más recientemente, una simulación numérica (sin ordenador cuántico real) de mecánica e información
+cuántica — todo sobre el mismo tipo `Complex` de base.
 
 ## Highlights
 
@@ -67,11 +68,39 @@ Transformadas de señal clásicas y sus filtros, con representación gráfica de
 ### `com.ipserc.arith.combinatoric` — `CombinationNoReps`
 Combinaciones sin repetición y numeración asociada.
 
-### `com.ipserc.arith.plot` — `SimpleGnuplot`
+### `com.ipserc.arith.plot` — `SimpleGnuplot` / `GnuplotMultiPlot`
 Lanzador de gnuplot propio, sin dependencias externas (sustituye a la antigua librería
 `com.panayotis.gnuplot`, que bloqueaba con `Process.waitFor()`). Cada operación de graficado del
 proyecto expone un par `xxxSync()`/`xxxAsync()` sobre un único método genérico parametrizado por
-`SimpleGnuplot.e_syncMode`.
+`SimpleGnuplot.e_syncMode`. `GnuplotMultiPlot` tilea varios paneles `SimpleGnuplot` independientes
+en 1 sola ventana/fichero vía `set multiplot layout R,C`, reutilizando la API de cada panel sin
+cambios.
+
+### `com.ipserc.arith.quantum`
+Simulación numérica (matrices complejas, sin ordenador cuántico real) de mecánica e información
+cuántica, construida enteramente sobre `MatrixComplex`/`Complex` — un qubit es un vector columna,
+una medida física una matriz Hermítica, una puerta una matriz unitaria:
+- `Qubits` — vocabulario básico: kets de la base computacional, puertas de Pauli/Hadamard, estados
+  entrelazados canónicos (Bell, GHZ), y las herramientas de "álgebra de registros"
+  (`operatorOnQubit`, `controlledGate`, `bra`) para trabajar con registros de `n` qubits.
+- `BellTest` — el experimento CHSH: violación de la desigualdad de Bell, con forma exacta y
+  simulación Monte Carlo, generalizado a 2 qubits cualesquiera de un registro de `n`.
+- `DensityMatrix` — formalismo de matriz densidad: traza parcial y entropía de von Neumann como
+  definición operacional de entrelazamiento.
+- `TimeEvolution` — evolución temporal unitaria, `U(t) = exp(-i·H·t)`.
+- `Teleportation` — teletransportación cuántica.
+- `Decoherence` — 5 familias de canales de ruido (operadores de Kraus), con `applyChain()` para
+  encadenar varios canales (repetidos o distintos, mismo qubit o distintos) en una ejecución.
+- `BlochSphere` — visualización 3D de un qubit.
+- `DeutschJozsa` / `BernsteinVazirani` / `Grover` — los 3 algoritmos cuánticos "de juguete"
+  clásicos (ventaja exponencial sobre una promesa, recuperación de un secreto con 1 consulta,
+  búsqueda con ventaja cuadrática).
+- `NoisyTeleportation` / `NoisyDeutschJozsa` / `NoisyBernsteinVazirani` / `NoisyGrover` —
+  combinaciones cruzadas de cada algoritmo/protocolo anterior con `Decoherence`.
+
+Guía de aprendizaje completa, en español y para un lector sin conocimientos previos de mecánica
+cuántica, en [`quantum_doc/`](quantum_doc/00_introduccion.md) — un documento por clase, con cada
+método explicado y un experimento ejecutable de ejemplo.
 
 ### `TestComplex`
 Numerosos ejemplos de uso de todas las clases anteriores, además de los drivers `ScratchXxx`/
