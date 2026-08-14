@@ -22,7 +22,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class NoisyDeutschJozsa {
 
-	private final static String VERSION = "1.0 (2026_0814_1100)";
+	private final static String VERSION = "1.1 (2026_0814_1200)";
+	/* VERSION Release Note
+	 * 1.1 (2026_0814_1200)
+	 * diagonalProbability() pasa de private a package-visible para que NoisyBernsteinVazirani lo
+	 * reuse en vez de duplicarlo -- mismo patron "extraer lo compartido" ya usado por
+	 * DeutschJozsa.runCircuit()/hadamardChain(). Sin cambios de comportamiento.
+	 */
 
 	private NoisyDeutschJozsa() {}
 
@@ -92,7 +98,17 @@ public final class NoisyDeutschJozsa {
 		return diagonalProbability(rho, 0) + diagonalProbability(rho, 1);
 	}
 
-	private static double diagonalProbability(MatrixComplex rho, int index) {
+	/**
+	 * A single real diagonal entry of a density matrix, i.e. a computational-basis measurement
+	 * probability -- package-visible so {@link NoisyBernsteinVazirani} can read off the probability
+	 * of an arbitrary input-register outcome from {@link #circuitDensityMatrix(IntPredicate, int,
+	 * MatrixComplex[], int)} without duplicating the Hermiticity check.
+	 * @param rho The density matrix.
+	 * @param index The 0-based diagonal index to read.
+	 * @return The real diagonal entry.
+	 * @throws IllegalStateException if the entry has a non-negligible imaginary part.
+	 */
+	static double diagonalProbability(MatrixComplex rho, int index) {
 		Complex entry = rho.getItem(index, index);
 		if (Math.abs(entry.imp()) > 1e-9) {
 			throw new IllegalStateException("rho[" + index + "][" + index + "] came out complex (Im="
