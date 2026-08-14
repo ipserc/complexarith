@@ -4106,14 +4106,103 @@ esperar de una señal basada en coseno. Recompilación fresca limpia
 (`plot`+`matrixcomplex`+`complex`+`polynom`+`signal`, con `Chronometer`
 copiado desde `classes/` como siempre en este entorno).
 
-**Estado del repo**: commit `a3c2db8` creado localmente -- pendiente de
-decidir con el usuario si se pushea.
+**Estado del repo**: commit `a3c2db8` pusheado a petición del usuario junto
+con `1c223b6` (su registro en este documento). `HEAD==origin/master==1c223b6`
+confirmado.
 
-**Sin punto de retomada pendiente.** Candidatos abiertos, ninguno urgente:
-1. Envoltorios de conveniencia sobre `GnuplotMultiPlot` en capas superiores.
+### SESIÓN PAUSADA — Trigesimoséptima sesión (13-14 agosto 2026), la más larga hasta ahora, a petición del usuario ("Paramos por ahora. Guarda todo el contexto... Cuando vuelva a conectar me recuerdas por donde seguir")
+
+**Resumen completo**, repartida en varias conversaciones seguidas, desde
+`HEAD==ae50c17` hasta `HEAD==1c223b6`:
+
+**Parte A (10 bloques)** — cierre de la hoja de ruta cuántica de 7
+candidatos + extensiones: evolución temporal (+ bug real arreglado en
+`Diagfactor.diagonalize()`), teletransportación, `BellTest` generalizado a
+n qubits, ruido/decoherencia (`Decoherence`, 5 canales de Kraus), esfera de
+Bloch (cierra la hoja de ruta original), Deutsch-Jozsa, Bernstein-Vazirani,
+Grover, teletransportación con ruido, Deutsch-Jozsa con ruido.
+
+**Parte B** — oráculos ruidosos para Bernstein-Vazirani (`NoisyBernsteinVazirani`)
+y para Grover (`NoisyGrover`); encadenar canales de `Decoherence` en una
+ejecución (`applyChain()`), cierre explícito de la cadena de desarrollos a
+petición del usuario; **guía de aprendizaje completa `quantum_doc/`** (17
+documentos en español, un documento por clase, TODOS los ejemplos de código
+verificados compilando/ejecutando de verdad); `Qubits.bra(ket)` (a petición
+del usuario, para legibilidad); retomados 2 candidatos más ("ruido por
+iteración en Grover" -- `NoisyGrover.searchPerIteration()` -- y "encadenar
+canales dentro de un `Noisy*` concreto" -- `NoisyDeutschJozsa.probabilityAllZeroChain()`)
+con hallazgos genuinos verificados numéricamente en ambos.
+
+**Parte C** — multiplot en la capa de plotting (`GnuplotMultiPlot`),
+candidato descartado explícitamente varias sesiones por asumirse un cambio
+arquitectónico mayor; investigado el código real con `EnterPlanMode` antes
+de decidir, resultó ser una extracción de bajo riesgo. Ejemplo comentado
+`plotFuncMultiPlot01.java` creado y ejecutado en vivo a petición del usuario.
+
+**Parte D** — mantenimiento de repositorio: `README.md` reescrito (sección
+`com.ipserc.arith.quantum` añadida, `com.ipserc.arith.plot` actualizado);
+`VERSION` `1.1→1.2`; **licencia cambiada a MIT** (el repo tenía `LICENSE`=GPLv3
+y `LICENSE.md`=AGPLv3 contradictorias, ninguna mencionada en el README);
+**topics de GitHub actualizados** vía `gh repo edit` (quitados 4 de bajo
+tráfico, añadidos 6 nuevos -- `java`, `quantum-computing`,
+`quantum-simulation`, `linear-algebra`, `laplace-transform`, `z-transform`
+-- 20/20, el máximo de GitHub).
+
+**Parte E** — `TestFilter04.java`/`plotFunc09.java` arreglados (candidato
+arrastrado desde la Trigesimotercera sesión): `plotFunc09.java` sin ningún
+bug, solo le faltaba el dato (localizado por el usuario en
+`workspace-python`, copiado a la ruta que `TestScratchPaths` ya esperaba).
+`TestFilter04.java` (datos de Fourier de 2020 en otra máquina, sin subir a
+la nube, irrecuperables) reescrito para generarlo todo en Java, reconectando
+`func14()..func18()` (sin llamador hasta entonces) con `Fourier.filter()`/
+`.convolution()` -- con un hallazgo real durante la verificación (un
+comentario que asumía "deberían coincidir" resultó falso, corregido con la
+explicación real: convolución circular vs lineal/causal).
+
+**Parte F (esta, la última)** — cierre de sesión: memoria persistente
+actualizada (`complexarith_continuity_doc`, `complexarith_quantum_package_notes`,
+`complexarith_test_scratch_paths`, `complexarith_gnuplot_replacement`,
+`complexarith_javac_path_and_scratch_setup`, ver detalle de cada una en su
+propio fichero); `~/.bashrc` del usuario actualizado a petición suya para
+que `javac`/`java` (JDK 21) y `gh` (GitHub CLI) queden en el `PATH` de
+cualquier terminal interactiva nueva, sin tener que exportarlo a mano cada
+vez (verificado con `bash -li`; el guard "no interactivo → no hacer nada"
+de `.bashrc` significa que este cambio NO se aplica retroactivamente dentro
+de la sesión de Bash tool ya en marcha, pero sí a partir de la próxima
+terminal/sesión que se abra).
+
+**Lección de proceso nueva de esta sesión**: `$HOME` de Bash (Git Bash/MSYS)
+NO es `user.home` de Java (`/c/cygwin64/home/josel` vs `C:\Users\josel`) --
+error real cometido copiando el dato de `plotFunc09.java` a la ruta
+equivocada antes de detectarlo. Ver `[[complexarith_javac_path_and_scratch_setup]]`.
+
+Paquete `com.ipserc.arith.quantum` al cierre de la sesión: **16 clases** --
+`Qubits`, `BellTest`, `DensityMatrix`, `TimeEvolution`, `Teleportation`,
+`Decoherence`, `BlochSphere`, `DeutschJozsa`, `BernsteinVazirani`, `Grover`,
+`NoisyTeleportation`, `NoisyDeutschJozsa`, `NoisyBernsteinVazirani`,
+`NoisyGrover` (14 -- las 2 restantes de la cuenta de 16 son `GnuplotMultiPlot`
+y la guía `quantum_doc/`, ajenas al paquete Java en sí pero parte del mismo
+bloque de trabajo).
+
+**Estado del repo al pausar**: `master`==`origin/master`==`1c223b6`. Sin
+tocar (ediciones del usuario en paralelo, patrón habitual):
+`Claude/ClaudeRevisionComplexArith.txt`; `.claude/`/`Claude/Commands.txt`
+siguen sin trackear, sin investigar; varios `.pdf`/`.html` sueltos en
+`quantum_doc/` (generados por el usuario aparte, no tocados).
+
+**Sin punto de retomada pendiente** de trabajo en curso. Candidatos abiertos
+para la próxima sesión, ninguno urgente:
+1. Envoltorios de conveniencia sobre `GnuplotMultiPlot` en capas superiores
+   (p.ej. Re/Im/Mod/Pha como multiplot 2×2 automático en `MatrixComplexPlot`).
 2. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)`.
-3. `.claude/` y `Claude/Commands.txt` -- siguen sin trackear.
-4. Cualquier otra cosa que el usuario traiga.
+3. `.claude/` y `Claude/Commands.txt` -- siguen sin trackear, sin investigar
+   (candidato arrastrado muchísimas sesiones).
+4. Diagonalización genérica del operador de medida en `BellTest`.
+5. Si el usuario sigue leyendo `quantum_doc/`, puede volver con preguntas
+   de aprendizaje sobre cualquier concepto -- no es un "candidato de
+   código", es simplemente continuar la conversación pedagógica donde la
+   dejó.
+6. Cualquier otra cosa que el usuario traiga.
 
 ---
 
