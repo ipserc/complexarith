@@ -113,3 +113,7 @@ Importar como proyecto Java. Para Eclipse: `Properties → Java Build Path → L
 Folder → classes`.
 
 No hay dependencias de terceros: todo el código, incluido el graficado, es autocontenido.
+
+## Licencia
+
+[MIT](LICENSE).
