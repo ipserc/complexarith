@@ -4058,8 +4058,62 @@ explícitamente en esta pasada. Candidatos abiertos, ninguno urgente:
 1. Envoltorios de conveniencia sobre `GnuplotMultiPlot` en capas superiores.
 2. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)`.
 3. `.claude/` y `Claude/Commands.txt` -- siguen sin trackear.
-4. `TestFilter04.java`/`plotFunc09.java` -- sin datos de entrada.
-5. Cualquier otra cosa que el usuario traiga.
+4. Cualquier otra cosa que el usuario traiga.
+
+## Continuación de la Trigesimoséptima sesión (14 agosto 2026) -- `TestFilter04.java`/`plotFunc09.java` arreglados (commit `a3c2db8`)
+
+A petición del usuario ("arregla TestFilter04.java/plotFunc09.java"). Ninguno
+era un bug de código -- ambos dependían de ficheros de datos externos de
+2020/2023 nunca versionados.
+
+**`plotFunc09.java`**: cero cambios de código. El usuario localizó el
+fichero original (`C:\Users\josel\workspace-python\primes\puntos_funcion_primos.txt`,
+840 líneas, generado por un script Python), copiado a
+`<user.home>/ipserc/saco/primes/` (la ruta que `TestScratchPaths` ya
+esperaba). Verificado: 839 puntos leídos, script de gnuplot válido.
+
+**`TestFilter04.java`**: los datos de Fourier (`signal_samples.txt`,
+`dft_filt_signal_*.txt`, `convolution_*.txt`) están en otra máquina del
+usuario, sin subir a la nube -- genuinamente irrecuperables en este entorno.
+En vez de eso, `main()` se reescribió para generar todo en Java: reconecta
+`func14()`..`func18()` (definidas en el propio fichero desde antes, sin
+ningún llamador) con la API ya existente de `Fourier` (constructor
+`Function<Complex,Complex>`, `DFT()`, `filter()`, `convolution()`) -- los
+nombres de los ficheros perdidos ("dft_filt_signal", "convolution")
+encajaban exactamente con lo que esos 2 métodos calculan, señal fuerte de
+que el diseño original generaba los datos así antes de cambiar a leer
+ficheros cacheados.
+
+**Hallazgo real durante la verificación** (no asumido, medido): el
+comentario que escribí inicialmente ("`DFT-CONV` debería salir cerca de 0,
+teorema de convolución") era FALSO -- verificado numéricamente,
+`max|DFT-CONV|≈0.37` sobre 1024 muestras, no un error de redondeo.
+Investigado el porqué: `Fourier.filter()` multiplica DFTs completas
+(convolución CIRCULAR, con wraparound periódico), pero
+`Fourier.convolution()` calcula una suma CAUSAL truncada en la ventana
+`[0,N)` (corta en cuanto `t-n<0`, sin wraparound) -- convolución LINEAL, no
+circular. Para un filtro ideal paso bajo/alto (respuesta al impulso tipo
+sinc, ni corta ni causal) ambas difieren de verdad -- el aviso clásico de
+DSP de que "filtrar multiplicando en frecuencia" y "convolucionar en
+tiempo" no son intercambiables sin más salvo relleno de ceros. Comentario
+corregido para reflejar lo medido, no la suposición inicial.
+
+**Verificación**: `main()` completo (18 llamadas de plot) corre sin
+excepciones (comprobado con la técnica de redirección por reflexión, sin
+abrir ventanas); verificación numérica independiente de la diferencia
+`DFT-CONV`; señal original sin `NaN`/`Inf`, rango `[-1,1]` como cabía
+esperar de una señal basada en coseno. Recompilación fresca limpia
+(`plot`+`matrixcomplex`+`complex`+`polynom`+`signal`, con `Chronometer`
+copiado desde `classes/` como siempre en este entorno).
+
+**Estado del repo**: commit `a3c2db8` creado localmente -- pendiente de
+decidir con el usuario si se pushea.
+
+**Sin punto de retomada pendiente.** Candidatos abiertos, ninguno urgente:
+1. Envoltorios de conveniencia sobre `GnuplotMultiPlot` en capas superiores.
+2. `PlotStyle` en `plotRe`/`plotIm`/`plotMod`/`plotPha(List<MatrixComplex>,...)`.
+3. `.claude/` y `Claude/Commands.txt` -- siguen sin trackear.
+4. Cualquier otra cosa que el usuario traiga.
 
 ---
 
