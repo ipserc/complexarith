@@ -15,7 +15,7 @@ public class plotFunc08 {
 	 * @param upLimit Upper limit of the plot.
 	 */
 	public static void plot(String title, long samples, double dataRe[][], double dataIm[][]) {
-		MatrixComplexPlot.plotSeriesSync(title, e_lineStyle.LINES, dataRe, dataIm);
+		MatrixComplexPlot.plotSeriesAsync(title, e_lineStyle.LINES, dataRe, dataIm);
 	}
 	
 	public static void doPlot(Function <Double,Complex> func, double start, double end, long samples, String Title) {
@@ -63,9 +63,9 @@ public class plotFunc08 {
 		
 		Complex.setFormatON();
 		Complex.setFixedON(3);
-		doPlot(x -> func1(x), start, end, samples, "f1(X):(-7.87500E+00)X^5+(4.75000E+00)X^3+(5.25000E-01)X");
-		doPlot(x -> func2(x), start, end, samples, "f2(X):(-7.87500E+00)X^5+(4.75000E+00)X^3+(5.25000E-01)X");
-		doPlot(x -> func3(x), start, end, samples, "f3(X):(-7.87500E+00)X^5+(4.75000E+00)X^3+(5.25000E-01)X");
+		doPlot(x -> func1(x), start, end, samples, "f1(X Real puro):(-7.87500E+00)X^5+(4.75000E+00)X^3+(5.25000E-01)X");
+		doPlot(x -> func2(x), start, end, samples, "f2(X Imag Puro):(-7.87500E+00)X^5+(4.75000E+00)X^3+(5.25000E-01)X");
+		doPlot(x -> func3(x), start, end, samples, "f3(X):f1(X Real puro)*f2(X Imag Puro)");
 
 	}
 

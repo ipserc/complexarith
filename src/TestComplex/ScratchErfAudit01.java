@@ -27,7 +27,7 @@ public class ScratchErfAudit01 {
 		check("erfc(0)==1", Complex.erfc(Complex.ZERO).minus(Complex.ONE).mod(), 1e-9);
 
 		System.out.println("\n=== (2) erf(-z)==-erf(z) (funcion impar) ===");
-		double[][] oddPts = {{0.7, 0.0}, {1.3, 0.9}, {-0.5, 2.1}, {2.0, -1.4}};
+		double[][] oddPts = {{0.7, 0.0}, {1.3, 0.9}, {-0.5, 2.1}, {2.0, -1.4}, {Math.log(2), Math.sqrt(3)}};
 		for (double[] pt : oddPts) {
 			Complex z = new Complex(pt[0], pt[1]);
 			Complex lhs = Complex.erf(z.opposite());
@@ -51,7 +51,7 @@ public class ScratchErfAudit01 {
 
 		System.out.println("\n=== (5) erf'(z) == (2/sqrt(pi))*exp(-z^2), via derivada numerica ===");
 		double twoOverSqrtPi = 2.0 / Math.sqrt(Math.PI);
-		double[][] derivPts = {{0.6, 0.0}, {0.3, 0.4}, {-0.2, 0.5}};
+		double[][] derivPts = {{0.6, 0.0}, {0.3, 0.4}, {-0.2, 0.5}, {Math.log(2), Math.sqrt(3)}};
 		for (double[] pt : derivPts) {
 			Complex z = new Complex(pt[0], pt[1]);
 			Complex viaDerivative = Complex.derivative(z, Complex::erf, 6);
@@ -60,7 +60,7 @@ public class ScratchErfAudit01 {
 		}
 
 		System.out.println("\n=== (6) Cruce contra integracion numerica directa de exp(-t^2) ===");
-		double[][] intPts = {{0.8, 0.0}, {0.5, 0.6}, {-0.4, 0.3}};
+		double[][] intPts = {{0.8, 0.0}, {0.5, 0.6}, {-0.4, 0.3}, {Math.log(2), Math.sqrt(3)}};
 		for (double[] pt : intPts) {
 			Complex z = new Complex(pt[0], pt[1]);
 			Complex viaSeries = Complex.erf(z);

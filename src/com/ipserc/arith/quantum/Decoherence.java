@@ -20,7 +20,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Decoherence {
 
-	private final static String VERSION = "1.0 (2026_0813_2359)";
+	private final static String VERSION = "1.1 (2026_0814_1400)";
+	/* VERSION Release Note
+	 * 1.1 (2026_0814_1400)
+	 * applyChain() -- encadena varias llamadas a apply() (mismo canal repetido o canales distintos,
+	 * mismo qubit o qubits distintos) en una sola ejecucion, reusando apply() sin duplicar el bucle
+	 * sum_k E_k*rho*E_k^dagger. Sin cambios de comportamiento en la API publica existente.
+	 */
 
 	private Decoherence() {}
 
@@ -48,6 +54,45 @@ public final class Decoherence {
 		for (MatrixComplex e : kraus) {
 			MatrixComplex lifted = Qubits.operatorOnQubit(e, qubitIndex, nQubits);
 			result = result.plus(lifted.times(rho).times(lifted.adjoint()));
+		}
+		return result;
+	}
+
+	/**
+	 * Applies a SEQUENCE of single-qubit channels, one after another, each via {@link
+	 * #apply(MatrixComplex, MatrixComplex[], int, int)} -- {@code rho -> channel_(k-1)(...
+	 * channel_1(channel_0(rho))...)}, {@code channels[i]} acting on qubit {@code qubitIndices[i]}.
+	 * The channels can be repeats of the same family (e.g. 2 independent bit-flip events on the
+	 * same qubit -- NOT the same as one bit-flip with a combined probability, see {@code
+	 * ScratchDecoherenceChainAudit01} for the exact combination formula), different families on the
+	 * same qubit, or the same/different families on different qubits -- all physically meaningful
+	 * ("a qubit sits in a noisy environment for a while, and multiple distinct noise processes act
+	 * on it/its neighbours over that time"). A composition of trace-preserving channels is itself
+	 * trace-preserving, so this stays a valid density matrix whenever every individual {@code
+	 * channels[i]} does (same caveat as {@link #apply(MatrixComplex, MatrixComplex[], int, int)}:
+	 * not re-verified here for caller-supplied Kraus operators). ORDER CAN MATTER (these channels do
+	 * not all commute -- e.g. {@link #amplitudeDamping(double)} then {@link #bitFlip(double)} on the
+	 * same qubit is NOT the same channel as the reverse order; but some pairs DO commute regardless
+	 * of order -- e.g. {@link #bitFlip(double)}/{@link #phaseFlip(double)} with each other, or either
+	 * with {@link #amplitudeDamping(double)} paired with {@link #phaseFlip(double)} -- see {@code
+	 * ScratchDecoherenceChainAudit01} for which pairs were actually checked, not assumed).
+	 * @param rho The {@code 2^nQubits x 2^nQubits} density matrix to start from.
+	 * @param nQubits The total number of qubits {@code rho} represents.
+	 * @param channels The Kraus operators of each channel in the chain, applied in array order
+	 * ({@code channels[0]} first).
+	 * @param qubitIndices The qubit each entry of {@code channels} acts on, same length/order as
+	 * {@code channels}.
+	 * @return The {@code 2^nQubits x 2^nQubits} density matrix after every channel in the chain.
+	 * @throws IllegalArgumentException if {@code channels.length != qubitIndices.length}.
+	 */
+	public static MatrixComplex applyChain(MatrixComplex rho, int nQubits, MatrixComplex[][] channels, int[] qubitIndices) {
+		if (channels.length != qubitIndices.length) {
+			throw new IllegalArgumentException("channels.length=" + channels.length + " != qubitIndices.length="
+					+ qubitIndices.length + " -- need exactly 1 qubit index per channel in the chain");
+		}
+		MatrixComplex result = rho;
+		for (int i = 0; i < channels.length; ++i) {
+			result = apply(result, channels[i], qubitIndices[i], nQubits);
 		}
 		return result;
 	}

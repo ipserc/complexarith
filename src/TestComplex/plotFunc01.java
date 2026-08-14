@@ -4,6 +4,7 @@ import com.ipserc.arith.complex.*;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot;
 import com.ipserc.arith.matrixcomplex.MatrixComplexPlot.e_lineStyle;
+import com.ipserc.arith.plot.*;
 
 public class plotFunc01 {
 	/**
