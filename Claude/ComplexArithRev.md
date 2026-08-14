@@ -4110,6 +4110,95 @@ copiado desde `classes/` como siempre en este entorno).
 con `1c223b6` (su registro en este documento). `HEAD==origin/master==1c223b6`
 confirmado.
 
+## Trigesimoctava sesión (15 agosto 2026) — preguntas de aprendizaje sobre representación de partículas + `quantum_doc/17_limites_y_extensiones.md` (commit `2029235`) + plan guiado de la QFT (PAUSADA antes de escribir código)
+
+Sesión de continuidad, sin bugs. Encadenó 3 bloques:
+
+**Bloque 1 — "¿cómo representas un fotón en `quantum`?"**: pregunta de
+aprendizaje, respondida sin tocar código -- el paquete no modela un fotón
+como partícula física, sino el qubit abstracto (cualquier sistema de 2
+niveles); un fotón se representa por su polarización (`|H>`↔`|0>`,
+`|V>`↔`|1>`), exactamente `Qubits.ket0()`/`ket1()` con la interpretación
+física de "polarización" en vez de "espín".
+
+**Bloque 2 — "¿se puede representar cualquier partícula fundamental,
+fermión o bosón?"**: respondida en 3 capas (verificado leyendo `Qubits.java`,
+no de memoria): (1) SÍ para el grado de libertad discreto de 1 partícula --
+`MatrixComplex` no está limitado a 2D, espín `s` general cabría en dimensión
+`2s+1`, aunque hoy solo existan fábricas para el caso 2D; (2) NO para
+grados de libertad continuos (posición/momento -- espacio de Hilbert
+infinito, fuera del diseño de vectores finitos); (3) NO para la estadística
+fermión/bosón de partículas idénticas -- `kroneckerprod()` no impone
+(anti)simetría, haría falta una pieza nueva (determinante de Slater/
+permanente, o segunda cuantización).
+
+A petición del usuario, esto se documentó en
+**`quantum_doc/17_limites_y_extensiones.md`** (nuevo, 17º documento de la
+guía, sin clase Java asociada -- nota conceptual pura), con una sección 4
+"¿sería extensible en el futuro?" que valora cada uno de los 3 huecos por
+separado: (a) espín general, esfuerzo moderado, encaja en el patrón ya
+existente; (b) simetrización para partículas idénticas, proyecto nuevo pero
+compatible con las piezas ya existentes, coste factorial en el número de
+partículas; (c) grados de libertad continuos, solo aproximable por
+truncamiento, con una conexión conceptual señalada hacia
+`com.ipserc.arith.signal` (una función de onda discretizada en la base de
+posiciones es, estructuralmente, una señal muestreada). Índice de
+`00_introduccion.md` actualizado a la vez. Commiteado como `2029235`
+("doc: añade quantum_doc/17_limites_y_extensiones.md..."), sin código
+tocado.
+
+**Bloque 3 — "¿qué experimento podría modelar para aprender a usar
+`quantum`?"**: pregunta exploratoria, respondida en 2-3 frases con
+recomendación y tradeoff (regla de estilo para preguntas exploratorias) --
+propuesta la **Transformada Cuántica de Fourier (QFT)**, por encajar con la
+formación formal del usuario en DSP/Fourier (Ingeniería de
+Telecomunicación) y por no necesitar ninguna pieza nueva de infraestructura
+(se monta con `Qubits.hadamard()`+`controlledGate()`, igual que
+`DeutschJozsa`/`Grover`), con la codificación superdensa como alternativa
+más corta si quería calentar antes. El usuario confirmó la QFT, pero
+pidió desarrollarla **él mismo, guiado paso a paso**, para aprender la API
+de primera mano -- cambio de modo de trabajo explícito para este bloque:
+Claude como tutor, no como implementador.
+
+Se preparó un plan de 5 etapas (verificado leyendo `Qubits.java` completo
+antes de proponerlo, para no inventar firmas que no existen):
+
+1. **`phaseGate`** -- la única pieza que falta en `Qubits.java` (una
+   puerta de fase `R_k = diag(1, e^(2*pi*i/2^k))`, mismo patrón que
+   `pauliZ()`/`pauliY()` pero con `Complex` de parte imaginaria no nula).
+2. **QFT de 1 qubit** (caso trivial, `= hadamard()`) -- para fijar la
+   fórmula antes de complicarla.
+3. **QFT de 2 qubits a mano** -- `H` + fase controlada (`controlledGate()`)
+   + `SWAP` final (montable con 3 `controlledGate(pauliX(),...)`, sin
+   necesitar una puerta `SWAP` nueva) -- verificar contra la DFT clásica de
+   tamaño 4 (posible comparación con `com.ipserc.arith.signal.Fourier`,
+   sin decidir aún cómo).
+4. **Generalización a `n` qubits** (bucle `for j`/`for k>j`).
+5. **Verificación + documentación** -- batería `TestComplex/TestQFT01.java`
+   (patrón `OK`/`FAIL` habitual) + `quantum_doc/18_QFT.md` si procede.
+
+### SESIÓN PAUSADA — Trigesimoctava sesión (15 agosto 2026), a petición del
+usuario ("Paramos por ahora... Cuando vuelva a conectar me recuerdas por
+donde seguir")
+
+**Punto de retomada EXACTO**: Etapa 1 del plan de arriba, sin empezar --
+`phaseGate` NO está escrita todavía (ni por el usuario ni por Claude, a
+propósito: el usuario quiere escribirla él mismo). La próxima sesión debe
+retomar ofreciendo confirmar la firma/estilo de `phaseGate` antes de que el
+usuario escriba el código, tal y como quedó planteado.
+
+**Estado del repo al pausar**: commit `2029235` pusheado a `origin/master`
+a petición del usuario (verificar con `git fetch`+`git status` al
+retomar). Sin tocar (patrón habitual, ediciones del usuario en paralelo):
+`Claude/ClaudeRevisionComplexArith.txt`; `.claude/`/`Claude/Commands.txt`
+siguen sin trackear; varios `.pdf`/`.html` nuevos sueltos en `quantum_doc/`
+(incluido uno nuevo, `16_experimentos_guiados.pdf`, generado por el usuario
+aparte); `src/TestComplex/TestQuantum01.java` sin trackear desde antes de
+esta sesión, sin investigar (no es de Claude, no tocado).
+
+Ningún hallazgo de código nuevo esta sesión -- fue una sesión puramente de
+aprendizaje/documentación/planificación.
+
 ### SESIÓN PAUSADA — Trigesimoséptima sesión (13-14 agosto 2026), la más larga hasta ahora, a petición del usuario ("Paramos por ahora. Guarda todo el contexto... Cuando vuelva a conectar me recuerdas por donde seguir")
 
 **Resumen completo**, repartida en varias conversaciones seguidas, desde
