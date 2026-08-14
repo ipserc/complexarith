@@ -22,8 +22,15 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class NoisyDeutschJozsa {
 
-	private final static String VERSION = "1.1 (2026_0814_1200)";
+	private final static String VERSION = "1.2 (2026_0814_1800)";
 	/* VERSION Release Note
+	 * 1.2 (2026_0814_1800)
+	 * circuitDensityMatrixChain()/probabilityAllZeroChain() -- primer uso real de
+	 * Decoherence.applyChain() dentro de una clase Noisy* concreta (la pieza ya existia, sin
+	 * consumidor todavia): varios canales (repetidos o distintos, mismo qubit o distintos) antes de
+	 * que corra el circuito, en vez de un unico canal en un unico qubit. circuitDensityMatrix()/
+	 * probabilityAllZero() (el caso de 1 solo canal) quedan intactos, ahora expresables como el caso
+	 * particular de 1 elemento de la cadena -- verificado, no solo asumido.
 	 * 1.1 (2026_0814_1200)
 	 * diagonalProbability() pasa de private a package-visible para que NoisyBernsteinVazirani lo
 	 * reuse en vez de duplicarlo -- mismo patron "extraer lo compartido" ya usado por
@@ -95,6 +102,55 @@ public final class NoisyDeutschJozsa {
 	 */
 	public static double probabilityAllZero(IntPredicate f, int n, MatrixComplex[] kraus, int noisyQubit) {
 		MatrixComplex rho = circuitDensityMatrix(f, n, kraus, noisyQubit);
+		return diagonalProbability(rho, 0) + diagonalProbability(rho, 1);
+	}
+
+	/**
+	 * The {@code n+1}-qubit density matrix right before measurement, WITH a CHAIN of noise channels
+	 * -- the multi-channel analog of {@link #circuitDensityMatrix(IntPredicate, int,
+	 * MatrixComplex[], int)}: prepare {@code |0>^n|1>}, apply {@link Decoherence#applyChain(
+	 * MatrixComplex, int, MatrixComplex[][], int[])} (repeats of the same channel, different
+	 * channels, same or different qubits, all in one execution -- see {@link
+	 * Decoherence#applyChain}), then the same Deutsch-Jozsa circuit by conjugation. A 1-element
+	 * chain gives EXACTLY {@link #circuitDensityMatrix(IntPredicate, int, MatrixComplex[], int)}
+	 * (verified, not just expected from {@link Decoherence#applyChain} reducing to {@link
+	 * Decoherence#apply}).
+	 * @param f The Boolean function under test.
+	 * @param n The number of input qubits, must be at least 1.
+	 * @param channels The Kraus operators of each channel in the chain, applied in array order.
+	 * @param qubitIndices The qubit each entry of {@code channels} acts on (in {@code [0,n]}, {@code
+	 * n} itself being the ancilla), same length/order as {@code channels}.
+	 * @return The {@code 2^(n+1) x 2^(n+1)} density matrix after the noise chain + circuit, before
+	 * measurement.
+	 */
+	static MatrixComplex circuitDensityMatrixChain(IntPredicate f, int n, MatrixComplex[][] channels, int[] qubitIndices) {
+		int[] initBits = new int[n + 1];
+		initBits[n] = 1; // ancilla starts at |1>, everything else at |0>
+		MatrixComplex rho0 = DensityMatrix.of(Qubits.ket(initBits));
+		MatrixComplex rhoNoisy = Decoherence.applyChain(rho0, n + 1, channels, qubitIndices);
+
+		MatrixComplex hAll = DeutschJozsa.hadamardChain(n + 1);
+		MatrixComplex oracleOp = DeutschJozsa.oracle(f, n);
+		MatrixComplex hInputOnly = DeutschJozsa.hadamardChain(n).kroneckerprod(Qubits.identity2());
+		MatrixComplex u = hInputOnly.times(oracleOp).times(hAll);
+
+		return u.times(rhoNoisy).times(u.adjoint());
+	}
+
+	/**
+	 * The measurement probability of the all-zero outcome on the first {@code n} qubits WITH a
+	 * CHAIN of noise channels -- the multi-channel analog of {@link #probabilityAllZero(
+	 * IntPredicate, int, MatrixComplex[], int)}, via {@link #circuitDensityMatrixChain(IntPredicate,
+	 * int, MatrixComplex[][], int[])}.
+	 * @param f The Boolean function under test.
+	 * @param n The number of input qubits, must be at least 1.
+	 * @param channels The Kraus operators of each channel in the chain, applied in array order.
+	 * @param qubitIndices The qubit each entry of {@code channels} acts on, same length/order as
+	 * {@code channels}.
+	 * @return The probability, in {@code [0,1]}.
+	 */
+	public static double probabilityAllZeroChain(IntPredicate f, int n, MatrixComplex[][] channels, int[] qubitIndices) {
+		MatrixComplex rho = circuitDensityMatrixChain(f, n, channels, qubitIndices);
 		return diagonalProbability(rho, 0) + diagonalProbability(rho, 1);
 	}
 
