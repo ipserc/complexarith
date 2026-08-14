@@ -57,7 +57,10 @@ sobre un estado es `<psi|A|psi>` (siempre un número real, nunca complejo --
 si te sale con parte imaginaria significativa, es una señal de que `A` no
 era realmente Hermítica; varias clases de este paquete comprueban esto
 explícitamente y lanzan una excepción si falla). `<psi|` es el **bra**, el
-vector fila conjugado de `|psi>` -- `psi.adjoint()` en código.
+vector fila conjugado de `|psi>` -- `Qubits.bra(psi)` en código (un
+envoltorio de 1 línea sobre `psi.adjoint()`, que sigue siendo válido y es
+lo que hay que usar sobre un OPERADOR, no un ket -- `Qubits.bra()` solo
+tiene sentido semántico sobre kets, ver `02_Qubits.md`).
 
 Ejemplos en el código: `Qubits.hadamard()` es unitaria (una puerta),
 `Qubits.pauliZ()` es Hermítica (una medida), `Qubits.spinOperator(theta)` es
@@ -158,7 +161,7 @@ algoritmo clásico -- la "ventaja cuántica" que demuestran.
 | Término | En este código |
 |---|---|
 | Qubit / ket `\|psi>` | `MatrixComplex` columna `2^n x 1`, norma 1 |
-| Bra `<psi\|` | `psi.adjoint()` |
+| Bra `<psi\|` | `Qubits.bra(psi)` (envoltorio de `psi.adjoint()`) |
 | Superposición | Combinación lineal de kets de la base computacional |
 | Medida (regla de Born) | `amplitud.mod()` al cuadrado = probabilidad |
 | Puerta / evolución unitaria | Matriz `U` con `U·U†=I`; `U.times(psi)` |

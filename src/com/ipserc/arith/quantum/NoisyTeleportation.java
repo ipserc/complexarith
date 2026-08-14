@@ -23,7 +23,12 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class NoisyTeleportation {
 
-	private final static String VERSION = "1.0 (2026_0814_1000)";
+	private final static String VERSION = "1.1 (2026_0814_1600)";
+	/* VERSION Release Note
+	 * 1.1 (2026_0814_1600)
+	 * singleQubitProjector()/fidelity() usan Qubits.bra() en vez de ket.adjoint()/psi.adjoint()
+	 * (legibilidad, a peticion del usuario). Sin cambio de comportamiento.
+	 */
 
 	private NoisyTeleportation() {}
 
@@ -62,7 +67,7 @@ public final class NoisyTeleportation {
 
 	private static MatrixComplex singleQubitProjector(int bit) {
 		MatrixComplex ket = (bit == 0) ? Qubits.ket0() : Qubits.ket1();
-		return ket.times(ket.adjoint());
+		return ket.times(Qubits.bra(ket));
 	}
 
 	/**
@@ -151,7 +156,7 @@ public final class NoisyTeleportation {
 	}
 
 	private static double fidelity(MatrixComplex psi, MatrixComplex rho) {
-		Complex f = psi.adjoint().times(rho).times(psi).getItem(0, 0);
+		Complex f = Qubits.bra(psi).times(rho).times(psi).getItem(0, 0);
 		if (Math.abs(f.imp()) > 1e-9) {
 			throw new IllegalStateException("fidelity <psi|rho|psi> came out complex (Im=" + f.imp()
 					+ ") -- expected a real value; check that rho is Hermitian");

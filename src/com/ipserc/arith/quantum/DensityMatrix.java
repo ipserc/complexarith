@@ -15,19 +15,24 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class DensityMatrix {
 
-	private final static String VERSION = "1.0 (2026_0813_1900)";
+	private final static String VERSION = "1.1 (2026_0814_1600)";
+	/* VERSION Release Note
+	 * 1.1 (2026_0814_1600)
+	 * of() usa Qubits.bra() en vez de state.adjoint() (legibilidad, a peticion del usuario). Sin
+	 * cambio de comportamiento.
+	 */
 
 	private DensityMatrix() {}
 
 	/**
 	 * The density matrix {@code rho=|state><state|} of a pure state -- {@code
-	 * state.times(state.adjoint())}, a rank-1 projector.
+	 * state.times(Qubits.bra(state))}, a rank-1 projector.
 	 * @param state A normalized {@code 2^n x 1} column-vector state (e.g. {@link Qubits#ket(int...)},
 	 * {@link Qubits#bellPhiPlus()}, {@link Qubits#ghz(int)}).
 	 * @return The {@code 2^n x 2^n} density matrix.
 	 */
 	public static MatrixComplex of(MatrixComplex state) {
-		return state.times(state.adjoint());
+		return state.times(Qubits.bra(state));
 	}
 
 	/**

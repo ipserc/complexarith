@@ -14,7 +14,12 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class TimeEvolution {
 
-	private final static String VERSION = "1.0 (2026_0813_2030)";
+	private final static String VERSION = "1.1 (2026_0814_1600)";
+	/* VERSION Release Note
+	 * 1.1 (2026_0814_1600)
+	 * expectationValue() usa Qubits.bra() en vez de state.adjoint() (legibilidad, a peticion del
+	 * usuario). Sin cambio de comportamiento.
+	 */
 
 	private TimeEvolution() {}
 
@@ -63,7 +68,7 @@ public final class TimeEvolution {
 	 * be real).
 	 */
 	public static double expectationValue(MatrixComplex state, MatrixComplex op) {
-		Complex expectation = state.adjoint().times(op).times(state).getItem(0, 0);
+		Complex expectation = Qubits.bra(state).times(op).times(state).getItem(0, 0);
 		if (!expectation.isPureReal()) {
 			throw new IllegalStateException("expectation value <state|op|state> came out complex "
 					+ "(Im=" + expectation.imp() + ") -- expected a real expectation value; check that op is Hermitian");

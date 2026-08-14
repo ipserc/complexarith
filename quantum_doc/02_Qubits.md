@@ -30,6 +30,24 @@ MatrixComplex zero = Qubits.ket0(); // [1; 0]
 MatrixComplex one = Qubits.ket1();  // [0; 1]
 ```
 
+### `bra(MatrixComplex ket)`
+El bra `<psi|` correspondiente a un ket `|psi>` -- un envoltorio de 1 línea
+sobre `ket.adjoint()` (traspuesta conjugada), que ya existía en
+`MatrixComplex` de forma genérica. No es un tipo de objeto nuevo: en este
+proyecto un bra sigue siendo un `MatrixComplex`, ahora fila en vez de
+columna. Existe solo para que un punto del código que significa "el bra de
+este ket" lo diga explícitamente, en vez del `.adjoint()` genérico -- que
+se lee igual tanto si el operando es un ket (donde "bra" es la lectura
+físicamente correcta) como si es un operador (donde `.adjoint()` es su
+Hermítico conjugado/dagger, un concepto DISTINTO: `U.adjoint()` no es "el
+bra de U"). Úsalo solo sobre kets; para operadores sigue usando
+`operador.adjoint()` directamente.
+
+```java
+MatrixComplex psi = Qubits.ket0();
+MatrixComplex proyector = psi.times(Qubits.bra(psi)); // |0><0|
+```
+
 ### `identity2()`
 La matriz identidad `2x2` -- "no hacer nada" a un qubit.
 

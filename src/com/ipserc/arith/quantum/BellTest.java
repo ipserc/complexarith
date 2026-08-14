@@ -37,7 +37,12 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class BellTest {
 
-	private final static String VERSION = "1.2 (2026_0813_2330)";
+	private final static String VERSION = "1.3 (2026_0814_1600)";
+	/* VERSION Release Note
+	 * 1.3 (2026_0814_1600)
+	 * spinEigenProjector() usa Qubits.bra() en vez de ket.adjoint() (legibilidad, a peticion del
+	 * usuario). Sin cambio de comportamiento.
+	 */
 
 	private BellTest() {}
 
@@ -159,7 +164,7 @@ public final class BellTest {
 	/** The projector {@code |e><e|} onto the {@code sign} eigenket of {@link #spinEigenket(double, int)}. */
 	private static MatrixComplex spinEigenProjector(double theta, int sign) {
 		MatrixComplex ket = spinEigenket(theta, sign);
-		return ket.times(ket.adjoint());
+		return ket.times(Qubits.bra(ket));
 	}
 
 	/**

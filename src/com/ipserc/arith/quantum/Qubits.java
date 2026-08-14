@@ -20,7 +20,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.2 (2026_0813_2200)";
+	private final static String VERSION = "1.3 (2026_0814_1600)";
+	/* VERSION Release Note
+	 * 1.3 (2026_0814_1600)
+	 * bra() -- envoltorio de 1 linea sobre adjoint() (a peticion del usuario, para dar nombre de
+	 * Dirac explicito al bra en vez de dejarlo implicito como ".adjoint()" en cada punto de uso).
+	 * Sin cambio de comportamiento: sigue siendo el mismo MatrixComplex.adjoint() de siempre.
+	 */
 
 	private Qubits() {}
 
@@ -38,6 +44,24 @@ public final class Qubits {
 		ket.setItem(0, 0, 0.0);
 		ket.setItem(1, 0, 1.0);
 		return ket;
+	}
+
+	/**
+	 * The bra {@code <psi|} corresponding to a ket {@code |psi>} -- {@code ket.adjoint()} (conjugate
+	 * transpose: a ket's bra is not a distinct kind of object in this project's representation, just
+	 * the same {@link MatrixComplex} viewed as a row instead of a column, entries complex-conjugated).
+	 * A thin, deliberately trivial wrapper (no behavior beyond {@link MatrixComplex#adjoint()}) --
+	 * exists purely so call sites that mean "the bra of this ket" can say so directly ({@code
+	 * Qubits.bra(psi)}) instead of the generic, unlabeled {@code psi.adjoint()}, which reads
+	 * identically whether the operand is a ket (a bra is the physically meaningful reading) or an
+	 * operator (where {@code .adjoint()} means its Hermitian conjugate/dagger, a different concept --
+	 * {@code U.adjoint()} is NOT "the bra of U"). Use this only on kets; keep using {@code
+	 * op.adjoint()} directly for operators.
+	 * @param ket A ket, as a {@code MatrixComplex} column vector.
+	 * @return The corresponding bra, as a {@code MatrixComplex} row vector.
+	 */
+	public static MatrixComplex bra(MatrixComplex ket) {
+		return ket.adjoint();
 	}
 
 	/** The 2x2 identity operator. */
@@ -221,8 +245,8 @@ public final class Qubits {
 		if (controlIndex == targetIndex) {
 			throw new IllegalArgumentException("controlIndex and targetIndex must differ, both were " + controlIndex);
 		}
-		MatrixComplex proj0 = ket0().times(ket0().adjoint());
-		MatrixComplex proj1 = ket1().times(ket1().adjoint());
+		MatrixComplex proj0 = ket0().times(bra(ket0()));
+		MatrixComplex proj1 = ket1().times(bra(ket1()));
 		return twoSiteOperator(proj0, identity2(), controlIndex, targetIndex, nQubits)
 				.plus(twoSiteOperator(proj1, op, controlIndex, targetIndex, nQubits));
 	}
