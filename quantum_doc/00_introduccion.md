@@ -34,6 +34,7 @@ proyecciones, operadores lineales) para anclar los conceptos nuevos.
 | `14_NoisyBernsteinVazirani.md` | `NoisyBernsteinVazirani.java` -- Bernstein-Vazirani + ruido. |
 | `15_NoisyGrover.md` | `NoisyGrover.java` -- Grover + ruido. |
 | `16_experimentos_guiados.md` | Recetario paso a paso: cómo volver a ejecutar (y modificar) los experimentos ya hechos, con los comandos exactos. |
+| `17_limites_y_extensiones.md` | Nota conceptual (sin clase Java asociada): qué partículas/grados de libertad puede representar este paquete hoy (espín en dimensión finita), cuáles no (grados de libertad continuos, estadística fermión/bosón de partículas idénticas), y cómo de extensible sería cada hueco en el futuro. |
 
 ## Orden de lectura recomendado
 
@@ -75,6 +76,10 @@ anteriores -- seguirlo en el mismo orden es la ruta de menor resistencia:
 Si solo quieres "tocar" algo cuanto antes, el camino más corto y vistoso es:
 `01` (conceptos) -> `02` (Qubits) -> `03` (BellTest) -- en media hora tienes
 la violación de la desigualdad de Bell corriendo en tu máquina.
+
+`17_limites_y_extensiones.md` queda fuera de este árbol: es un apéndice
+conceptual, sin código propio, que se puede leer en cualquier momento tras
+`01`.
 
 ## Cómo compilar y ejecutar estas clases en tu entorno
 
