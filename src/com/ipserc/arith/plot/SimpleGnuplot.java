@@ -192,14 +192,28 @@ public class SimpleGnuplot {
 
 	private void launch(boolean wait) {
 		String script = buildScript();
+		boolean effectivePersist = outputFile == null && (persist != null ? persist : true);
+		runScript(script, wait, effectivePersist);
+	}
+
+	/**
+	 * Launches gnuplot, feeds it {@code script} over stdin, and waits for it to exit iff {@code
+	 * wait}. Package-visible so {@link GnuplotMultiPlot} can run the ONE combined script it
+	 * assembles from several panels through this exact same process-spawning path (executable
+	 * resolution, {@code -persist} handling, stdin write) instead of duplicating it -- the
+	 * "separate building the script from executing the process" split this class's multiplot
+	 * support needed.
+	 * @param script The complete gnuplot script (as {@link #buildScript()} or {@link
+	 * GnuplotMultiPlot} produces).
+	 * @param wait Whether to block until the gnuplot process exits.
+	 * @param effectivePersist Whether to launch with {@code -persist} (keep an interactive window
+	 * open after the script finishes) -- {@code outputFile == null && (persist != null ? persist :
+	 * true)} is the rule {@link #launch(boolean)} itself uses; {@link GnuplotMultiPlot} applies
+	 * the analogous rule over its own output/persist state.
+	 */
+	static void runScript(String script, boolean wait, boolean effectivePersist) {
 		String exe = resolveGnuplotExecutable();
 		try {
-			// outputFile != null => rendering to a file, no window to keep alive -- ignore
-			// whatever persist may have been set to. Otherwise: honor an explicit setPersist(),
-			// or fall back to the project's long-standing default (persistent window, so the
-			// native zoom doesn't freeze -- see DEFAULT_TERMINAL below) when the caller never
-			// called setPersist() at all.
-			boolean effectivePersist = outputFile == null && (persist != null ? persist : true);
 			ProcessBuilder pb = effectivePersist ? new ProcessBuilder(exe, "-persist") : new ProcessBuilder(exe);
 			Process proc = pb.start();
 			try (OutputStream out = proc.getOutputStream()) {
@@ -217,9 +231,27 @@ public class SimpleGnuplot {
 	// of repeated ~20 times across MatrixComplexPlot/PolynomPlot) as the implicit default when
 	// neither setOutputFile(String) nor setTerminal(String) was called -- byte-identical script
 	// output for every caller that never touches those 2 new methods.
-	private static final String DEFAULT_TERMINAL = "set terminal windows";
+	static final String DEFAULT_TERMINAL = "set terminal windows";
 
 	private String buildScript() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(terminalHeader(outputFile, terminal));
+		sb.append(buildPanelBody(true));
+		sb.append("quit\n");
+		return sb.toString();
+	}
+
+	/**
+	 * The {@code set terminal}/{@code set output} directive(s) that must precede everything else
+	 * in a script -- extracted out of {@link #buildScript()} so {@link GnuplotMultiPlot} can emit
+	 * the SAME rule once for the whole combined script (a multiplot has exactly 1 terminal, not 1
+	 * per panel) instead of duplicating this logic.
+	 * @param outputFile See {@link #setOutputFile(String)}; {@code null} if not set.
+	 * @param terminal See {@link #setTerminal(String)}; {@code null} if not set.
+	 * @return The terminal header, or {@code ""} if neither was set (the caller is then
+	 * responsible for {@link #DEFAULT_TERMINAL}, see {@link #buildPanelBody(boolean)}).
+	 */
+	static String terminalHeader(String outputFile, String terminal) {
 		StringBuilder sb = new StringBuilder();
 		if (outputFile != null) {
 			sb.append("set terminal pngcairo size 1024,768\n");
@@ -227,6 +259,26 @@ public class SimpleGnuplot {
 		} else if (terminal != null) {
 			sb.append("set terminal ").append(terminal).append('\n');
 		}
+		return sb.toString();
+	}
+
+	/**
+	 * Everything a script needs BETWEEN the terminal header and the trailing {@code quit} for
+	 * THIS panel's own settings/title/postInit/plot-or-splot command/data -- extracted out of
+	 * {@link #buildScript()} so {@link GnuplotMultiPlot} can concatenate several panels' bodies
+	 * into 1 combined script, each wrapped by its own {@code set title}/data block but sharing 1
+	 * terminal header and 1 {@code quit} at the top/bottom level instead of at every panel.
+	 * @param includeTerminalFallback Whether to fall back to {@link #DEFAULT_TERMINAL} when this
+	 * panel has no explicit {@code outputFile}/{@code terminal} of its own -- {@code true} for
+	 * {@link #buildScript()} (preserves the exact byte-for-byte output every existing caller of
+	 * this class already gets), {@code false} for a panel used inside {@link GnuplotMultiPlot}
+	 * (which sets the terminal exactly ONCE for the whole combined script -- re-issuing {@code set
+	 * terminal} mid-multiplot is not something gnuplot's multiplot mode supports cleanly, so each
+	 * panel must stay silent about it).
+	 * @return This panel's script body, not including any terminal header or {@code quit}.
+	 */
+	String buildPanelBody(boolean includeTerminalFallback) {
+		StringBuilder sb = new StringBuilder();
 		for (Map.Entry<String, String> e : settings.entrySet()) {
 			sb.append("set ").append(e.getKey());
 			if (e.getValue() != null && !e.getValue().isEmpty()) sb.append(' ').append(e.getValue());
@@ -234,7 +286,7 @@ public class SimpleGnuplot {
 		}
 		if (title != null) sb.append("set title '").append(escape(title)).append("'\n");
 		for (String raw : postInit) sb.append(raw).append('\n');
-		if (outputFile == null && terminal == null && !postInit.contains(DEFAULT_TERMINAL)) {
+		if (includeTerminalFallback && outputFile == null && terminal == null && !postInit.contains(DEFAULT_TERMINAL)) {
 			sb.append(DEFAULT_TERMINAL).append('\n');
 		}
 
@@ -277,11 +329,10 @@ public class SimpleGnuplot {
 			}
 			sb.append("e\n");
 		}
-		sb.append("quit\n");
 		return sb.toString();
 	}
 
-	private static String escape(String s) {
+	static String escape(String s) {
 		return s.replace("'", "\\'");
 	}
 
