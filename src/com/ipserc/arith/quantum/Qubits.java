@@ -20,8 +20,11 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.3 (2026_0814_1600)";
+	private final static String VERSION = "1.4 (2026_0815_1700)";
 	/* VERSION Release Note
+	 * 1.4 (2026_0815_1700)
+	 * phaseGate(k) -- puerta de fase R_k = diag(1, e^(2*pi*i/2^k)), primera pieza de la QFT
+	 * (Etapa 1 del plan guiado por el usuario). Falla alto ante k<0.
 	 * 1.3 (2026_0814_1600)
 	 * bra() -- envoltorio de 1 linea sobre adjoint() (a peticion del usuario, para dar nombre de
 	 * Dirac explicito al bra en vez de dejarlo implicito como ".adjoint()" en cada punto de uso).
@@ -95,6 +98,26 @@ public final class Qubits {
 		MatrixComplex m = new MatrixComplex(2, 2);
 		m.setItem(0, 0, 1.0); m.setItem(0, 1, 0.0);
 		m.setItem(1, 0, 0.0); m.setItem(1, 1, -1.0);
+		return m;
+	}
+
+	/**
+	 * The phase gate {@code R_k = diag(1, e^(2*pi*i / 2^k))} -- the controlled version of this
+	 * gate ({@link #controlledGate(MatrixComplex, int, int, int)}) is the building block of the
+	 * Quantum Fourier Transform's controlled-phase rotations.
+	 * @param k The phase gate's index ({@code k=1 -> R_1=Z}, {@code k=2 -> R_2=S}, etc.). Must be
+	 * {@code >= 0}.
+	 * @return The 2x2 phase gate.
+	 * @throws IllegalArgumentException if {@code k < 0}.
+	 */
+	public static MatrixComplex phaseGate(int k) {
+		if (k < 0) {
+			throw new IllegalArgumentException("phaseGate index k must be >= 0, got k=" + k);
+		}
+		double angle = 2.0 * Math.PI / Math.pow(2, k);
+		MatrixComplex m = new MatrixComplex(2, 2);
+		m.setItem(0, 0, 1.0); m.setItem(0, 1, 0.0);
+		m.setItem(1, 0, 0.0); m.setItem(1, 1, new Complex(Math.cos(angle), Math.sin(angle)));
 		return m;
 	}
 
