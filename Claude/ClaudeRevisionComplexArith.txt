@@ -10212,5 +10212,1062 @@ Arreglado, verificado y commiteado (8893d10): MatrixComplexFunctions.exp() tení
 #	14/08/2026 DIA 13 - quantum-entanglement-bell-test
 #
 ========================================================================================================================================
+● HEAD confirma master==origin/master==7d2b95f, exactamente donde quedó guardado el contexto. Los ficheros modificados/sin trackear son los mismos "de siempre" (ediciones del usuario en Eclipse en paralelo, .claude//Commands.txt sin
+  investigar).
 
+  Resumen de dónde quedamos — Trigesimoséptima sesión (13-14 ago), PAUSADA a petición tuya, 10 bloques que cerraron toda la hoja de ruta original del Rol Física/Mecánica Cuántica más 3 algoritmos de juguete y su versión ruidosa:
+
+  1. Evolución temporal (+ bug real arreglado en Diagfactor)
+  2. Teletransportación cuántica
+  3. BellTest generalizado a n qubits
+  4. Ruido/decoherencia (Decoherence, 5 canales de Kraus)
+  5. Esfera de Bloch — cierra la hoja de ruta de 7 candidatos
+  6. Deutsch-Jozsa
+  7. Bernstein-Vazirani
+  8. Grover a pequeña escala
+  9. Teletransportación con ruido
+  10. Deutsch-Jozsa con ruido
+
+  Paquete com.ipserc.arith.quantum con 12 clases, todo verificado y pusheado.
+
+  Candidatos abiertos, ninguno urgente:
+  1. Más combinaciones cruzadas (oráculos ruidosos para Bernstein-Vazirani/Grover, o encadenar varios canales de Decoherence)
+  2. Multiplot/subplots en plotting (descartado hace varias sesiones)
+  3. PlotStyle en plotRe/Im/Mod/Pha(List<MatrixComplex>,...)
+  4. .claude/ y Claude/Commands.txt sin investigar
+  5. TestFilter04.java/plotFunc09.java sin datos de entrada
+  6. Lo que traigas
+
+  ¿Por dónde seguimos?
+
+✻ Crunched for 28s
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> Continúa con oráculos ruidosos para Bernstein-Vazirani
+● Hecho. NoisyBernsteinVazirani.java (nuevo), reusando el circuito ruidoso de NoisyDeutschJozsa verbatim, con 7/7 OK en la nueva batería y sin regresión en las 12 restantes. Commits locales 0df649c (feature) y fe0c9d4 (registro en
+  ComplexArithRev.md) — pendientes de push, avísame si quieres que lo haga.
+
+  Hallazgos numéricos verificados antes de codificar las aserciones:
+  - secret=0 es la f constante de Deutsch-Jozsa → inmune al ruido en la ancilla (herencia exacta).
+  - Para secreto no nulo, ruido en la ancilla degrada con fórmula cerrada exacta (1-p/2 depolarizing, 1-γ amplitude damping), y la probabilidad perdida aterriza entera en el resultado espurio x=0.
+  - bitFlip(p) en cualquier qubit de entrada degrada por igual cualquier secreto (1-p), independiente del bit real.
+  - amplitudeDamping/phaseFlip en un qubit de entrada no tienen ningún efecto (punto fijo |0>), para cualquier secreto.
+
+  ¿Seguimos con oráculos ruidosos para Grover, u otro candidato?
+
+✻ Churned for 7m 16s · 1 shell still running
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> Sí, continúa con Grover
+● Hecho. NoisyGrover.java (nuevo), ruido único al preparar el estado (decisión confirmada contigo), 6/6 OK, sin regresión en las 14 baterías restantes. Commits locales 04607f2 (feature) y be536ab (registro) — pendientes de push.
+
+  Dos hallazgos genuinamente sorprendentes, no anticipados por analogía con los Noisy* anteriores:
+  - bitFlip tiene efecto exactamente cero sobre search(), siempre — el estado inicial |+>^n es el punto fijo exacto de X.
+  - amplitudeDamping es el único de los 4 canales cuyo efecto depende de qué bit tiene el target en el qubit ruidoso (2 valores exactos), porque es el único no simétrico bajo |0><->|1>. depolarizing/phaseFlip degradan uniformemente, sin
+  importar target ni qubit.
+
+  Con esto ya están los 4 algoritmos del rol combinados con ruido. Candidatos abiertos, ninguno urgente: encadenar varios canales de Decoherence a la vez, ruido "por iteración" en Grover (descartado esta sesión a favor de dosis única),
+  multiplot/subplots, PlotStyle en los plots de listas, o investigar .claude//Commands.txt. ¿Seguimos, o lo dejamos aquí?
+
+✻ Cogitated for 4m 1s · 1 shell still running
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> Encadena más de un canal de Decoherence en la misma ejecución. Para el próximo commit incluye los .java que he modificado en Test y Claude/ClaudeRevisionComplexArith.txt. Cuando termines paras con la cadena de desarrollos para continuarla más adelante. Lo que necesito es entender todo lo que has hecho para quantum. Necesito aprender todo desde el principio. Quiero que me des una explicación/descripción detallada de cada módulo java y de sus métodos, qué es, para qué sirve, cómo se utiliza. Quiero aprender a usarlos para hacer experimentos o replicar paso a paso experimentos ya realizados. Soy absolutamente novato en esta materia. Si las explicaciones me las proporcionas en .md y las guardas en quantum_doc
+
+ Todo listo. Resumen de esta sesión:
+
+  1. applyChain() en Decoherence.java -- encadena varios canales de ruido en una ejecución, con 2 hallazgos verificados (fórmula de combinación exacta para canales repetidos, y qué pares conmutan). Commit b0d9474 (incluye tus ficheros
+  modificados en paralelo, tal como pediste), 9d46ccb (registro, cierra explícitamente la cadena de desarrollos).
+  2. Guía de aprendizaje completa en quantum_doc/ — 17 documentos en español, desde cero:
+    - 00_introduccion.md / 01_conceptos_basicos.md: mapa del paquete y primer de mecánica cuántica ligado al código.
+    - 02 a 15: un documento por cada una de las 13 clases (Qubits, BellTest, DensityMatrix, TimeEvolution, Teleportation, Decoherence, BlochSphere, DeutschJozsa, BernsteinVazirani, Grover, y las 4 Noisy*), con qué es/para qué sirve/cada
+  método explicado/ejemplo ejecutable.
+    - 16_experimentos_guiados.md: catálogo de las 16 baterías de verificación ya escritas, comandos exactos, y receta para construir tus propios experimentos.
+
+  Verifiqué cada fragmento de código de los 17 documentos compilándolo y ejecutándolo de verdad -- todos los números que se afirman en el texto (el 2√2 de Tsirelson, las fórmulas de degradación por ruido, etc.) coinciden con lo que
+  produce el código real. Commits 858dad2 (docs) y 7e99047 (registro).
+
+  Todos los commits están locales, pendientes de push si quieres. La cadena de desarrollos queda parada como pediste -- cuando quieras retomarla, los candidatos aparcados siguen ahí (ruido por iteración en Grover, encadenar canales
+  dentro de un Noisy* concreto, multiplot, etc.).
+
+● Todo listo. Resumen de esta sesión:
+
+  1. applyChain() en Decoherence.java -- encadena varios canales de ruido en una ejecución, con 2 hallazgos verificados (fórmula de combinación exacta para canales repetidos, y qué pares conmutan). Commit b0d9474 (incluye tus ficheros
+  modificados en paralelo, tal como pediste), 9d46ccb (registro, cierra explícitamente la cadena de desarrollos).
+  2. Guía de aprendizaje completa en quantum_doc/ — 17 documentos en español, desde cero:
+    - 00_introduccion.md / 01_conceptos_basicos.md: mapa del paquete y primer de mecánica cuántica ligado al código.
+    - 02 a 15: un documento por cada una de las 13 clases (Qubits, BellTest, DensityMatrix, TimeEvolution, Teleportation, Decoherence, BlochSphere, DeutschJozsa, BernsteinVazirani, Grover, y las 4 Noisy*), con qué es/para qué sirve/cada
+  método explicado/ejemplo ejecutable.
+    - 16_experimentos_guiados.md: catálogo de las 16 baterías de verificación ya escritas, comandos exactos, y receta para construir tus propios experimentos.
+
+  Verifiqué cada fragmento de código de los 17 documentos compilándolo y ejecutándolo de verdad -- todos los números que se afirman en el texto (el 2√2 de Tsirelson, las fórmulas de degradación por ruido, etc.) coinciden con lo que
+  produce el código real. Commits 858dad2 (docs) y 7e99047 (registro).
+
+  Todos los commits están locales, pendientes de push si quieres. La cadena de desarrollos queda parada como pediste -- cuando quieras retomarla, los candidatos aparcados siguen ahí (ruido por iteración en Grover, encadenar canales
+  dentro de un Noisy* concreto, multiplot, etc.).
+
+✻ Crunched for 16m 21s · 1 shell still running
+
+※ recap: We're building and documenting the com.ipserc.arith.quantum package. Just finished a full 17-document learning guide in quantum_doc/, all commits local. Next: decide whether to push, or continue with a paused development
+  candidate. (disable recaps in /config)
+
+● Background command "find / -maxdepth 6 -iname "Chronometer.java" 2&gt;/dev/null; find /c/Users/josel -iname "Chronometer.java" 2&gt;/dev/null | head" was stopped
+
+● Esto es solo la notificación de una búsqueda en segundo plano que quedó pendiente de antes (una búsqueda de Chronometer.java que ya no hacía falta, la resolví de otra forma). No requiere ninguna acción — todo el trabajo de esta sesión
+  sigue tal como quedó resumido arriba, a la espera de que me indiques si sigo con algo más.
+
+> Empieza a leer quantum_doc desde el principio. ¿Por qué solo usas ket y no usas bra? Ya sé qué el bra es el ket adjoint, pero ¿No sería más práctico tener definido bra?
+
+● Buena pregunta, y es justo el tipo de duda que conviene aclarar antes de seguir.
+
+  En este código el bra no es un tipo distinto — es literalmente el mismo MatrixComplex, traspuesto y conjugado (fila en vez de columna). adjoint() ya es un método genérico de MatrixComplex que hace exactamente eso para cualquier matriz,  no solo para kets, así que psi.adjoint() produce el bra sin necesitar ningún concepto nuevo.
+
+  Un Qubits.bra(ket) sería, literalmente, return ket.adjoint(); — una única línea, sin ningún comportamiento propio. El proyecto evita ese tipo de envoltorio trivial cuando no aporta nada más allá de renombrar una llamada ya existente (y
+  aquí tampoco hay ningún sitio del código donde un bra se guarde o se pase por ahí como objeto independiente — siempre aparece de paso, dentro de una expresión como <psi|A|psi> = psi.adjoint().times(A).times(psi)).
+
+  El único argumento a favor sería legibilidad en el punto de uso (Qubits.bra(psi) se lee más "a la Dirac" que psi.adjoint()). Si te parece que esa lectura merece la pena, lo añado como wrapper de una línea — pero no lo veo
+  imprescindible dado cómo se usa hoy. ¿Sigo leyendo 01_conceptos_basicos.md contigo o prefieres que lo añada primero?
+
+✻ Churned for 19s
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> prefiero que lo añadas para hacer más legible el código, a pesar de la indirección que añade.
+● Hecho. Qubits.bra(ket) añadido — envoltorio de una línea sobre adjoint(), con la aclaración explícita de que solo tiene sentido semántico sobre kets, no sobre operadores (esos siguen usando .adjoint() como dagger). Actualicé los 5
+  puntos del código donde el operando ya era un ket, y los documentos 01/02 de quantum_doc. Sin regresión en las 16 baterías. Commit 43e2ac1, pendiente de push.
+
+  De paso, veo un quantum_doc/00_introduccion.pdf sin trackear en el repo — no lo he tocado, imagino que lo generaste tú aparte.
+
+  Retomamos la lectura de 01_conceptos_basicos.md desde el principio, ¿seguimos?
+
+✻ Sautéed for 2m 57s
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> sí, sigue leyendo
+> Mientras me empollo tus guías, sigue con los candidatos aparcados siguen ahí (ruido por iteración en Grover, encadenar canales dentro de un Noisy* concreto, multiplot, etc.).
+● Empiezo con ruido por iteración en Grover — el candidato que quedó aparcado en la sesión anterior (a favor de la dosis única). Reviso primero cómo está montado NoisyGrover para diseñar la variante.
+
+● Hecho. Dos candidatos más cerrados de la lista aparcada:
+
+  1. Ruido por iteración en Grover — NoisyGrover.searchPerIteration(), alternativa explícita a la dosis única (ninguna sustituye a la otra). Hallazgo: bitFlip deja de ser invariante bajo este modelo (a diferencia de la dosis única), pero  sigue degradando de forma uniforme entre objetivos, igual que depolarizing/phaseFlip. 7/7 OK.
+  2. Encadenar canales dentro de un Noisy* concreto — NoisyDeutschJozsa.probabilityAllZeroChain(), primer uso real de applyChain(). Hallazgo: la invariancia de la ancilla ante una f constante se generaliza exactamente a una cadena entera  de canales, no solo a uno. 4/4 OK.
+
+  Sin regresión en las 16 baterías restantes. Commits d3bda15 y 2ab335e (más 9519de5 de registro), pendientes de push.
+
+  Queda solo multiplot en la capa de plotting de la lista que mencionaste, y ese ya lo dejé aparte deliberadamente: se ha descartado explícitamente varias veces en sesiones anteriores, así que antes de meterle mano prefiero confirmarlo
+  contigo en vez de asumir que "aparcado" significa "listo para retomar sin más". ¿Lo abordamos también, o lo dejamos para cuando termines de leer quantum_doc?
+
+✻ Churned for 5m 53s
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> que vas a conseguir con multiplot en la capa de plotting?
+● En la capa de plotting actual (SimpleGnuplot), cada llamada construye un script y lo lanza como proceso gnuplot de una vez — multiplot te daría varios gráficos independientes (cada uno con su propio título/escala/estilo) tileados en
+  una sola ventana/fichero, por ejemplo Re/Im/Mod/Pha de una misma función como 4 paneles juntos en vez de 4 ventanas sueltas o series superpuestas en los mismos ejes.
+
+  El motivo por el que lleva descartado desde hace varias sesiones no es de valor sino de coste: cuando se diseñó la capa de plotting (hace unas sesiones, revisando SimpleGnuplot/MatrixComplexPlot), se identificó que meter multiplot
+  obligaría a separar "construir el script" de "ejecutar el proceso gnuplot" dentro de SimpleGnuplot — un cambio arquitectónico mayor e independiente del resto, no una función más que se añade encima.
+
+  Dado eso, ¿quieres que lo acometa como ese cambio de arquitectura (tocando SimpleGnuplot de fondo), o prefieres dejarlo aparcado y seguir con otra cosa mientras lees quantum_doc?
+
+✻ Crunched for 19s
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> Evalua coste y me presentas la planificación con la medida de riesgo. Luego veré si lo ejecutamos o no.
+ Here is Claude's plan:
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌ Multiplot en la capa de plotting (com.ipserc.arith.plot)
+
+ Contexto
+
+ SimpleGnuplot (el reemplazo propio de Panayotis, sin dependencias externas)
+ está diseñado en torno a UN solo plot/splot por instancia: buildScript()
+ construye siempre exactamente 1 comando de dibujo + sus bloques de datos, y
+ launch() lanza 1 proceso gnuplot con ese script completo. Multiplot
+ (gnuplot: set multiplot layout R,C envolviendo varios plot/splot
+ independientes) se descartó explícitamente al diseñar esta capa hace varias
+ sesiones porque, tal como estaba estructurada la clase, obligaría a mezclar
+ "construir el script de 1 panel" con "lanzar el proceso" -- un cambio de
+ arquitectura mayor si se hacía sin pensarlo, no una función más encima.
+
+ Tras revisar el código real (SimpleGnuplot.java, 344 líneas), ese cambio de
+ arquitectura resulta ser MENOR de lo que sonaba: buildScript() ya separa
+ internamente "cabecera de terminal" + "cuerpo del panel (título, settings,
+ postInit, comando plot/splot, bloques de datos)" + "quit". Extraer ese cuerpo
+ a un método reutilizable y el lanzamiento de proceso a otro es una refactor
+ de bajo riesgo, no una reescritura -- y es exactamente la separación que se
+ identificó como necesaria.
+
+ Objetivo de esta pasada: añadir la capacidad núcleo de tilear varios
+ paneles en una sola ventana/fichero, como pieza NUEVA y aditiva -- sin tocar
+ ninguno de los ~9 puntos de llamada existentes (MatrixComplexPlot,
+ PolynomPlot, BlochSphere, Fourier/Laplace/Z, Polynom). Los
+ envoltorios de conveniencia en capas superiores (p.ej. Re/Im/Mod/Pha como
+ multiplot 2x2 automático) quedan fuera de esta pasada, a petición explícita
+ del usuario -- candidato aparte si se quiere después.
+
+ Diseño
+
+ 1. Refactor mínimo de SimpleGnuplot.java (extracción pura, sin cambio de comportamiento)
+
+ - Extraer de buildScript() un nuevo método package-visible
+ String buildPanelBody() que devuelve exactamente lo que hoy va entre la
+ cabecera de terminal y el quit final: set title (si lo hay), los
+ settings, postInit, la línea plot/splot con sus term clauses, y los
+ bloques de datos inline. buildScript() pasa a ser, literalmente,
+ [cabecera de terminal] + buildPanelBody() + "quit\n" -- salida byte a
+ byte idéntica a la actual para cualquier caller existente (se verifica
+ diffing el script capturado antes/después, ver sección de verificación).
+ - Extraer de launch() un método package-visible estático
+ static void runScript(String script, boolean wait, boolean effectivePersist)
+ que hace exactamente lo que hoy hace launch() a partir de buildScript()
+ ya calculado: resolver el ejecutable (resolveGnuplotExecutable(), sin
+ tocar), construir el ProcessBuilder, escribir el script por stdin,
+ esperar si wait. launch(boolean wait) pasa a ser un envoltorio de 2
+ líneas sobre este método con su propia lógica de effectivePersist ya
+ existente. Mismo patrón "extraer lo compartido" que DeutschJozsa.runCircuit()/
+ Decoherence.applyChain() ya usan en el paquete quantum -- consistente
+ con el estilo del proyecto.
+
+ Ningún método público existente cambia de firma ni de comportamiento.
+
+ 2. Clase nueva GnuplotMultiPlot.java (mismo paquete com.ipserc.arith.plot)
+
+ La pieza que faltaba: un contenedor de varios paneles, cada uno un
+ SimpleGnuplot normal (reutiliza el 100% de su API ya existente --
+ addPlot, addPlotGrid, set, newGraph3D, PlotStyle por serie -- un
+ panel simplemente nunca llama a .plot() por su cuenta).
+
+ public final class GnuplotMultiPlot {
+     public SimpleGnuplot addPanel();          // crea y devuelve un panel nuevo, ya añadido a la lista
+     public void layout(int rows, int cols);   // "set multiplot layout rows,cols"
+     public void setTitle(String title);       // titulo global del multiplot (opcional)
+     public void plot(SimpleGnuplot.e_syncMode mode); // construye 1 script y lanza 1 proceso
+ }
+
+ plot() construye UN script: cabecera de terminal (mismas reglas que
+ SimpleGnuplot hoy -- setOutputFile/setTerminal/terminal por defecto,
+ repitiendo la lógica ya existente o extrayéndola también si se puede sin
+ duplicar), set multiplot layout R,C title '...'\n, después
+ panel.buildPanelBody() de cada panel en orden, unset multiplot\n,
+ quit\n -- y lo lanza con SimpleGnuplot.runScript(...) (el método
+ extraído en el paso 1), así que reutiliza exactamente la misma resolución de
+ ejecutable/gestión de persist/sync-async que ya existe, sin duplicarla.
+
+ 3. Sin cambios en ningún otro fichero
+
+ MatrixComplexPlot, PolynomPlot, BlochSphere, Fourier, Laplace, Z,
+ Polynom -- ninguno se toca. GnuplotMultiPlot es API nueva y opcional.
+
+ Riesgos
+
+ - Bajo, sobre el código existente: los pasos de refactor de
+ SimpleGnuplot son extracciones puras (mover código, sin tocar lógica) --
+ se verifican por diff de texto, no solo "compila". El radio de impacto de
+ un fallo aquí, si lo hubiera, se limita a esos 2 métodos nuevos y no toca
+ la firma pública de nada existente.
+ - Medio, sobre la sintaxis de multiplot de gnuplot en sí: a diferencia
+ del resto de SimpleGnuplot (cuya sintaxis se verificó contra la salida
+ real de Panayotis antes de escribirla, según su propio Javadoc), no hay
+ ninguna implementación de referencia en este proyecto para multiplot --
+ hay que verificarlo empíricamente contra gnuplot de verdad, al menos una
+ vez con ventana real (no solo con el script capturado), para confirmar que
+ el layout se renderiza como se espera (título global bien colocado, cada
+ panel con su propio título sin arrastrar el de otro -- mitigado por
+ diseño, ya que cada panel es una instancia SimpleGnuplot nueva e
+ independiente, así que no hay estado que gotee entre paneles).
+ - Esfuerzo estimado: 1 fichero nuevo (GnuplotMultiPlot.java, ~80-120
+ líneas) + refactor de SimpleGnuplot.java (extraer 2 métodos, sin
+ crecimiento neto significativo) -- tamaño comparable a los bloques ya
+ hechos esta sesión (applyChain(), Qubits.bra()), no una reescritura de
+ varios días.
+
+ Verificación
+
+ 1. Regresión sin ventana (técnica ya establecida, ver memoria
+ complexarith_plot_verification_technique): redirigir por reflexión
+ SimpleGnuplot.cachedExe a un .bat señuelo que captura el script
+ recibido por stdin. Capturar el script de 2-3 llamadas existentes
+ representativas (MatrixComplexPlot, PolynomPlot) ANTES del refactor
+ del paso 1, repetir DESPUÉS, diff -- debe ser byte a byte idéntico.
+ 2. Batería nueva ScratchGnuplotMultiPlotAudit01.java (mismo patrón
+ Scratch*Audit01/check() de todo el proyecto): 2-3 paneles con datos
+ distintos (2D y 3D mezclados), verificar por texto capturado que el
+ script generado tiene exactamente 1 set multiplot layout ..., N
+ comandos plot/splot (uno por panel, con sus propios títulos/datos), 1
+ unset multiplot, y que termina en quit.
+ 3. Verificación visual real (al menos 1 vez, con gnuplot instalado de
+ verdad, ventana interactiva): confirmar que el layout se ve como cabría
+ esperar -- paneles en su sitio, sin solapes, títulos correctos.
+ 4. Recompilación fresca completa del paquete com.ipserc.arith.plot +
+ dependientes (matrixcomplex, polynom, signal, quantum) para
+ confirmar que el refactor no rompe ningún punto de llamada existente.
+
+● Multiplot implementado. El coste real resultó mucho menor de lo estimado inicialmente al leer el código de verdad: buildScript() ya separaba internamente "cabecera" de "cuerpo del panel", solo hacía falta extraerlo.
+
+  - SimpleGnuplot.java: refactor puro (sin cambio de comportamiento) — terminalHeader() + buildPanelBody(boolean) + runScript(), package-visible.
+  - GnuplotMultiPlot.java (nuevo): tilea varios paneles SimpleGnuplot en una sola ventana/fichero, layout() opcional, sin tocar ningún punto de llamada existente.
+  - Verificado: 7/7 OK sin ventana (incluye comprobación carácter a carácter de que el caso de 1 panel no cambió), sin regresión en BlochSphere, y renderización real a PNG (2×2, 4 curvas) inspeccionada visualmente — todo en su sitio, sin  solapes.
+
+  Commits fae7be7 (feature) y 67c9996 (registro), pendientes de push. Con esto se cierra el último candidato que llevaba varias sesiones aparcado. ¿Sigues con la lectura de quantum_doc, o quieres algo más?
+
+> creame un ejemplo de multiplot en test para qué lo vea y lo ejecutas. Comenta el ejemplo para qué me entere de cómo se hace. 
+● La ventana de gnuplot debería haberse abierto ya en tu escritorio con la rejilla 2×2 (seno, coseno, parábola y recta, cada uno en su panel con su color).
+
+  El fichero es src/TestComplex/plotFuncMultiPlot01.java, comentado paso a paso:
+
+  1. new GnuplotMultiPlot() — el contenedor, no es un gráfico en sí mismo.
+  2. setTitle(...) — título general de la ventana, distinto del título de cada panel.
+  3. layout(2, 2) — la rejilla; si no se llama, por defecto sale 1 fila × tantas columnas como paneles.
+  4. addPanel() (×4) — cada llamada crea y devuelve un SimpleGnuplot normal, con la misma API de siempre (setTitle/addPlot/PlotStyle...); la única diferencia es que el panel nunca llama a su propio .plot(). El orden de addPanel() es el
+  orden en la rejilla (izquierda→derecha, arriba→abajo).
+  5. multiplot.plot(ASYNC) — construye 1 solo script con los 4 paneles dentro de set multiplot ... unset multiplot y lanza 1 solo proceso gnuplot. Usé ASYNC en vez de SYNC para que la llamada Java no se quede bloqueada esperando a que
+  cierres la ventana a mano.
+
+  No lo he comiteado — está ahí como ejemplo de trabajo, dime si quieres que lo añada al repo junto al resto de plotFuncNN.java.
+ 
+> Redacta de nuevo el README.md y ¿Puedes revisar/actualizar los tags del proyecto?. Luego haces commit y push de todo lo que tengas pendiente.
+● Todo hecho:
+
+  1. README.md reescrito — añadida la sección com.ipserc.arith.quantum (13 clases) que faltaba por completo, y actualizado com.ipserc.arith.plot con GnuplotMultiPlot.
+  2. VERSION 1.1→1.2 (el tag v1.1 era de julio, sin reflejar nada de este bloque de trabajo).
+  3. Topics de GitHub actualizados: quité 4 de bajo tráfico de búsqueda (basis-exchange, vector-distance, complex-functions, chebyshev-polynomials) y añadí 6 (java, quantum-computing, quantum-simulation, linear-algebra,
+  laplace-transform, z-transform) — 20 exactos, el máximo de GitHub.
+  4. Push: los 16 commits pendientes (todo el bloque de esta sesión) ya están en origin/master.
+
+  Dejé fuera del commit Claude/ClaudeRevisionComplexArith.txt (tus notas manuales, sigue modificado sin comitear) y los PDF/HTML sueltos en quantum_doc/ — no me habías pedido incluirlos y no quise asumir. Avísame si quieres que también
+  entren.
+
+● Antes de recomendar, un aviso: el repo tiene ahora mismo 2 licencias contradictorias — LICENSE es GPLv3 y LICENSE.md es AGPLv3, y no hay ninguna referencia a cuál rige realmente (ni en el README). Eso hay que resolverlo primero, sea
+  cual sea la que elijas.
+
+  Mi recomendación: MIT (o, si te preocupa algo la protección de patentes, Apache 2.0). Es una librería de utilidad (aritmética/álgebra/simulación cuántica) pensada para que otros la importen en sus propios proyectos vía classpath —
+  GPL/AGPL son copyleft: cualquiera que la use dentro de un proyecto cerrado tendría que liberar también su código, lo cual frena la adopción justo cuando has empezado a invertir en que Google te encuentre (los topics de GitHub). AGPL en  concreto tiene sentido para servicios en red (su cláusula se activa por uso remoto), que no es tu caso aquí — es una biblioteca local, no un servicio.
+
+  ¿Quieres que la deje en MIT (borrando la AGPLv3 duplicada y actualizando la cabecera de copyright), o prefieres mantener el copyleft y solo resolver la contradicción quedándote con una de las 2 actuales?
+
+✻ Cooked for 23s · 1 shell still running
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── multiplot-gnuplot-architecture ──
+> Deja MIT y borra la AGPLv3 duplicada
+
+  - LICENSE → MIT (con tu nombre y 2017, el año de origen del proyecto).
+  - LICENSE.md (AGPLv3 duplicada) borrada.
+  - Añadida referencia ## Licencia en el README.
+
+  GitHub detectará automáticamente la licencia MIT en el badge del repo a partir del contenido de LICENSE tras este push, sin que haga falta tocar nada más.
+
+> ¿Qué tenemos aparcado?
+
+  Read 1 file (ctrl+o to expand)
+
+● Ahora mismo lo aparcado, todo sin urgencia:
+
+  1. Envoltorios de conveniencia sobre GnuplotMultiPlot en capas superiores (p. ej. Re/Im/Mod/Pha como multiplot 2×2 automático en MatrixComplexPlot) — dejado fuera a propósito al implementar el núcleo genérico.
+  2. PlotStyle en plotRe/plotIm/plotMod/plotPha(List<MatrixComplex>,...) — pendiente desde hace varias sesiones.
+  3. .claude/ y Claude/Commands.txt — siguen sin trackear, sin investigar todavía qué son ni de dónde vienen (candidato arrastrado muchas sesiones).
+  4. TestFilter04.java/plotFunc09.java — marcados con ruta portable pero sin poder ejecutarse por falta de datos de entrada.
+  5. Cualquier otra cosa que traigas tú.
+
+  Ninguno urgente. ¿Tiras de alguno, o sigues leyendo?
+
+> arregla TestFilter04.java/plotFunc09.java
+
+  Searched for 1 pattern, read 1 file, listed 2 directories (ctrl+o to expand)
+
+● 7-Zip está instalado. Extraigo el archivo para ver si contiene los ficheros de datos que faltan.
+
+● Bash("/c/Program Files/7-Zip/7z.exe" l "fourier_2020_1012_0350.7z" 2>&1 | head -60)
+  ⎿  7-Zip 26.00 (x64) : Copyright (c) 1999-2026 Igor Pavlov : 2026-02-12
+
+     Scanning the drive for archives:
+     … +26 lines (ctrl+o to expand)
+  ⎿  Allowed by auto mode classifier
+
+  Searched for 2 patterns, read 1 file, listed 1 directory (ctrl+o to expand)
+
+● He investigado ambos. Ninguno es un bug de código — son 2 tests que dependían de ficheros de datos externos de 2020 que nunca llegaron a versionarse, y esos ficheros no existen en ningún sitio del repo (comprobado, incluido el .7z de
+  la raíz, que resultó ser solo revisiones antiguas del propio Fourier.java, no datos).
+
+  TestFilter04.java: buena noticia — el propio fichero contiene 5 métodos privados (func14...func18, señales tipo "7kHz+50·sin(...)", "70Hz+5·sin(...)", etc.) que no los llama nadie en main(). Y Fourier.java tiene justo lo necesario para
+  generarlo todo en Java sin ficheros externos: un constructor Fourier(Function<Complex,Complex>, loLimit, upLimit), y métodos .filter(Fourier)/.convolution(Fourier). Todo apunta a que el test original generaba los datos así y en algún
+  momento se cambió a leer ficheros cacheados. Propongo reconectar main() para generar todo en vivo (una señal original vía una de esas funciones + un filtro, aplicado tanto en frecuencia con .filter() como en tiempo con .convolution()),  conservando la misma estructura de comparaciones que ya tiene el test (DFT1+DFT2, CONV1+CONV2, DFT-CONV, ORIGINAL-DFT, ORIGINAL-CONV) — que, por cierto, parecen diseñadas para verificar justo el teorema de que filtrar multiplicando en
+  frecuencia equivale a convolucionar en tiempo.
+
+  plotFunc09.java: aquí sí me quedo atascado — necesita puntos_funcion_primos.txt, "generado externamente por un script Python", y no hay ni rastro en el repo de qué función de los primos era esa (¿π(x) el contador de primos?, ¿el hueco
+  entre primos consecutivos?, ¿n vs el n-ésimo primo?). No quiero inventar el contenido sin más.
+
+● User declined to answer questions
+  ⎿  · Para plotFunc09.java, ¿qué "función de primos" quieres que genere yo mismo en Java (sin depender del script Python perdido)? (pi(x): contador de primos (Recomendado) / Huecos entre primos consecutivos / n-esimo primo / Dejarlo
+     marcado como irresoluble, no tocar este)
+
+● ¿Qué quieres aclarar sobre la pregunta de plotFunc09.java?
+
+✻ Sautéed for 2m 15s · 1 shell still running
+
+> para los primos mira en "C:\Users\josel\workspace-python\primes\ ahí tienes "C:\Users\josel\workspace-python\primes\puntos_funcion_primos.txt"
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Ahí está — hay un directorio workspace-python en disco con los datos originales. Copio primero ese fichero, y de paso reviso si los datos de TestFilter04 también sobreviven en algún sitio parecido antes de rediseñar nada.
+
+● Bash(mkdir -p "$HOME/ipserc/saco/primes"
+      cp "/c/Users/josel/workspace-python/primes/puntos_funcion_primos.txt" "$HOME/ipserc/saco/primes/"…)
+  ⎿  Running in the background (↓ to manage)
+  ⎿  Allowed by auto mode classifier
+
+> Los datos de Furier no los vas a encotrar. Los tengo en otro ordenador y no los he subido a la nube
+
+● Entendido, dejo de buscarlos. Verifico primero que plotFunc09.java ya funciona con el fichero copiado.
+
+
+  - plotFunc09.java: no tenía ningún bug — solo le faltaba el dato, que localizaste en workspace-python. Copiado a la ruta que ya esperaba, verificado (839 puntos, script válido). Cero cambios de código.
+  - TestFilter04.java: reescrito para generar todo en Java, reconectando func14()...func18() (definidas en el fichero desde hace tiempo, sin ningún llamador) con Fourier.filter()/.convolution() — los nombres de los ficheros perdidos       encajaban exactamente con lo que esos métodos calculan. De paso until encontré que mi primer comentario ("DFT-CONV debería salir cerca de 0") era falso — lo verifiqué numéricamente (max|diff|≈0.37, no redondeo) y corregí el comentario:  filter() es convolución circular, convolution() es lineal/causal, no son intercambiables sin relleno de ceros.
+
+  Ambos verificados sin abrir ventanas (18 plots, sin excepciones) y con comprobación numérica independiente. Commits a3c2db8 (fix) y 1c223b6 (registro), pendientes de push si quieres.
+
+● Ahora mismo lo aparcado, todo sin urgencia:
+
+  1. Envoltorios de conveniencia sobre GnuplotMultiPlot en capas superiores (p. ej. Re/Im/Mod/Pha como multiplot 2×2 automático en MatrixComplexPlot) — dejado fuera a propósito al implementar el núcleo genérico.
+  2. PlotStyle en plotRe/plotIm/plotMod/plotPha(List<MatrixComplex>,...) — pendiente desde hace varias sesiones.
+  3. .claude/ y Claude/Commands.txt — siguen sin trackear, sin investigar todavía qué son ni de dónde vienen (candidato arrastrado muchas sesiones).
+  5. Cualquier otra cosa que traigas tú.
+
+● Todo guardado y empujado. Resumen del cierre:
+
+  Repo: HEAD==origin/master==07d68bb, todo pusheado, nada pendiente salvo tus propios ficheros de siempre (ClaudeRevisionComplexArith.txt, .claude/, Commands.txt, los PDF/HTML sueltos de quantum_doc/).
+
+  Memoria persistente actualizada (5 ficheros): documento de continuidad principal, notas del paquete quantum (12→16 clases), rutas de test (TestFilter04/plotFunc09 cerrados), reemplazo de GnuPlot (+ GnuplotMultiPlot), y path/entorno (gh  CLI + el gotcha $HOME de Bash ≠ user.home de Java).
+
+  Tu ~/.bashrc actualizado con javac/java/gh en el PATH para cualquier terminal nueva que abras (verificado con shell interactiva real).
+
+  Cuando vuelvas, por dónde seguir — sin nada urgente ni a medias, candidatos abiertos:
+  1. Envoltorios de conveniencia sobre GnuplotMultiPlot (p. ej. Re/Im/Mod/Pha como multiplot automático).
+  2. PlotStyle en plotRe/plotIm/plotMod/plotPha(List<MatrixComplex>,...).
+  3. .claude/ y Claude/Commands.txt — siguen sin investigar qué son.
+  4. Diagonalización genérica del operador de medida en BellTest.
+  5. Si sigues leyendo quantum_doc/, simplemente retoma con tus preguntas — no hace falta "candidato" para eso.
+
+  Hasta la próxima.
+
+========================================================================================================================================
+#
+#	15/08/2026 DIA 14 - quantum-entanglement-bell-test
+#
+========================================================================================================================================
+> continuamos con complexarith. lee el ComplexArithRev.md para recuperar TODO el contexto.
+
+  Searched for 2 patterns, read 2 files (ctrl+o to expand)
+
+● Contexto recuperado. Estado al pausar la Trigesimoséptima sesión (la más larga hasta ahora): master==origin/master==1c223b6, cierre de la hoja de ruta cuántica completa (16 elementos: 14 clases del paquete com.ipserc.arith.quantum +
+  GnuplotMultiPlot + guía quantum_doc/), más mantenimiento de repo (README, VERSION 1.2, licencia MIT, topics de GitHub) y el arreglo de TestFilter04.java/plotFunc09.java.
+
+  Voy a comprobar rápido que el estado del repo sigue siendo el que se dejó anotado.
+
+ Todo cuadra con lo documentado, salvo un fichero nuevo sin trackear: src/TestComplex/TestQuantum01.java (no mencionado en el diario — probablemente edición tuya en paralelo en Eclipse, el patrón habitual). El resto de sin trackear
+  (.claude/, Claude/Commands.txt, PDFs/HTML sueltos en quantum_doc/) ya estaba anotado como "sin investigar, no tocar".
+
+  No queda ningún punto de trabajo a medias — la sesión se cerró limpia. Los candidatos abiertos que dejaste anotados para retomar (ninguno urgente):
+
+  1. Envoltorios de conveniencia sobre GnuplotMultiPlot (p.ej. Re/Im/Mod/Pha como multiplot 2×2 automático en MatrixComplexPlot).
+  2. PlotStyle en plotRe/plotIm/plotMod/plotPha(List<MatrixComplex>,...).
+  3. .claude/ y Claude/Commands.txt — llevan muchas sesiones sin trackear ni investigar.
+  4. Diagonalización genérica del operador de medida en BellTest.
+  5. Continuar la conversación pedagógica sobre quantum_doc/ si sigues leyéndolo.
+
+  ¿Por dónde seguimos? ¿Alguno de estos candidatos, algo relacionado con TestQuantum01.java, u otra cosa que traigas hoy?
+
+✻ Worked for 33s
+
+> ¿Como representas un fotón en quantum?
+
+  Searched for 3 patterns, read 1 file (ctrl+o to expand)
+
+● El paquete com.ipserc.arith.quantum no modela un fotón como partícula física con propiedades propias (posición, momento, etc.) — trabaja con el qubit abstracto, es decir, cualquier sistema cuántico de 2 niveles, sea cual sea su
+  implementación física (fotón, espín de electrón, estado de un ion atrapado...). El fotón entra simplemente como una interpretación posible del mismo formalismo matemático.
+
+  Read 1 file (ctrl+o to expand)
+
+● Confirmado leyendo Qubits.java: efectivamente no hay clase Photon ni nada específico. La representación es abstracta, y un fotón (como cualquier otro qubit físico) se representaría igual que cualquier otro:
+
+  En el proyecto (código):
+  MatrixComplex psi = Qubits.ket0();  // |0>
+  MatrixComplex phi = Qubits.ket1();  // |1>
+  Un MatrixComplex columna 2×1, exactamente igual que si fuera un espín de electrón o un ion atrapado. El paquete no distingue la "sustancia física" del qubit — solo el álgebra lineal (vector de estado, operadores hermíticos como medida,  Kronecker para componer varios).
+
+  Físicamente, cómo se traduce eso a un fotón real:
+
+  El qubit {|0>, |1>} en un fotón normalmente se codifica en su polarización:
+  - |0> ↔ polarización horizontal |H>
+  - |1> ↔ polarización vertical |V>
+
+  (otras convenciones válidas: diagonal/antidiagonal |D>/|A>, o circular izquierda/derecha |L>/|R> — son solo bases distintas del mismo espacio de Hilbert de 2 dimensiones, relacionadas por una rotación, igual que en el proyecto
+  pauliX()/pauliZ() conectan bases distintas).
+
+  Un estado superpuesto como el que generarías con las funciones del paquete —
+
+  $$|\psi\rangle = \alpha|H\rangle + \beta|V\rangle,\quad |\alpha|^2+|\beta|^2=1$$
+
+  — es literalmente un fotón con polarización oblicua (p.ej. a 45°, o elíptica si α,β tienen fase relativa distinta de 0/π).
+
+  Si quieres, puedo:
+  1. Añadir un ejemplo/comentario en Qubits.java o quantum_doc/ explicando esta correspondencia física (fotón-polarización) como nota didáctica, o
+  2. Seguir con alguno de los candidatos abiertos.
+
+  ¿Cuál prefieres, o era solo una pregunta de aprendizaje puntual?
+
+✻ Brewed for 31s
+
+> ¿se puede representar cualquier partícula fundamental, fermión o bosón, con estas clases?
+
+● Depende de qué parte de la partícula quieras representar. Distingo tres capas:
+
+  1. Lo que el formalismo matemático SÍ cubre (y de sobra)
+
+  MatrixComplex no está limitado a 2 dimensiones — Qubits.java solo pone fábricas de conveniencia para el caso 2D (ket0()/ket1()), pero un vector columna n×1 con operadores hermíticos n×n es exactamente el espacio de Hilbert de cualquier  sistema con un número finito de estados internos discretos. Eso significa que el spin de una partícula de espín s (dimensión 2s+1) se representa igual de bien con un MatrixComplex(2s+1, 1), aunque hoy no exista una fábrica lista para
+  ello:
+
+  - espín 1/2 (electrón, quark, neutrino...) → 2D, exactamente lo que ya tienes.
+  - fotón: sin masa, no tiene "espín 1" en el sentido de 3 estados — solo 2 helicidades físicamente realizables (+1/-1), así que también cae en 2D (polarización), como ya vimos.
+  - una partícula de espín 1 masiva (p.ej. un bosón W) sí necesitaría 3D genuinas.
+  - espín 3/2 → 4D, etc.
+
+  Así que "cualquier partícula, restringida a su grado de libertad interno discreto (spin/polarización), en un instante dado, ignorando dónde está o hacia dónde va" — sí, con MatrixComplex de la dimensión adecuada.
+
+  2. Lo que NO cubre: grados de libertad continuos
+
+  El estado completo de una partícula real es (posición o momento) ⊗ (spin). La parte espacial vive en un espacio de Hilbert de dimensión infinita (funciones de onda, no vectores finitos). Este proyecto no tiene wavefunctions continuas —
+  solo álgebra lineal de dimensión finita. Puedes aproximar discretizando una malla de posiciones, pero eso ya no es "representar la partícula", es truncar un modelo distinto.
+
+  En la práctica esto no es una limitación grave para computación cuántica: ahí casi siempre se trabaja sobre sistemas ya preparados en 2 niveles discretos (ion atrapado, espín congelado en una trampa, fotón por polarización)
+  precisamente para poder ignorar la parte continua. Es la razón por la que "qubit" es un concepto útil y separable del resto de la física de la partícula.
+
+  3. Lo que NO cubre, y es la diferencia real entre fermión y bosón
+
+  Aquí está el hueco de fondo, y es donde la pregunta "¿fermión o bosón?" deja de ser solo una etiqueta:
+
+  Fermión y bosón no se distinguen por la dimensión del vector de estado, sino por cómo se comporta el estado conjunto de varias partículas idénticas al intercambiarlas:
+  - bosones: el estado debe ser simétrico bajo el intercambio de dos partículas.
+  - fermiones: debe ser antisimétrico (de ahí el principio de exclusión de Pauli).
+
+  MatrixComplex.kroneckerprod() da el producto tensorial "plano", sin imponer ninguna simetría — es correcto para componer qubits distinguibles (como ya se usa en el paquete, p.ej. registros de n qubits en Grover/Deutsch-Jozsa, donde
+  cada qubit es una posición física distinta y por tanto ya distinguible). Pero no basta para modelar partículas genuinamente idénticas: para eso hace falta (anti)simetrizar explícitamente el vector (determinantes de Slater para
+  fermiones, permanentes para bosones) o pasar a segunda cuantización (espacio de Fock, operadores de creación/aniquilación) — nada de eso existe hoy en com.ipserc.arith.quantum, y es una pieza estructuralmente distinta, no una extensión
+  pequeña de lo que hay.
+
+  Resumen corto: sí para el grado de libertad discreto de una sola partícula (spin/polarización, cualquier dimensión), no para la parte espacial continua, y no para la estadística fermión/bosón de partículas idénticas — eso último
+  requeriría una capa nueva (simetrización o segunda cuantización), no una fábrica más en Qubits.java.
+
+  ¿Te interesa que anote esta distinción como candidato en quantum_doc/ (por ejemplo un documento nuevo "límites del modelo"), o era solo curiosidad de la sesión?
+
+✻ Brewed for 35s
+
+> Sí, anótalo en quantum_doc/ y dime si sería posible extenderlo en un futuro
+● He añadido quantum_doc/17_limites_y_extensiones.md (nota conceptual, sin código asociado) y enlazado en el índice de 00_introduccion.md. Resumen de lo que respondí a "¿sería posible extenderlo en un futuro?" dentro del documento:
+
+  - Espín general 2s+1: sí, esfuerzo moderado — MatrixComplex ya soporta cualquier dimensión, solo faltan fábricas de kets/operadores de espín generalizados, mismo patrón que Qubits.java.
+  - Partículas idénticas (fermión/bosón): sí, pero es un proyecto nuevo — haría falta (anti)simetrizar el producto tensorial (determinante de Slater / permanente), con coste factorial en el número de partículas.
+  - Grados de libertad continuos (posición/momento): no de forma exacta con este diseño (vectores de dimensión finita) — solo aproximable truncando una malla, con un paralelismo interesante con com.ipserc.arith.signal
+  (Fourier/Laplace/Z), pero es un candidato grande y aparte.
+
+  Ninguno queda como trabajo en marcha, solo anotado como línea futura. ¿Quieres que lo comitee ahora, o sigues explorando el tema antes de cerrar?
+
+> ¿Se puede simular el experimento de la doble rendija con lo que tengo ahora?
+
+  Read 1 file (ctrl+o to expand)
+
+● Corta: no tal cual, hoy, pero es más alcanzable de lo que sugerí ayer en la sección 4c de 17_limites_y_extensiones.md — con matices importantes.                                                                                           
+  Por qué no hoy tal cual
+
+  El experimento de la doble rendija necesita el grado de libertad espacial continuo de la partícula (posición a lo largo de la pantalla), no un espín/qubit de 2 niveles. Es justo el caso (c) que documenté: Qubits/MatrixComplex están      pensados para espacios discretos de dimensión finita, no funciones de onda continuas.
+
+  Por qué SÍ es alcanzable como aproximación, sin infraestructura nueva
+
+  Repasando TimeEvolution.java (unitary()/evolve()) para responderte, veo que en realidad ya es genérico en la dimensión — no asume 2^n qubits, funciona con cualquier MatrixComplex Hermítica de cualquier tamaño. Eso significa que se
+  puede simular la doble rendija discretizando el espacio (una malla de N puntos de posición) sin tocar el núcleo del paquete:
+
+  1. Estado inicial: un MatrixComplex(N,1) con dos paquetes de onda gaussianos localizados en las posiciones de las 2 rendijas (superposición de ambos, como un |psi> = alpha·|rendija A> + beta·|rendija B> literal).
+  2. Hamiltoniano: energía cinética discretizada por diferencias finitas (Laplaciano tridiagonal, "partícula en una caja" de toda la vida) + una barrera de potencial muy alta fuera de las 2 aberturas (así se modelan físicamente las
+  rendijas).
+  3. Propagación: TimeEvolution.evolve(psi, H, t) hasta el tiempo que corresponde a la distancia rendijas-pantalla — ya calcula exp(-iHt) con MatrixComplex.exp(), sin cambios.
+  4. Patrón de interferencia: |psi(x)|^2 en cada punto de la malla (regla de Born, exactamente como ya se usa en Grover/Teleportation) — ahí debería aparecer el patrón de franjas.
+
+  El riesgo real es rendimiento, no física: MatrixComplex.exp() es denso, O(N^3). Para ver franjas con resolución razonable hace falta N del orden de cientos de puntos — ya hay una nota en memoria de que matrices densas de ese orden
+  pueden acercarse al timeout de 120s del entorno. Habría que probarlo con N moderado antes de comprometerse a una resolución fina.
+
+  Resumen: no existe hoy (ninguna clase DoubleSlit/similar), pero se podría construir como una demo/experimento nuevo sobre TimeEvolution + MatrixComplex tal cual están, sin extender el core del paquete — es más una pieza de "candidato
+  (a)/(c) intermedio" que un proyecto grande. Voy a matizar esto en 17_limites_y_extensiones.md para que quede correcto.
+
+  ¿Quieres que lo implemente como experimento nuevo (DoubleSlit.java + doc), o prefieres que me quede solo en corregir la nota conceptual por ahora?
+
+
+> ¿Qué experimento podría modelar para aprender a usar quantum?
+
+● Te recomendaría la Transformada Cuántica de Fourier (QFT): es el candidato más natural dado tu conocimiento formal de Fourier/DSP (Ingeniería de Telecomunicación) y no necesita ninguna pieza nueva del framework — se construye igual que
+  DeutschJozsa/Grover (puertas Hadamard + puertas de fase controlada, aplicadas sobre Qubits.ket()), y verificarla es literalmente comparar su matriz con la DFT clásica que ya tienes en com.ipserc.arith.signal.Fourier.
+
+  El tradeoff frente a otras opciones más triviales (p.ej. codificación superdensa, que reutiliza directamente pares de Bell y sería aún más rápida de montar) es que la QFT tiene más partes móviles (puertas de fase con ángulos distintos
+  por qubit, orden de bits invertido al final) — más trabajo, pero también más aprendizaje real, y es la pieza que hace falta si algún día quisieras llegar a Shor.
+
+  ¿Te convence la QFT, o prefieres algo más corto para calentar primero (codificación superdensa)?
+
+● Buena elección de aprendizaje: la QFT usa las 4 piezas centrales de la API (Qubits.ket(), hadamard(), operatorOnQubit(), controlledGate()) más una que aún no existe (puerta de fase controlada) — así que tocas tanto "usar lo que hay"     como "extender con el mismo estilo".
+
+  Propongo dividirlo en 5 etapas, cada una verificable antes de pasar a la siguiente (mismo patrón que ya sigue el resto del paquete: construir → verificar contra algo conocido → seguir). Yo te guío en cada una, tú escribes el código.
+
+  Etapa 1 — la puerta que falta: fase controlada R_k
+  La QFT necesita R_k = diag(1, e^(2πi/2^k)), una puerta de 1 qubit que aún no está en Qubits.java (solo hay pauliX/Y/Z, hadamard, identity2). Es el mismo patrón que pauliZ(): un MatrixComplex(2,2) con setItem(), salvo que aquí necesitas
+  Complex con parte imaginaria (mira cómo pauliY() usa new Complex(0.0, -1.0) como referencia). Empezaría por aquí: escribe una función phaseGate(int k) (o phaseGate(double theta), más general) y verifica a mano que phaseGate(1) te da
+  pauliZ() (caso k=1: e^(2πi/2)=e^(iπ)=-1).
+
+  Etapa 2 — el circuito para 1 qubit (caso trivial)
+  Para n=1, la QFT es literalmente hadamard(). Sirve para comprobar que entiendes la fórmula antes de complicarla: aplica hadamard() a Qubits.ket0()) y Qubits.ket1(), compara a mano con lo que predice la fórmula QFT|x> = (1/sqrt(2))
+  sum_y e^(2πi·xy/2)|y>.
+
+  Etapa 3 — el circuito para 2 qubits, a mano
+  Aquí entra controlledGate(): por cada qubit j, aplicas H al qubit j y luego una fase controlada R_k con control en cada qubit posterior. Para n=2 son solo 3 puertas (H en qubit 0, R_2 controlada por qubit 1 sobre qubit 0, H en qubit 1)
+  más un SWAP final para invertir el orden de los qubits (que puedes montar con 3 controlledGate(pauliX(),...) — no hace falta una puerta SWAP nueva). Verificas comparando la matriz 4x4 resultante contra la DFT clásica de tamaño 4 (¿ya
+  tienes o quieres que busquemos dónde está la DFT en com.ipserc.arith.signal.Fourier para comparar?).
+
+  Etapa 4 — generalizar a n qubits
+  Una vez el caso n=2 verifica, generalizas el bucle (for j, for k>j) a cualquier n. Esta es la parte donde más se nota si entendiste operatorOnQubit()/controlledGate() de verdad.
+
+  Etapa 5 — verificación + documentación
+  Batería TestComplex/TestQFT01.java (mismo patrón OK/FAIL que el resto), y si quieres, un quantum_doc/18_QFT.md a juego con el resto de la guía.
+
+  ¿Empezamos por la Etapa 1 (la puerta phaseGate)? Te confirmo la firma/estilo si quieres antes de que escribas el código, o te lanzas directamente y lo reviso cuando lo tengas.
+
+
+● Confirmado: master==origin/master==b40e2bb, estado limpio salvo lo habitual (ediciones tuyas en paralelo).
+
+  Recuperado el contexto completo de la Trigesimoctava sesión (15 agosto, pausada a tu petición): quedamos en plena QFT guiada por ti, con un plan de 5 etapas ya acordado tras leer Qubits.java completo:
+
+  1. phaseGate — la única pieza que falta en Qubits.java (puerta R_k = diag(1, e^(2πi/2^k)), mismo patrón que pauliZ()/pauliY()).
+  2. QFT de 1 qubit (trivial, = hadamard()).
+  3. QFT de 2 qubits a mano (H + fase controlada + SWAP montado con 3 controlledGate(pauliX(),...)).
+  4. Generalización a n qubits.
+  5. Verificación (TestComplex/TestQFT01.java) + doc quantum_doc/18_QFT.md.
+
+  Punto de retomada exacto: Etapa 1, sin empezar — phaseGate aún no está escrita (a propósito, la ibas a escribir tú). Quedó pendiente que yo confirme la firma/estilo antes de que la escribas.
+
+  ¿Quieres que te proponga la firma de phaseGate para que la escribas tú, o prefieres arrancar por otra cosa?
+
+> sí, propón la firma de phaseGate. dime cómo lo harías
+
+● Bash(cd "/c/Users/josel/workspace-eclipse/complexarith_github" && find . -path ./node_modules -prune -o -iname "Qubits.java" -print)
+  ⎿  ./src/com/ipserc/arith/quantum/Qubits.java
+
+  Searched for 4 patterns, read 1 file (ctrl+o to expand)
+
+● Con esto ya tengo suficiente para proponer la firma, consistente con pauliZ()/spinOperator(theta) y con Complex(re,im) (no hay factory polar en Complex, así que se construye con Math.cos/Math.sin).
+
+  Propuesta de firma
+
+  /**
+   * The phase gate R_k = diag(1, e^(2*pi*i / 2^k)), the controlled version of which is the
+   * building block of the QFT's controlled-phase rotations.
+   * @param k The phase gate's index (k=1 -> R_1=Z, k=2 -> R_2=S, etc.). Must be >= 0.
+   * @return The 2x2 phase gate.
+   */
+  public static MatrixComplex phaseGate(int k) {
+      double angle = 2.0 * Math.PI / Math.pow(2, k);
+      MatrixComplex m = new MatrixComplex(2, 2);
+      m.setItem(0, 0, 1.0); m.setItem(0, 1, 0.0);
+      m.setItem(1, 0, 0.0); m.setItem(1, 1, new Complex(Math.cos(angle), Math.sin(angle)));
+      return m;
+  }
+
+  Por qué así:
+
+  - Nombre y parámetro int k: sigue la convención estándar de QFT (R_k), no theta como spinOperator — porque en la QFT siempre se usa con k entero (nunca un ángulo arbitrario), y así la llamada en el bucle de la Etapa 4 queda literal:
+  phaseGate(k-j).
+  - Math.pow(2, k) en vez de 1 << k: evita overflow de int si algún día se prueba con n grande, y es coherente con que el resto de la clase usa double/Math.*, no bit-shifts.
+  - Construcción manual setItem + new Complex(cos,sin): mismo patrón exacto que pauliY() (la única puerta existente con entradas complejas no triviales) — no hay ningún constructor polar en Complex, así que no hace falta inventar uno.
+  - Sin caso especial para k=0 (R_0=I) ni para k negativo: lo dejo tal cual salga de la fórmula — si quieres que falle alto ante k<0 (mismo estilo defensivo que otras clases del proyecto) lo añadimos, pero de entrada ninguna otra puerta
+  de Qubits.java valida su entrada, así que mantener el mismo nivel de permisividad me parece más consistente que añadir un guard nuevo aquí.
+
+  ¿Te encaja esta firma, o prefieres algún cambio (nombre, tipo de k, guard de validación) antes de escribirla?
+
+> añade un try para cazar los k negativos y devolver una excepción. ¿Te parece bien?
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Casi bien, pero maticemos un detalle técnico: aquí no haría falta un try/catch propiamente dicho, porque no hay ninguna excepción "que capturar" — es solo una validación de entrada que lanza directamente. Un try sin nada que capturar    (IllegalArgumentException no está siendo lanzada por otra llamada) sería ruido sin función.
+
+  Lo que sí encaja es el patrón que ya usa todo el resto de quantum/ (DeutschJozsa.oracle(), Grover.oracle(), BellTest, Decoherence, etc.): un if al principio del método que lanza IllegalArgumentException directamente, sin envolver en
+  try. Así quedaría:
+
+  public static MatrixComplex phaseGate(int k) {
+      if (k < 0) {
+          throw new IllegalArgumentException("phaseGate index k must be >= 0, got k=" + k);
+      }
+      double angle = 2.0 * Math.PI / Math.pow(2, k);
+      MatrixComplex m = new MatrixComplex(2, 2);
+      m.setItem(0, 0, 1.0); m.setItem(0, 1, 0.0);
+      m.setItem(1, 0, 0.0); m.setItem(1, 1, new Complex(Math.cos(angle), Math.sin(angle)));
+      return m;
+  }
+
+  ¿Te vale así (guard if + throw, sin try/catch), o prefieres que sí lo envuelva en un try por algún motivo que tengas en mente?
+
+> Estoy probando esto en TestQuantum_QFT01.java. Vamos con  2. QFT de 1 qubit (trivial, = hadamard()). ¿Qué tengo que hacer?
+
+● Para la Etapa 2 no hace falta tocar Qubits.java todavía — es un paso de verificación conceptual, para fijar la fórmula antes de generalizarla. Así es como yo lo plantearía:
+
+  La fórmula general de la QFT (para N=2^n estados):
+
+  QFT|j> = (1/sqrt(N)) * sum_{k=0}^{N-1} e^(2*pi*i*j*k/N) |k>
+
+  Para n=1 qubit, N=2, así que la matriz 2x2 (columnas = QFT|0>, QFT|1>) tiene entradas (1/sqrt(2)) * e^(2*pi*i*j*k/2):
+
+  - j=0,k=0: e^0 = 1
+  - j=0,k=1: e^0 = 1
+  - j=1,k=0: e^0 = 1
+  - j=1,k=1: e^(pi*i) = -1
+
+  Es decir, (1/sqrt(2)) * [[1,1],[1,-1]] — exactamente Qubits.hadamard().
+
+  Lo que te propongo escribir en TestQuantum_QFT01.java:
+
+  1. Construye esa matriz 2x2 a mano usando la fórmula literal (con Complex y Math.cos/Math.sin del exponente, igual que hicimos en phaseGate, para que la verificación sea independiente de cualquier código de QFT que aún no existe).
+  2. Compárala contra Qubits.hadamard() con tu patrón habitual OK/FAIL (tolerancia numérica, no igualdad exacta de double).
+
+  Así, cuando en la Etapa 4 generalices a n qubits con el bucle for j/for k, ya tienes esta comparación como caso base garantizado — si tu fórmula general no reproduce esto para n=1, sabrás que el bucle tiene un error antes de
+  complicarlo con fase controlada y SWAP.
+
+  ¿Te lanzas a escribirlo así, o quieres que primero repasemos juntos por qué la fase controlada de la Etapa 3 no aparece para nada en este caso trivial (pista: con 1 solo qubit no hay ningún otro qubit al que controlar)?
+
+> sí, explícame por qué no hace falta fase controlada aquí
+
+● Buena pregunta, porque ahí está la clave de por qué la QFT general es más que "un Hadamard por qubit".
+
+  De dónde sale la fase controlada en el caso general
+
+  Para n qubits, la QFT se construye qubit a qubit así (algoritmo estándar, el que usarás en la Etapa 3/4):
+
+  1. Al qubit j se le aplica hadamard().
+  2. Luego, para cada qubit k>j que sigue sin procesar, se aplica una fase controlada controlledGate(phaseGate(k-j+1), control=k, target=j, n) — el "control" es el qubit k, el "target" (donde se aplica la fase) es el qubit j.
+
+  La razón de que la fase dependa del estado de otro qubit es que en la QFT de n qubits el ángulo de rotación de un qubit no depende solo de si él vale 0 o 1, sino del valor conjunto (entero binario) de todos los qubits menos
+  significativos — porque la fórmula e^(2*pi*i*j*k/N) mezcla j (el índice del estado completo, no de un solo bit) con k. Esa mezcla entre bits es justo lo que la fase controlada codifica: "aplica esta rotación al qubit j solo si el qubit
+  k está en |1>".
+
+  Por qué desaparece con n=1
+
+  Con un único qubit no hay ningún "otro qubit" k>j al que mirar — el bucle de fases controladas simplemente no tiene sobre qué iterar (rango vacío). Lo único que queda es el hadamard() del propio (único) qubit. Es coherente con la
+  fórmula que dedujimos: para N=2 el exponente 2*pi*i*j*k/N con j,k ∈ {0,1} solo puede ser 0 o pi, es decir, signos +1/-1 reales — nunca aparece una fase compleja genuina (i, -i, etc.), que es lo que phaseGate(k) con k>=2 empieza a
+  introducir.
+
+  Por eso la Etapa 2 es tan buena como caso base: aísla el hadamard() de cada qubit sin que la fase controlada "contamine" la comprobación — cuando falle algo en la Etapa 3/4, sabrás que el fallo está en la parte de fase controlada, no
+  en la parte Hadamard, porque esta ya quedó verificada aparte.
+
+  ¿Sigues con el test de la Etapa 2, o quieres ver ya cómo se vería la Etapa 3 (2 qubits) antes de escribir código?
+  
+> sigue con el test de la Etapa 2. Muéstrame lo que tengo que hacer/escribir
+
+● Bash(cd "/c/Users/josel/workspace-eclipse/complexarith_github" && find src/TestComplex -iname "TestQuantum*")
+  ⎿  src/TestComplex/TestQuantum_QFT01.java
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Perfecto, ya tienes la clase preparada con check(). Te falta declarar ok/fail y añadir el bloque de la Etapa 2. Esto es lo que yo escribiría, tú lo adaptas a tu gusto:                                                                    
+  1. Contadores (los usa check() pero no están declarados todavía):
+
+  static int ok = 0, fail = 0;
+
+  2. El bloque de la Etapa 2 — construir la matriz 2x2 de la fórmula literal de la QFT para N=2, y compararla contra hadamard():
+
+  double s = 1.0 / Math.sqrt(2.0);
+  MatrixComplex qft1 = new MatrixComplex(2, 2);
+  for (int j = 0; j < 2; j++) {
+      for (int k = 0; k < 2; k++) {
+          double angle = 2.0 * Math.PI * j * k / 2.0;
+          qft1.setItem(j, k, new Complex(s * Math.cos(angle), s * Math.sin(angle)));
+      }
+  }
+  qft1.println("QFT de 1 qubit (fórmula literal)");
+
+  check("QFT(1 qubit) == hadamard()", qft1.equals(Qubits.hadamard(), 10));
+
+  Notas sobre las decisiones:
+
+  - Uso MatrixComplex.equals(MatrixComplex, int numdecs) en vez de equals(MatrixComplex) a secas, porque la comparación involucra Math.cos/Math.sin — nunca vas a tener igualdad exacta de double contra los valores construidos a mano en
+  hadamard() (1.0/Math.sqrt(2.0)). numdecs=10 es una tolerancia cómoda; si FAIL inesperadamente, prueba a bajarla (p.ej. 8) antes de sospechar de un bug real.
+  - Deliberadamente no llamo a Qubits.phaseGate() en este bloque — la fórmula se construye desde cero, tal y como razonamos: el caso n=1 no usa fase controlada, así que no debería depender de esa pieza para quedar verificado como caso
+  base independiente.
+  - Puedes dejar tu prueba de phaseGate(3) (líneas 25-26) donde está, o moverla — no estorba, pero quizá prefieras separarla en su propio bloque con su propio check() de la Etapa 1 antes de seguir.
+
+  ¿Lo compilas/ejecutas tú y me cuentas qué sale, o quieres que revisemos primero cómo verías tú el check() de la Etapa 1 (phaseGate) antes de avanzar?
+
+> compila ok, siguiente fase
+
+  Read 1 file (ctrl+o to expand)
+
+● Entramos en la Etapa 3 — la primera con estructura real (fase controlada + SWAP). Aquí tienes el razonamiento y lo que yo escribiría.                                                                                                      
+  El circuito estándar (Nielsen & Chuang) para 2 qubits, con la convención de Qubits.java (qubit 0 = MSB, igual que ket(int...)/operatorOnQubit):
+
+  1. H sobre el qubit 0.
+  2. Fase controlada R_2 con control = qubit 1, target = qubit 0.
+  3. H sobre el qubit 1.
+  4. SWAP final entre qubit 0 y qubit 1 (el circuito, tal cual, deja los bits en orden invertido respecto al que espera la fórmula — el SWAP corrige eso).
+
+  Como operador sobre el ket, se aplican de derecha a izquierda: U = SWAP · H1 · CPHASE · H0.
+
+  Por qué no existe un SWAP ya hecho: se monta con la identidad estándar SWAP = CNOT(a,b)·CNOT(b,a)·CNOT(a,b), es decir, 3 controlledGate(pauliX(), ...) con control/target alternados — exactamente lo que ya se hizo en
+  Teleportation/BellTest, sin necesitar una puerta nueva.
+
+  int n = 2;
+  MatrixComplex h0 = Qubits.operatorOnQubit(Qubits.hadamard(), 0, n);
+  MatrixComplex h1 = Qubits.operatorOnQubit(Qubits.hadamard(), 1, n);
+  MatrixComplex cphase = Qubits.controlledGate(Qubits.phaseGate(2), 1, 0, n);
+
+  MatrixComplex swap = Qubits.controlledGate(Qubits.pauliX(), 0, 1, n)
+          .times(Qubits.controlledGate(Qubits.pauliX(), 1, 0, n))
+          .times(Qubits.controlledGate(Qubits.pauliX(), 0, 1, n));
+
+  MatrixComplex qft2 = swap.times(h1).times(cphase).times(h0);
+  qft2.println("QFT de 2 qubits (circuito)");
+
+  Verificación contra la fórmula literal, igual que en la Etapa 2 pero con N=4:
+
+  double s = 0.5; // 1/sqrt(4)
+  MatrixComplex qft2Formula = new MatrixComplex(4, 4);
+  for (int j = 0; j < 4; j++) {
+      for (int k = 0; k < 4; k++) {
+          double angle = 2.0 * Math.PI * j * k / 4.0;
+          qft2Formula.setItem(k, j, new Complex(s * Math.cos(angle), s * Math.sin(angle)));
+      }
+  }
+
+  check("QFT(2 qubits) circuito == fórmula literal", qft2.equals(qft2Formula, 10));
+
+  Detalle importante que se me escapaba fácil: en qft2Formula.setItem(k, j, ...) el índice de fila es k (coeficiente de salida) y el de columna es j (estado de entrada) — porque cada columna j de la matriz debe ser el vector QFT|j>. Si
+  lo inviertes (setItem(j, k, ...)) obtendrás la transpuesta, que también sale unitaria y puede despistar en un FAIL silencioso si no te fijas en el patrón exacto de discrepancias.
+
+  ¿Lo pruebas así, o quieres que primero repasemos por qué el SWAP final es necesario (qué pasaría si lo omites)?
+
+> explícame por qué hace falta el SWAP final y porque lo haces con paulix y no de otr forma y dime que representan int n = 2, h0 y h1, cphase
+
+● Vamos por partes.
+
+  ¿Por qué hace falta el SWAP final?
+
+  El circuito de la QFT, tal y como está construido (H en q0, luego la fase controlada, luego H en q1), calcula los bits de salida en orden invertido respecto al que espera la fórmula.
+
+  Se ve mejor pensando en qué hace cada Hadamard. H sobre el qubit q0 produce el bit más significativo del resultado en la fórmula (k=0 en el término e^(2*pi*i*j*k/N)... realmente el bit menos significativo de k, pero por cómo se
+  despliega el producto tensorial, el circuito genera primero el bit menos significativo del k de salida en la posición del qubit 0, mientras que la fórmula lo espera en la posición del qubit n-1). En dos palabras: el circuito calcula
+  los bits de k de derecha a izquierda mientras la fórmula los espera de izquierda a derecha. La demostración formal (factorización del producto tensorial de la QFT en términos de bits individuales) es el motivo estándar de libro de
+  texto — no es un capricho de implementación, es inherente a cómo se factoriza la suma doble en un producto de sumas de 1 solo qubit.
+
+  El SWAP no es "un arreglo cutre" — es una parte reconocida del algoritmo estándar (aparece en Nielsen & Chuang exactamente así): sin él, obtendrías una matriz unitaria válida, pero que calcula la QFT con los bits de salida invertidos, no la QFT de verdad. Por eso en la Etapa 2 (n=1) no hacía falta: con un solo bit no hay "orden" que invertir.
+
+  ¿Por qué pauliX para el SWAP y no de otra forma?
+
+  Porque pauliX() es la puerta NOT cuántica (X|0>=|1>, X|1>=|0>), y SWAP se construye como una identidad puramente algebraica de 3 CNOT encadenados con control/target alternados:
+
+  SWAP = CNOT(control=a,target=b) · CNOT(control=b,target=a) · CNOT(control=a,target=b)
+
+  Se puede verificar a mano sobre las 4 combinaciones de |00>,|01>,|10>,|11> que el efecto neto es intercambiar los 2 qubits. Como CNOT es exactamente controlledGate(pauliX(), control, target, n) (ya lo dice el Javadoc del propio método:
+  CNOT = controlledGate(pauliX(),...)), no hace falta escribir ninguna puerta SWAP nueva — sale gratis combinando 2 piezas que ya existían (controlledGate + pauliX). Es el mismo motivo por el que en su día no se creó una puerta SWAP
+  dedicada en Qubits.java.
+
+  Qué representa cada variable
+
+  - int n = 2: el número total de qubits del registro sobre el que trabaja el circuito completo (aquí, 2). Se pasa a operatorOnQubit/controlledGate para que sepan levantar el operador 2x2/4x4 local a la dimensión completa 2^n x 2^n = 4x4
+  del sistema conjunto — sin n, esos métodos no sabrían cuántas identidades I intercalar en el producto tensorial.
+  - h0: el operador Hadamard local al qubit 0, ya "levantado" (operatorOnQubit) a una matriz 4x4 que actúa sobre el qubit 0 y deja el qubit 1 intacto (H (x) I). Es la Etapa 2 aplicada como pieza dentro de un sistema más grande.
+  - h1: lo mismo pero al revés — Hadamard sobre el qubit 1, dejando el qubit 0 intacto (I (x) H).
+  - cphase: la puerta de fase controlada del paso 2 del algoritmo — aplica phaseGate(2) (R_2 = diag(1,i)) al qubit 0 solo si el qubit 1 vale |1>. Es la pieza que introduce el acoplamiento entre los 2 qubits que comentamos antes (la fase de uno depende del valor del otro) — sin ella, qft2 sería simplemente H⊗H, que es unitaria pero NO es la QFT (te perderías toda la parte de "mezcla de bits" que distingue la QFT de una superposición ingenua).
+
+  ¿Sigo con la verificación, o quieres antes ver a mano las 4 columnas de qft2Formula para comprobar visualmente que H⊗H (sin cphase ni SWAP) da algo distinto?
+
+> revisa TestQuantum_QFT01.java y me dices por donde seguir
+● Compila y pasa las 2 comprobaciones (QFT(1 qubit)==hadamard() y QFT(2 qubits) circuito==fórmula literal). Buen trabajo — la Etapa 3 está cerrada y verificada de verdad, no solo "compila".
+
+  Una cosa a vigilar antes de generalizar (Etapa 4), en la línea 96:
+
+  MatrixComplex cphase = Qubits.controlledGate(Qubits.phaseGate(N), 1, 0, N);
+
+  Aquí usas phaseGate(N) con N=2, y funciona, pero por una coincidencia: en el caso de 2 qubits solo hay 1 fase controlada, y su índice k correcto (R_2) casualmente coincide con el número total de qubits N=2. Eso deja de ser cierto en
+  general — para n=3 qubits, por ejemplo, el qubit 0 necesita R_2 y R_3 (dos fases controladas distintas, una por cada qubit posterior), y ninguna de las dos es simplemente "N". La fórmula real es R_(k-j+1), donde j es el qubit que
+  recibe la fase (target) y k el qubit de control — no el número total de qubits del registro.
+
+  Te lo señalo ahora porque si copias literalmente este patrón (phaseGate(N)) al bucle de la Etapa 4, te va a fallar de forma silenciosa y confusa (compilará, dará una matriz unitaria, pero no la QFT correcta) — mejor tenerlo en la
+  cabeza antes de escribir el bucle general.
+
+  ¿Sigues con la Etapa 4 (bucle for j / for k>j) ya con esto en mente, o prefieres que primero repasemos juntos la fórmula exacta R_(k-j+1) con un ejemplo de n=3 a mano?
+
+> repasemos primero el ejemplo de n=3 a mano. Esperaba ese comentario porque para N>2 h0 y h1 no son suficintes, faltaría h2 ¿Es así, o me testoy confundiendo?
+
+● Sí, estás en lo cierto — se te ha visto la intuición correcta. Vamos al detalle completo con n=3.
+
+  La estructura general (recordatorio)
+
+  Para cada qubit j (de 0 a n-1, en orden):
+  1. H sobre el qubit j.
+  2. Para cada qubit k>j que queda por delante: una fase controlada R_(k-j+1), con control=k, target=j.
+
+  Al final, un bloque de SWAP que invierte el orden de los qubits.
+
+  Aplicado a n=3 (qubits q0,q1,q2)
+
+  j=0 (el qubit 0 se procesa primero):
+  - H(q0)
+  - fase controlada R_2, control=q1, target=q0
+  - fase controlada R_3, control=q2, target=q0
+
+  j=1:
+  - H(q1)
+  - fase controlada R_2, control=q2, target=q1
+
+  j=2 (el último, ya no quedan qubits k>2):
+  - H(q2) — sin ninguna fase controlada detrás, igual que en tu Etapa 2 con n=1.
+
+  Al final: SWAP(q0, q2) — solo ese, el qubit del medio (q1) se queda fijo. La regla general de la inversión de orden es intercambiar el qubit i con el n-1-i para i < n/2; con n=3 solo hay 1 par que cruzar (i=0 ↔ n-1-i=2), el del medio (i=1) coincide consigo mismo.
+
+  Confirmando tu intuición sobre h0/h1
+
+  Exacto: hacen falta tantos Hadamard como qubits, uno por cada j — así que para n=3 necesitas h0, h1 y h2 (operatorOnQubit(hadamard(), 2, 3)), no basta con h0/h1. Es un patrón que escala 1:1 con n, exactamente el motivo por el que la Etapa 4 pide un bucle (for j = 0..n-1) en vez de seguir escribiendo variables sueltas h0, h1, h2... a mano.
+
+  Y las fases controladas, con la corrección de la sesión anterior
+
+  Con la fórmula correcta R_(k-j+1):
+  - j=0,k=1 → R_(1-0+1) = R_2 ✓ (coincide con lo que viste en n=2)
+  - j=0,k=2 → R_(2-0+1) = R_3 — aquí es donde phaseGate(N) con N=3 habría fallado, porque el índice correcto es R_3, que aquí sí coincide con N=3... pero en la siguiente línea:
+  - j=1,k=2 → R_(2-1+1) = R_2 — no R_3. Si hubieras usado phaseGate(N) a ciegas (con N=3 fijo para todo el circuito), este término habría salido mal (R_3 en vez de R_2), y aun así el resultado final podría parecer "casi correcto" o incluso colar como unitario válido pero incorrecto — el tipo de fallo silencioso que comentábamos.
+
+  ¿Te lanzas a escribir la Etapa 4 con esta fórmula (R_(k-j+1)) en el bucle doble, o prefieres primero verificar a mano que el SWAP(q0,q2) es realmente necesario construyendo qft3 sin él y viendo que falla contra la fórmula literal?
+  
+> QFTmatrix ya calcula la matriz QFT que estamos buscando? O se necesita hacer algo más? Para continuar me gustaría terminar de ampliar o que tenemos para cualquier N, necesito tú ayuda, me da pereza progrmar los arrays de h_n
+  ¿QFTmatrix ya es "la" QFT?
+
+  Numéricamente, sí — QFTmatrix(N) calcula la matriz correcta de la QFT (es literalmente la definición por fórmula, sin atajos). Si lo que necesitaras fuera "una función que me dé la matriz QFT para usarla en otro sitio", ya la tienes y   funciona para cualquier N.
+
+  Pero no es lo que estábamos construyendo, y por una razón que no es caprichosa: QFTmatrix construye la matriz entrada a entrada, con un coste O(dim²) y sin pasar por ninguna puerta cuántica — no es "un circuito", es la tabla de valores de la transformación. El objetivo de las Etapas 3-4 (y de todo el paquete quantum en general) es construir la misma matriz componiendo puertas elementales (H, fase controlada, SWAP), que es como se implementaría de verdad en un ordenador cuántico real (con O(n²) puertas, no O(4^n) entradas) — y usar QFTmatrix únicamente como "solucionario" contra el que verificar que el circuito da el resultado correcto. Las dos cosas coexisten a propósito: una es el objetivo pedagógico/arquitectónico, la otra es el oráculo de verificación.
+
+  El generalizador — aquí tienes la ayuda que pides
+
+  Con la fórmula R_(k-j+1) que repasamos y MatrixComplex.eye(dim) como identidad de partida, así es como yo generalizaría el circuito, sin arrays de h0,h1,h2... sueltos:
+
+  static MatrixComplex QFTCircuit(int n) {
+      int dim = 1 << n;
+      MatrixComplex result = MatrixComplex.eye(dim);
+
+      for (int j = 0; j < n; j++) {
+          result = Qubits.operatorOnQubit(Qubits.hadamard(), j, n).times(result);
+          for (int k = j + 1; k < n; k++) {
+              MatrixComplex cphase = Qubits.controlledGate(Qubits.phaseGate(k - j + 1), k, j, n);
+              result = cphase.times(result);
+          }
+      }
+
+      for (int i = 0; i < n / 2; i++) {
+          int a = i, b = n - 1 - i;
+          MatrixComplex swap = Qubits.controlledGate(Qubits.pauliX(), a, b, n)
+                  .times(Qubits.controlledGate(Qubits.pauliX(), b, a, n))
+                  .times(Qubits.controlledGate(Qubits.pauliX(), a, b, n));
+          result = swap.times(result);
+      }
+
+      return result;
+  }
+
+  Notas de las decisiones:
+  - result arranca en eye(dim) y cada puerta se acumula por la izquierda (puerta.times(result)) — así el orden de aplicación queda igual que en tu qftN de la Etapa 3 (H0 primero, luego cphase, etc.), sin tener que ir multiplicando
+  manualmente en el orden inverso.
+  - El bucle de SWAP solo recorre i < n/2 — con n impar, el qubit central (i == n-1-i) queda automáticamente fuera del bucle sin necesitar un caso especial, exactamente el comportamiento de n=3 que repasamos a mano (q1 fijo).
+  - Con n=1, el bucle de SWAP no ejecuta ninguna iteración (0 < 0 es falso) y el bucle de fases controladas tampoco (k=j+1..n-1 vacío) — así que QFTCircuit(1) debería reducirse exactamente a tu qft1 de la Etapa 2, buena comprobación
+  extra de regresión.
+
+  Prueba a llamar check("QFT(" + n + " qubits) circuito == fórmula literal", QFTCircuit(n).equals(QFTmatrix(n), 10)) para n=1,2,3,4 y cuéntame qué sale.
+
+> lo pruebo para n=1,2,3,4 y funciona. ¿Puedes revisarlo y me comentas si hay que ajustar algo?
+
+  Read 1 file (ctrl+o to expand)
+
+● Bash(cd "/c/Users/josel/workspace-eclipse/complexarith_github" && JAVAC="/c/Program Files/Eclipse Adoptium/jdk-21.0.12.8-hotspot/bin/javac.exe" && JAVA="/c/Program F…)                                                                      ⎿  Note: src\com\ipserc\arith\complex\ComplexState.java uses or overrides a deprecated API.
+     Note: Recompile with -Xlint:deprecation for details.
+     OK   QFT(1 qubit) == hadamard()
+     Binary file (standard input) matches
+  ⎿  Allowed by auto mode classifier
+
+● Bash(cd "/c/Users/josel/workspace-eclipse/complexarith_github" && JAVA="/c/Program Files/Eclipse Adoptium/jdk-21.0.12.8-hotspot/bin/java.exe" && "$JAVA" -cp /tmp/qft…)
+  ⎿  OK   QFT(1 qubit) == hadamard()
+     OK   QFT(2 qubits) circuito qftN == qftN_Matrix f�rmula literal
+     OK   QFT(2 qubits) circuito qftCircuit == qftMatrix f�rmula literal
+     … +3 lines (ctrl+o to expand)
+  ⎿  Allowed by auto mode classifier
+
+● Confirmado, todo OK — 6/6, n=1,2,3,4 correctos numéricamente. Buen trabajo con QFTCircuit. Dos cosas que ajustaría, ninguna es un bug de cálculo:
+
+  1. Etiqueta engañosa en el bucle de la Etapa 4 (línea 169):
+
+  check("QFT(" + N + " qubits) circuito qftCircuit == qftMatrix fórmula literal", ...);
+
+  Usa N (que quedó fijo en 2 desde la Etapa 3) en vez de i (el tamaño real de cada iteración). Por eso los 4 check de la Etapa 4 imprimen todos "QFT(2 qubits)...", aunque en verdad comprueban 1,2,3,4 qubits — la comparación en sí es
+  correcta (compara qftCircuit/qftMatrix, ambas construidas con i), pero el mensaje en pantalla no distingue cuál es cuál. Cámbialo a "QFT(" + i + " qubits) circuito...".
+
+  2. Duplicidad entre la Etapa 3 y la Etapa 4 — ahora que QFTCircuit(N) generaliza exactamente lo que hiciste a mano en la Etapa 3 (de hecho, QFTCircuit(2) se comprueba en la primera iteración de la Etapa 4 y también da OK), el bloque
+  manual de la Etapa 3 (líneas 127-155: h0, h1, cphase, swap, qftN) ha quedado redundante con el caso i=2 de la Etapa 4. No es un error — como paso pedagógico tiene valor dejarlo (fue el que te permitió entender la construcción antes de
+  generalizarla) — pero si el objetivo ahora es tener un fichero de test limpio y no un diario de aprendizaje, yo lo dejaría como comentario/nota o lo quitaría, a tu gusto. Si prefieres conservarlo tal cual como registro de cómo llegaste
+  hasta aquí, también es una decisión razonable — dímelo y seguimos.
+
+  ¿Corrijo la etiqueta yo mismo, o prefieres tocarlo tú? Y con esto, la Etapa 4 queda cerrada — ¿pasamos a la Etapa 5 (batería formal TestQFT01/documentación) o quieres primero decidir qué hacer con el bloque duplicado de la Etapa 3?
+
+✻ Brewed for 34s
+
+> ya la he corregido yo. La etapa 3 me parece muy importante porque es muy didáctica                                                                                                                                                         
+● Buena decisión — coincido, tiene sentido conservarla tal cual: es la que te obligó a entender h0/h1/cphase/swap pieza a pieza antes de confiar en el bucle genérico, y ese valor no lo aporta QFTCircuit una vez generalizado.
+
+  Con esto, la Etapa 4 queda cerrada (verificado n=1..4, 6/6 OK). Nos queda la Etapa 5: verificación formal + documentación. Lo plantearía así:
+
+  1. Batería propia, separada de este fichero de aprendizaje — algo como src/TestComplex/TestQFT01.java, con el patrón OK/FAIL habitual del proyecto, cubriendo al menos:
+    - QFTCircuit(n) unitaria para varios n (comprobación general válida para cualquier transformación cuántica, no solo la QFT).
+    - QFTCircuit(n) == QFTmatrix(n) para un rango de n (la comprobación que ya tienes, trasladada).
+    - Algún caso de uso real, no solo la matriz sola: por ejemplo aplicar QFTCircuit(n) a un ket concreto (Qubits.ket(...)) y comprobar el resultado contra el vector esperado — para que quede constancia de que también funciona como
+  transformación de estado, no solo como matriz abstracta.
+  2. quantum_doc/18_QFT.md (si procede) — mismo formato que los otros 17 documentos, con el razonamiento que hemos ido construyendo (fórmula, por qué la fase controlada, por qué el SWAP) como si fuera la guía de aprendizaje para otra
+  persona.
+  3. Añadir QFTCircuit/QFTmatrix como métodos permanentes de alguna clase del paquete quantum (¿una clase nueva QFT.java, siguiendo el patrón DeutschJozsa/Grover/BernsteinVazirani?) en vez de dejarlos solo dentro del fichero de test de
+  aprendizaje — para que quede reutilizable como el resto del paquete.
+
+  ¿Quieres que sigamos por ahí (yo te ayudo con el andamiaje, tú decides el ritmo), o prefieres decidir primero cuál de los 3 puntos es prioritario?
+> crea QFT.java en el paquete quantum con QFTCircuit y QFTmatrix
+
+● 8/8 OK — QFT.circuit(n) y QFT.matrix(n) coinciden para n=1..6, y la validación de entrada (n<1) falla alto como el resto del paquete.
+
+  src/com/ipserc/arith/quantum/QFT.java creado, VERSION 1.0, mismo patrón que DeutschJozsa/Grover/BernsteinVazirani:
+
+  - QFT.circuit(n) — la construcción por puertas elementales (operatorOnQubit(hadamard()) + controlledGate(phaseGate(k-j+1)) + SWAP de 3 CNOT), tal cual tu QFTCircuit generalizado.
+  - QFT.matrix(n) — la fórmula literal, tal cual tu QFTmatrix, documentada explícitamente como "el solucionario, no la forma real de calcularlo".
+
+  Renombré QFTCircuit/QFTmatrix → circuit/matrix (con el nombre de la clase QFT. delante ya queda claro qué son, sin redundancia) y añadí el guard n<1 que le faltaba a tu versión de aprendizaje, para que sea consistente con el resto de
+  Qubits/DeutschJozsa/etc.
+
+  No he tocado TestQuantum_QFT01.java — sigue tal cual con tu progresión pedagógica intacta. ¿Quieres que además lo recablee para que llame a QFT.circuit()/QFT.matrix() en vez de tener su propia copia, o prefieres dejarlo como registro
+  independiente de cómo llegaste a la clase?
+
+✻ Cooked for 1m 6s
+
+> déjalo como registro independiente, sigue con la Etapa 5
+  Batería ScratchQFTAudit01.java (nueva, conservada) — 6/6 OK:
+  - circuit(n) unitaria (U·U†=U†·U=I), n=1..6.
+  - circuit(n)==matrix(n), n=1..6 (la comprobación central de todo el desarrollo guiado).
+  - circuit(n)|0...0> da la superposición equitativa exacta, fase 0 a precisión completa de double.
+  - circuit(n)|j> coincide con la columna j de matrix(n) para todo j, n=2..4 — confirma que también funciona como transformación de estado real, no solo como matriz abstracta.
+  - circuit()/matrix() fallan alto ante n<1.
+
+  Con esto, la Etapa 5 de la QFT queda cerrada (QFT.java + batería formal). Queda pendiente solo la documentación (quantum_doc/18_QFT.md) si quieres que la escriba con el mismo formato que los otros 17 documentos de la guía — ¿sigo con
+  eso, o lo dejamos aquí por ahora?
+
+> dame un ejemplo en donde usar QFT
+
+● Buena siguiente pregunta — encaja con tu perfil de DSP. Yo propondría dos caminos, con distinto peso:
+
+  1. Puente con tu Fourier clásico (com.ipserc.arith.signal.Fourier): aplicar QFT.circuit(n) a un estado que codifique una señal periódica discreta (por ejemplo Qubits.ket() sobre una superposición con cierta periodicidad) y comparar el
+  resultado con la DFT() clásica que ya tienes — demuestra de forma muy tangible que la QFT es la DFT, solo que actuando sobre amplitudes de probabilidad en vez de sobre muestras reales. Es corto de implementar (reutiliza piezas
+  existentes) y muy didáctico, pero como demostración es algo "de juguete" — no explota ninguna ventaja cuántica real.
+  2. Estimación de fase cuántica (QPE): el uso genuino de la QFT en computación cuántica — estimar el autovalor de fase de un operador unitario aplicando la QFT inversa sobre un registro de qubits de "reloj". Es el bloque que hace falta
+  para algoritmos como Shor o estimación de energía en química cuántica. Mucho más representativo de "para qué sirve realmente la QFT", pero bastante más grande (necesita un operador de control-U genérico elevado a potencias, y la QFT
+  inversa, que aún no tienes).
+
+  Mi recomendación: empezar por el puente con Fourier (opción 1) como ejercicio corto que cierra el círculo pedagógico de esta sesión, y dejar QPE como candidato aparte si en algún momento quieres ir a por algo más ambicioso. ¿Te encaja,
+  o prefieres ir directo a QPE aunque sea más grande?
 

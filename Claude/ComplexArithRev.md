@@ -4293,6 +4293,112 @@ para la próxima sesión, ninguno urgente:
    dejó.
 6. Cualquier otra cosa que el usuario traiga.
 
+## Continuación de la Trigesimoctava sesión (16 agosto 2026) -- QFT completa: `phaseGate` + Etapas 2-5 + `QFT.java` (commits pendientes de crear)
+
+Retomada exactamente en el punto de pausa (Etapa 1, `phaseGate` sin escribir). Sesión
+enteramente guiada por el usuario -- Claude como tutor, confirmando firmas y explicando el
+porqué de cada pieza antes de que el usuario escribiera el código él mismo, tal y como quedó
+pactado al pausar la Trigesimoctava sesión.
+
+**Etapa 1 -- `Qubits.phaseGate(k)`** (`VERSION` `1.3→1.4`): puerta `R_k = diag(1,
+e^(2*pi*i/2^k))`, escrita por Claude a petición explícita del usuario ("escríbelo tú mientras yo
+lo pruebo") tras acordar la firma. Guard `k<0 -> IllegalArgumentException`, sin `try`/`catch`
+envolvente -- se discutió con el usuario por qué un `try` no tenía sentido aquí (no hay ninguna
+excepción ajena que capturar, solo una validación de entrada que lanza directamente) y se acordó
+seguir el mismo patrón `if+throw` que ya usa el resto de `quantum/` (`DeutschJozsa.oracle()`,
+`Grover.oracle()`, etc.).
+
+**Etapa 2 -- QFT de 1 qubit**: verificado que la fórmula literal de la QFT para `N=2` coincide
+exactamente con `Qubits.hadamard()` (razonado en detalle por qué: con 1 solo qubit no hay ningún
+otro qubit `k>j` sobre el que iterar, así que el bucle de fases controladas queda vacío -- la
+fase controlada es la pieza que mezcla el valor de un qubit en la rotación de otro, y con 1 solo
+qubit no hay "otro" con quien mezclarse).
+
+**Etapa 3 -- QFT de 2 qubits a mano** (en `TestComplex/TestQuantum_QFT01.java`, escrito por el
+usuario con ayuda de Claude): `h0`/`h1` (Hadamard local a cada qubit vía `operatorOnQubit`),
+`cphase` (`controlledGate(phaseGate(2), control=1, target=0, 2)`), y un `SWAP` final montado con
+3 `controlledGate(pauliX(),...)` encadenados (identidad `CNOT-CNOT-CNOT`, sin puerta `SWAP`
+dedicada en `Qubits`). Se explicó por qué el `SWAP` es imprescindible (el circuito, tal y como
+está construido, calcula los bits de salida en orden invertido respecto a la fórmula -- hecho
+estándar de la QFT, no un arreglo cutre) y por qué se usa `pauliX` para montarlo (es literalmente
+la puerta `NOT` cuántica, y `CNOT=controlledGate(pauliX(),...)` ya existía). Verificado contra
+`QFTmatrix(2)` -- **OK**. A petición explícita del usuario, este bloque manual se **conserva tal
+cual** aunque quede téncicamente redundante con el caso `n=2` del generalizador de la Etapa 4 --
+"me parece muy importante porque es muy didáctico".
+
+**Etapa 4 -- generalización a `n` qubits** (`QFTCircuit(N)`, escrito por el usuario): tras
+repasar a mano el caso `n=3` (el usuario adivinó correctamente que hacían falta `h0`,`h1`,`h2`,
+no solo `h0`/`h1`) y la fórmula correcta del índice de fase `R_(k-j+1)` (no `R_N`, coincidencia
+que solo funciona para el caso particular `n=2`), el usuario pidió ayuda explícita para el bucle
+genérico ("me da pereza programar los arrays de h_n") -- Claude escribió `QFTCircuit(N)` (bucle
+doble `for j`/`for k>j` con `phaseGate(k-j+1)`, más un bucle de `SWAP` que recorre `i<n/2`,
+dejando el qubit central de un `n` impar sin tocar automáticamente). Verificado `n=1,2,3,4`
+contra `QFTmatrix(N)` -- **6/6 OK**. Revisión posterior encontró una etiqueta de `check()` que
+usaba la variable equivocada (`N` en vez de `i`, arrastrada de la Etapa 3, hacía que los 4
+mensajes de la Etapa 4 dijeran todos "QFT(2 qubits)" aunque la comparación en sí fuera correcta)
+-- corregida por el propio usuario.
+
+**Clase permanente `com.ipserc.arith.quantum.QFT`** (nueva, `VERSION 1.0`): a petición del
+usuario, `QFTCircuit`/`QFTmatrix` del fichero de aprendizaje se extrajeron a una clase del
+paquete siguiendo el mismo patrón que `DeutschJozsa`/`Grover`/`BernsteinVazirani` --
+`QFT.circuit(n)` (la construcción por puertas, documentada explícitamente como "así se haría en
+un ordenador cuántico real") y `QFT.matrix(n)` (la fórmula literal, documentada como "el
+solucionario, NO la forma práctica de calcularlo"). Renombradas sin alias de compatibilidad
+(clase nueva, no hacía falta) y añadido el guard `n<1` que le faltaba a la versión de
+aprendizaje, para quedar consistente con el resto del paquete. `TestComplex/TestQuantum_QFT01.java`
+se deja intacto como registro pedagógico independiente, a petición explícita del usuario --
+**no** se recablea para llamar a la clase nueva.
+
+**Verificación -- `TestComplex/ScratchQFTAudit01.java`** (nuevo, conservado, **6/6 OK**):
+`circuit(n)` unitaria (`U·U†=U†·U=I`) `n=1..6`; `circuit(n)==matrix(n)` `n=1..6`; `circuit(n)`
+aplicada a `|0...0>` da la superposición equitativa exacta con fase EXACTAMENTE `0` (precisión
+completa de `double`, no solo tolerancia); `circuit(n)|j>` coincide con la columna `j` de
+`matrix(n)` para todo `j`, `n=2..4` (confirma que también funciona como transformación de
+estado real, no solo como matriz abstracta comparada con otra matriz); `circuit()`/`matrix()`
+fallan alto ante `n<1`. Recompilación fresca completa del paquete `quantum` (incluidos los 2
+ficheros de test nuevos/tocados) limpia, sin warnings nuevos.
+
+**Bloque final -- "¿dónde se usaría la QFT?"** (pregunta exploratoria, respondida en 2-3 frases
+con recomendación y tradeoff, sin implementar): 2 candidatos presentados -- (A) puente con
+`com.ipserc.arith.signal.Fourier` (aplicar `QFT.circuit(n)` a un estado periódico y comparar con
+la `DFT()` clásica, corto de implementar, muy didáctico pero "de juguete", sin ventaja cuántica
+real) recomendado como siguiente paso corto; (B) Estimación de Fase Cuántica / QPE (el uso
+genuino de la QFT en computación cuántica, bloque de Shor/química cuántica, pero requiere
+control-U elevado a potencias y la QFT INVERSA, que todavía no existe) como candidato más grande
+y ambicioso, aparcado sin decidir.
+
+**Estado del repo al pausar**: commits de esta sesión pendientes de crear y pushear (a
+continuación, en el cierre de sesión). Sin tocar (patrón habitual, ediciones del usuario en
+paralelo): `.claude/`/`Claude/Commands.txt` siguen sin trackear; varios `.pdf`/`.html` sueltos
+en `quantum_doc/`, no tocados.
+
+### SESIÓN PAUSADA — continuación de la Trigesimoctava sesión (16 agosto 2026), a petición del
+usuario ("Tengo que parar aquí muy a mi pesar, esto me emociona... Cuando vuelva a conectar me
+recuerdas por donde seguir")
+
+**Punto de retomada EXACTO**: decidir entre los 2 candidatos del bloque final, ninguno empezado:
+1. **Puente con `Fourier` clásico** (recomendado por Claude como primer paso, más corto) --
+   aplicar `QFT.circuit(n)` a un estado que codifique una señal periódica discreta y comparar con
+   `com.ipserc.arith.signal.Fourier.DFT()`.
+2. **Estimación de Fase Cuántica (QPE)** -- más grande, uso genuino de la QFT (Shor, química
+   cuántica), pero necesita 2 piezas que no existen todavía: un control-U genérico elevado a
+   potencias, y la QFT INVERSA (`QFT.circuit(n).adjoint()` bastaría, ya que es unitaria -- pero
+   no está probado ni documentado como tal todavía).
+
+**Candidato pendiente, sin urgencia, de sesiones anteriores** (arrastrado, no tocado esta
+sesión): `quantum_doc/18_QFT.md` -- documentación de la QFT en el mismo formato que los otros 17
+documentos de la guía, ofrecida por Claude al cerrar la Etapa 5 pero explícitamente no
+priorizada por el usuario frente a seguir con la implementación.
+
+**Lección de proceso de esta sesión**: cuando el usuario pide "añade un try para cazar los k
+negativos", conviene distinguir entre "validación de entrada que lanza directamente" (`if`+
+`throw`, lo que hacía falta aquí) y un `try`/`catch` genuino (solo tiene sentido si hay una
+excepción ajena que capturar) -- explicarlo en vez de escribir un `try` vacío sin función mejoró
+el resultado y quedó confirmado por el usuario.
+
+Paquete `com.ipserc.arith.quantum` al cierre de la sesión: **15 clases** -- las 14 de la sesión
+anterior más `QFT` (nueva).
+
 ---
 
 *Última actualización de este bloque: sesión del 30-31 julio + 1 agosto 2026. Sección "Complex.java" (sesión 1-2) congelada tras el commit `72fd463`; sección "Mantenimiento de repositorio" añadida tras los commits `75c95a1` y `ef7bfc2` (tag `v1.0`); sección "Tercera sesión de revisión" añadida tras los commits `20a4bb3` y `a39f99a`; sección "Cuarta sesión de revisión" añadida tras los commits `a5d6a99`, `6131af8` y `bd1b3fd`; sección "Quinta sesión de revisión" añadida tras el commit `dccaf1f`; sección "Sexta sesión de revisión" (paso 1 + paso 2 + auditoría matemática) cerrada tras el commit `687b26a` — ver "CIERRE DE LA SEXTA SESIÓN" para el resumen completo. Sección "SÉPTIMA SESIÓN" (paso 3: migración Vector→VectorComplex + 4 features de propina + 18 arreglos sueltos preexistentes) cerrada tras los commits `15af1f2`..`1499cc2` (más el descarte de `.gitignore`). Sección "OCTAVA SESIÓN" (auditoría matemática de `MatrixComplex.java`) — 31 julio: los **6 hallazgos catalogados resueltos** (commits `cd49ced`/`83e396d`/`db4c912`/`2617010`/`f681881`/`43d26c0`/`d67e5aa`). Continuación 1 agosto: hallazgo colateral del hallazgo 6 resuelto (commit `2b20c68`); bloque EQUATION SYSTEMS auditado (5 hallazgos, sin fix); `VectorComplex.java` auditado por primera vez (6 hallazgos, sin fix); inventario de la pila sin trackear parcialmente hecho (`.gitignore` commit `e3fdd82`, resto pendiente). **Continuación 1 agosto (misma sesión, tras la pausa)**: punto 4 (inventario de sueltos) cerrado del todo, commit `599ca5b` — ver sección "Punto 4 — CERRADO" arriba. Auditoría de `VectorComplex.java` cerrada del todo (4 fases, commits `af54b98`/`2181bff`/`a06ec96`/`5c35ab7`) — ver sección "Auditoría de VectorComplex.java — CERRADA" arriba. Bloque EQUATION SYSTEMS de `MatrixComplex.java` cerrado del todo (5 hallazgos, commits `2b1bb18`/`063e1dd`/`d806520`/`4902f05`/`b1f53de`) — ver sección "Bloque EQUATION SYSTEMS — CERRADO" arriba. Riesgo residual de `Syseq.solution()` (aplazado al cerrar el Hallazgo 3) resuelto del todo a petición del usuario (commits `c662ead`/`0743c90`). `Jordan.java` retomado a petición del usuario: compilación arreglada + 2 bugs reales encontrados y verificados (commits `0f4d047`/`ded5582`), con una limitación de diseño (multiplicidad geométrica > 1) y un hallazgo colateral de robustez numérica del buscador de raíces documentados y aplazados a petición explícita del usuario. Últimos `System.exit()` del proyecto arreglados en `Polynom.java`/`geom/Plane.java` (commits `a09075b`/`0537f42`), incluyendo el que ya se sabía que podía matar la JVM vía `MatrixComplex.rank2()`. Sección "NOVENA SESIÓN"/"SESIÓN PAUSADA — 2 agosto" cerrada con `TestJordanAudit01` resuelto, `logm()` implementado (no conectado a `log()`), y el desbordamiento de Durand-Kerner resuelto en general vía `solveRobust()` — ver esas secciones para el detalle y la hoja de ruta QR-con-desplazamientos guardada. **Sección "DÉCIMA SESIÓN" abierta hoy tras el commit `f1a0743`** (Etapa 1: `Hessenbergfactor`), **continuada tras el commit `d760dcc`** (Etapa 2: `QRSchurfactor` sin desplazar, con un bug real de cancelación catastrófica encontrado y corregido también retroactivamente en `Hessenbergfactor`), **tras el commit `7cce96d`** (Etapa 3: desplazamiento de Wilkinson — resuelve el caso de módulo igual, mejora la precisión general a ~1e-15/1e-16) **y tras el commit `ad5d247`** (Etapa 4: `Eigenspace.eigenvaluesQR()`, comparación exhaustiva contra el motor por defecto — resultado mixto, sin ganancia sistemática, el motor por defecto NO se sustituye) **tras el commit `81b55c4`** (fallback real: `eigenval()` cae a `QRSchurfactor` solo si `solveRobust()` lanza excepción — confirmado con 5 matrices reales encontradas en una búsqueda acotada, rescatadas las 5) **y tras el commit `a8aff61`** (`Polynom.solve()`/`solve(double)` recableados a `solveRobust()`, arregla `TestPolynom02`/`TestRoots01`/`TestPolynomFromRoots01`) — con esto **las 4 etapas planificadas de la hoja de ruta QR-con-desplazamientos están completas**, más los dos hallazgos derivados aplicados. Sesión continuada tras `5e6f5c6` (`logm()` conectado a `log()`), `b139eb4`/`84c6dc5` (colgado de `logTaylor()` arreglado) y `3f8bc68`/`bc240f0` (reestructuración de `Polynom.java` completa, `PolynomFormat`+`PolynomPlot`). Candidato abierto que queda: `MatrixComplex.java`, su propio proyecto multi-sesión aparte, sin empezar — ver sección "Reestructuración arquitectónica..." arriba. **Sección "Undécima sesión" (30 julio-3 agosto 2026) cerrada con la reestructuración de `MatrixComplex.java` Etapas 1-2 completas** (`MatrixComplexFormat`/`MatrixComplexFunctions`, commits `626af10`/`c102ae5`/`cd355e1`). **Duodécima sesión (3 agosto 2026)**: retomada la hoja de ruta, decidido el desglose exacto de las 4 sub-fases de la Etapa 3 (EQUATION SYSTEMS) y completada la sub-fase A+B (`MatrixComplexEquationSystems`, commit `2fdb0f6`) — ver sección "Reestructuración de MatrixComplex.java — Etapa 3, sub-fase A+B completa" arriba para el detalle, incluido un hallazgo de entorno (truncado silencioso de `javac` en lotes grandes, con workaround documentado). **Decimotercera sesión (2 agosto 2026)**: completadas las sub-fases C (`MatrixComplexRank`, commits `031817e`/`a236024` — incluye la eliminación de 2 métodos muertos, uno con bucle infinito genuino preexistente), D (`MatrixComplexOrtho`, commit `13975af`) y E (`MatrixComplexKernel`, commit `4b31458`), cerrando la Etapa 3 entera — ver sección "Reestructuración de MatrixComplex.java — Etapa 3 CERRADA (sub-fases C, D, E)" arriba para el detalle completo. De propina, arreglado a fondo `gramSchmidtGauss()` (commit `2926149`): no solo crasheaba en matrices no cuadradas, sino que devolvía un resultado no ortogonal en ~43% de las matrices cuadradas normales por una interacción con el pivoteo parcial de `triangleUp()` (Octava sesión) — verificado 0/394 tras el fix en un barrido amplio. `MatrixComplex.VERSION` terminó en `1.45`. Candidato siguiente: Etapa 4 (`UNARY OPERATORS`, 867 líneas), sin empezar. **Decimocuarta sesión**: Etapa 4 completa (`MatrixComplexUnary`, commit `4f4acef`), incluido un `StackOverflowError` real de `adjunct(int[])` (recursión infinita, cero llamadores en todo el proyecto) encontrado y arreglado. **Decimoquinta sesión**: Etapa 5 completa (`MatrixComplexCharPoly`, commit `1078c9a`) — con esto se CIERRA del todo la hoja de ruta de reestructuración de `MatrixComplex.java` (Undécima a Decimoquinta sesión, 5 etapas); nota obsoleta de "limpieza de la pila sin trackear" corregida (cerrada desde el 1 de agosto); `Jordan.factorize()`/`factorize2()` fallan alto ante `P`/`J` que no reconstruyen la matriz (commit `4ef6d72`); `MatrixComplex.bestNumDecs()` techo bajado de 8 a 5 decimales, medido con un barrido de 75+63 casos antes de aplicar (commit `179bb56`). **Decimosexta sesión**: candidato de deflación de `Polynom` como señal de recuento de multiplicidad, diseñado y medido con el mismo rigor (barrido de 298+295 grupos) — mejora real en multiplicidad 3 pero con falsos positivos peores y más groseros que el baseline; DESCARTADO. Variante "doble señal" (bestNumDecs Y deflación) medida a continuación en la misma sesión — empata o empeora al baseline, sin reducir falsos positivos (ambas heurísticas fallan a la vez en gaps mínimos, no son independientes) — también DESCARTADA. Investigación de deflación cerrada del todo. Sesión continuada con QR-con-desplazamientos (plan `mutable-rolling-stardust.md`): la Etapa 5 (motor por defecto) medida contra los mismos casos — gana limpio en autovalor repetido real (precisión ~35-47× mejor, agrupamiento y falsos positivos también mejoran), pero empata en autovalor repetido complejo pese a la misma mejora de precisión. Diagnosticado el porqué: `bestNumDecs()` agrupa por redondeo por componente, que penaliza lo complejo el doble (parte real Y parte imaginaria deben caer del mismo lado del cubo). Medido un candidato de agrupamiento por DISTANCIA en vez de redondeo — con `tolFactor≈0.5-1` mejora o empata en TODAS las métricas a la vez (real, complejo y falsos positivos), cerrando el hueco real/complejo. Candidato real identificado con punto dulce (`tolFactor≈0.5-1`) — **implementado en la misma sesión** (`Eigenspace.VERSION` `1.9→1.10`): `QRSchurfactor` por defecto + agrupamiento por distancia (cadena, no ancla). Verificado contra la API real y una batería de 55 ficheros: 0 regresiones, 2 mejoras genuinas (`TestJordan02` pasa por primera vez en la historia del proyecto; `TestEigenV04` deja de crashear). A petición del usuario, revisada la comparación equivalente en `Diagfactor.java` — resultó ser código muerto (`isDiagonalizable__()`, cero llamadores, ya marcado deprecated en su Javadoc), borrado en vez de arreglado (`Diagfactor.VERSION` `1.3→1.4`), verificado con una batería de 33 ficheros sin discrepancias. Investigado además el `ArrayIndexOutOfBoundsException` colateral de `eigensolve()`: causa raíz en `nbrOfSolutions()` sobreestimando grados de libertad para un autovalor defectuoso impreciso; arreglo acotado en `setEigenvectors()` (falla alto con mensaje claro, mismo patrón que `Jordan.checkReconstruction()`, sin tocar el núcleo de `EQUATION SYSTEMS`) — `Eigenspace.VERSION` `1.10→1.11`, verificado sin regresiones reales en una batería de 55 ficheros. Confirmado que `vectorprod()` n-dimensional ya estaba hecho (sesión anterior, `vectorprodN()`). Retomado el techo de precisión para autovalores repetidos: bonus confirmado (`TestJordan01` pasa 4/5 casos, antes 1/5) y un candidato nuevo anotado sin investigar (autovector base degenerado en un bloque de Jordan simple de multiplicidad 2, 5º caso de `TestJordan01`) — sesión pausada a petición del usuario con ese candidato como punto exacto de retomada. **Decimoséptima sesión**: ese candidato investigado a fondo y cerrado — confirmado que la diferencia entre el autovalor real (`~1.9999999999999998`) y el exacto (`2.0`) es de solo medio ULP, y aun así basta para que `N=A-λI` sea genuinamente de rango completo (no un fallo de `rank()`), el mismo techo de precisión ya documentado llevado a su caso límite; verificado que `checkReconstruction()` (VERSION 1.4) ya lo atrapa correctamente y falla alto — sin cambios de código, solo documentación, a petición del usuario. Continuación de la misma sesión: retomado el candidato "layout `double[]`/Vector API" — reconocimiento inicial revela un candidato mucho más grande de lo asumido (`Complex` tiene 5 campos, no 2; bloqueador de compliance Java 1.8 para `jdk.incubator.vector`; ~13.700 líneas si se migra el layout de forma consistente) — decisión del usuario de empezar por la ganancia rápida: `MatrixComplex.times(MatrixComplex)` recableado a acumulación in-place vía `plusEq()` (mismo idioma ya usado en `ComplexFunctions.java`), ~5-15% más rápido y menos varianza por GC, verificado con una batería de 143 ficheros sin regresiones reales (2 mismatches aparentes trazados a timeout preexistente no relacionado en `determinantAdj()`). Continuación: mismo patrón aplicado a `MatrixComplexFunctions.sqrtTriangular()` (el único acumulador `Complex` genuino de ese fichero, el resto opera a nivel de matriz completa) — con una precaución extra (el acumulador arrancaba en `Complex.ZERO`, la constante compartida, cambiado a una instancia privada antes de usar `plusEq()` para no corromperla). Verificado con una batería de 55 ficheros sin regresiones reales; un mismatch aparente resultó ser un bug preexistente genuino en el propio fichero de test `TestTaylorSeries08.java` (NPE por falta de guard `isDiagonalizable()`, confirmado a tasa similar en ambos builds con 20 ejecuciones cada uno) — arreglado a petición del usuario. `MatrixComplex.VERSION` terminó la sesión en `1.50`. Candidato "ganancia rápida con `*Eq`" agotado en los acumuladores `Complex` sueltos identificados; sesión pausada a petición del usuario con dos caminos abiertos sin decidir: (A) diseñar un `*Eq` a nivel de `MatrixComplex` para los bucles de Taylor/Mercator (más grande, mismo espíritu), o (B) la decisión de infraestructura (compliance Java 1.8→16+/17+ para `jdk.incubator.vector`, bloqueante para SIMD real pero de mayor alcance que una clase) — ver "SESIÓN PAUSADA — Decimoséptima sesión, continuación" para el detalle completo y la lección de proceso sobre no fiarse de un recuento por grep para dimensionar alcance. **Vigesimoctava sesión (10-11 agosto)**: hoja de ruta de "nuevos instrumentos matemáticos" cerrada del todo (digamma/poligamma, erf/erfc, eta de Dirichlet, polilogaritmo, Bessel J/Y — commits `ea2b749`..`cce116c`), seguida de 2 bugs reales encontrados y arreglados en cadena (`Complex.isPureReal()`/`isPureImaginary()` excluían el cero, commit `ab7d061`; `MatrixComplexFunctions.exp()` devolvía matriz cero en vez de identidad para `exp(0)`, commit `8893d10`) — ver "SESIÓN PAUSADA — Vigesimoctava sesión" para el detalle. **Vigesimonovena sesión (11 agosto)**: documentación de la API generada de cero — Javadoc de los 42 ficheros de `com.ipserc.arith` traducido a inglés (commit `8dc0282`), los 89 errores de `javadoc` preexistentes arreglados (commit `d239f4d`), y 20 clases/tipos sin descripción real encontrados y corregidos tras un escaneo automatizado de todo el HTML generado (commits `faca474`/`c380786`) — `doc/` termina con 0 errores y 0 descripciones vacías en ~200 páginas. Ver "SESIÓN PAUSADA — Vigesimonovena sesión" para el detalle completo, la lección de proceso sobre cómo detectar descripciones vacías (no salen como error de `javadoc`), y los 2 candidatos abiertos sin urgencia para la próxima sesión. **Trigesimoprimera sesión (12 agosto 2026)**: limpieza de los 10 imports sin usar en `com.ipserc.arith` detectados con `ecj` (commit `053ed45`, herramienta nueva para el proyecto — ver la sección propia para dónde vive el jar standalone), seguida de un plan completo (sin implementar, PAUSADO por el usuario antes de aprobar) para nombrar las series de los plots a voluntad en vez de "Series N", cubriendo `SimpleGnuplot`/`MatrixComplexPlot`/`Fourier`/`Laplace`/`Z`/`Polynom`. Plan guardado en `C:\Users\josel\.claude\plans\quirky-wondering-yao.md` — ver "Trigesimoprimera sesión" arriba para el detalle completo y el punto exacto de retomada.*
