@@ -10,8 +10,19 @@ import com.ipserc.arith.complex.Complex;
 public class Sigfunc {
 
 	private final static String HEADINFO = "Sigfunc --- INFO: ";
-	private final static String VERSION = "1.3 (2026_0811_1900)";
+	private final static String VERSION = "1.4 (2026_0819_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.4 (2026_0819_1200)
+	 * ramp()/ramp0() and saw()/saw0() had their names crossed with respect to the waveform they
+	 * actually compute: the old ramp()/ramp0() produced a discontinuous linear ramp that resets
+	 * every period (a sawtooth), while the old saw()/saw0() produced a continuous folded wave
+	 * (a triangle). Verified no caller in the project depends on the specific shape (only
+	 * boundedness/periodicity are checked, which hold for both waveforms), so fixed by swapping
+	 * the method names to match their real behaviour: ramp()/ramp0() now denote the sawtooth,
+	 * saw()/saw0() now denote the triangle. Javadoc corrected accordingly.
+	 * Also: U(Complex,double) and step(Complex,double) had identical bodies; U() now delegates to
+	 * step(), which is the canonical name for the family (it also has 3-arg/4-arg siblings).
 	 *
 	 * 1.3 (2026_0811_1900)
 	 * Comentarios Javadoc traducidos al inglés y corregidos (sin cambios funcionales), como parte
@@ -77,21 +88,21 @@ public class Sigfunc {
 	/**
 	 * Unit-step Heaviside function.
 	 * @param z the point at which to evaluate the function, as a Complex
-	 * @param ton the point from which the unit step is nonzero
-	 * @return Complex.ONE from ton onward, Complex.ZERO before it
-	 */
-	public static Complex U(Complex z, double ton) {
-		return (z.rep() >= ton ? Complex.ONE : Complex.ZERO);
-	}
-
-	/**
-	 * Unit-step Heaviside function.
-	 * @param z the point at which to evaluate the function, as a Complex
 	 * @param ton the point from which the unit step is nonzero, as a double
 	 * @return Complex.ONE from ton onward, Complex.ZERO before it
 	 */
 	public static Complex step(Complex z, double ton) {
 		return (z.rep() >= ton) ? Complex.ONE : Complex.ZERO;
+	}
+
+	/**
+	 * Unit-step Heaviside function (alias of {@link #step(Complex, double)}).
+	 * @param z the point at which to evaluate the function, as a Complex
+	 * @param ton the point from which the unit step is nonzero
+	 * @return Complex.ONE from ton onward, Complex.ZERO before it
+	 */
+	public static Complex U(Complex z, double ton) {
+		return step(z, ton);
 	}
 
 	/**
@@ -119,13 +130,14 @@ public class Sigfunc {
 	}
 
 	/**
-	 * Triangle (ramp) wave function.
+	 * Sawtooth wave function: linear ramp that rises across the period and resets
+	 * discontinuously (a jump of 2*y1) at every multiple of T.
 	 * @param z the point at which to evaluate the function, as a Complex
 	 * @param T the period
 	 * @param y1 the semi-amplitude of the signal
 	 * @return the ordinate value of the wave at z, as a Complex
 	 */
-	public static Complex ramp(Complex z, int T, double y1) {
+	public static Complex saw(Complex z, int T, double y1) {
 		y1 = Math.abs(y1);
 		double y0 = -y1;
 		double zr = z.rep();
@@ -138,24 +150,25 @@ public class Sigfunc {
 	}
 
 	/**
-	 * Triangle (ramp) wave function centered at zero.
+	 * Sawtooth wave function centered at zero.
 	 * @param z the point at which to evaluate the function, as a Complex
 	 * @param T the period
 	 * @param y1 the semi-amplitude of the signal
 	 * @return the ordinate value of the wave at z, as a Complex
 	 */
-	public static Complex ramp0(Complex z, int T,  double y1) {
-		return ramp(z.plus(T/2.0), T, y1);
+	public static Complex saw0(Complex z, int T,  double y1) {
+		return saw(z.plus(T/2.0), T, y1);
 	}
 
 	/**
-	 * Sawtooth wave function.
+	 * Triangle (ramp) wave function: continuous, peaking at +a at x=0 and bottoming
+	 * out at -a at x=T/2, folded symmetrically around each period boundary.
 	 * @param z the point at which to evaluate the function, as a Complex
 	 * @param T the period
 	 * @param a the semi-amplitude of the signal
 	 * @return the ordinate value of the wave at z, as a Complex
 	 */
-	public static Complex saw(Complex z, int T, double a) {
+	public static Complex ramp(Complex z, int T, double a) {
 		double x = Math.abs(z.rep()%T);
 		double y;
 		if (x >= 0 && x < T/2) y = -4*a/T*x+a;
@@ -164,14 +177,14 @@ public class Sigfunc {
 	}
 
 	/**
-	 * Sawtooth wave function centered at zero.
+	 * Triangle (ramp) wave function centered at zero.
 	 * @param z the point at which to evaluate the function, as a Complex
 	 * @param T the period
 	 * @param a the semi-amplitude of the signal
 	 * @return the ordinate value of the wave at z, as a Complex
 	 */
-	public static Complex saw0(Complex z, int T, double a) {
-		return saw(z.plus(-T/4.0), T, a);
+	public static Complex ramp0(Complex z, int T, double a) {
+		return ramp(z.plus(-T/4.0), T, a);
 	}
 
 	/*

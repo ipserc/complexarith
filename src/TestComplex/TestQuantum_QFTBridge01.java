@@ -39,7 +39,7 @@ public class TestQuantum_QFTBridge01 {
 		// n=1..5: no basta con un único caso "de suerte" -- cada n reusa la misma fórmula de señal,
 		// genuinamente compleja (no solo real), para que ambos signos del exponente se ejerciten de
 		// verdad y no coincidan por casualidad de simetría conjugada.
-		for (int n = 1; n <= 5; ++n) {
+		for (int n = 10; n <= 15; ++n) {
 			int N = 1 << n;	// muestras discretas
 
 			Complex.printBoxText(boxShape, boxMargin, "n=" + n + " qubits, N=" + N + " muestras");
