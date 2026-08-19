@@ -11271,3 +11271,53 @@ Arreglado, verificado y commiteado (8893d10): MatrixComplexFunctions.exp() tení
   Mi recomendación: empezar por el puente con Fourier (opción 1) como ejercicio corto que cierra el círculo pedagógico de esta sesión, y dejar QPE como candidato aparte si en algún momento quieres ir a por algo más ambicioso. ¿Te encaja,
   o prefieres ir directo a QPE aunque sea más grande?
 
+> Tengo que parar aquí muy a mi pesar, esto me emociona. Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, documentos, planes, reglas, workflows que tengas. Recuerda todo lo que has aprendido. Haz push de todos los commits. Cuando vuelva a conectar me recuerdas por donde seguir.
+> Se me ha pasado. Escribe la documentación (quantum_doc/18_QFT.md)
+● Todo guardado y sincronizado — master==origin/master==0e8a470, 4 commits nuevos pusheados (phaseGate, QFT.java+batería, doc de sesión, quantum_doc/18_QFT.md). Memoria persistente actualizada (continuidad, notas del paquete, índice, y
+  una memoria nueva con las 2 lecciones de esta sesión sobre el modo tutor).
+
+  Que disfrutes lo que queda de tus vacaciones — esta QFT ha quedado redonda. Cuando retomes, el punto exacto es:
+
+  Decidir entre 2 candidatos, ninguno empezado:
+  1. Puente con Fourier clásico (recomendado por mí, más corto) — aplicar QFT.circuit(n) a un estado periódico y comparar con com.ipserc.arith.signal.Fourier.DFT().
+  2. Estimación de Fase Cuántica (QPE) — más grande, el uso genuino de la QFT (Shor, química cuántica), pero necesita 2 piezas nuevas: control-U elevado a potencias, y la QFT inversa (QFT.circuit(n).adjoint() probablemente, sin verificar
+  todavía como tal).
+
+  Hasta la próxima.
+  
+> recordar que revise el rango de convergencia del desarrollo en serie del logaritmo natural, quiero analizar si los logaritmos de matrices tienen tantos casos diverrgentes.
+● Hecho. src/TestComplex/TestQuantum_QFTBridge01.java (nuevo, commit 53a43a6), verificado 10/10 OK para n=1..5 con una señal genuinamente compleja.
+
+  El hallazgo interesante: no es solo "aplicar QFT.circuit(n) y comparar con DFT()" tal cual — hay un matiz de signo. QFT.matrix(n) usa exponente +2πi·jk/N, que coincide con el convenio de Fourier.IDFT(), no con Fourier.DFT() (que usa
+  signo negativo, sin normalizar). Así que:
+
+  - QFT.circuit(n).adjoint() (la QFT inversa, unitaria) aplicada a las muestras x, escalada por √N, == Fourier.DFT(x).
+  - QFT.circuit(n) hacia adelante aplicada a los coeficientes de Fourier.DFT(x), escalada por 1/√N, recupera las muestras x originales — confirma que la QFT "hacia adelante" implementa, salvo escala, la IDFT clásica, no la DFT.
+
+  No toqué Claude/ClaudeRevisionComplexArith.txt ni src/TestComplex/TestQuantum_QFT01.java — esos cambios son tuyos, en paralelo, sin commitear. Los dejo tal cual.
+
+  No he hecho push (fuera del permiso implícito). ¿Lo subo, o seguimos con algo más antes de cerrar?
+
+✻ Churned for 4m 37s
+
+※ recap: We're building a QFT-to-classical-Fourier bridge for the quantum package; just committed a verified test proving it (10/10 passing). Next: decide whether to push this commit to origin. (disable recaps in /config)
+
+> ¿pero qué sería lo adecuado de este hallazgo?
+
+● No es un error que arreglar — es la convención estándar de la QFT tal y como aparece en los libros de texto (Nielsen & Chuang: QFT|j> = (1/√N)·Σ e^(2πijk/N)|k>), y coincide con el signo positivo de la IDFT clásica por diseño, no por
+  casualidad: en computación cuántica interesa que la QFT "hacia adelante" sea la que se aplica dentro de circuitos como Shor, y es su inversa (QFT†, signo negativo) la que se usa para extraer información de fase en QPE — exactamente el
+  mismo signo que Fourier.DFT().
+
+  Lo adecuado, por tanto, es simplemente dejar constancia del hallazgo (ya hecho, en el comentario de clase y el commit) y no tocar nada en QFT.java ni en Fourier.java — ambas implementaciones siguen su convención estándar respectiva,
+  correctamente. Como beneficio colateral: este puente ya deja verificado que circuit(n).adjoint() es la QFT inversa que hace falta para el candidato QPE (opción B, aparcada la sesión pasada), si en algún momento quieres retomarla.
+
+✻ Sautéed for 15s
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, documentos, planes, reglas, workflows que tengas. Recuerda todo lo que has aprendido. Haz push de todos los commits. Cuando vuelva a conectar me recuerdas por donde seguir.
+
+========================================================================================================================================
+#
+#	18/08/2026 DIA 15 - quantum-entanglement-bell-test
+#
+========================================================================================================================================

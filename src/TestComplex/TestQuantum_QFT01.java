@@ -161,14 +161,14 @@ public class TestQuantum_QFT01 {
 
 		for (int i = 1; i < 6; ++i) {
 			Complex.printBoxText(boxShape, boxMargin, "Etapa 4." + i + " — QFT de " + i + " qubits");
-			MatrixComplex QFTcircuit = QFTcircuit(i);
+			MatrixComplex qftCircuit = QFTcircuit(i);
 			MatrixComplex qftMatrix = QFTmatrix(i);
 			
-			QFTcircuit.println("--- QFTcircuit ---");
+			qftCircuit.println("--- qftCircuit ---");
 			qftMatrix.println("--- qftMatrix ---");
-			check("QFT(" + i + " qubits) circuito QFTcircuit == qftMatrix fórmula literal", QFTcircuit.equals(qftMatrix, 10));
+			check("QFT(" + i + " qubits) circuito qftCcircuit == qftMatrix fórmula literal", qftCircuit.equals(qftMatrix, 10));
 		}
-		Complex.printBoxText(boxShape, boxMargin, ok + " Test OK of " + (ok + fail) + " Tests. " + fail + " Test failed.");
+		Complex.printBoxText(boxShape, boxMargin, ok + " tests passed out of " + (ok + fail) + " taken. " + fail + " tests failed.");
 	}
 
 }

@@ -6,6 +6,9 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.quantum.QFT;
 import com.ipserc.arith.signal.Fourier;
+import com.ipserc.arith.signal.Fourier.e_domain;
+import com.ipserc.arith.signal.Fourier.e_lineStyle;
+import com.ipserc.arith.signal.Fourier.e_operator;
 
 /**
  * Puente entre la QFT ({@link QFT#circuit(int)}) y la DFT clásica ({@link Fourier#DFT(int)}):
@@ -49,6 +52,7 @@ public class TestQuantum_QFTBridge01 {
 			// samplea exactamente en t=0,1,...,N-1, igual que el índice de la QFT.
 			Fourier fourier = new Fourier(signal, 0.0, (double) N);
 			fourier.DFT(N);
+			fourier.plotDFTSync("DFT clasica de referencia", e_domain.FREC, e_operator.MAGNITUDE, false, e_lineStyle.LINES);
 
 			// Mismas N muestras, como vector de álgebra lineal |x> = sum_n x[n]|n> -- sin normalizar:
 			// esto NO es un estado cuántico físico, es la matriz QFT aplicada como transformación lineal.
