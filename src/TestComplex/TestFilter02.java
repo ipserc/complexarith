@@ -50,7 +50,7 @@ public class TestFilter02 {
 		System.out.println(Complex.boxTextRandom(boxSize, "Signal Section"));
 		double loLimit = -80;
 		double upLimit = 80;
-		int samplefreq = 12000;
+		int samplefreq = 16384;
 		System.out.println("Creating signal...");
 		Fourier signal = new Fourier(z -> func15(z), loLimit, upLimit);
 		signal.DFT(samplefreq);
