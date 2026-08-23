@@ -40,10 +40,24 @@ public class Fourier extends MatrixComplex {
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.16 (2026_0823_1900)";
+	private final static String VERSION = "1.17 (2026_0823_2100)";
 	/* VERSION Release Note
 	 *
-	 * 1.16 (2026_0823_1900)
+	 * 1.17 (2026_0823_2100)
+	 * A peticion del usuario, nueva seccion "SPECTRAL ANALYSIS COMPONENTS": SpectralComponent
+	 * (frecuencia en Hz, amplitud, fase), getSpectralComponents() (los N bins de transform ya
+	 * calculado, convertidos a Hz con el mismo mapeo bin->frecuencia ya verificado en
+	 * plotDFTfrec()), getSpectralComponents(double amplitudeThreshold) (filtra por amplitud y
+	 * ordena descendente, para quedarse solo con los armonicos significativos frente al suelo de
+	 * ruido numerico) y plotSpectralComponentsSync/Async (representacion grafica amplitud+fase vs
+	 * frecuencia de un array de componentes ya extraido, reutilizable tanto con el espectro
+	 * completo como con el filtrado). Verificado (ScratchSpectralComponentsAudit01/Plot01.java, no
+	 * conservados): señal de 2 tonos (3 Hz amplitud 2, 7 Hz amplitud 1, N=64) da exactamente los 4
+	 * picos esperados (+-3Hz, +-7Hz) con la proporcion de amplitud correcta (2.0) y fase 0; el
+	 * filtrado por umbral descarta el bin de DC y ordena por amplitud descendente correctamente;
+	 * el script de gnuplot generado por el plot (capturado sin abrir ventana real) tiene los 4
+	 * puntos exactos en modo impulses.
+	 *
 	 * Arreglados 3 hallazgos abiertos desde la sesion anterior (revision de signal.java):
 	 * -- calc(): bug real confirmado con ejecucion (ScratchOffsetAudit01/02/03, no conservados en
 	 * el repo). series solo integra n=0..order (nunca n negativo); la reconstruccion sumaba cada
@@ -1569,7 +1583,110 @@ public class Fourier extends MatrixComplex {
 
 	/*
 	 * ***********************************************
-	 * SIGNAL FILTERING 
+	 * SPECTRAL ANALYSIS COMPONENTS
+	 * ***********************************************
+	 */
+
+	/**
+	 * One line of the spectrum: the frequency (Hz) of a DFT bin together with the amplitude and
+	 * phase of its coefficient, in polar form -- the shape a caller actually wants when reasoning
+	 * about "which harmonics make up this signal" instead of the raw rectangular {@link Complex}
+	 * coefficient indexed by bin number.
+	 */
+	public static final class SpectralComponent {
+		public final double frequency;
+		public final double amplitude;
+		public final double phase;
+
+		public SpectralComponent(double frequency, double amplitude, double phase) {
+			this.frequency = frequency;
+			this.amplitude = amplitude;
+			this.phase = phase;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("f=%.4f Hz  |A|=%.6f  phase=%.6f rad", frequency, amplitude, phase);
+		}
+	}
+
+	/**
+	 * Extracts every DFT coefficient as a {@link SpectralComponent} (frequency in Hz, amplitude,
+	 * phase), ordered by increasing frequency from -sampleFreq/2 to +sampleFreq/2 (same bin-to-Hz
+	 * mapping already used and verified by {@link #plotDFTfrec}).
+	 * @return One {@link SpectralComponent} per DFT bin, N in total.
+	 */
+	public SpectralComponent[] getSpectralComponents() {
+		if (!isTransformed) {
+			System.out.println("WARNING (getSpectralComponents):DFT coeficients not calculated/loaded. Do the DFT or Load them first.");
+			return new SpectralComponent[0];
+		}
+
+		SpectralComponent[] components = new SpectralComponent[N];
+		double incr = sampleFreq/N;
+		double point = -sampleFreq/2;
+		int N2 = N/2;
+
+		for (int k = 0; k < N2; ++k) { // positive-frequency half of the transform -> upper half of the axis
+			Complex Ak = transform.getItem(0, k);
+			components[k+N2] = new SpectralComponent(point + (k+N2)*incr, Ak.mod(), Ak.pha());
+		}
+		int k0 = N%2 == 0 ? 0: 1;
+		for (int k = k0; k < N2 + k0; ++k) { // negative-frequency half of the transform -> lower half of the axis
+			Complex Ak = transform.getItem(0, N2+k);
+			components[k] = new SpectralComponent(point + k*incr, Ak.mod(), Ak.pha());
+		}
+		return components;
+	}
+
+	/**
+	 * Same as {@link #getSpectralComponents()}, filtered down to the components whose amplitude
+	 * exceeds {@code amplitudeThreshold} -- the significant spectral lines (harmonics) of the
+	 * signal, discarding the numerical noise floor -- sorted by descending amplitude (dominant
+	 * harmonic first).
+	 * @param amplitudeThreshold The minimum amplitude a component must exceed to be kept.
+	 * @return The significant {@link SpectralComponent}s, descending by amplitude.
+	 */
+	public SpectralComponent[] getSpectralComponents(double amplitudeThreshold) {
+		SpectralComponent[] all = getSpectralComponents();
+		return java.util.Arrays.stream(all)
+				.filter(c -> c.amplitude > amplitudeThreshold)
+				.sorted((a, b) -> Double.compare(b.amplitude, a.amplitude))
+				.toArray(SpectralComponent[]::new);
+	}
+
+	/**
+	 * Plots a set of {@link SpectralComponent}s (amplitude and phase vs. frequency) -- typically
+	 * the result of {@link #getSpectralComponents()} or {@link #getSpectralComponents(double)}.
+	 * @param title The title of the plot.
+	 * @param components The components to plot, e.g. from {@link #getSpectralComponents()}.
+	 * @param lineStyle {@link e_lineStyle#IMPULSES} draws each component as a spectral line (the
+	 * usual representation); {@link e_lineStyle#LINES} connects them instead.
+	 */
+	public void plotSpectralComponentsSync(String title, SpectralComponent[] components, e_lineStyle lineStyle) {
+		plotSpectralComponents(title, components, lineStyle, SimpleGnuplot.e_syncMode.SYNC);
+	}
+
+	public void plotSpectralComponentsAsync(String title, SpectralComponent[] components, e_lineStyle lineStyle) {
+		plotSpectralComponents(title, components, lineStyle, SimpleGnuplot.e_syncMode.ASYNC);
+	}
+
+	private void plotSpectralComponents(String title, SpectralComponent[] components, e_lineStyle lineStyle, SimpleGnuplot.e_syncMode mode) {
+		double dataAmp[][] = new double[components.length][2];
+		double dataPhase[][] = new double[components.length][2];
+		for (int i = 0; i < components.length; ++i) {
+			dataAmp[i][0] = components[i].frequency;
+			dataAmp[i][1] = components[i].amplitude;
+			dataPhase[i][0] = components[i].frequency;
+			dataPhase[i][1] = components[i].phase;
+		}
+		MatrixComplexPlot.plotSeries(title, "\"Spectrum in Hz\"", "\"Hz\"", false, toMCStyle(lineStyle), mode,
+				new MatrixComplexPlot.NamedSeries("Amplitude", dataAmp), new MatrixComplexPlot.NamedSeries("Phase", dataPhase));
+	}
+
+	/*
+	 * ***********************************************
+	 * SIGNAL FILTERING
 	 * ***********************************************
 	 */
 
