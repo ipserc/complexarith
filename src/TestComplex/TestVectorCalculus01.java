@@ -152,6 +152,45 @@ public class TestVectorCalculus01 {
 		System.out.printf("max |div(curl(H))| = %.3e%n", maxDivCurl);
 		check("div(curl(H))=0 para un campo vectorial arbitrario H", divOfCurlIsZero);
 
+		/*************************************************************
+		 * 5) Laplaciano ("operador Newtoniano"): f(x,y,z)=x^2+y^2+z^2 -> laplacian=6
+		 *    y el potencial newtoniano f(x,y,z)=1/r (r=|x|) -> laplacian=0 para r!=0 (armonico)
+		 *************************************************************/
+		Complex.printBoxText(boxShape, boxMargin, "VectorCalculus 5/5 -- Laplaciano (operador Newtoniano)");
+
+		ScalarField quadratic = p -> p[0]*p[0] + p[1]*p[1] + p[2]*p[2];
+		boolean laplacianQuadraticOk = true;
+		double maxLapQuadDiff = 0;
+		for (double x = -2.0; x <= 2.0; x += 1.0) {
+			for (double y = -2.0; y <= 2.0; y += 1.0) {
+				for (double z = -2.0; z <= 2.0; z += 1.0) {
+					double lap = VectorCalculus.laplacian(quadratic, new double[]{x, y, z});
+					double diff = Math.abs(lap - 6.0);
+					maxLapQuadDiff = Math.max(maxLapQuadDiff, diff);
+					if (diff > 1e-3) laplacianQuadraticOk = false;
+				}
+			}
+		}
+		System.out.printf("max |laplacian(x^2+y^2+z^2) - 6| = %.3e%n", maxLapQuadDiff);
+		check("laplacian() de x^2+y^2+z^2 coincide con 6", laplacianQuadraticOk);
+
+		ScalarField newtonianPotential = p -> 1.0 / Math.sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+		boolean newtonianPotentialHarmonic = true;
+		double maxLapPotential = 0;
+		for (double x = -3.0; x <= 3.0; x += 0.6) {
+			for (double y = -3.0; y <= 3.0; y += 0.6) {
+				for (double z = -3.0; z <= 3.0; z += 0.6) {
+					double r = Math.sqrt(x*x + y*y + z*z);
+					if (r < 0.5) continue; // fuera del entorno de la fuente (singular en r=0)
+					double lap = VectorCalculus.laplacian(newtonianPotential, new double[]{x, y, z});
+					maxLapPotential = Math.max(maxLapPotential, Math.abs(lap));
+					if (Math.abs(lap) > 1e-2) newtonianPotentialHarmonic = false;
+				}
+			}
+		}
+		System.out.printf("max |laplacian(1/r)| para r>=0.5 (deberia ser 0, armonico) = %.3e%n", maxLapPotential);
+		check("el potencial newtoniano 1/r es armonico (laplacian=0) fuera del origen", newtonianPotentialHarmonic);
+
 		Complex.printBoxText(boxShape, boxMargin, ok + " tests passed out of " + (ok + fail) + " taken. " + fail + " tests failed.");
 		if (fail > 0) { System.exit(1); }
 	}

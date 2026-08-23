@@ -16,8 +16,15 @@ package com.ipserc.arith.vectorcalculus;
 public final class VectorCalculus {
 
 	private final static String HEADINFO = "VectorCalculus --- INFO: ";
-	private final static String VERSION = "1.0 (2026_0824_1000)";
+	private final static String VERSION = "1.1 (2026_0824_1100)";
 	/* VERSION Release Note
+	 *
+	 * 1.1 (2026_0824_1100)
+	 * A peticion del usuario ("el operador Newtoniano"): laplacian(f,point)=div(grad(f)), el
+	 * operador de la teoria del potencial newtoniano (el potencial 1/r es armonico fuera de su
+	 * fuente). Calculado directamente por segundas diferencias centradas con su propio paso
+	 * (STEP2, mayor que STEP), no componiendo gradient()+divergence() (evita apilar dos
+	 * aproximaciones independientes con pasos pensados para primeras derivadas).
 	 *
 	 * 1.0 (2026_0824_1000)
 	 * Primera clase de com.ipserc.arith.vectorcalculus (paquete nuevo): gradient()/divergence()/
@@ -52,11 +59,26 @@ public final class VectorCalculus {
 	 */
 	private static final double STEP = 1e-5;
 
+	/**
+	 * Central-difference step for the second partial derivatives {@link #laplacian} needs --
+	 * larger than {@link #STEP}, since a second derivative's rounding error grows as {@code
+	 * O(eps/h^2)} instead of {@code O(eps/h)}, so its optimal step is larger for the same {@code
+	 * O(h^2)} truncation order.
+	 */
+	private static final double STEP2 = 1e-4;
+
 	/** {@code df/dx_i} at {@code point}, central difference. */
 	private static double partialDerivative(ScalarField f, double[] point, int i) {
 		double[] plus = point.clone();  plus[i] += STEP;
 		double[] minus = point.clone(); minus[i] -= STEP;
 		return (f.apply(plus) - f.apply(minus)) / (2*STEP);
+	}
+
+	/** {@code d^2f/dx_i^2} at {@code point}, central second difference. */
+	private static double secondPartialDerivative(ScalarField f, double[] point, int i) {
+		double[] plus = point.clone();  plus[i] += STEP2;
+		double[] minus = point.clone(); minus[i] -= STEP2;
+		return (f.apply(plus) - 2*f.apply(point) + f.apply(minus)) / (STEP2*STEP2);
 	}
 
 	/** {@code dF_component/dx_wrtIndex} at {@code point}, central difference. */
@@ -78,6 +100,27 @@ public final class VectorCalculus {
 			grad[i] = partialDerivative(f, point, i);
 		}
 		return grad;
+	}
+
+	/**
+	 * The Laplacian {@code laplacian(f) = div(grad(f)) = sum_i d^2f/dx_i^2} of a scalar field at
+	 * {@code point} -- the "Newtonian operator" of potential theory: the Newtonian potential (the
+	 * gravitational/electrostatic potential of a point source, {@code 1/r}) is harmonic
+	 * ({@code laplacian==0}) away from its source, and solves the Poisson equation
+	 * {@code laplacian(Phi)=-4*pi*rho} at the source. Computed directly from the second partial
+	 * derivatives (its own step {@link #STEP2}), not by composing {@link #gradient} and {@link
+	 * #divergence} (which would stack two independent finite-difference approximations, each with
+	 * their own step, instead of one dedicated to the second derivative).
+	 * @param f The scalar field.
+	 * @param point The point at which to evaluate the Laplacian, any dimension {@code n}.
+	 * @return The (scalar) Laplacian at {@code point}.
+	 */
+	public static double laplacian(ScalarField f, double[] point) {
+		double lap = 0;
+		for (int i = 0; i < point.length; ++i) {
+			lap += secondPartialDerivative(f, point, i);
+		}
+		return lap;
 	}
 
 	/**
