@@ -270,7 +270,7 @@ public class Z extends MatrixComplex {
 	        fWriter.write(filterData+System.lineSeparator());
 			//for (int i = 0; i < transform.cols(); ++i) {
 			for (int i = 0; i < this.N; ++i) {
-				if (separator != "") {
+				if (!separator.equals("")) {
 					fWriter.write(data.getItem(0,i).rep()+separator+data.getItem(0,i).imp()+System.lineSeparator());
 				}
 				else fWriter.write(data.getItem(0,i).toString()+System.lineSeparator());
@@ -370,7 +370,7 @@ public class Z extends MatrixComplex {
 	    	Complex cVal = new Complex();
 	    	String line;
 	        while ((line = br.readLine()) != null) {
-				if (separator == "") cVal.setComplex(line);
+				if (separator.equals("")) cVal.setComplex(line);
 				else {
 					String value[] = line.split(separator);
 					cVal.setComplexRec(Double.parseDouble(value[0]), Double.parseDouble(value[1]));
@@ -442,7 +442,7 @@ public class Z extends MatrixComplex {
 	    	Complex cVal = new Complex();
 	    	String line;
 	        while ((line = br.readLine()) != null) {
-				if (separator == "") cVal.setComplex(line);
+				if (separator.equals("")) cVal.setComplex(line);
 				else {
 					String value[] = line.split(separator);
 					cVal.setComplexRec(Double.parseDouble(value[0]), Double.parseDouble(value[1]));

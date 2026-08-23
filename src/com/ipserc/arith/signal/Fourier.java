@@ -34,15 +34,46 @@ public class Fourier extends MatrixComplex {
 	private MatrixComplex samples;
 	private MatrixComplex series;
 	private MatrixComplex transform;
-	private Complex offset = new Complex();
 	private Boolean isSampled = false;
 	private Boolean isSerialized = false;
 	private Boolean isTransformed = false;
 	private String filterData;
 	
 	private final static String HEADINFO = "Fourier --- INFO: ";
-	private final static String VERSION = "1.15 (2026_0812_1400)";
+	private final static String VERSION = "1.16 (2026_0823_1900)";
 	/* VERSION Release Note
+	 *
+	 * 1.16 (2026_0823_1900)
+	 * Arreglados 3 hallazgos abiertos desde la sesion anterior (revision de signal.java):
+	 * -- calc(): bug real confirmado con ejecucion (ScratchOffsetAudit01/02/03, no conservados en
+	 * el repo). series solo integra n=0..order (nunca n negativo); la reconstruccion sumaba cada
+	 * termino Cn*e^(inwt) entero en vez de tomar solo su parte real (equivalente a sumar tambien
+	 * el termino conjugado en -n, valido porque una funcion real cumple C(-n)=conj(Cn)) -- la parte
+	 * real de calc() ya salia exacta (por estructura: Re(Cn*e^(inwt)) es la formula trigonometrica
+	 * correcta), pero la parte imaginaria devolvia una señal en cuadratura completa y espuria
+	 * (con func=cos(pi*z) el residuo imaginario era exactamente sin(pi*z), magnitud hasta 1.0,
+	 * verificado en ejecucion). Ademas el termino n=0 se duplicaba dos veces (una al guardarlo en
+	 * serialize() -- coef=integrate(...).times(2)/period -- y otra vez en calc() -- .times(2) --)
+	 * en vez de deshacer la primera duplicacion. setOffset()/isContinuous() (intentaban compensar
+	 * el desajuste evaluando un unico punto medio y restando esa diferencia como constante) no podian
+	 * arreglar esto porque el error real varia con el punto (hasta 1.25 de residuo con una funcion
+	 * de fase desplazada, muy lejos de constante) -- eliminados junto con el campo offset, ya sin
+	 * uso. Arreglado calc() para sumar new Complex(term.rep(),0) en vez de term, y dividir(no
+	 * multiplicar) por 2 el termino n=0. Verificado: residuo calc(p)-func(p) a precision de maquina
+	 * (~1e-11) en todo el dominio, con funciones pares, con fase desplazada y con media no nula
+	 * (antes hasta 1.25 de error en algunos puntos).
+	 * -- separator == ""/!= "" por referencia (3 sitios: saveTFile/readSamples/readDFT) sustituido
+	 * por separator.equals("")/!separator.equals("") -- mismo patron replicado en Laplace.java y
+	 * Z.java (3 sitios cada uno, misma correccion).
+	 * -- plus()/minus(): sin validar que ambas señales tengan el mismo N antes de indexar
+	 * signal.samples/signal.transform hasta this.N -- ahora lanzan IllegalArgumentException con un
+	 * mensaje explicito si signal.N != this.N. convolution() revisado aparte: sus indices ya estan
+	 * acotados de forma segura (t_n=t-n rompe el bucle interior en cuanto t_n<0, nunca excede
+	 * this.samples ni signal.samples) -- el tamaño distinto entre señal y filtro es un diseño
+	 * valido (salida truncada a this.N), no un bug, asi que no se ha tocado.
+	 * Verificado (ScratchSizeValidationAudit01.java, no conservado): plus()/minus() con N distinto
+	 * lanzan la excepcion esperada; con N igual siguen funcionando igual que antes.
+	 *
 	 *
 	 * 1.15 (2026_0812_1400)
 	 * plotSeries/plotCompare/plotDFTsamp/plotDFTfrec pasan a llamar al nuevo overload
@@ -505,24 +536,9 @@ public class Fourier extends MatrixComplex {
 	 * ***********************************************
 	 */
 	
-	/**
-	 * Indicates if the function is continuous in the given point.
-	 * @param p The point in which the continuity is analyzed. Only the real part is evaluated.
-	 * @return True if the function in continuous. False in other case.
-	 */
-	private Boolean isContinuous(Complex p) {
-		Complex fp, fp1;
-		fp = func.apply(p);
-		fp1 = func.apply(p.plus(Complex.precision()*2));
-		//	fp.println("-----> fp :");
-		//	fp1.println("-----> fp1:");
-		if (fp1.equals(fp)) return true;
-		return false;
-	}
-	
 	/*
 	 * ***********************************************
-	 * FOURIER SERIES METHODS 
+	 * FOURIER SERIES METHODS
 	 * ***********************************************
 	 */
 	
@@ -548,24 +564,8 @@ public class Fourier extends MatrixComplex {
 		/*CHRONO*/ System.out.println("Computing Time FS:" + FTChrono.toString());
 		
 		isSerialized = true;
-		setOffset();
 	}
 
-	/**
-	 * For Fourier Series, calculates the offset required to match with the function. Is the constant evaluated for the integration operation.
-	 */
-	private void setOffset() {
-		Complex midp = (upLimit.plus(loLimit)).divides(2);
-		if (!isContinuous(midp)) midp = (upLimit.plus(loLimit.divides(10))).divides(2);
-		//	midp.println("-----> midp = ");
-		Complex off1 = this.calc(midp);
-		//	off1.println("-----> sFourier.calc = ");
-		Complex off2 = func.apply(midp);
-		//	off2.println("-----> sFourier.func = ");
-		System.out.println("offset = " + (off1.minus(off2)).toString());
-		offset = off1.minus(off2);
-	}
-	
 	/**
 	 * Prints in the console the Fourier Series coefficients calculated as a vector.
 	 */
@@ -598,23 +598,30 @@ public class Fourier extends MatrixComplex {
 	}
 	
 	/**
-	 * Returns the value of the Fourier Series at a given point.
+	 * Returns the value of the Fourier Series at a given point, reconstructed from the coefficients
+	 * calculated by {@link #serialize(int, int)} for a real-valued function -- {@code series} only
+	 * holds coefficients for n=0..order (never negative n), so each n&gt;=1 term must contribute
+	 * only its real part (equivalent to adding back the missing conjugate term at -n, valid because
+	 * a real function has C(-n)=conj(C(n))); the n=0 term (already doubled at storage time by
+	 * {@link #serialize(int, int)}, see coef=integrate(...).times(2)/period) must be halved back
+	 * here, not doubled again.
 	 * @param p The point in which the Series is evaluated. Only the real part has sense.
 	 * @return The value returned from the Fourier Series.
 	 */
 	public Complex calc(Complex p) {
 		Complex val = new Complex(0);
-		
+
 		if(!isSerialized) {
 			System.out.println("WARNING (Calc):Function not serialized yet. Serialize it first.");
 			return val ;
 		}
 
-		val = val.plus(series.getItem(0,0).times(2));		
+		val = val.plus(series.getItem(0,0).divides(2));
 		for (int i = 1; i < series.cols(); ++i) {
-			val = val.plus(series.getItem(0,i).times(Complex.exp(Complex.i.times(p).times(Complex.DOS_PI * i).divides(period))));
+			Complex term = series.getItem(0,i).times(Complex.exp(Complex.i.times(p).times(Complex.DOS_PI * i).divides(period)));
+			val = val.plus(new Complex(term.rep(), 0));
 		}
-		return val.minus(offset);
+		return val;
 	}
 	
 	/*
@@ -843,7 +850,7 @@ public class Fourier extends MatrixComplex {
 	        fWriter.write(filterData+System.lineSeparator());
 			//for (int i = 0; i < transform.cols(); ++i) {
 			for (int i = 0; i < this.N; ++i) {
-				if (separator != "") {
+				if (!separator.equals("")) {
 					fWriter.write(data.getItem(0,i).rep()+separator+data.getItem(0,i).imp()+System.lineSeparator());	
 				}
 				else fWriter.write(data.getItem(0,i).toString()+System.lineSeparator());
@@ -1038,7 +1045,7 @@ public class Fourier extends MatrixComplex {
 	    	Complex cVal = new Complex();
 	    	String line;
 	        while ((line = br.readLine()) != null) {
-				if (separator == "") cVal.setComplex(line);
+				if (separator.equals("")) cVal.setComplex(line);
 				else {
 					String value[] = line.split(separator);
 					cVal.setComplexRec(Double.parseDouble(value[0]), Double.parseDouble(value[1]));
@@ -1121,7 +1128,7 @@ public class Fourier extends MatrixComplex {
 	    	Complex cVal = new Complex();
 	    	String line;
 	        while ((line = br.readLine()) != null) {
-				if (separator == "") cVal.setComplex(line);
+				if (separator.equals("")) cVal.setComplex(line);
 				else {
 					String value[] = line.split(separator);
 					cVal.setComplexRec(Double.parseDouble(value[0]), Double.parseDouble(value[1]));
@@ -1787,10 +1794,14 @@ public class Fourier extends MatrixComplex {
 
 	/**
 	 * Calculates the addition of two signals
-	 * @param signal
-	 * @return
+	 * @param signal The signal to add. Must have the same number of samples as this signal.
+	 * @return The sample-wise (and coefficient-wise) sum of both signals.
+	 * @throws IllegalArgumentException if {@code signal} does not have the same number of samples as this signal.
 	 */
 	public Fourier plus(Fourier signal) {
+		if (signal.N != this.N) {
+			throw new IllegalArgumentException(HEADINFO + "plus(): signal sizes don't match (this.N=" + this.N + ", signal.N=" + signal.N + ")");
+		}
 		Fourier sumSignal = new Fourier(this.N, this.loLimit, this.upLimit);
 		sumSignal.samples = new MatrixComplex(2, this.N);
 		sumSignal.transform = new MatrixComplex(1, this.N);
@@ -1806,10 +1817,14 @@ public class Fourier extends MatrixComplex {
 	
 	/**
 	 * Calculates the difference of two signals
-	 * @param signal
-	 * @return
+	 * @param signal The signal to subtract. Must have the same number of samples as this signal.
+	 * @return The sample-wise (and coefficient-wise) difference of both signals.
+	 * @throws IllegalArgumentException if {@code signal} does not have the same number of samples as this signal.
 	 */
 	public Fourier minus(Fourier signal) {
+		if (signal.N != this.N) {
+			throw new IllegalArgumentException(HEADINFO + "minus(): signal sizes don't match (this.N=" + this.N + ", signal.N=" + signal.N + ")");
+		}
 		Fourier minusSignal = new Fourier(this.N, this.loLimit, this.upLimit);
 		minusSignal.samples = new MatrixComplex(2, minusSignal.N);
 		minusSignal.transform = new MatrixComplex(1, minusSignal.N);
