@@ -34,7 +34,7 @@ public class TestRF_EvanescentFilter01 {
 		RectangularWaveguide passGuide = new RectangularWaveguide(a, b);
 		double fc = passGuide.cutoffFrequencyTE10();
 
-		double a2 = 0.17*a; // guia mas estrecha para las barreras -- corte al doble de frecuencia
+		double a2 = 0.25*a; // guia mas estrecha para las barreras -- corte al doble de frecuencia
 		RectangularWaveguide barrierGuide = new RectangularWaveguide(a2, b);
 		double fc2 = barrierGuide.cutoffFrequencyTE10();
 		System.out.printf("fc(passGuide)=%.4e Hz , fc(barrierGuide)=%.4e Hz%n", fc, fc2);
