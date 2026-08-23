@@ -34,7 +34,7 @@ public class TestRF_EvanescentFilter01 {
 		RectangularWaveguide passGuide = new RectangularWaveguide(a, b);
 		double fc = passGuide.cutoffFrequencyTE10();
 
-		double a2 = 0.5*a; // guia mas estrecha para las barreras -- corte al doble de frecuencia
+		double a2 = 0.17*a; // guia mas estrecha para las barreras -- corte al doble de frecuencia
 		RectangularWaveguide barrierGuide = new RectangularWaveguide(a2, b);
 		double fc2 = barrierGuide.cutoffFrequencyTE10();
 		System.out.printf("fc(passGuide)=%.4e Hz , fc(barrierGuide)=%.4e Hz%n", fc, fc2);
@@ -67,8 +67,17 @@ public class TestRF_EvanescentFilter01 {
 		System.out.printf("max ||S11|^2+|S21|^2 - 1| en todo el barrido = %.3e%n", maxLosslessError);
 		check("El filtro es sin perdidas (|S11|^2+|S21|^2=1) en todo el barrido de frecuencia", maxLosslessError < 1e-9);
 
-		System.out.printf("max |S21| = %.6f en f=%.4e Hz (resonancia)%n", maxS21, freqAtMaxS21);
-		check("Hay una frecuencia de resonancia con transmision casi total (|S21|>0.999)", maxS21 > 0.999);
+		// El pico de resonancia puede ser muchisimo mas estrecho que el paso del barrido grueso
+		// (cuanto mas evanescente es la barrera, mayor la Q del resonador Fabry-Perot y mas fino
+		// el pico) -- un barrido de resolucion fija puede saltarselo por completo sin que eso
+		// signifique que la resonancia no exista. Se localiza aproximadamente en el barrido grueso
+		// y se refina por busqueda adaptativa (ventana que se estrecha) hasta converger,
+		// independientemente de lo estrecho que sea el pico real.
+		double[] peak = refinePeak(filter, freqAtMaxS21, (fHi-fLo)/(nPoints-1));
+		double refinedFreq = peak[0], refinedS21 = peak[1];
+		System.out.printf("pico refinado: |S21| = %.10f en f=%.6e Hz (barrido grueso daba %.6f en f=%.4e Hz)%n",
+				refinedS21, refinedFreq, maxS21, freqAtMaxS21);
+		check("Hay una frecuencia de resonancia con transmision casi total (|S21|>0.999 tras refinar)", refinedS21 > 0.999);
 
 		System.out.printf("|S21| en el borde inferior de banda = %.4f , en el borde superior = %.4f%n", s21AtLowEdge, s21AtHighEdge);
 		// El perfil es asimetrico (fisica real, no un bug): el flanco de baja frecuencia cae con
@@ -77,7 +86,7 @@ public class TestRF_EvanescentFilter01 {
 		// corte (fc2) -- ver ScratchRFFilterSweep02/03/04.java (no conservados) para el barrido
 		// que caracterizo esta asimetria antes de fijar el umbral.
 		check("La transmision en ambos bordes de banda es claramente menor que en resonancia (forma de paso banda)",
-				s21AtLowEdge < 0.3*maxS21 && s21AtHighEdge < 0.3*maxS21);
+				s21AtLowEdge < 0.3*refinedS21 && s21AtHighEdge < 0.3*refinedS21);
 
 		boolean rejectsNonPositiveLengths = true;
 		try { new EvanescentModeFilter(passGuide, barrierGuide, -1, cavityLength); rejectsNonPositiveLengths = false; } catch (IllegalArgumentException e) { }
@@ -102,5 +111,31 @@ public class TestRF_EvanescentFilter01 {
 
 		Complex.printBoxText(boxShape, boxMargin, ok + " tests passed out of " + (ok + fail) + " taken. " + fail + " tests failed.");
 		if (fail > 0) { System.exit(1); }
+	}
+
+	/**
+	 * Localiza el máximo de {@code |S21|} cerca de {@code approxFreq} (el máximo aproximado
+	 * hallado en un barrido grueso) por ventana decreciente: cada iteración muestrea densamente un
+	 * entorno del mejor punto encontrado hasta ahora y luego estrecha la ventana alrededor de él,
+	 * convergiendo al pico real sin importar lo estrecho que sea -- necesario porque la anchura de
+	 * la resonancia depende de lo evanescente que sea la barrera (a mayor evanescencia, mayor Q,
+	 * pico más fino) y un barrido de resolución fija puede no verlo nunca.
+	 * @return {@code {frecuencia, |S21|}} en el máximo hallado.
+	 */
+	static double[] refinePeak(EvanescentModeFilter filter, double approxFreq, double initialWindow) {
+		double lo = approxFreq - initialWindow, hi = approxFreq + initialWindow;
+		double bestFreq = approxFreq, bestS21 = filter.sParameters(approxFreq)[1].mod();
+		int samplesPerIteration = 200;
+		for (int iter = 0; iter < 12; ++iter) {
+			for (int i = 0; i <= samplesPerIteration; ++i) {
+				double f = lo + (hi-lo)*i/samplesPerIteration;
+				double s21 = filter.sParameters(f)[1].mod();
+				if (s21 > bestS21) { bestS21 = s21; bestFreq = f; }
+			}
+			double width = (hi-lo)/samplesPerIteration;
+			lo = bestFreq - 5*width;
+			hi = bestFreq + 5*width;
+		}
+		return new double[] {bestFreq, bestS21};
 	}
 }
