@@ -34,8 +34,14 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public final class LagrangianSystem {
 
 	private final static String HEADINFO = "LagrangianSystem --- INFO: ";
-	private final static String VERSION = "1.0 (2026_0823_2300)";
+	private final static String VERSION = "1.1 (2026_0824_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.1 (2026_0824_1200)
+	 * action(trajectory): la accion S=integral(L dt) a lo largo de CUALQUIER trayectoria (no solo
+	 * las de simulate()), por la regla del trapecio -- a peticion del usuario, para verificar el
+	 * principio de Hamilton (la trayectoria fisica es un punto ESTACIONARIO de S, no
+	 * necesariamente su minimo) en TestMechanics_ActionPrinciple01.
 	 *
 	 * 1.0 (2026_0823_2300)
 	 * Segunda clase de com.ipserc.arith.mechanics -- motor generico de Euler-Lagrange por
@@ -225,6 +231,40 @@ public final class LagrangianSystem {
 			t += dt;
 		}
 		return trajectory;
+	}
+
+	/**
+	 * The action {@code S[q(t)] = integral of L(q(t),qDot(t)) dt} along ANY trajectory -- not
+	 * necessarily one returned by {@link #simulate}, which is exactly the point: Hamilton's
+	 * principle says the true physical trajectory (a solution of the Euler-Lagrange equations) is
+	 * a STATIONARY point of {@code S} among all trajectories sharing the same endpoints, not
+	 * necessarily its minimum. {@code TestMechanics_ActionPrinciple01} verifies this directly, by
+	 * comparing {@code S} on the true trajectory against nearby trajectories perturbed away from
+	 * it (same endpoints, different path in between).
+	 * <p>
+	 * Integrated by the trapezoidal rule over the {@code (t,q,qDot)} rows of {@code trajectory},
+	 * consistent with the rest of this class staying purely numerical (no closed-form integral of
+	 * {@code L} is assumed, or even possible in general for an arbitrary caller-supplied {@code
+	 * L}).
+	 * @param trajectory A trajectory as returned by {@link #simulate} (or built by hand from any
+	 * other path): each row {@code {t, q_0..q_(n-1), qDot_0..qDot_(n-1)}}.
+	 * @return The action along {@code trajectory}.
+	 */
+	public double action(double[][] trajectory) {
+		double s = 0;
+		double[] q = new double[dof], qDot = new double[dof];
+		System.arraycopy(trajectory[0], 1, q, 0, dof);
+		System.arraycopy(trajectory[0], 1 + dof, qDot, 0, dof);
+		double previousL = lagrangian.apply(q, qDot);
+		for (int i = 1; i < trajectory.length; ++i) {
+			double dt = trajectory[i][0] - trajectory[i-1][0];
+			System.arraycopy(trajectory[i], 1, q, 0, dof);
+			System.arraycopy(trajectory[i], 1 + dof, qDot, 0, dof);
+			double currentL = lagrangian.apply(q, qDot);
+			s += 0.5*(previousL + currentL)*dt;
+			previousL = currentL;
+		}
+		return s;
 	}
 
 	private double[] derivative(double[] state) {
