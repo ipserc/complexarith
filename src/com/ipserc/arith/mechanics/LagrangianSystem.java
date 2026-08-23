@@ -144,6 +144,25 @@ public final class LagrangianSystem {
 	}
 
 	/**
+	 * The "mass matrix" {@code M(q,qDot)}, the Hessian of {@code L} in the velocities --
+	 * {@code M_ij = d^2L/(dqDot_i.dqDot_j)}. Exposed publicly (beyond {@link #accelerations}'s own
+	 * use of it) for {@link HamiltonianSystem}'s Legendre transform, which needs this same matrix
+	 * to recover velocities from generalized momenta.
+	 * @param q The generalized coordinates.
+	 * @param qDot The generalized velocities.
+	 * @return The {@code dof x dof} mass matrix at {@code (q,qDot)}.
+	 */
+	public MatrixComplex massMatrix(double[] q, double[] qDot) {
+		MatrixComplex mass = new MatrixComplex(dof, dof);
+		for (int i = 0; i < dof; ++i) {
+			for (int j = 0; j < dof; ++j) {
+				mass.setItem(i, j, new Complex(d2L_dqDotdqDot(q, qDot, i, j), 0));
+			}
+		}
+		return mass;
+	}
+
+	/**
 	 * The generalized accelerations {@code qDotDot} solving {@code M(q,qDot)*qDotDot=f(q,qDot)}
 	 * from the Euler-Lagrange equations (see class Javadoc for the derivation).
 	 * @param q The generalized coordinates.
@@ -151,12 +170,9 @@ public final class LagrangianSystem {
 	 * @return The generalized accelerations {@code qDotDot}, same length as {@code q}.
 	 */
 	public double[] accelerations(double[] q, double[] qDot) {
-		MatrixComplex mass = new MatrixComplex(dof, dof);
+		MatrixComplex mass = massMatrix(q, qDot);
 		double[] f = new double[dof];
 		for (int i = 0; i < dof; ++i) {
-			for (int j = 0; j < dof; ++j) {
-				mass.setItem(i, j, new Complex(d2L_dqDotdqDot(q, qDot, i, j), 0));
-			}
 			double coupling = 0;
 			for (int j = 0; j < dof; ++j) {
 				coupling += d2L_dqDotdq(q, qDot, i, j) * qDot[j];
