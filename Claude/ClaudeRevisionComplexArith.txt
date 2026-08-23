@@ -11321,3 +11321,69 @@ Arreglado, verificado y commiteado (8893d10): MatrixComplexFunctions.exp() tení
 #	18/08/2026 DIA 15 - quantum-entanglement-bell-test
 #
 ========================================================================================================================================
+● El informe de com.ipserc.arith.signal ya está. Resumen:
+
+  Bug confirmado (verificado con ejecución, no solo lectura): Sigfunc.ramp()/ramp0() y saw()/saw0() tienen los nombres cruzados respecto a su forma real —
+  - ramp/ramp0 (Javadoc dice "triangle wave") en realidad genera un diente de sierra discontinuo (salto de 2*y1 en cada periodo).
+  - saw/saw0 (Javadoc dice "sawtooth") en realidad genera un triángulo continuo.
+
+  Duplicación clara: Sigfunc.U(Complex,double) y Sigfunc.step(Complex,double) tienen cuerpos idénticos; eval(Complex,e_operator,boolean) está triplicado igual en Fourier/Laplace/Z.
+
+  Sospechoso, sin confirmar: la heurística de offset en Fourier.serialize()/calc() (compensa un desajuste matemático no justificado, solo cerca de un punto); comparación separator == ""/!= "" por referencia en vez de .equals() en
+  Fourier/Laplace/Z (funciona hoy porque siempre se pasa el literal interned, pero es frágil); Fourier.plus/minus/convolution sin validar tamaños entre señales.
+
+  Ya auditado y correcto: DFT/IDFT/FFT, filtros de Fourier, DLT/IDLT de Laplace, DZT/IDZT de Z.
+
+  No he tocado nada — según lo dejamos acordado, te lo presento antes de arreglar. ¿Quieres que abra esto como candidatos aparte, o seguimos primero con QPE y lo dejamos aparcado?
+
+  ---
+  Ahora sigo con QPE. Lo que ya confirmó el agente de exploración:
+
+  - No existe QPE/PhaseEstimation en el repo — hay que crearlo desde cero.
+  - No hay ningún "controlled-U elevado a potencia" en Qubits.java — pero se puede montar combinando MatrixComplex.power(int) (ya existe, acepta exponente entero) + Qubits.controlledGate(op, control, target, nQubits) (única firma, ya
+  existente).
+  - QFT.circuit(n).adjoint() es la QFT inversa a usar (ya verificada como unitaria y como inversa correcta en el puente con Fourier).
+  - MatrixComplex tiene adjoint(), kroneckerprod(), power(int), times(MatrixComplex) — todo lo necesario ya está disponible sin tocar el core.
+
+  Plan propuesto (circuito QPE estándar, Nielsen & Chuang):
+
+  1. Elegir un U de juguete con autovector/autovalor conocido (p.ej. pauliZ() con autovector |1>, fase θ=1/2 exacta — fase representable exactamente en binario, para verificar sin ambigüedad de redondeo).
+  2. Registro de t qubits de conteo + 1 qubit de autovector: estado inicial |0>^⊗t ⊗ |ψ>.
+  3. Hadamard en los t qubits de conteo (superposición equitativa).
+  4. Controlled-U^(2^j) desde cada qubit de conteo j hacia el qubit de autovector: controlledGate(U.power(1<<j), j, target=t, n=t+1).
+  5. QFT inversa sobre los t qubits de conteo: QFT.circuit(t).adjoint() (extendido a los t+1 qubits totales, dejando intacto el qubit de autovector).
+  6. Medir/leer los t qubits de conteo → deberían dar la fase θ codificada en binario con precisión t bits.
+
+  ¿Te parece bien este plan, o quieres que ajuste algo (p.ej. el U de prueba, o el número de qubits t) antes de que lo montes tú guiado como con la QFT, o prefieres que lo escriba yo directamente esta vez?
+
+✻ Brewed for 9m 12s · 1 shell still running
+
+> abre un agente para arreglar signal.java
+
+> sige con QPE 
+● QPE cerrado y commiteado (b7461f0). Resumen:
+
+  - QPE.circuit(t, U) (registro de conteo t qubits + qubit autovector) y QPE.countingProbabilities(t, U, autovector).
+  - Hallazgo real durante la construcción: el primer intento emparejaba el qubit de conteo j con la potencia U^(2^j) — compilaba y daba matriz unitaria, pero el índice de máxima probabilidad salía mal. El emparejamiento correcto,          verificado empíricamente, es U^(2^(t-1-j)) (el qubit MSB-first más significativo lleva la potencia más alta).
+  - Verificado con U=phaseGate(k0), autovector |1>, t=k0 (fase exactamente representable): k0=2 (θ=1/4) y k0=3 (θ=1/8), ambos colapsan al índice esperado con probabilidad exactamente 1. Unitariedad confirmada. 8/8 OK, recompilado y        ejecutado por mí de forma independiente.
+  - Corregí antes de commitear una inconsistencia en el Javadoc (decía "el exponente es 2^j, no 2^(t-1-j)" cuando el código hacía justo lo contrario).
+
+  Estado: 2 commits por delante de origin/master (8d51943 Sigfunc + b7461f0 QPE). ¿Hago push de los dos?
+ 
+● Todo guardado y sincronizado — master==origin/master==ba712b7, 4 commits nuevos pusheados esta sesión (8f71672, 8d51943, b7461f0, ba712b7). Memoria persistente actualizada (continuidad, notas del paquete quantum, índice, y la regla
+  permanente nueva de commit automático).
+
+  Cuando retomes, el punto exacto es:
+
+  1. Sin candidato cuántico pendiente — QFT, el puente con Fourier y QPE quedaron cerrados. Un siguiente paso natural (no pedido todavía) sería Shor completo usando QPE como pieza.
+  2. 3 hallazgos abiertos en com.ipserc.arith.signal, sin decidir si tocarlos: heurística de offset en Fourier.serialize()/calc(), comparación ==/!= en separator (Fourier/Laplace/Z), falta de validación de tamaños en
+  Fourier.plus/minus/convolution.
+  3. src/TestComplex/TestQuantum_QFTBridge01.java sigue con tu cambio de rango n=10..15 sin ejecutar (coste de matrices 2^15×2^15).
+
+  Hasta la próxima.
+
+========================================================================================================================================
+#
+#	20/08/2026 DIA 16 - QPE y conceptos de puertas, operadores, etc.
+#
+========================================================================================================================================
