@@ -45,6 +45,26 @@ public class TestQubitsOperations {
 		plus.println("|+>");
 		check("identity2()|+> == |+>", identity.times(plus).equals(plus, 9));
 
+		/*
+		 * Explicación de minus
+		 * > ¿|-> no sería |+>.opposite()?                                                                                                                                                                                                               
+			● No — |+⟩.opposite() da −|+⟩, no |−⟩. Son estados distintos:
+			
+			  - |+⟩ = (|0⟩+|1⟩)/√2 = [0.7071, 0.7071]
+			  - |+⟩.opposite() = −|+⟩ = [−0.7071, −0.7071]
+			  - |−⟩ = (|0⟩−|1⟩)/√2 = [0.7071, −0.7071]
+			
+			  opposite() niega ambas componentes por igual (es multiplicar por el escalar −1), mientras que pasar de |+⟩ a |−⟩ 
+			  requiere negar solo la componente de |1⟩, no la de |0⟩ — eso es lo que hace Qubits.pauliZ() aplicado a |+⟩, no opposite().
+			
+			  De hecho, físicamente −|+⟩ y |+⟩ son el mismo estado cuántico: un signo global (fase global) no es observable 
+			  — cualquier medida da las mismas probabilidades. Por eso el test que añadí comprueba plus.opposite().opposite() == plus
+			  (involución algebraica), no plus.opposite() == minus (eso sería falso).
+			
+			  Tu código original, Qubits.ket0().plus(Qubits.ket1()).normalizeByCols().opposite(), sí calculaba −|+⟩ — que además de no ser |−⟩, 
+			  casualmente reveló el bug de opposite() porque el vector es no cuadrado. Al final lo dejé como
+			  Qubits.ket0().minus(Qubits.ket1()).normalizeByCols(), que sí es |−⟩ de verdad.
+		 */
 		MatrixComplex minus = Qubits.ket0().minus(Qubits.ket1()).normalizeByCols();
 		minus.println("|->");
 		check("identity2()|-> == |->", identity.times(minus).equals(minus, 9));
