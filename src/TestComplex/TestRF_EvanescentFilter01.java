@@ -30,20 +30,36 @@ public class TestRF_EvanescentFilter01 {
 		int boxShape = 3;
 		Complex.printBoxText(boxShape, boxMargin, "Filtro de modo evanescente -- Fabry-Perot en guia de onda");
 
+		// a, b: dimensiones de la guia WR-90 (banda X), pared ancha y pared estrecha, en metros (m).
+		// Fijan kc=pi/a y con ello fc (mas abajo) -- ver RectangularWaveguide.
 		double a = 0.02286, b = 0.01016; // guia WR-90 (banda X)
 		RectangularWaveguide passGuide = new RectangularWaveguide(a, b);
+		// fc: frecuencia de corte TE10 de passGuide, en Hz. Por debajo de fc el modo no se propaga
+		// (evanescente) -- ver RectangularWaveguide.cutoffFrequencyTE10().
 		double fc = passGuide.cutoffFrequencyTE10();
 
+		// a2: pared ancha de la guia de las barreras, en metros (m) -- mas estrecha que a, por lo
+		// que su corte fc2 es mas alto; se opera esta guia por debajo de fc2 (evanescente) dentro
+		// de la banda pasante de passGuide, actuando como "espejo" parcial del resonador Fabry-Perot.
 		double a2 = 0.45*a; // guia mas estrecha para las barreras -- corte al doble de frecuencia
 		RectangularWaveguide barrierGuide = new RectangularWaveguide(a2, b);
+		// fc2: frecuencia de corte TE10 de barrierGuide, en Hz -- ver comentario de a2.
 		double fc2 = barrierGuide.cutoffFrequencyTE10();
 		System.out.printf("fc(passGuide)=%.4e Hz , fc(barrierGuide)=%.4e Hz%n", fc, fc2);
 
+		// barrierLength: longitud de cada uno de los dos tramos de barrera evanescente, en metros
+		// (m) -- cuanto mas larga, mas reflectante el "espejo" y mayor la Q del resonador.
+		// cavityLength: longitud del tramo resonante central (de passGuide, propagante), en metros
+		// (m) -- fija la frecuencia de resonancia del Fabry-Perot (localizada por barrido en
+		// ScratchRFFilterSweep01, no conservado).
 		double barrierLength = 0.5*a, cavityLength = 0.01;
 		EvanescentModeFilter filter = new EvanescentModeFilter(passGuide, barrierGuide, barrierLength, cavityLength);
 
+		// fLo, fHi: extremos del barrido de frecuencia de la prueba, en Hz -- un 5% por encima de fc
+		// (para que passGuide propague de sobra) y hasta el 85% de fc2 (para que barrierGuide siga
+		// evanescente en todo el barrido).
 		double fLo = 1.05*fc, fHi = 0.85*fc2;
-		int nPoints = 2500;
+		int nPoints = 2500; // numero de puntos del barrido grueso (sin unidad)
 		double[][] s21Magnitude = new double[nPoints][2];
 		double maxLosslessError = 0;
 		double maxS21 = 0, freqAtMaxS21 = 0;
