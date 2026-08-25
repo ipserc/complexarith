@@ -34,7 +34,7 @@ public class TestRF_EvanescentFilter01 {
 		RectangularWaveguide passGuide = new RectangularWaveguide(a, b);
 		double fc = passGuide.cutoffFrequencyTE10();
 
-		double a2 = 0.25*a; // guia mas estrecha para las barreras -- corte al doble de frecuencia
+		double a2 = 0.45*a; // guia mas estrecha para las barreras -- corte al doble de frecuencia
 		RectangularWaveguide barrierGuide = new RectangularWaveguide(a2, b);
 		double fc2 = barrierGuide.cutoffFrequencyTE10();
 		System.out.printf("fc(passGuide)=%.4e Hz , fc(barrierGuide)=%.4e Hz%n", fc, fc2);
@@ -43,7 +43,7 @@ public class TestRF_EvanescentFilter01 {
 		EvanescentModeFilter filter = new EvanescentModeFilter(passGuide, barrierGuide, barrierLength, cavityLength);
 
 		double fLo = 1.05*fc, fHi = 0.85*fc2;
-		int nPoints = 2000;
+		int nPoints = 2500;
 		double[][] s21Magnitude = new double[nPoints][2];
 		double maxLosslessError = 0;
 		double maxS21 = 0, freqAtMaxS21 = 0;
