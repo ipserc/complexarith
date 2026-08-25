@@ -304,7 +304,7 @@ class MatrixComplexUnary {
 		int rowLen = m.rows();
 		int colLen = m.cols();
 
-		MatrixComplex cMatrix = new MatrixComplex(colLen, rowLen);
+		MatrixComplex cMatrix = new MatrixComplex(rowLen, colLen);
 
 		for (int row = 0; row < rowLen; ++row)
 			for (int col = 0; col < colLen; ++col)

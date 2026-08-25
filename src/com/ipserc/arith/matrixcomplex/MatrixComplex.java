@@ -19,8 +19,15 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.77 (2026_0812_1400)";
+	private final static String VERSION = "1.78 (2026_0825_1830)";
 	/* VERSION Release Note
+	 *
+	 * 1.78 (2026_0825_1830)
+	 * opposite() (MatrixComplexUnary): bug real arreglado -- el constructor de la matriz resultado
+	 * usaba (colLen, rowLen) en vez de (rowLen, colLen), enmascarado siempre en matrices cuadradas
+	 * (donde da igual el orden) pero con ArrayIndexOutOfBoundsException en cualquier matriz no
+	 * cuadrada (p.ej. un ket 2x1 de Qubits). Detectado al construir el estado |-> en
+	 * TestQubitsOperations.
 	 *
 	 * 1.77 (2026_0812_1400)
 	 * MatrixComplexPlot: nombres de serie personalizados (plan "quirky-wondering-yao.md") -- nuevos
