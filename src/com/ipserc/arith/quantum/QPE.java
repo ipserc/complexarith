@@ -38,8 +38,14 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class QPE {
 
-	private final static String VERSION = "1.0 (2026_0819_1200)";
+	private final static String VERSION = "1.1 (2026_0825_1800)";
 	/* VERSION Release Note
+	 * 1.1 (2026_0825_1800)
+	 * circuit(t,u)/countingProbabilities(t,u,eigenvector) generalizados a un registro de
+	 * autovector de m>=1 qubits (no solo 1) -- necesario para Shor: la unitaria de conteo de orden
+	 * (multiplicacion modular) actua sobre un registro de trabajo de varios qubits, no sobre 1
+	 * solo. Los overloads de 1 qubit se conservan y delegan en los nuevos (m=1), sin cambio de
+	 * comportamiento -- TestQuantum_QPE01 sigue pasando identico.
 	 * 1.0 (2026_0819_1200)
 	 * Primera version -- circuit()/countingProbabilities() (Etapa candidata "QPE" del roadmap tras
 	 * cerrar el puente QFT<->Fourier). Verificado empiricamente contra los 2 casos de fase exacta
@@ -61,32 +67,53 @@ public final class QPE {
 	 * @throws IllegalArgumentException if {@code t<1}.
 	 */
 	public static MatrixComplex circuit(int t, MatrixComplex u) {
+		return circuit(t, u, 1);
+	}
+
+	/**
+	 * The {@code m}-qubit-eigenvector-register generalization of {@link #circuit(int, MatrixComplex)}
+	 * ({@code m=1} is exactly that overload): {@code u} now acts on an {@code m}-qubit work
+	 * register (e.g. Shor's order-finding, where {@code u} is modular multiplication over several
+	 * qubits) instead of a single qubit. Same 3-stage construction, with {@link
+	 * Qubits#controlledBlockGate} in place of {@link Qubits#controlledGate} for stage 2, and the
+	 * inverse-QFT extension in stage 3 padded with {@code I_(2^m)} instead of {@code I_2}.
+	 * @param t The number of counting qubits, must be at least 1.
+	 * @param u The {@code 2^m x 2^m} unitary whose eigenphase is being estimated.
+	 * @param m The number of qubits in the eigenvector/work register, must be at least 1.
+	 * @return The {@code 2^(t+m) x 2^(t+m)} QPE circuit unitary, over a register of {@code t+m}
+	 * qubits (counting register first, eigenvector/work register last).
+	 * @throws IllegalArgumentException if {@code t<1} or {@code m<1}.
+	 */
+	public static MatrixComplex circuit(int t, MatrixComplex u, int m) {
 		if (t < 1) {
 			throw new IllegalArgumentException("circuit() needs at least 1 counting qubit, got t=" + t);
 		}
-		int n = t + 1;
-		int targetIndex = t;
+		if (m < 1) {
+			throw new IllegalArgumentException("circuit() needs at least 1 eigenvector-register qubit, got m=" + m);
+		}
+		int n = t + m;
+		int blockStart = t;
 		int dim = 1 << n;
 		MatrixComplex result = MatrixComplex.eye(dim);
 
-		// Stage 1: Hadamard on each counting qubit (identity on the eigenvector qubit, left alone).
+		// Stage 1: Hadamard on each counting qubit (identity on the eigenvector register, left alone).
 		for (int j = 0; j < t; ++j) {
 			result = Qubits.operatorOnQubit(Qubits.hadamard(), j, n).times(result);
 		}
 
-		// Stage 2: controlled-U^(2^(t-1-j)) from counting qubit j onto the eigenvector qubit -- qubit
-		// j=0 is the MSB-first FIRST counting qubit, which must carry the LARGEST power (2^(t-1)),
-		// matching the standard textbook wiring; empirically confirmed below (the naive 2^j pairing
-		// gave the wrong index -- see TestQuantum_QPE01).
+		// Stage 2: controlled-U^(2^(t-1-j)) from counting qubit j onto the whole eigenvector/work
+		// register -- qubit j=0 is the MSB-first FIRST counting qubit, which must carry the LARGEST
+		// power (2^(t-1)), matching the standard textbook wiring (see circuit(int,MatrixComplex)'s
+		// doc for the empirical confirmation against TestQuantum_QPE01, unchanged by this generalization).
 		for (int j = 0; j < t; ++j) {
 			int power = 1 << (t - 1 - j);
 			MatrixComplex uPow = u.power(power);
-			MatrixComplex cu = Qubits.controlledGate(uPow, j, targetIndex, n);
+			MatrixComplex cu = Qubits.controlledBlockGate(uPow, j, blockStart, m, n);
 			result = cu.times(result);
 		}
 
-		// Stage 3: inverse QFT on the counting register (first t qubits), identity on the last qubit.
-		MatrixComplex inverseQftExtended = QFT.circuit(t).adjoint().kroneckerprod(MatrixComplex.eye(2));
+		// Stage 3: inverse QFT on the counting register (first t qubits), identity on the register.
+		MatrixComplex inverseQftExtended = QFT.circuit(t).adjoint().kroneckerprod(MatrixComplex.eye(1 << m));
 		result = inverseQftExtended.times(result);
 
 		return result;
@@ -104,26 +131,38 @@ public final class QPE {
 	 * without hand-picking which of the 2 branches is the live one.
 	 * @param t The number of counting qubits, must be at least 1.
 	 * @param u The 2x2 unitary whose eigenphase is being estimated.
-	 * @param eigenvector A 2x1 (approximate) eigenvector of {@code u} (e.g. {@link Qubits#ket1()}).
+	 * @param eigenvector A {@code 2^m x 1} (approximate) eigenvector of {@code u} (e.g. {@link
+	 * Qubits#ket1()} for the original {@code m=1} case) -- {@code m} is inferred from its
+	 * dimension, so this overload works unchanged for any eigenvector-register size, including
+	 * a state that is only a SUPERPOSITION of {@code u}'s true eigenvectors (as Shor's order-finding
+	 * uses, starting from {@code |1>} on an {@code m}-qubit register): the circuit is linear, so it
+	 * still returns the marginal distribution over the counting register for whatever state was fed
+	 * in, eigenvector or not.
 	 * @return A {@code double[2^t]} array, index {@code k} holding the probability of the counting
 	 * register collapsing to {@code |k>} (MSB-first, same convention as {@link Qubits#ket(int...)}).
-	 * @throws IllegalArgumentException if {@code t<1}.
+	 * @throws IllegalArgumentException if {@code t<1} or {@code eigenvector}'s row count is not a
+	 * power of 2.
 	 */
 	public static double[] countingProbabilities(int t, MatrixComplex u, MatrixComplex eigenvector) {
 		if (t < 1) {
 			throw new IllegalArgumentException("countingProbabilities() needs at least 1 counting qubit, got t=" + t);
 		}
-		int n = t + 1;
+		int eigenDim = eigenvector.rows();
+		int m = Integer.numberOfTrailingZeros(eigenDim);
+		if ((1 << m) != eigenDim) {
+			throw new IllegalArgumentException("eigenvector row count must be a power of 2, got " + eigenDim);
+		}
+		int n = t + m;
 		int[] zeros = new int[t];
 		MatrixComplex countingZeros = Qubits.ket(zeros);
 		MatrixComplex initialState = countingZeros.kroneckerprod(eigenvector);
 
-		MatrixComplex finalState = circuit(t, u).times(initialState);
+		MatrixComplex finalState = circuit(t, u, m).times(initialState);
 
 		int countingDim = 1 << t;
 		double[] probabilities = new double[countingDim];
 		for (int fullIndex = 0; fullIndex < (1 << n); ++fullIndex) {
-			int countingIndex = fullIndex >> 1;	// eigenvector qubit is the last (least significant) one
+			int countingIndex = fullIndex >> m;	// eigenvector/work register is the last (least significant) m bits
 			Complex amplitude = finalState.getItem(fullIndex, 0);
 			probabilities[countingIndex] += amplitude.mod() * amplitude.mod();
 		}

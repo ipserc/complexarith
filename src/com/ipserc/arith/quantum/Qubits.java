@@ -20,8 +20,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.4 (2026_0815_1700)";
+	private final static String VERSION = "1.5 (2026_0825_1700)";
 	/* VERSION Release Note
+	 * 1.5 (2026_0825_1700)
+	 * controlledBlockGate(op,control,blockStart,blockSize,nQubits) -- generaliza controlledGate a
+	 * un operador sobre un BLOQUE contiguo de qubits (no solo 1), necesario para Shor (registro de
+	 * trabajo de m qubits controlado por 1 qubit de conteo). controlledGate() ahora delega en ella
+	 * (blockSize=1) en vez de duplicar la construccion -- sin cambio de comportamiento.
 	 * 1.4 (2026_0815_1700)
 	 * phaseGate(k) -- puerta de fase R_k = diag(1, e^(2*pi*i/2^k)), primera pieza de la QFT
 	 * (Etapa 1 del plan guiado por el usuario). Falla alto ante k<0.
@@ -261,32 +266,72 @@ public final class Qubits {
 		if (nQubits < 2) {
 			throw new IllegalArgumentException("controlledGate() needs at least 2 qubits, got " + nQubits);
 		}
-		if (controlIndex < 0 || controlIndex >= nQubits || targetIndex < 0 || targetIndex >= nQubits) {
-			throw new IllegalArgumentException("controlIndex=" + controlIndex + "/targetIndex=" + targetIndex
-					+ " out of range for nQubits=" + nQubits);
-		}
 		if (controlIndex == targetIndex) {
 			throw new IllegalArgumentException("controlIndex and targetIndex must differ, both were " + controlIndex);
 		}
-		MatrixComplex proj0 = ket0().times(bra(ket0()));
-		MatrixComplex proj1 = ket1().times(bra(ket1()));
-		return twoSiteOperator(proj0, identity2(), controlIndex, targetIndex, nQubits)
-				.plus(twoSiteOperator(proj1, op, controlIndex, targetIndex, nQubits));
+		return controlledBlockGate(op, controlIndex, targetIndex, 1, nQubits);
 	}
 
 	/**
-	 * Builds {@code opA (x) opB (x) I (x) ... (x) I}, chained left to right, with {@code opA} at
-	 * position {@code indexA}, {@code opB} at position {@code indexB} and {@link #identity2()}
-	 * everywhere else -- the 2-site generalization of the single-site chain in {@link
-	 * #operatorOnQubit(MatrixComplex, int, int)}, used by {@link #controlledGate(MatrixComplex,
-	 * int, int, int)}.
+	 * A controlled gate lifted to act on a CONTIGUOUS block of {@code blockSize} qubits (starting
+	 * at {@code blockStart}) of an {@code nQubits}-qubit system, controlled by a single qubit
+	 * {@code controlIndex} OUTSIDE that block -- the multi-qubit generalization of {@link
+	 * #controlledGate(MatrixComplex, int, int, int)} (which is exactly the {@code blockSize=1}
+	 * case, and now delegates here). Needed for e.g. Shor's order-finding: a single counting qubit
+	 * controls a unitary over an entire {@code m}-qubit work register, not just 1 target qubit.
+	 * <p>
+	 * {@code |0><0|_control (x) I_block (x) rest + |1><1|_control (x) op_block (x) rest}, same
+	 * "project control, apply on |1>" construction as {@link #controlledGate}, built by a single
+	 * Kronecker chain that steps by {@code blockSize} positions when it reaches {@code blockStart}
+	 * (treating the whole block as the single {@code op}/{@link #identity2()}-of-matching-dimension
+	 * factor at that position) and by {@code 1} position everywhere else, including at {@code
+	 * controlIndex}.
+	 * @param op The {@code 2^blockSize x 2^blockSize} operator applied to the block when the
+	 * control is {@code |1>}.
+	 * @param controlIndex The 0-based index of the control qubit, must lie outside the block.
+	 * @param blockStart The 0-based index of the first qubit of the target block.
+	 * @param blockSize The number of qubits in the target block, must be at least 1.
+	 * @param nQubits The total number of qubits in the register.
+	 * @throws IllegalArgumentException if {@code blockSize<1}, any index/range falls outside
+	 * {@code [0,nQubits)}, or {@code controlIndex} falls inside {@code [blockStart,blockStart+blockSize)}.
 	 */
-	private static MatrixComplex twoSiteOperator(MatrixComplex opA, MatrixComplex opB, int indexA, int indexB, int nQubits) {
-		MatrixComplex site0 = (indexA == 0) ? opA : (indexB == 0) ? opB : identity2();
-		MatrixComplex result = site0;
-		for (int i = 1; i < nQubits; ++i) {
-			MatrixComplex site = (i == indexA) ? opA : (i == indexB) ? opB : identity2();
-			result = result.kroneckerprod(site);
+	public static MatrixComplex controlledBlockGate(MatrixComplex op, int controlIndex, int blockStart, int blockSize, int nQubits) {
+		if (blockSize < 1) {
+			throw new IllegalArgumentException("controlledBlockGate() needs blockSize>=1, got " + blockSize);
+		}
+		if (controlIndex < 0 || controlIndex >= nQubits || blockStart < 0 || blockStart + blockSize > nQubits) {
+			throw new IllegalArgumentException("controlIndex=" + controlIndex + "/block=[" + blockStart + ","
+					+ (blockStart+blockSize) + ") out of range for nQubits=" + nQubits);
+		}
+		if (controlIndex >= blockStart && controlIndex < blockStart + blockSize) {
+			throw new IllegalArgumentException("controlIndex=" + controlIndex + " must lie outside the block ["
+					+ blockStart + "," + (blockStart+blockSize) + ")");
+		}
+		MatrixComplex proj0 = ket0().times(bra(ket0()));
+		MatrixComplex proj1 = ket1().times(bra(ket1()));
+		MatrixComplex identityBlock = MatrixComplex.eye(1 << blockSize);
+		return chainWithControlAndBlock(proj0, controlIndex, identityBlock, blockStart, blockSize, nQubits)
+				.plus(chainWithControlAndBlock(proj1, controlIndex, op, blockStart, blockSize, nQubits));
+	}
+
+	/**
+	 * A single Kronecker chain over qubit positions {@code 0..nQubits-1}: {@code controlOp} at
+	 * position {@code controlIndex} (1 qubit wide), {@code blockOp} at position {@code blockStart}
+	 * ({@code blockSize} qubits wide, so the chain skips ahead by {@code blockSize} once it places
+	 * it), {@link #identity2()} everywhere else -- the shared machinery behind {@link
+	 * #controlledBlockGate}.
+	 */
+	private static MatrixComplex chainWithControlAndBlock(MatrixComplex controlOp, int controlIndex, MatrixComplex blockOp, int blockStart, int blockSize, int nQubits) {
+		MatrixComplex result = null;
+		int i = 0;
+		while (i < nQubits) {
+			MatrixComplex factor;
+			int step;
+			if (i == controlIndex) { factor = controlOp; step = 1; }
+			else if (i == blockStart) { factor = blockOp; step = blockSize; }
+			else { factor = identity2(); step = 1; }
+			result = (result == null) ? factor : result.kroneckerprod(factor);
+			i += step;
 		}
 		return result;
 	}
