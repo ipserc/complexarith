@@ -30,11 +30,15 @@ import com.ipserc.arith.complex.Complex;
  * rho}/{@code phi}), verified against Maxwell's equations directly in {@code
  * TestRF_MaxwellTE11_01} using {@link com.ipserc.arith.vectorcalculus.VectorCalculus}.
  */
-public final class CircularWaveguide {
+public final class CircularWaveguide implements WaveguideMode {
 
 	private final static String HEADINFO = "CircularWaveguide --- INFO: ";
-	private final static String VERSION = "1.0 (2026_0825_1100)";
+	private final static String VERSION = "1.1 (2026_0825_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.1 (2026_0825_1200)
+	 * implements WaveguideMode -- permite reutilizar EvanescentModeFilter sobre guia circular sin
+	 * duplicar la cascada ABCD; sin cambios de comportamiento.
 	 *
 	 * 1.0 (2026_0825_1100)
 	 * Tercera clase de com.ipserc.arith.rf: modo TE11 de una guia de onda circular, derivado de
@@ -132,6 +136,7 @@ public final class CircularWaveguide {
 	 * @return The (possibly complex) propagation constant at {@code frequency}.
 	 * @throws IllegalArgumentException if {@code frequency} is not positive.
 	 */
+	@Override
 	public Complex propagationConstant(double frequency) {
 		if (frequency <= 0) {
 			throw new IllegalArgumentException(HEADINFO + "frequency must be positive, got " + frequency);
@@ -148,6 +153,7 @@ public final class CircularWaveguide {
 	 * @param frequency The operating frequency, Hz. Must be positive.
 	 * @return The (possibly complex) TE11 wave impedance at {@code frequency}.
 	 */
+	@Override
 	public Complex waveImpedanceTE(double frequency) {
 		double omega = 2*Math.PI*frequency;
 		return new Complex(omega*mu, 0).divides(propagationConstant(frequency));

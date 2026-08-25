@@ -4,19 +4,21 @@ import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
 /**
- * A waveguide bandpass filter built directly from the TE10 physics of {@link
- * RectangularWaveguide} (Maxwell's equations), not from filter-synthesis tables: a short
- * resonant section of the normal (propagating) guide {@code passGuide}, sandwiched between two
- * identical barrier sections of a narrower guide {@code barrierGuide} operated BELOW its own
- * cutoff (evanescent -- see {@link RectangularWaveguide#propagationConstant}). Each barrier
- * reflects most of the incident power back (like a partially-silvered mirror), so the structure
- * behaves like a Fabry-Perot resonator: transmission is high only near the frequencies where the
- * cavity length matches a resonance condition, low elsewhere -- a genuine bandpass response
- * emerging purely from wave physics, not from an equivalent-circuit approximation.
+ * A waveguide bandpass filter built directly from the TE physics of a {@link WaveguideMode}
+ * (Maxwell's equations), not from filter-synthesis tables: a short resonant section of the normal
+ * (propagating) guide {@code passGuide}, sandwiched between two identical barrier sections of a
+ * guide {@code barrierGuide} operated BELOW its own cutoff (evanescent -- see {@link
+ * WaveguideMode#propagationConstant}). Each barrier reflects most of the incident power back
+ * (like a partially-silvered mirror), so the structure behaves like a Fabry-Perot resonator:
+ * transmission is high only near the frequencies where the cavity length matches a resonance
+ * condition, low elsewhere -- a genuine bandpass response emerging purely from wave physics, not
+ * from an equivalent-circuit approximation. Works over ANY {@link WaveguideMode} -- {@link
+ * RectangularWaveguide}'s TE10 or {@link CircularWaveguide}'s TE11, mixed or not -- since the
+ * cascade only ever needs a mode's propagation constant and wave impedance, never its geometry.
  * <p>
  * Each uniform section (barrier or cavity) is a lossless transmission-line-equivalent 2-port,
  * {@code ABCD = [[cosh(g*L), Z0*sinh(g*L)], [sinh(g*L)/Z0, cosh(g*L)]]}, {@code g=j*beta(f)},
- * {@code Z0} the section's own TE10 wave impedance -- unimodular ({@code A*D-B*C=1}) by the
+ * {@code Z0} the section's own TE wave impedance -- unimodular ({@code A*D-B*C=1}) by the
  * identity {@code cosh^2-sinh^2=1} regardless of the sign convention chosen for the complex square
  * root in {@code beta} below cutoff, so the cascade is reciprocal and, since every section here is
  * lossless, the overall 2-port is lossless too ({@code |S11|^2+|S21|^2=1}, verified in
@@ -25,8 +27,14 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 public final class EvanescentModeFilter {
 
 	private final static String HEADINFO = "EvanescentModeFilter --- INFO: ";
-	private final static String VERSION = "1.0 (2026_0824_1500)";
+	private final static String VERSION = "1.1 (2026_0825_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.1 (2026_0825_1200)
+	 * Generalizada sobre WaveguideMode (interfaz nueva) en vez de RectangularWaveguide
+	 * directamente -- ahora tambien funciona con CircularWaveguide (TE11), sin duplicar la
+	 * cascada ABCD. Sin cambio de comportamiento con guias rectangulares (RectangularWaveguide ya
+	 * implementa WaveguideMode).
 	 *
 	 * 1.0 (2026_0824_1500)
 	 * Segunda clase de com.ipserc.arith.rf: filtro paso banda evanescente (barrera-cavidad-
@@ -40,24 +48,23 @@ public final class EvanescentModeFilter {
 		System.out.println(HEADINFO + "VERSION:" + VERSION);
 	}
 
-	private final RectangularWaveguide passGuide;
-	private final RectangularWaveguide barrierGuide;
+	private final WaveguideMode passGuide;
+	private final WaveguideMode barrierGuide;
 	private final double barrierLength;
 	private final double cavityLength;
 
 	/**
-	 * @param passGuide The normal (wider) guide, used for the resonant cavity and as the
-	 * input/output reference.
-	 * @param barrierGuide The narrower guide used for the two barrier sections -- must have a
-	 * higher TE10 cutoff frequency than {@code passGuide} for it to be evanescent in the filter's
-	 * passband.
+	 * @param passGuide The normal (wider/wider-band) guide, used for the resonant cavity and as
+	 * the input/output reference.
+	 * @param barrierGuide The guide used for the two barrier sections -- must have a higher cutoff
+	 * frequency than {@code passGuide} for it to be evanescent in the filter's passband.
 	 * @param barrierLength The length of each of the two barrier sections. Must be positive.
 	 * @param cavityLength The length of the resonant cavity section (of {@code passGuide}).
 	 * Must be positive.
 	 * @throws IllegalArgumentException if {@code barrierLength}/{@code cavityLength} are not
 	 * positive.
 	 */
-	public EvanescentModeFilter(RectangularWaveguide passGuide, RectangularWaveguide barrierGuide, double barrierLength, double cavityLength) {
+	public EvanescentModeFilter(WaveguideMode passGuide, WaveguideMode barrierGuide, double barrierLength, double cavityLength) {
 		if (barrierLength <= 0 || cavityLength <= 0) {
 			throw new IllegalArgumentException(HEADINFO + "barrierLength and cavityLength must be positive");
 		}
@@ -68,7 +75,7 @@ public final class EvanescentModeFilter {
 	}
 
 	/** The ABCD matrix of a single uniform section (see class Javadoc). */
-	private static MatrixComplex sectionABCD(RectangularWaveguide guide, double length, double frequency) {
+	private static MatrixComplex sectionABCD(WaveguideMode guide, double length, double frequency) {
 		Complex beta = guide.propagationConstant(frequency);
 		Complex z0 = guide.waveImpedanceTE(frequency);
 		Complex gammaL = Complex.i.times(beta).times(length);

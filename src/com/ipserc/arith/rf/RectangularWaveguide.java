@@ -26,11 +26,15 @@ import com.ipserc.arith.complex.Complex;
  * verified against Maxwell's equations directly (not assumed) in
  * {@code TestRF_MaxwellTE10_01} using {@link com.ipserc.arith.vectorcalculus.VectorCalculus}.
  */
-public final class RectangularWaveguide {
+public final class RectangularWaveguide implements WaveguideMode {
 
 	private final static String HEADINFO = "RectangularWaveguide --- INFO: ";
-	private final static String VERSION = "1.0 (2026_0824_1400)";
+	private final static String VERSION = "1.1 (2026_0825_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.1 (2026_0825_1200)
+	 * implements WaveguideMode -- generaliza EvanescentModeFilter para que trabaje tambien con
+	 * CircularWaveguide sin duplicar la cascada ABCD; sin cambios de comportamiento.
 	 *
 	 * 1.0 (2026_0824_1400)
 	 * Primera clase de com.ipserc.arith.rf (paquete nuevo, Rol RF/Microondas): modo TE10 de una
@@ -101,6 +105,7 @@ public final class RectangularWaveguide {
 	 * @return The (possibly complex) propagation constant at {@code frequency}.
 	 * @throws IllegalArgumentException if {@code frequency} is not positive.
 	 */
+	@Override
 	public Complex propagationConstant(double frequency) {
 		if (frequency <= 0) {
 			throw new IllegalArgumentException(HEADINFO + "frequency must be positive, got " + frequency);
@@ -117,6 +122,7 @@ public final class RectangularWaveguide {
 	 * @param frequency The operating frequency, Hz. Must be positive.
 	 * @return The (possibly complex) TE10 wave impedance at {@code frequency}.
 	 */
+	@Override
 	public Complex waveImpedanceTE(double frequency) {
 		double omega = 2*Math.PI*frequency;
 		return new Complex(omega*mu, 0).divides(propagationConstant(frequency));
