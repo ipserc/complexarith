@@ -45,6 +45,10 @@ public class TestQubitsOperations {
 		plus.println("|+>");
 		check("identity2()|+> == |+>", identity.times(plus).equals(plus, 9));
 
+		System.out.println("Con Hadamard |0> : Qubits.hadamard().times(Qubits.ket0())");
+		MatrixComplex hadKet0 = Qubits.hadamard().times(Qubits.ket0());
+		check("hadamard*|0> == |+>",hadKet0.equals(plus, 9));
+		
 		/*
 		 * Explicación de minus
 		 * > ¿|-> no sería |+>.opposite()?                                                                                                                                                                                                               
@@ -68,6 +72,10 @@ public class TestQubitsOperations {
 		MatrixComplex minus = Qubits.ket0().minus(Qubits.ket1()).normalizeByCols();
 		minus.println("|->");
 		check("identity2()|-> == |->", identity.times(minus).equals(minus, 9));
+
+		System.out.println("Con Hadamard |1> : Qubits.hadamard().times(Qubits.ket1())");
+		MatrixComplex hadKet1 = Qubits.hadamard().times(Qubits.ket1());
+		check("hadamard*|1> == |->",hadKet1.equals(minus, 9));
 
 		check("plus.opposite().opposite() == plus", plus.opposite().opposite().equals(plus, 9));
 
