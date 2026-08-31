@@ -11384,6 +11384,529 @@ Arreglado, verificado y commiteado (8893d10): MatrixComplexFunctions.exp() tení
 
 ========================================================================================================================================
 #
-#	20/08/2026 DIA 16 - QPE y conceptos de puertas, operadores, etc.
+#	23/08/2026 DIA 16 - Operadores de Mécanica Clásica y Ecs Maxwell - Ondas Guiadas 
 #
 ========================================================================================================================================
+ Continuamos con el proyecto. Recupera TODO el contexto.
+
+● Bash(git status && echo "---DIFF---" && git diff --stat)
+  ⎿  On branch master
+     Your branch is up to date with 'origin/master'.
+     … +23 lines (ctrl+o to expand)
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Bash(git diff -- src/TestComplex/TestFilter02.java src/TestComplex/TestQuantum_QFTBridge01.java)
+  ⎿  diff --git a/src/TestComplex/TestFilter02.java b/src/TestComplex/TestFilter02.java
+     index 70f33c6..0ef9997 100644
+     --- a/src/TestComplex/TestFilter02.java
+     … +23 lines (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● Bash(git diff -- Claude/ClaudeRevisionComplexArith.txt)
+  ⎿  diff --git a/Claude/ClaudeRevisionComplexArith.txt b/Claude/ClaudeRevisionComplexArith.txt
+     index b413652..92148f3 100644
+     --- a/Claude/ClaudeRevisionComplexArith.txt
+     … +71 lines (ctrl+o to expand)
+
+● Contexto recuperado. Estado al cierre de la última sesión (20/08, DÍA 16):
+
+  Cerrado:
+  - QFT, puente QFT↔Fourier, y QPE (com.ipserc.arith.quantum.QPE) — verificado, commiteado y pusheado (ba712b7 == origin/master).
+  - Bug de nombres cruzados ramp()/saw() en Sigfunc — arreglado.
+
+  Abierto / pendiente de decisión:
+  1. 3 hallazgos sospechosos en com.ipserc.arith.signal (sin tocar, presentados pero no arreglados):
+    - Heurística de offset en Fourier.serialize()/calc().
+    - Comparación separator == "" / != "" por referencia en vez de .equals() (Fourier/Laplace/Z).
+    - Fourier.plus/minus/convolution sin validar tamaños entre señales.
+  2. Posible siguiente paso no pedido: Shor completo usando QPE como pieza.
+
+  Diferencia respecto a lo que dejé documentado — cambios sin commitear ahora mismo:
+  - TestQuantum_QFTBridge01.java: el rango n=10..15 (caro, sin ejecutar) ha sido cambiado a n=1..6.
+  - TestFilter02.java: samplefreq cambiado de 12000 a 24000.
+  - ClaudeRevisionComplexArith.txt tiene 66 líneas nuevas (el resumen que acabo de leer, aún sin commitear).
+
+  ¿Quieres que:
+  - (a) revise esos dos tests modificados y los ejecute para ver si compilan/pasan y así aplicar la regla de commit automático,
+  - (b) retome uno de los 3 hallazgos de signal.java, o
+  - (c) empiece con Shor?
+
+> Revisa los hallazgos sospechosos. Y luego vemos cómo implementar el lagrangiano
+● He verificado empíricamente los 3 hallazgos abiertos en com.ipserc.arith.signal, montando dos scratches (ScratchOffsetAudit01/02.java, conservados en el scratchpad de la sesión, no en el repo) que comparan Fourier.calc() contra la
+  función original en muchos puntos del dominio, no solo en el punto usado por la heurística.
+
+  1. Heurística de offset en Fourier.serialize()/calc() — bug real y más grave de lo que parecía
+
+  No es solo "sospechoso": calc() reconstruye correctamente la parte real de la señal (residuo ~1e-12, precisión de máquina, en ambos tests) pero devuelve una parte imaginaria completamente espuria para cualquier señal real. La causa es
+  matemática: series solo integra armónicos con índice n=0..order (nunca negativos), así que en calc() cada término Cn*e^(inwt) se suma entero en vez de tomar solo 2*Re(Cn*e^(inwt)) (que es la fórmula correcta de la serie de Fourier
+  real, equivalente a sumar también el conjugado en n negativo). El resultado es que la parte real siempre coincide (por estructura, no por suerte: Re(Cn_stored*e^{inwt}) = an*cos(nwt)+bn*sin(nwt), exactamente la fórmula trigonométrica
+  correcta), pero la parte imaginaria es una señal "en cuadratura" con la misma amplitud que el original — con cos(pi*z) sale exactamente sin(pi*z) de residuo imaginario (magnitud hasta 1.0, señal completa).
+
+  setOffset() calcula el error solo en el punto medio del dominio y lo resta como constante — con cos(pi*z+0.3) (test 2), ese offset fijo vale 0.2955i, pero el error real en otros puntos oscila entre -1.25 y +1.25, muy lejos de
+  constante. La heurística no arregla nada salvo, por casualidad, el punto exacto donde se calculó.
+
+  Impacto en el código: plotSeries()/plotCompare() en Fourier.java grafican la parte real (correcta) y, si showIm=true, también la parte imaginaria de calc() (basura). printCoefs()/uso directo de calc() con parte imaginaria también se ve
+  afectado.
+
+  2. Comparación separator == ""/!= "" por referencia (Fourier/Laplace/Z, 3 sitios cada uno) — confirmado presente en los tres ficheros, en saveTFile/readSamples/readDFT (mismo patrón triplicado). Funciona hoy porque todas las llamadas
+  pasan literales interned, pero es frágil ante cualquier String construido dinámicamente (p.ej. separator.trim() de un fichero de config). No es un bug activo, es deuda técnica de fragilidad.
+
+  3. Fourier.plus/minus/convolution sin validar tamaños — confirmado en Fourier.java:1793-1859: los tres acceden a signal.samples/signal.transform indexando hasta this.N (plus/minus) o iterando signal.N dentro de un bucle acotado por
+  this.N (convolution) sin comprobar que ambas señales tengan el mismo N. Si difieren, revienta con ArrayIndexOutOfBoundsException o, en el peor caso, procesa datos parcialmente si los arrays son más grandes de lo esperado.
+
+  Resumen de gravedad: el (1) es el único que produce resultados numéricos silenciosamente incorrectos (no un crash) — el más serio de los tres. El (3) revienta ruidosamente si se usa mal (menos peligroso, autodetectable). El (2) es
+  fragilidad latente, no un bug activo hoy.
+
+  ¿Quieres que arregle alguno de los tres ahora (te propondría empezar por el 1, que es el que puede dar resultados erróneos sin avisar), o pasamos directamente al lagrangiano y dejamos estos aparcados?
+
+● Los 3 hallazgos quedaron resueltos y verificados:
+
+  1. Fourier.calc() — era un bug real (no solo sospechoso): la reconstrucción sumaba cada término armónico entero en vez de solo su parte real, produciendo una parte imaginaria completamente espuria (hasta magnitud 1.25 de error).
+  Arreglado, verificado a precisión de máquina en todo el dominio; setOffset()/isContinuous() eliminados por innecesarios.
+  2. separator == "" — sustituido por .equals("") en los 9 sitios (Fourier/Laplace/Z).
+  3. plus()/minus() — ahora lanzan IllegalArgumentException si los tamaños no coinciden. convolution() se revisó y resultó no necesitar cambios (sus índices ya son seguros por diseño).
+
+  Todo recompila limpio, commiteado en 4a19c3a (sin pushear). Memoria actualizada. Quedan sin tocar, ajenos a este arreglo: los tweaks de TestFilter02/TestQuantum_QFTBridge01 y las 66 líneas nuevas en ClaudeRevisionComplexArith.txt de la
+  sesión anterior.
+
+  Antes de pasar al lagrangiano — ¿en qué contexto lo planteas? ¿Mecánica clásica/lagrangiana como paquete nuevo, o algo dentro de com.ipserc.arith.quantum (acción, formulación de camino integral)? Así diseño el alcance correctamente.
+
+> Primero, para Fourier. Haz un método que que saque las componentes del análisis espectral. Y oytro método para su representación gráfica. Creo que eso no lo tengo hecho.
+● Añadidos y verificados en Fourier.java:
+
+  - SpectralComponent — clase pequeña (frecuencia Hz, amplitud, fase).
+  - getSpectralComponents() — extrae los N bins del DFT ya calculado como componentes (frecuencia/amplitud/fase).
+  - getSpectralComponents(double amplitudeThreshold) — filtra los picos significativos por encima del umbral, ordenados de mayor a menor amplitud.
+  - plotSpectralComponentsSync/Async — representación gráfica (amplitud + fase vs. frecuencia) de cualquier array de componentes obtenido con los métodos anteriores.
+
+  Verificado con una señal de dos tonos (3 Hz amplitud 2, 7 Hz amplitud 1): salen exactamente los 4 picos esperados, con la proporción de amplitud correcta y fase 0; el filtrado descarta el ruido/DC y ordena bien; el gráfico genera el
+  script gnuplot correcto en modo impulses. Commiteado (b06c654).
+
+> cual es la expresión matemática de esto Complex.cos(z.times(Math.PI*(800+50*(Math.sin(z.rep()%13)))));
+
+● Es una señal coseno con frecuencia instantánea moduladas (modulación de frecuencia, FM), donde z.rep() es la parte real de z (el tiempo t, ya que aquí z se usa como variable real):
+
+  $$
+  x(t) = \cos\Big(\pi \cdot \big(800 + 50,\sin(t \bmod 13)\big)\cdot t\Big)
+  $$
+
+  Desglosando:
+
+  - Frecuencia instantánea (en las mismas unidades "Hz" que usa el resto de la clase, ver convención de Fourier):
+  $$
+  f(t) = \frac{800 + 50,\sin(t \bmod 13)}{2}\ \text{“Hz”}
+  $$
+  (el factor $\tfrac12$ sale de que el argumento del coseno es $\pi \cdot f_{\text{código}} \cdot t = 2\pi \cdot \tfrac{f_{\text{código}}}{2}\cdot t$).
+  - Portadora: 800 (código) → frecuencia central ≈ 400 "Hz".
+  - Desviación de frecuencia: ±50 (código) → ±25 "Hz" de swing.
+  - Moduladora: $\sin(t \bmod 13)$ — un seno de la parte fraccionaria de $t$ módulo 13, no un seno periódico simple en $t$ (por el %13 dentro del propio seno, no fuera), lo que hace que la modulación tenga un patrón de diente de sierra
+  repetido cada 13 unidades de tiempo en su argumento, en vez de una modulación senoidal suave y continua.
+
+  Es justamente por esta modulación (dependiente de $t$, no una frecuencia fija) que la señal tiene un espectro de banda ancha, con miles de componentes significativas en vez de unos pocos tonos puros — lo que explicaba las ~4800
+  componentes que salían en TestFilter02a.
+
+> vamos con el lagrangiano, en el campo de la mecánica clásica
+
+● Bash(cd /c/Users/josel/workspace-eclipse/complexarith_github
+      find src/com/ipserc/arith -maxdepth 1 -type d…)
+  ⎿  src/com/ipserc/arith
+     src/com/ipserc/arith/combinatoric
+     src/com/ipserc/arith/complex
+     … +18 lines (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── [ ] Alcance inicial
+
+Antes de diseñar el paquete nuevo de mecánica lagrangiana, ¿por dónde empezamos?
+
+> 1. Ecuaciones de Euler-Lagrange para un sistema concreto (recomendado)
+     Empezar por un caso de juguete conocido (p.ej. péndulo simple, oscilador armónico, o péndulo doble) -- se define L=T-V, se derivan las ecuaciones de movimiento y se integran numéricamente, verificando contra la solución
+     conocida/energía conservada. Alcance acotado, resultado tangible rápido.
+  2. Motor genérico de derivación simbólica de Euler-Lagrange
+     Construir primero la maquinaria general (derivadas parciales/temporales de L respecto a coordenadas generalizadas cualesquiera) antes de aplicarla a ningún sistema concreto -- más trabajo de infraestructura, más reutilizable
+     después.
+ 
+ > Primero 1 y después de probar 2
+ ● El primer candidato quedó cerrado y verificado (5/5 OK, commit d9477a0): HarmonicOscillator.java, con el Lagrangiano derivado a mano, ecuación de movimiento, energía conservada, solución analítica y un integrador RK4 genérico escrito
+  desde cero (no existía ningún integrador de EDOs en el repo).
+
+  Según lo acordado ("primero 1 y después de probar 2"), el siguiente paso es el motor genérico de derivación de Euler-Lagrange. Antes de diseñarlo, una decisión: dado que no hay álgebra simbólica en el repo, la derivación tendría que
+  ser numérica (derivadas parciales de L respecto a coordenadas/velocidades por diferencias finitas, igual que ComplexCalculus.derivative() hace para una variable). ¿Seguimos con ese enfoque, o prefieres algo distinto?
+
+✻ Cooked for 3m 32s
+
+> Sí, sigue con diferenciación numérica, pero me comentas qué enfoque distinto puede ser
+● Antes de escribir el código, te explico brevemente la alternativa que se descartó:
+
+  Diferenciación automática (autodiff) — en vez de aproximar derivadas por diferencias finitas, se sustituye cada número por un "número dual" (o un nodo de un grafo de cómputo) que lleva consigo su propia derivada, y esa información se
+  propaga automáticamente al evaluar la expresión de L. Da derivadas exactas (a precisión de máquina, sin error de truncamiento), a diferencia de las diferencias finitas. La contrapartida: haría falta un nuevo tipo numérico (parecido a
+  Complex, pero con un componente "derivada" en vez de "imaginario") que el Lagrangiano del usuario tendría que usar en cada operación aritmética en vez de double normal — más trabajo de infraestructura y menos transparente para quien     escribe el Lagrangiano. Un álgebra simbólica completa (árbol de expresión, derivación término a término) daría fórmulas exactas y reutilizables, pero es aún más trabajo y este repo no tiene ningún álgebra simbólica hoy.
+
+  Diferencias finitas centradas, en cambio, no necesitan ningún tipo nuevo: L sigue siendo una función double[],double[] -> double corriente, al precio de un error de truncamiento/redondeo modesto y bien entendido.
+
+  Voy con diferencias finitas, según lo acordado.
+
+● Los dos candidatos acordados quedaron cerrados:
+
+  1. HarmonicOscillator.java — sistema concreto, ecuación derivada a mano (5/5 OK).
+  2. LagrangianSystem.java — motor genérico de Euler-Lagrange por diferenciación numérica, verificado en 3 sistemas de dificultad creciente: oscilador armónico (contraste directo con el candidato 1), dos osciladores acoplados (2 GDL,
+  matriz de masas y resolución lineal genuinas) y péndulo simple (Lagrangiano no lineal) — 6/6 OK, errores ~1e-6 consistentes con el paso de diferenciación elegido.
+
+  Todo commiteado (6 commits por delante de origin/master, sin pushear). Sin candidato de mecánica clásica pendiente — posibles siguientes pasos cuando quieras retomar: péndulo doble (matriz de masas dependiente de q, términos de
+  Coriolis genuinos), visualización de trayectorias, o el Hamiltoniano como contraparte del Lagrangiano.
+
+✻ Churned for 4m 6s
+
+> realiza los pasos que has propuesto
+● Los 4 candidatos propuestos quedaron implementados y verificados:
+
+  1. DoublePendulum.java — primer sistema con matriz de masas dependiente de q y términos de Coriolis genuinos, construido enteramente sobre LagrangianSystem (nunca resuelto a mano en la clase de producción). Verificado contra la
+  ecuación de movimiento derivada a mano (resolución por Cramer): aceleraciones a ~1.8e-5, energía conservada a ~2e-5 sobre 20000 pasos de trayectoria caótica (3/3 OK), más visualización de trayectoria (plotTrajectorySync/Async, camino
+  cartesiano de ambas masas).
+  2. HamiltonianSystem.java — transformada de Legendre y ecuaciones de Hamilton, contraparte de LagrangianSystem. H(x,p) y H(θ,p) coinciden con las fórmulas de libro de texto a precisión de máquina, y su trayectoria integrada coincide
+  con la de LagrangianSystem para el mismo oscilador (~1e-8) — un cross-check entre las dos formulaciones (4/4 OK).
+
+  Total: 7 commits nuevos, proyecto completo compilando limpio, sin pushear todavía a origin/master. Memoria actualizada — sin candidato de mecánica clásica pendiente.
+
+> crea el gradiente, la divergencia y el rotacional.
+● Creado el nuevo paquete com.ipserc.arith.vectorcalculus con VectorCalculus.java:
+
+  - gradient(f, point) — generaliza a cualquier dimensión.
+  - divergence(F, point) — generaliza a cualquier dimensión.
+  - curl(F, point) — restringido a R³ (su única dimensión clásica), lanza excepción fuera de ella.
+
+  Todo por diferencias finitas centradas, mismo enfoque que LagrangianSystem. Verificado 6/6 OK: casos concretos (gradiente, divergencia, rotacional de campo de rotación pura vs. campo radial) y, sobre todo, dos identidades del cálculo
+  vectorial válidas para cualquier campo suave (curl(grad(g))=0, div(curl(H))=0) — una verificación más sólida que casos concretos, y salieron a ~1e-11/1e-12 pese a apilar dos niveles de diferenciación numérica.
+
+  Commiteado (695866c, 9 commits por delante de origin/master, sin pushear). Memoria actualizada.
+
+● Los tres pedidos quedaron cerrados:
+
+  1. VectorCalculus.laplacian() — el operador newtoniano. Verificado con ∇²(x²+y²+z²)=6 y, sobre todo, que el potencial newtoniano 1/r es armónico fuera del origen (8/8 OK).
+  2. LagrangianSystem.action() — la Acción. Verificado el principio de Hamilton en sí mismo: la primera variación se anula en la trayectoria física, el término de segundo orden escala exactamente ×4 al doblar ε (curvatura cuadrática
+  genuina), y una trayectoria no física con los mismos extremos da una acción distinta (3/3 OK).
+  3. NewtonianSystem — F=m·a, cerrando el trío Newton/Lagrange/Hamilton. Coincide con LagrangianSystem para el oscilador armónico (conservativo) y reproduce exactamente la caída libre con rozamiento (disipativa, un caso que las otras dos
+  formulaciones de este paquete no pueden expresar) — 5/5 OK.
+
+  Con esto, com.ipserc.arith.mechanics acumula 26/26 tests OK y las tres formulaciones clásicas equivalentes (Newton, Lagrange, Hamilton) están todas presentes y cruzadas entre sí. 10 commits nuevos en total esta sesión, sin pushear
+  todavía. Memoria actualizada.
+
+> Dame un resumen de lo que has hecho en esta sesión                                                                                                                                                                                         
+● Resumen de la sesión (23-24 agosto 2026)
+
+  Contexto recuperado: QPE cerrado, 3 hallazgos sospechosos abiertos en com.ipserc.arith.signal.
+
+  1. Arreglo de com.ipserc.arith.signal (commit 4a19c3a)
+
+  Los 3 hallazgos resultaron ser reales, no solo sospechas:
+  - Bug confirmado por ejecución: Fourier.calc() reconstruía una parte imaginaria completamente espuria (hasta magnitud 1.25 de error) — la serie solo integraba armónicos positivos sin tomar la parte real del término. Arreglado;
+  setOffset()/isContinuous() (heurística que no podía corregirlo) eliminados.
+  - separator == "" por referencia → .equals("") (9 sitios, Fourier/Laplace/Z).
+  - plus()/minus() ahora validan tamaños; convolution() revisado y resultó no necesitar cambios.
+
+  2. Verificación de cambios del usuario en tests (commit c8bdfbe, d3c0c9d)
+
+  TestFilter02 (samplefreq→16384, potencia de 2, de >70s a milisegundos) y TestQuantum_QFTBridge01 (n=1..6, 12/12 OK), verificados por ejecución, no solo por lectura.
+
+  3. Análisis espectral en Fourier (commit b06c654, test 92e41f2)
+
+  SpectralComponent, getSpectralComponents()/(threshold), plotSpectralComponentsSync/Async. Verificado con señal de 2 tonos: picos exactos, orden descendente correcto.
+
+  4. Nuevo Rol: Mecánica Clásica/Lagrangiana — com.ipserc.arith.mechanics
+
+  - HarmonicOscillator (d9477a0) — caso concreto derivado a mano, RK4 propio (5/5 OK).
+  - LagrangianSystem (fa3371f) — motor genérico de Euler-Lagrange por diferenciación numérica (6/6 OK en 3 sistemas).
+  - DoublePendulum (66c1485) — matriz de masas dependiente de q, términos de Coriolis genuinos (3/3 OK), con visualización de trayectoria.
+  - HamiltonianSystem (822fb5e) — transformada de Legendre, ecuaciones de Hamilton (4/4 OK).
+  - action() (9af6c7f) — la Acción; verificado el principio de Hamilton en sí mismo (3/3 OK).
+  - NewtonianSystem (222dd76) — F=m·a, cierra el trío Newton/Lagrange/Hamilton (5/5 OK), incluye caso disipativo (rozamiento).
+
+  5. Nuevo paquete: com.ipserc.arith.vectorcalculus
+
+  - VectorCalculus (695866c) — gradient/divergence/curl (6/6 OK, incluidas 2 identidades universales del cálculo vectorial).
+  - laplacian() (a3f5239) — el operador newtoniano; verificado que 1/r es armónico fuera del origen (8/8 OK).
+
+  Total: 12 commits, ~40 tests nuevos, todos OK. Proyecto compila limpio en cada paso. Nada pusheado a origin/master todavía. Memoria actualizada con el estado de los tres paquetes/roles.
+
+
+> ¿puedes perparar un ejemplo de un filtro de onda guiada de radio frecuencia?
+
+● User answered Claude's questions:
+  ⎿  · Un filtro de guia de onda de RF se puede modelar de formas bastante distintas según lo que quieras ver. ¿Cuál encaja con lo que tienes en mente? → Otra cosa (te explico)
+
+● ¿Qué tenías en mente?
+
+✻ Brewed for 26s
+
+> Tengo en mente usar las ecuaciones de maxwell para modelarlo ¿Es posible?
+
+● Sí, es posible, pero con un alcance concreto que quiero confirmar antes de empezar — resolver Maxwell de forma completamente general (una guía con iris/cavidades de forma arbitraria) requeriría un solver de elementos finitos/mallado
+  que este proyecto no tiene. Lo que sí es tractable y genuinamente derivado de Maxwell (no de fórmulas de manual sin más) es:
+
+  1. Modo fundamental de una guía rectangular (TE₁₀) — a partir de las ecuaciones de Maxwell (∇×E=-∂B/∂t, ∇×H=∂D/∂t, ∇·D=0, ∇·B=0) en una región sin fuentes, se separa variables y sale el campo del modo TE₁₀ en forma cerrada. Verificaría
+  que esos campos cumplen Maxwell de verdad usando VectorCalculus (curl/divergence) que ya construimos — no dándolo por supuesto.
+  2. Relación de dispersión: de ahí sale directamente β(f) = √((2πf/c)² - (π/a)²) — por debajo de la frecuencia de corte f_c, β es imaginaria (el campo decae exponencialmente, "evanescente"); por encima, se propaga. Esto ya es un filtro
+  paso-alto genuino, derivado sin ningún elemento concentrado: la propia guía, por su geometría, no deja pasar nada por debajo de f_c.
+  3. Filtro paso-banda de verdad necesita combinar tramos (propagante + evanescente, o resonadores) en cascada — eso ya no sale de Maxwell puro para un tramo homogéneo, sino de teoría de líneas/matrices ABCD combinando varios tramos cuya
+  física (impedancia, β) sí viene de (1) y (2).
+
+  ¿Te vale este alcance —Maxwell hasta el modo TE₁₀ y el filtro paso-alto que emerge directamente de él— como primer paso, dejando el paso-banda con cascada de tramos para después si quieres seguir?
+
+✻ Cooked for 39s
+
+> vuelve a darme las opciones que ḿe indicaste
+
+● Las opciones que planteé al principio eran estas tres:
+
+  1. Filtro de cavidades acopladas por iris (parámetros S) — el caso clásico de microondas: N cavidades resonantes en guía de onda acopladas por iris inductivos, calculado vía matrices ABCD en cascada (con Complex/MatrixComplex ya
+  existentes) — da S11/S21 vs frecuencia, con la respuesta de paso banda típica (Chebyshev/Butterworth) y verificación de que es sin pérdidas (|S11|²+|S21|²=1).
+  2. Reusar el filtro paso banda ya existente en Fourier — Fourier.bandPassFilter() ya hace un filtro paso banda ideal en el dominio de la frecuencia; sería solo un TestComplex nuevo interpretando sus parámetros como los de un filtro de
+  RF (frecuencia central, ancho de banda), sin modelar la guía de onda física en sí.
+  3. Otra cosa — que resultó ser tu propuesta: modelarlo directamente desde las ecuaciones de Maxwell, que es donde nos quedamos (te propuse un alcance concreto: modo TE₁₀ derivado de Maxwell + el filtro paso-alto que emerge de su
+  frecuencia de corte, dejando el paso-banda con cascada de tramos como posible siguiente paso).
+
+  ¿Con cuál seguimos?
+
+✻ Worked for 7s
+
+> Cual recomiendas?
+
+● Recomiendo la opción 3 (Maxwell), con el alcance concreto que te propuse: modo TE₁₀ de una guía rectangular derivado de las ecuaciones de Maxwell, verificado con VectorCalculus, y el filtro paso-alto que emerge directamente de su
+  frecuencia de corte.
+
+  Por qué esta y no las otras dos:
+  - La opción 2 (reusar Fourier.bandPassFilter()) no modela nada físico — sería un filtro ideal abstracto con la etiqueta "RF" pegada encima, sin guía de onda real detrás. Poco interesante.
+  - La opción 1 (cavidades acopladas, parámetros S) es un filtro paso-banda genuino y más parecido a un producto real, pero parte de valores de acoplo de manual (síntesis de filtro clásica) en vez de derivarse de Maxwell — es ingeniería
+  de RF estándar, no física de primeros principios.
+  - La opción 3 es la que tú mismo propusiste y encaja mejor con el estilo de esta sesión (Lagrangiano derivado y verificado paso a paso, identidades de cálculo vectorial comprobadas, no fórmulas dadas por buenas): parte de las
+  ecuaciones de Maxwell de verdad, lo verificamos con las herramientas que acabamos de construir (VectorCalculus), y el "filtro" no es una construcción artificial sino una consecuencia física directa de la geometría de la guía.
+
+  Si más adelante quieres el paso-banda de verdad, la opción 1 encaja como continuación natural sobre esta base (los tramos de la cascada usarían la impedancia/β que salen de Maxwell en vez de valores de manual).
+
+  ¿Empiezo con el modo TE₁₀?
+
+✻ Brewed for 10s
+
+> Sí, empieza con el modo TE₁₀ y la opción 1 también me gusta
+● Los dos pasos completados:
+
+  1. RectangularWaveguide — modo TE₁₀ derivado de las ecuaciones de Maxwell (no de fórmulas de manual). Verificado que los campos cumplen curl(E)=-μ∂H/∂t y curl(H)=ε∂E/∂t de verdad, reutilizando VectorCalculus (construido antes en esta
+  misma sesión) — un buen cierre de círculo. 5/5 OK con una guía WR-90 real.
+  2. EvanescentModeFilter — el filtro paso-banda de la opción 1, pero construido sobre la física de Maxwell en vez de tablas de síntesis: un resonador Fabry-Perot en guía de onda (barrera evanescente–cavidad–barrera evanescente).
+  Parámetros de cavidad localizados por barrido numérico, no adivinados. 5/5 OK: sin pérdidas a ~1e-14, resonancia con transmisión casi total, forma de paso-banda genuina (con una asimetría física real, caracterizada explícitamente antes
+  de fijar el test).
+
+> revisa la ejecución de EvanescentModeFilter
+● He revisado la ejecución con tu cambio (a2=0.17*a). Resultado:
+
+  EvanescentModeFilter funciona correctamente — el problema está en la resolución del barrido del test, no en la clase. Con a2=0.17*a, la guía de barrera tiene fc2 mucho más alto (3.86e10 Hz vs 1.31e10 Hz antes), lo que hace las barreras  muchísimo más "reflectantes" (más evanescentes) — el resonador Fabry-Perot resultante tiene una Q altísima, y su pico de resonancia se vuelve extremadamente estrecho.
+
+  Con el barrido fijo de 2000 puntos del test (paso ~1.3e7 Hz sobre un rango de ~3e10 Hz), ese pico —que existe y llega exactamente a |S21|=1.0000000002, confirmado por búsqueda refinada— cae entre dos puntos de muestreo y nunca se ve:
+  el test mide max|S21|=0.001 y falla el check de resonancia, aunque físicamente la resonancia sí está ahí, tal como predice la teoría de Fabry-Perot (transmisión unidad exacta en resonancia para un sistema sin pérdidas, sea cual sea la
+  reflectividad de los espejos).
+
+  Verificación (búsqueda adaptativa por refinamiento, no conservada):
+  iter=0 rango amplio        -> mejor 0.9069 @ 2.44844e10
+  iter=1 rango 1000x más fino -> mejor 0.9999997
+  iter=2 en adelante         -> mejor 1.0000000002
+
+  Esto es exactamente el comportamiento de "resonancia aguja en un pajar" de un resonador de alta finesse — no es un bug, es la física real reaccionando a un diseño de barrera mucho más opaca.
+
+  ¿Cómo prefieres que lo resuelva?
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── [ ] Arreglo del test
+
+El test actual usa un barrido de resolución fija que no encuentra resonancias muy estrechas (como la que sale con a2=0.17*a). ¿Cómo lo arreglo?
+
+> 1. Test con búsqueda adaptativa del pico (recomendado)
+     Cambiar el test para que primero localice la zona aproximada del pico con un barrido grueso y luego refine automaticamente alrededor -- funciona sea cual sea la Q del resonador, sin depender de adivinar cuantos puntos hacen falta.
+  2. Mantener a2=0.5*a (el valor original verificado)
+     Revertir el cambio de a2 a 0.17*a y dejar el test tal cual, ya que con 0.5*a el pico es lo bastante ancho para que el barrido fijo de 2000 puntos lo encuentre sin problema.
+● User answered Claude's questions:
+  ⎿  · El test actual usa un barrido de resolución fija que no encuentra resonancias muy estrechas (como la que sale con a2=0.17*a). ¿Cómo lo arreglo? → Test con búsqueda adaptativa del pico (recomendado)
+
+Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, documentos, planes, reglas, workflows que tengas. Recuerda todo lo que has aprendido. Haz push de todos los commits. Cuando vuelva a conectar me recuerdas por
+  donde seguir.
+● Todo guardado y sincronizado: HEAD == origin/master == 4d72c8a, 18 commits pusheados esta sesión, documentación de continuidad y memoria persistente actualizadas.
+
+  Resumen para cuando retomes
+
+  Estado: master == origin/master, todo cerrado y verificado, nada a medias.
+
+  Lo que se hizo esta sesión (23-24 agosto 2026):
+  1. com.ipserc.arith.signal — los 3 hallazgos abiertos arreglados (bug real en Fourier.calc(), validaciones, separator.equals()).
+  2. Fourier.getSpectralComponents() / plotSpectralComponentsSync/Async — análisis espectral.
+  3. com.ipserc.arith.mechanics (nuevo, 3 formulaciones clásicas completas y cruzadas): HarmonicOscillator, LagrangianSystem, DoublePendulum, HamiltonianSystem, action() (principio de Hamilton verificado), NewtonianSystem (F=m·a).
+  4. com.ipserc.arith.vectorcalculus (nuevo): gradient/divergence/curl/laplacian.
+  5. com.ipserc.arith.rf (nuevo): modo TE₁₀ desde Maxwell (verificado con VectorCalculus), filtro paso-banda evanescente Fabry-Perot.
+
+  Sin ningún candidato pendiente en curso en ninguno de los tres paquetes nuevos. Si quieres seguir, las líneas abiertas sin urgencia son:
+  - Doc de aprendizaje estilo quantum_doc/ para mechanics.
+  - Más sistemas mecánicos (péndulo con soporte oscilante, cuerpo rígido, Noether/cantidades conservadas).
+  - El filtro RF por síntesis clásica (cavidades acopladas por iris) como alternativa a lo hecho con Maxwell.
+  - Disipación explícita (Rayleigh) en Hamilton/Newton.
+  - Limpieza menor arrastrada: eval() triplicado en Fourier/Laplace/Z (no es bug).
+
+  Todo lo demás que traigas también vale, por supuesto.
+
+ Empieza el filtro por síntesis clásica de cavidades acopladas
+
+========================================================================================================================================
+#
+#	25/08/2026 DIA 17 - CircularWaveguide, CoupledCavityFilter
+#
+========================================================================================================================================
+● No hay nada empezado del filtro por síntesis clásica todavía — solo quedan RectangularWaveguide y EvanescentModeFilter en com.ipserc.arith.rf.
+
+  Contexto recuperado. Resumen del estado:
+
+  - HEAD == origin/master == 4d72c8a, todo pusheado. La Cuadragésima sesión (signal.java + mechanics + vectorcalculus + rf) está cerrada y verificada.
+  - Hay 2 cambios sin commitear ahora mismo:
+    - TestRF_EvanescentFilter01.java: a2 pasó de 0.25*a a 0.45*a y nPoints de 2000 a 2500 — parecen ediciones tuyas en paralelo, sin verificar aún.
+    - Claude/ClaudeRevisionComplexArith.txt (log crudo de transcripciones, distinto del ComplexArithRev.md curado): tiene 371 líneas nuevas al final, sin commitear. Al leer el final, encontré una línea que no está reflejada en mi
+  memoria: tras el cierre "Todo guardado y sincronizado" de la última sesión, aparece "Empieza el filtro por síntesis clásica de cavidades acopladas" — la continuación natural que quedó apuntada como línea abierta — seguida de una
+  cabecera de sesión nueva vacía ("DIA 17") sin fecha ni desarrollo.
+
+  Es decir: parece que quedaste a punto de arrancar el filtro por síntesis clásica de cavidades acopladas (la opción 1 que descartamos frente a Maxwell, mencionada como continuación natural), pero no hay código nuevo en el repo — ni
+  siquiera un fichero a medias.
+
+  Antes de arrancar nada, voy a verificar que tu cambio en TestRF_EvanescentFilter01.java (a2=0.45*a) sigue compilando y pasando, y comitearlo si es correcto (regla de commit automático tras compilar).
+  
+● Y en resumen, para que quede claro sin tener que abrir el fichero:
+
+  ┌───────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┬──────────────┐
+  │   Variable    │                                                               Qué es                                                               │    Unidad    │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ a             │ Pared ancha de la guía WR-90 (passGuide)                                                                                           │ m            │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ b             │ Pared estrecha de la guía WR-90                                                                                                    │ m            │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ fc            │ Frecuencia de corte TE10 de passGuide (v/(2a))                                                                                     │ Hz           │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ a2            │ Pared ancha de la guía de las barreras (0.45*a, más estrecha ⇒ corte más alto)                                                     │ m            │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ fc2           │ Frecuencia de corte TE10 de barrierGuide                                                                                           │ Hz           │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ barrierLength │ Longitud de cada tramo de barrera evanescente (0.5*a) — a más longitud, "espejo" más reflectante, mayor Q                          │ m            │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ cavityLength  │ Longitud del tramo resonante central (0.01), fija la frecuencia de resonancia Fabry-Perot                                          │ m            │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ fLo, fHi      │ Extremos del barrido de la prueba (1.05*fc a 0.85*fc2) — mantiene passGuide propagante y barrierGuide evanescente en todo el rango │ Hz           │
+  ├───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+  │ nPoints       │ Número de puntos del barrido grueso                                                                                                │ adimensional │
+  └───────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────┘
+
+  a/b vienen del constructor de RectangularWaveguide (pared ancha/estrecha, m); barrierLength/cavityLength del constructor de EvanescentModeFilter (longitudes de tramo, m); fc/fc2 de cutoffFrequencyTE10(). Todo consistente con MKS
+  (metros, hercios) en toda la clase.
+
+
+
+> se puede analizar una guia onda circular con esto?
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Sí, y con más margen del que parece: la librería ya tiene Complex.besselJ/besselY implementados (ComplexFunctions.java), verificados en ScratchBesselAudit01. RectangularWaveguide no sirve directamente — su kc=pi/a sale de separación de  variables en cartesianas, exclusivo de geometría rectangular. Una guía circular necesitaría una clase nueva (CircularWaveguide) análoga en estructura pero con kc = ceros de J_n' (Bessel derivada, modo dominante TE11) en vez de pi/a —
+  mismo patrón de la sesión pasada (Maxwell + verificación con VectorCalculus), coste moderado porque ya tienes las Bessel hechas, no habría que implementarlas desde cero.
+
+  ¿Te interesa como candidato para seguir en com.ipserc.arith.rf, o era solo una pregunta de viabilidad?
+
+● Resumen: com.ipserc.arith.rf ampliado con guía circular:
+
+  - CircularWaveguide (nueva, TE11 desde Maxwell con Bessel), WaveguideMode (interfaz nueva que generaliza EvanescentModeFilter a cualquier geometría sin duplicar la cascada ABCD), RectangularWaveguide/EvanescentModeFilter actualizados
+  para implementarla/usarla.
+  - 34/34 OK en todo el paquete (5 tests: TE10, filtro rectangular, TE11, filtro circular, + el check del p'₁₁ calculado por bisección contra el valor tabulado).
+  - 4 commits locales (5914420, d8e5ac6 y los intermedios), sin pushear — avísame si quieres que los suba.
+  - Memoria del proyecto actualizada.
+
+  ¿Seguimos con algo más (el filtro por síntesis clásica de cavidades acopladas sigue pendiente como candidato) o lo dejamos aquí?
+
+✻ Worked for 3m 16s
+
+※ recap: We've been extending the RF/microwave package: added a circular waveguide TE11 mode and generalized the evanescent filter to work on it, all 34 tests passing. Next: decide whether to push these local commits or start the          classical coupled-cavity filter. (disable recaps in /config)
+                                                                                                                                                                              > filtro por síntesis clásica de cavidades acopladas ¿Qué es?
+
+● Es el enfoque de diseño de filtros de RF que se usa en la industria (antenas de satélite, estaciones base, etc.), y contrasta con lo que hemos hecho hasta ahora con EvanescentModeFilter (física de Maxwell pura) de una forma concreta:
+
+  La idea central: en vez de resolver Maxwell para una geometría concreta y ver qué respuesta sale, se parte al revés — de la respuesta que quieres (paso banda de orden N, rizado Chebyshev de X dB, o Butterworth máximamente plano) y se
+  sintetiza la estructura que la produce.
+
+  Los pasos clásicos (Matthaei-Young-Jones, la "biblia" del tema):
+  1. Se elige un prototipo paso bajo normalizado de orden N — una tabla de valores g₀, g₁, ..., g_N, g_{N+1} (elementos de un circuito LC ideal) tabulados según el tipo de respuesta (Chebyshev/Butterworth/elíptico) y el rizado deseado.
+  Esto es álgebra pura, nada de física de ondas todavía.
+  2. Se transforma ese prototipo paso bajo en paso banda mediante una transformación de frecuencia estándar, obteniendo N resonadores acoplados en cascada.
+  3. Cada resonador del circuito equivalente se mapea a una cavidad física real (en nuestro caso, un tramo de RectangularWaveguide/CircularWaveguide resonante), y cada acoplo LC del prototipo se mapea a un iris (una apertura/ventana
+  entre dos cavidades) cuyo tamaño controla el coeficiente de acoplo k_{i,i+1} entre resonadores contiguos.
+  4. Los coeficientes de acoplo k_{i,i+1} y los Q externos de entrada/salida (Q_e) se sacan directamente de los g_i del prototipo con fórmulas cerradas — eso fija cuánto tiene que medir cada iris.
+
+  Diferencia clave con lo que ya tenemos: EvanescentModeFilter parte de Maxwell y el resultado (forma de banda, asimetría, Q) es lo que sale de la física, verificado a posteriori. La síntesis clásica hace lo contrario — impone la
+  respuesta de antemano (p.ej. "Chebyshev de 3 dB de rizado, orden 4") y calcula qué geometría (tamaños de iris, longitudes de cavidad) la produce, con precisión de primer orden basada en teoría de circuitos equivalentes (no en Maxwell
+  directamente).
+
+  Es un candidato de tamaño medio: necesitaríamos las tablas de prototipo paso bajo (o generarlas resolviendo las ecuaciones de Chebyshev/Butterworth), la transformación paso banda, y un modelo de acoplo entre cavidades (probablemente
+  matrices ABCD también, pero con un "iris" modelado como una discontinuidad de impedancia en vez de un tramo evanescente completo). ¿Lo implementamos, o prefieres dejarlo aparcado por ahora?
+
+
+● CoupledCavityFilter implementado y verificado — commit fffe404, 12/12 OK.
+
+  - Prototipo Chebyshev (chebyshevPrototype, fórmula cerrada) verificado a mano contra la tabla estándar antes de programarlo (orden 3, 0.5 dB → g={1, 1.5963, 1.0967, 1.5963, 1.0000}, coincide exacto).
+  - Inversores de impedancia + resonadores serie en cascada ABCD (mismo patrón que EvanescentModeFilter, pero con Z0 constante en vez de la impedancia de onda de una guía real) — cada resonador representa una cavidad, cada inversor el
+  iris entre dos.
+  - Hallazgo real de diseño, no bug: el modelo (pendiente de reactancia normalizada) es una aproximación de banda estrecha — con fbw=0.05 el rizado medido es -0.146 dB en vez de los -0.1 dB de diseño, pero converge monótonamente a
+  -0.1016 dB con fbw=0.002. El test verifica esa convergencia explícitamente (no solo un umbral), para confirmar que es aproximación genuina y no un error de fórmula.
+  - Firma Chebyshev genuina comprobada: exactamente N picos de |S21| en banda, todos a ~0 dB; sin pérdidas a precisión de máquina; caída de más de 96 dB fuera de banda.
+
+  Con esto, com.ipserc.arith.rf queda con 5 clases y 46/46 OK, y el contraste Maxwell-vs-síntesis-clásica que motivó toda esta línea de trabajo queda cerrado — ambos enfoques implementados, verificados, y expuestos con la misma forma de
+  API (abcd()/sParameters()).
+
+  Todo commiteado localmente (hasta fffe404), nada pusheado — dime si quieres que suba los commits de la sesión.
+
+> retomamos la mecánica cuántica ¿Qué tenemos hecho y por donde seguirías?
+● Estado de com.ipserc.arith.quantum
+
+  16 clases, todas verificadas y con test propio conservado (ScratchXxxAudit01.java/TestXxx01.java), todo cerrado — sin ningún candidato a medias:
+
+  - Base: Qubits (kets, Pauli, Hadamard, phaseGate, controlledGate, ghz, etc.), DensityMatrix, TimeEvolution, BlochSphere.
+  - Protocolos: Teleportation, BellTest (correlación/CHSH), Decoherence (5 canales de Kraus + encadenado).
+  - Algoritmos: DeutschJozsa, BernsteinVazirani, Grover.
+  - Con ruido: NoisyTeleportation, NoisyDeutschJozsa, NoisyBernsteinVazirani, NoisyGrover (con hallazgos físicos genuinos verificados, no solo implementados — p.ej. que el ruido en la ancilla nunca afecta a una función constante en DJ, o
+  que N=2 es una degeneración real de Grover).
+  - Fourier cuántica: QFT (circuito + matriz), puente verificado contra Fourier.DFT() clásica, y QPE (Estimación de Fase Cuántica) — la pieza más avanzada, cierra la línea QFT→QPE.
+  - Guía de aprendizaje completa en quantum_doc/ (18 documentos en español, todos los ejemplos verificados ejecutando).
+
+  Por dónde seguiría
+
+  El candidato natural y explícitamente identificado la última vez que se cerró esta línea es Shor completo, usando QPE como pieza central (factorización de un entero pequeño mediante el orden de un elemento módulo N, que es justo lo que QPE ya sabe estimar). Es el "premio gordo" de todo lo construido — QFT y QPE existen precisamente porque son los bloques que Shor necesita, y no se ha tocado todavía.
+
+  Otros candidatos menores, sin urgencia, si prefieres algo más acotado primero:
+  - Doble rendija por discretización espacial (aplazado hace tiempo, usa TimeEvolution/MatrixComplex.exp() ya existentes).
+  - Diagonalización genérica del operador de medida en BellTest (limpieza pequeña).
+¿Por dónde seguimos en com.ipserc.arith.quantum?
+
+> 1. Shor completo (recomendado)
+     Factorización usando QPE como pieza central — el objetivo original que motivó construir QFT y QPE, sin empezar todavía.
+  2. Doble rendija
+     Candidato aplazado hace tiempo: simulación por discretización espacial reusando TimeEvolution/MatrixComplex.exp().
+ 
+ ● Shor's algorithm implementado y verificado — commit 2e33f23, 12/12 OK.
+
+  - Shor.java: modularMultiplicationUnitary (permutación unitaria U_a), findOrder (QPE + fracciones continuas + verificación clásica), factor (postproceso estándar, con búsqueda automática de a).
+  - Para que funcionara hizo falta generalizar la infraestructura existente: Qubits.controlledGate solo soportaba un target de 1 qubit, y QPE.circuit un autovector de 1 qubit — ninguno bastaba para el registro de trabajo de varios qubits  que necesita la multiplicación modular. Añadí controlledBlockGate (bloque contiguo) y generalicé QPE a m qubits, con los overloads antiguos delegando en los nuevos — verificado que TestQuantum_QPE01 sigue pasando idéntico (8/8 OK)
+  tras el cambio.
+  - Verificado contra el ejemplo canónico de manual (Nielsen & Chuang, N=15, a=7, orden r=4), con distribución de probabilidades exacta (no muestreo) gracias a que r divide 2^t. factor(15,7,3) y la búsqueda automática factor(15,3) dan
+  ambos {3,5}.
+  - N=21 se probó y quedó descartado del test formal por lentitud (dimensión ~512, fuera del margen práctico de MatrixComplex sin optimizar) — límite ya conocido, no un bug.
+
+  Con esto, la línea QFT→QPE→Shor que motivó el Rol de Física/Mecánica Cuántica queda cerrada del todo. com.ipserc.arith.quantum pasa a 17 clases. Memoria actualizada. Todo commiteado localmente, nada pusheado todavía.
+
+● Confirmado: master sincronizado con origin/master, sin divergencia. Solo quedan los mismos residuos documentales de siempre (log crudo ClaudeRevisionComplexArith.txt, .claude/, Commands.txt, PDFs de quantum_doc/), sin tocar como es
+  habitual.
+
+  ---
+  Sesión cerrada y guardada. Cuando reconectes:
+
+  - TestQubitsOperations.java es una batería viva — el punto natural para seguir es añadir más operadores de Qubits (Pauli-Y/Z, Hadamard, bra/ket, productos tensoriales), siguiendo el mismo patrón de check(...).
+  - Sin candidato urgente pendiente en ningún paquete (rf, quantum, mechanics, vectorcalculus cerrados de sesiones anteriores).
+  - Candidatos de fondo, sin prisa: dimensionado físico del iris en CoupledCavityFilter; doc de aprendizaje estilo quantum_doc/ para mechanics; duplicación eval() en Fourier/Laplace/Z; .claude//Commands.txt sin trackear.
+  - Nota de proceso para mí mismo: en este Bash tool hay que seguir anteponiendo export PATH=".../jdk.../bin" a mano en cada bloque de comandos con javac/java/gh — el intento de arreglarlo vía .bashrc/.bash_profile quedó correcto pero
+  sin efecto real aquí (documentado en memoria para no reintentarlo).
