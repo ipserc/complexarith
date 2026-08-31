@@ -20,8 +20,11 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.5 (2026_0825_1700)";
+	private final static String VERSION = "1.6 (2026_0831_1200)";
 	/* VERSION Release Note
+	 * 1.6 (2026_0831_1200)
+	 * ket(MatrixComplex bra) -- inverso de bra(MatrixComplex ket), a peticion del usuario. Mismo
+	 * envoltorio de 1 linea sobre adjoint() (involutivo), sin cambio de comportamiento en nada mas.
 	 * 1.5 (2026_0825_1700)
 	 * controlledBlockGate(op,control,blockStart,blockSize,nQubits) -- generaliza controlledGate a
 	 * un operador sobre un BLOQUE contiguo de qubits (no solo 1), necesario para Shor (registro de
@@ -70,6 +73,21 @@ public final class Qubits {
 	 */
 	public static MatrixComplex bra(MatrixComplex ket) {
 		return ket.adjoint();
+	}
+
+	/**
+	 * The ket {@code |psi>} corresponding to a bra {@code <psi|} -- the inverse of {@link
+	 * #bra(MatrixComplex)}. Since {@code adjoint()} is involutive ({@code (A}<sup>&#8224;</sup>
+	 * {@code )}<sup>&#8224;</sup>{@code  = A} exactly, entry by entry), this is the same one-line
+	 * wrapper as {@code bra()}, just named for the opposite direction of use: call sites that hold a
+	 * bra and want its ket back can say so directly ({@code Qubits.ket(phi)}) instead of the
+	 * unlabeled {@code phi.adjoint()}. Use this only on bras (row vectors); for operators, {@code
+	 * op.adjoint()} means the Hermitian conjugate/dagger, a different concept.
+	 * @param bra A bra, as a {@code MatrixComplex} row vector.
+	 * @return The corresponding ket, as a {@code MatrixComplex} column vector.
+	 */
+	public static MatrixComplex ket(MatrixComplex bra) {
+		return bra.adjoint();
 	}
 
 	/** The 2x2 identity operator. */
