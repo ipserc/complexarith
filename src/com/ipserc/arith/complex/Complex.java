@@ -49,8 +49,14 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.44 (2026_0831_1200)";
+	private final static String VERSION = "1.45 (2026_0831_1230)";
 	/* VERSION Release Note
+	 * 1.45 (2026_0831_1230)
+	 * Renombrada en paralelo por el usuario en Eclipse (ComplexBoxArt.java): la familia de 1.44 pasa
+	 * de lineTitleN a lineTextN (makeLineText/lineText1..7/lineTextRandom/printLineText), con los
+	 * caracteres de cabecera reajustados a mano por variante. Delegadores publicos de Complex
+	 * actualizados para que compile de nuevo; sin cambio de comportamiento propio en este fichero.
+	 *
 	 * 1.44 (2026_0831_1200)
 	 * Nueva familia lineTitleN (N 1..7), equivalente de una sola linea a boxTitleN: en vez de la
 	 * caja multilinea, "*** texto ***" reusando los mismos caracteres de cabecera (csi/top/csd)
@@ -1110,22 +1116,22 @@ public class Complex {
 	}
 
 	/**
-	 * Prints a random LineTitle from the ones defined
+	 * Prints a random LineText from the ones defined
 	 * @param size
 	 * @param title
 	 */
-	public static void printLineTitleRandom(int size, String title) {
-		System.out.println(lineTitleRandom(size, title));
+	public static void printLineTextRandom(int size, String title) {
+		System.out.println(lineTextRandom(size, title));
 	}
 
 	/**
-	 * Generates a random LineTitle from the ones defined
+	 * Generates a random LineText from the ones defined
 	 * @param size
 	 * @param title
 	 * @return
 	 */
-	public static String lineTitleRandom(int size, String title) {
-		return ComplexBoxArt.lineTitleRandom(size, title);
+	public static String lineTextRandom(int size, String title) {
+		return ComplexBoxArt.lineTextRandom(size, title);
 	}
 
 	/**
@@ -1138,8 +1144,8 @@ public class Complex {
 	 * @param csd
 	 * @return
 	 */
-	public static String makeLineTitle(int size, String title, String csi, String top, String csd) {
-		return ComplexBoxArt.makeLineTitle(size, title, csi, top, csd);
+	public static String makeLineText(int size, String title, String csi, String top, String csd) {
+		return ComplexBoxArt.makelineText(size, title, csi, top, csd);
 	}
 
 	/**
@@ -1148,8 +1154,8 @@ public class Complex {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	public static String lineTitle1(int size, String title) {
-		return ComplexBoxArt.lineTitle1(size, title);
+	public static String lineText1(int size, String title) {
+		return ComplexBoxArt.lineText1(size, title);
 	}
 
 	/**
@@ -1158,8 +1164,8 @@ public class Complex {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	public static String lineTitle2(int size, String title) {
-		return ComplexBoxArt.lineTitle2(size, title);
+	public static String lineText2(int size, String title) {
+		return ComplexBoxArt.lineText2(size, title);
 	}
 
 	/**
@@ -1168,8 +1174,8 @@ public class Complex {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	public static String lineTitle3(int size, String title) {
-		return ComplexBoxArt.lineTitle3(size, title);
+	public static String lineText3(int size, String title) {
+		return ComplexBoxArt.lineText3(size, title);
 	}
 
 	/**
@@ -1178,8 +1184,8 @@ public class Complex {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	public static String lineTitle4(int size, String title) {
-		return ComplexBoxArt.lineTitle4(size, title);
+	public static String lineText4(int size, String title) {
+		return ComplexBoxArt.lineText4(size, title);
 	}
 
 	/**
@@ -1188,8 +1194,8 @@ public class Complex {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	public static String lineTitle5(int size, String title) {
-		return ComplexBoxArt.lineTitle5(size, title);
+	public static String lineText5(int size, String title) {
+		return ComplexBoxArt.lineText5(size, title);
 	}
 
 	/**
@@ -1198,8 +1204,8 @@ public class Complex {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	public static String lineTitle6(int size, String title) {
-		return ComplexBoxArt.lineTitle6(size, title);
+	public static String lineText6(int size, String title) {
+		return ComplexBoxArt.lineText6(size, title);
 	}
 
 	/**
@@ -1208,8 +1214,8 @@ public class Complex {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	public static String lineTitle7(int size, String title) {
-		return ComplexBoxArt.lineTitle7(size, title);
+	public static String lineText7(int size, String title) {
+		return ComplexBoxArt.lineText7(size, title);
 	}
 
 	/**
@@ -1218,8 +1224,8 @@ public class Complex {
 	 * @param size The line size
 	 * @param title The line title
 	 */
-	public static void printLineTitle(int lineId, int size, String title) {
-		ComplexBoxArt.printLineTitle(lineId, size, title);
+	public static void printLineText(int lineId, int size, String title) {
+		ComplexBoxArt.printLineText(lineId, size, title);
 	}
 
 	/**

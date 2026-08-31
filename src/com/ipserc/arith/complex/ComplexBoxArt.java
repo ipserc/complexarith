@@ -193,22 +193,22 @@ final class ComplexBoxArt {
 	}
 
 	/**
-	 * Generates a random LineTitle from the ones defined
+	 * Generates a random lineText from the ones defined
 	 * @param size
 	 * @param title
 	 * @return
 	 */
-	static String lineTitleRandom(int size, String title) {
+	static String lineTextRandom(int size, String title) {
 		switch (ThreadLocalRandom.current().nextInt(7)+1) {
-			case 1: return lineTitle1(size, title);
-			case 2: return lineTitle2(size, title);
-			case 3: return lineTitle3(size, title);
-			case 4: return lineTitle4(size, title);
-			case 5: return lineTitle5(size, title);
-			case 6: return lineTitle6(size, title);
-			case 7: return lineTitle7(size, title);
+			case 1: return lineText1(size, title);
+			case 2: return lineText2(size, title);
+			case 3: return lineText3(size, title);
+			case 4: return lineText4(size, title);
+			case 5: return lineText5(size, title);
+			case 6: return lineText6(size, title);
+			case 7: return lineText7(size, title);
 		}
-		return lineTitle1(size, title);
+		return lineText1(size, title);
 	}
 
 	/**
@@ -221,7 +221,7 @@ final class ComplexBoxArt {
 	 * @param csd
 	 * @return
 	 */
-	static String makeLineTitle(int size, String title, String csi, String top, String csd) {
+	static String makelineText(int size, String title, String csi, String top, String csd) {
 		// Mandatory overhead: csi + csd + 2 spaces around the title = 4 chars, plus at least
 		// 1 top char on each side (2), so lineSize-title.length() must be >= 6.
 		int lineSize = Math.max(size, title.length()+6);
@@ -237,8 +237,8 @@ final class ComplexBoxArt {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	static String lineTitle1(int size, String title) {
-		return makeLineTitle(size, title, "_", "_", "_");
+	static String lineText1(int size, String title) {
+		return makelineText(size, title, "=", "=", "=");
 	}
 
 	/**
@@ -247,8 +247,8 @@ final class ComplexBoxArt {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	static String lineTitle2(int size, String title) {
-		return makeLineTitle(size, title, " ", "_", " ");
+	static String lineText2(int size, String title) {
+		return makelineText(size, title, "#", "=", "#");
 	}
 
 	/**
@@ -257,8 +257,8 @@ final class ComplexBoxArt {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	static String lineTitle3(int size, String title) {
-		return makeLineTitle(size, title, "_", "_", "_");
+	static String lineText3(int size, String title) {
+		return makelineText(size, title, "*", "=", "*");
 	}
 
 	/**
@@ -267,8 +267,8 @@ final class ComplexBoxArt {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	static String lineTitle4(int size, String title) {
-		return makeLineTitle(size, title, "+", "-", "+");
+	static String lineText4(int size, String title) {
+		return makelineText(size, title, "+", "-", "+");
 	}
 
 	/**
@@ -277,8 +277,8 @@ final class ComplexBoxArt {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	static String lineTitle5(int size, String title) {
-		return makeLineTitle(size, title, "#", "=", "#");
+	static String lineText5(int size, String title) {
+		return makelineText(size, title, "-", "-", "-");
 	}
 
 	/**
@@ -287,8 +287,8 @@ final class ComplexBoxArt {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	static String lineTitle6(int size, String title) {
-		return makeLineTitle(size, title, "_", "_", "_");
+	static String lineText6(int size, String title) {
+		return makelineText(size, title, "*", "-", "*");
 	}
 
 	/**
@@ -297,8 +297,8 @@ final class ComplexBoxArt {
 	 * @param title The text to put in the line
 	 * @return The String representation of the line title
 	 */
-	static String lineTitle7(int size, String title) {
-		return makeLineTitle(size, title, "_", "_", "_");
+	static String lineText7(int size, String title) {
+		return makelineText(size, title, "=", "-", "=");
 	}
 
 	/**
@@ -307,20 +307,20 @@ final class ComplexBoxArt {
 	 * @param size The line size
 	 * @param title The line title
 	 */
-	static void printLineTitle(int lineId, int size, String title) {
+	static void printLineText(int lineId, int size, String title) {
 		switch (lineId) {
-		case 1: System.out.println(lineTitle1(size, title)); break;
-		case 2: System.out.println(lineTitle2(size, title)); break;
-		case 3: System.out.println(lineTitle3(size, title)); break;
-		case 4: System.out.println(lineTitle4(size, title)); break;
-		case 5: System.out.println(lineTitle5(size, title)); break;
-		case 6: System.out.println(lineTitle6(size, title)); break;
-		case 7: System.out.println(lineTitle7(size, title)); break;
+		case 1: System.out.println(lineText1(size, title)); break;
+		case 2: System.out.println(lineText2(size, title)); break;
+		case 3: System.out.println(lineText3(size, title)); break;
+		case 4: System.out.println(lineText4(size, title)); break;
+		case 5: System.out.println(lineText5(size, title)); break;
+		case 6: System.out.println(lineText6(size, title)); break;
+		case 7: System.out.println(lineText7(size, title)); break;
 		}
 	}
 
 	/**
-	 * Prints a Title Box in the standar output
+	 * Prints a Title Box in the standard output
 	 * @param boxId The box Id
 	 * @param size The box size
 	 * @param title The box title
