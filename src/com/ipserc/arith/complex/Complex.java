@@ -49,8 +49,14 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.43 (2026_0812_1200)";
+	private final static String VERSION = "1.44 (2026_0831_1200)";
 	/* VERSION Release Note
+	 * 1.44 (2026_0831_1200)
+	 * Nueva familia lineTitleN (N 1..7), equivalente de una sola linea a boxTitleN: en vez de la
+	 * caja multilinea, "*** texto ***" reusando los mismos caracteres de cabecera (csi/top/csd)
+	 * que el borde superior del boxTitleN correspondiente. Delegado en ComplexBoxArt
+	 * (makeLineTitle/lineTitle1..7/lineTitleRandom/printLineTitle), mismo patron que boxTitle*.
+	 *
 	 * 1.43 (2026_0812_1200)
 	 * Limpieza de restos: eliminados los imports java.util.ArrayDeque/Deque, sin uso alguno en el
 	 * fichero. Sin cambios funcionales.
@@ -1101,6 +1107,119 @@ public class Complex {
 	 */
 	public static void printBoxTitle(int boxId, int size, String title) {
 		ComplexBoxArt.printBoxTitle(boxId, size, title);
+	}
+
+	/**
+	 * Prints a random LineTitle from the ones defined
+	 * @param size
+	 * @param title
+	 */
+	public static void printLineTitleRandom(int size, String title) {
+		System.out.println(lineTitleRandom(size, title));
+	}
+
+	/**
+	 * Generates a random LineTitle from the ones defined
+	 * @param size
+	 * @param title
+	 * @return
+	 */
+	public static String lineTitleRandom(int size, String title) {
+		return ComplexBoxArt.lineTitleRandom(size, title);
+	}
+
+	/**
+	 * Generates a single-line title from its components, using the same header characters
+	 * (csi, top, csd) as the matching boxTitleN header row, instead of a full multi-line box
+	 * @param size
+	 * @param title
+	 * @param csi
+	 * @param top
+	 * @param csd
+	 * @return
+	 */
+	public static String makeLineTitle(int size, String title, String csi, String top, String csd) {
+		return ComplexBoxArt.makeLineTitle(size, title, csi, top, csd);
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle1 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	public static String lineTitle1(int size, String title) {
+		return ComplexBoxArt.lineTitle1(size, title);
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle2 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	public static String lineTitle2(int size, String title) {
+		return ComplexBoxArt.lineTitle2(size, title);
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle3 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	public static String lineTitle3(int size, String title) {
+		return ComplexBoxArt.lineTitle3(size, title);
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle4 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	public static String lineTitle4(int size, String title) {
+		return ComplexBoxArt.lineTitle4(size, title);
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle5 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	public static String lineTitle5(int size, String title) {
+		return ComplexBoxArt.lineTitle5(size, title);
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle6 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	public static String lineTitle6(int size, String title) {
+		return ComplexBoxArt.lineTitle6(size, title);
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle7 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	public static String lineTitle7(int size, String title) {
+		return ComplexBoxArt.lineTitle7(size, title);
+	}
+
+	/**
+	 * Prints a Line Title in the standard output
+	 * @param lineId The line style Id
+	 * @param size The line size
+	 * @param title The line title
+	 */
+	public static void printLineTitle(int lineId, int size, String title) {
+		ComplexBoxArt.printLineTitle(lineId, size, title);
 	}
 
 	/**

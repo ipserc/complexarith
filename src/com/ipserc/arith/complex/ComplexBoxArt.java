@@ -193,6 +193,133 @@ final class ComplexBoxArt {
 	}
 
 	/**
+	 * Generates a random LineTitle from the ones defined
+	 * @param size
+	 * @param title
+	 * @return
+	 */
+	static String lineTitleRandom(int size, String title) {
+		switch (ThreadLocalRandom.current().nextInt(7)+1) {
+			case 1: return lineTitle1(size, title);
+			case 2: return lineTitle2(size, title);
+			case 3: return lineTitle3(size, title);
+			case 4: return lineTitle4(size, title);
+			case 5: return lineTitle5(size, title);
+			case 6: return lineTitle6(size, title);
+			case 7: return lineTitle7(size, title);
+		}
+		return lineTitle1(size, title);
+	}
+
+	/**
+	 * Generates a single-line title from its components, using the same header characters
+	 * (csi, top, csd) as the matching boxTitleN header row, instead of a full multi-line box
+	 * @param size
+	 * @param title
+	 * @param csi
+	 * @param top
+	 * @param csd
+	 * @return
+	 */
+	static String makeLineTitle(int size, String title, String csi, String top, String csd) {
+		// Mandatory overhead: csi + csd + 2 spaces around the title = 4 chars, plus at least
+		// 1 top char on each side (2), so lineSize-title.length() must be >= 6.
+		int lineSize = Math.max(size, title.length()+6);
+		int fill = lineSize-title.length()-4;
+		int leftFill = fill/2;
+		int rightFill = fill-leftFill;
+		return csi+repeat(top, leftFill)+" "+title+" "+repeat(top, rightFill)+csd;
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle1 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	static String lineTitle1(int size, String title) {
+		return makeLineTitle(size, title, "_", "_", "_");
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle2 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	static String lineTitle2(int size, String title) {
+		return makeLineTitle(size, title, " ", "_", " ");
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle3 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	static String lineTitle3(int size, String title) {
+		return makeLineTitle(size, title, "_", "_", "_");
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle4 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	static String lineTitle4(int size, String title) {
+		return makeLineTitle(size, title, "+", "-", "+");
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle5 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	static String lineTitle5(int size, String title) {
+		return makeLineTitle(size, title, "#", "=", "#");
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle6 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	static String lineTitle6(int size, String title) {
+		return makeLineTitle(size, title, "_", "_", "_");
+	}
+
+	/**
+	 * Returns a title on a single line, bordered with the boxTitle7 header characters
+	 * @param size The minimum size of the line
+	 * @param title The text to put in the line
+	 * @return The String representation of the line title
+	 */
+	static String lineTitle7(int size, String title) {
+		return makeLineTitle(size, title, "_", "_", "_");
+	}
+
+	/**
+	 * Prints a Line Title in the standard output
+	 * @param lineId The line style Id
+	 * @param size The line size
+	 * @param title The line title
+	 */
+	static void printLineTitle(int lineId, int size, String title) {
+		switch (lineId) {
+		case 1: System.out.println(lineTitle1(size, title)); break;
+		case 2: System.out.println(lineTitle2(size, title)); break;
+		case 3: System.out.println(lineTitle3(size, title)); break;
+		case 4: System.out.println(lineTitle4(size, title)); break;
+		case 5: System.out.println(lineTitle5(size, title)); break;
+		case 6: System.out.println(lineTitle6(size, title)); break;
+		case 7: System.out.println(lineTitle7(size, title)); break;
+		}
+	}
+
+	/**
 	 * Prints a Title Box in the standar output
 	 * @param boxId The box Id
 	 * @param size The box size
