@@ -83,7 +83,7 @@ public class TestQubitsOperations {
 		ketMinus.println("|->");
 		check("identity2()|-> == |->", identity.times(ketMinus).equals(ketMinus, 9));
 
-		System.out.println("Con Hadamard y |1> : Qubits.hadamard().times(ket1) ");
+		Complex.printLineText(boxShape, boxMargin, "Con Hadamard y |1> : Qubits.hadamard().times(ket1) ", true, false);
 		MatrixComplex hadKet1 = Qubits.hadamard().times(ket1);
 		check("hadamard*|1> == |->",hadKet1.equals(ketMinus, 9));
 
@@ -116,12 +116,12 @@ public class TestQubitsOperations {
 		MatrixComplex hadBra0 = bra0.times(Qubits.hadamard());
 		check("<0|*hadamard == <+|",hadBra0.equals(braPlus, 9));
 		
-		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con bra <-|");
+		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con bra <-|", true, false);
 		MatrixComplex braMinus = bra0.minus(bra1).normalizeByRows();
 		braMinus.println("<-| = ");
 		check("<-|identity2() == <-|", braMinus.times(identity).equals(braMinus, 9));
 
-		System.out.println("Con Hadamard y <1| : bra1.times(Qubits.hadamard())");
+		Complex.printLineText(boxShape, boxMargin, "Con Hadamard y <1| : bra1.times(Qubits.hadamard())", true, false);
 		MatrixComplex hadBra1 = bra1.times(Qubits.hadamard());
 		check("hadamard*|1> == |->",hadBra1.equals(braMinus, 9));
 
@@ -142,7 +142,7 @@ public class TestQubitsOperations {
 
 		check("ket0 == ket(bra0)", ket0.equals(Qubits.ket(bra0)));
 		
-		Complex.printLineText(boxShape, boxMargin, "Producto escalar de Kets |0> y <0| con nº Complejo");
+		Complex.printLineText(boxShape, boxMargin, "Producto escalar de Kets |0> y <0| con nº Complejo", true, false);
 
 		Complex cnum = new Complex("2-i");
 		
@@ -176,33 +176,26 @@ public class TestQubitsOperations {
 		ket0Cnum = ket0.times(cnum);
 		bra0Cnum = Qubits.bra(ket0Cnum);
 		if (check("bra0Cnum == bra(ket0) * cnum.conjujate", bra0Cnum.equals(Qubits.bra(ket0).times(cnum.conjugate())))) {
-			Complex.printLineText(boxShape, boxMargin, "Ya sé manejar el producto de números complejos dentro de operaciones kets y bras. ");
+			Complex.printLineText(boxShape, boxMargin, "Ya sé manejar el producto de números complejos dentro de operaciones kets y bras. ", false, true);
 		} else {
-			Complex.printLineText(boxShape+1, boxMargin, "NO sé manejar el producto de números complejos dentro de operaciones kets y bras. NO");
+			Complex.printLineText(boxShape+1, boxMargin, "NO sé manejar el producto de números complejos dentro de operaciones kets y bras. NO", false, true);
 
 		}
 
 		Complex.printLineText(boxShape, boxMargin, "Producto escalar de Kets |02> y <02| con otro nº Complejo", true, false);
+		ket0Cnum.println("ket0Cnum =");
+		bra0Cnum.println("bra0Cnum =");
 		Complex cnum2 = new Complex ("1 + i");
+		cnum2.println("cnum2 =");
 		MatrixComplex ket0Cnum2 = ket0Cnum.times(cnum2);
-		ket0Cnum2.println("ket0Cnum2: |02> * " + cnum2.toString() + " = ");
-		MatrixComplex bra0Cnum2 = bra0Cnum.times(cnum2);
-		bra0Cnum2.println("bra0Cnum2: <02| * " + cnum2.toString() + " = ");
+		ket0Cnum2.println("ket0Cnum2: |02> * cnum2 = ");
+		MatrixComplex bra0Cnum2 = bra0Cnum.times(cnum2.conjugate());
+		bra0Cnum2.println("bra0Cnum2: <02| * cnum2.conjugate() = ");
 		
 		check("ket0Cnum2 <--> bra0Cnum2", ket0Cnum2.equals(Qubits.ket(bra0Cnum2)));
 	
-		bra0Cnum2.transpose().println("bra0Cnum2.transpose()");
-		check("ket0Cnum * cnum2 <--> bra0Cnum * cnum2", ket0Cnum2.equals(bra0Cnum2.transpose()));
-		
-		Qubits.ket(bra0Cnum.times(cnum2)).println("Qubits.ket(bra0Cnum.times(cnum2))");
-		check("ket0Cnum * cnum2 == ket(bra0Cnum * cnum2)", ket0Cnum2.equals(Qubits.ket(bra0Cnum.times(cnum2))));
-		
-		Qubits.ket(bra0Cnum).times(cnum2.conjugate()).println("Qubits.ket(bra0Cnum).times(cnum2.conjugate())");
-		check("ket0Cnum * cnum2 == ket(bra0Cnum) * cnum2.conjugate()", ket0Cnum2.equals(Qubits.ket(bra0Cnum).times(cnum2.conjugate())));
-
-		Qubits.ket(bra0Cnum).times(cnum2).println("Qubits.ket(bra0Cnum).times(cnum2)");
-		check("ket0Cnum * cnum2 == ket(bra0Cnum) * cnum2", ket0Cnum2.equals(Qubits.ket(bra0Cnum).times(cnum2)));
-
+		Qubits.ket(bra0Cnum.times(cnum2.conjugate())).println("Qubits.ket(bra0Cnum.times(cnum2.conjugate()))");
+		check("ket0Cnum * cnum2 == ket(bra0Cnum * cnum2,conjugate())", ket0Cnum2.equals(Qubits.ket(bra0Cnum.times(cnum2.conjugate()))));
 
 		Complex.printBoxText(boxShape, boxMargin, ok + " tests passed out of " + (ok + fail) + " taken. " + fail + " tests failed.");
 				
