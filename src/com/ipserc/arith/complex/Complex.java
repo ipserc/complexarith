@@ -49,8 +49,14 @@ public class Complex {
 	}
 	
 	private final static String HEADINFO = "Complex --- INFO: ";
-	private final static String VERSION = "1.45 (2026_0831_1230)";
+	private final static String VERSION = "1.46 (2026_0911_1400)";
 	/* VERSION Release Note
+	 * 1.46 (2026_0911_1400)
+	 * Nuevo delegador publico printLineText(int,int,String,boolean,boolean) hacia el overload
+	 * homonimo de ComplexBoxArt (linefeed opcional antes/despues de la linea), necesario para que
+	 * TestQubitsOperations (editado en paralelo por el usuario en Eclipse) volviera a compilar.
+	 * Sin cambio de comportamiento en los delegadores existentes.
+	 *
 	 * 1.45 (2026_0831_1230)
 	 * Renombrada en paralelo por el usuario en Eclipse (ComplexBoxArt.java): la familia de 1.44 pasa
 	 * de lineTitleN a lineTextN (makeLineText/lineText1..7/lineTextRandom/printLineText), con los
@@ -1226,6 +1232,18 @@ public class Complex {
 	 */
 	public static void printLineText(int lineId, int size, String title) {
 		ComplexBoxArt.printLineText(lineId, size, title);
+	}
+
+	/**
+	 * Prints a Line Title in the standard output with linefeed before and/or after
+	 * @param lineId The line style Id
+	 * @param size The line size
+	 * @param title The line title
+	 * @param LFbefore Whether to print a linefeed before the line title
+	 * @param LFafter Whether to print a linefeed after the line title
+	 */
+	public static void printLineText(int lineId, int size, String title, boolean LFbefore, boolean LFafter) {
+		ComplexBoxArt.printLineText(lineId, size, title, LFbefore, LFafter);
 	}
 
 	/**

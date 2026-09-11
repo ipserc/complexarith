@@ -316,9 +316,24 @@ final class ComplexBoxArt {
 		case 5: System.out.println(lineText5(size, title)); break;
 		case 6: System.out.println(lineText6(size, title)); break;
 		case 7: System.out.println(lineText7(size, title)); break;
+		default:
+			System.out.println(lineText1(size, title));
 		}
 	}
 
+	/**
+	 * Prints a Line Title in the standard output with linefeed before and/or linfeed after
+	 * @param lineId
+	 * @param size
+	 * @param title
+	 * @param LFbefore
+	 * @param LFafter
+	 */
+	static void printLineText(int lineId, int size, String title, boolean LFbefore, boolean LFafter) {
+		if ( LFbefore ) System.out.println();
+		printLineText(lineId, size, title);
+		if ( LFafter ) System.out.println();	
+	}
 	/**
 	 * Prints a Title Box in the standard output
 	 * @param boxId The box Id
