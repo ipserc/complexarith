@@ -19,8 +19,13 @@ public class MatrixComplex {
 	public Complex[][] complexMatrix;
 	
 	final static String HEADINFO = "MatrixComplex --- INFO: ";
-	private final static String VERSION = "1.78 (2026_0825_1830)";
+	private final static String VERSION = "1.79 (2026_0926_1200)";
 	/* VERSION Release Note
+	 *
+	 * 1.79 (2026_0926_1200)
+	 * println(caption) añade una línea en blanco tras el volcado (edición en paralelo del
+	 * usuario, para espaciar la salida de TestQubitsOperations). Sin cambio de comportamiento
+	 * más allá del formato de salida.
 	 *
 	 * 1.78 (2026_0825_1830)
 	 * opposite() (MatrixComplexUnary): bug real arreglado -- el constructor de la matriz resultado
