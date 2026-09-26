@@ -21,13 +21,14 @@ public class TestQubitMeasure01 {
 		double p0 = Math.pow(state.getItem(0, 0).abs(), 2);
 		double p1 = Math.pow(state.getItem(1, 0).abs(), 2);
 		System.out.println("P(0) = " + p0 + " , P(1) = " + p1);
+		System.out.printf("P(0) = %.2f , P(1) = %.2f\n", p0, p1);
 
-		// 3. Simular 1000 medidas.
-		int shots = 1000;
+		// 3. Simular las medidas.
+		int shots = 523;
 		int[] counts = Qubits.measure(state, shots, new Random());
 
 		System.out.println("Resultados sobre " + shots + " medidas:");
-		System.out.println("  |0> -> " + counts[0] + " (" + (100.0 * counts[0] / shots) + "%)");
-		System.out.println("  |1> -> " + counts[1] + " (" + (100.0 * counts[1] / shots) + "%)");
+		System.out.printf("  |0> -> %d (%.2f%%)\n", counts[0], 100.0 * counts[0] / shots);
+		System.out.printf("  |1> -> %d (%.2f%%)\n", counts[1], 100.0 * counts[1] / shots);
 	}
 }
