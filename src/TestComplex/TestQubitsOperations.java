@@ -195,7 +195,7 @@ public class TestQubitsOperations {
 		check("ket0Cnum2 <--> bra0Cnum2", ket0Cnum2.equals(Qubits.ket(bra0Cnum2)));
 	
 		Qubits.ket(bra0Cnum.times(cnum2.conjugate())).println("Qubits.ket(bra0Cnum.times(cnum2.conjugate()))");
-		check("ket0Cnum * cnum2 == ket(bra0Cnum * cnum2,conjugate())", ket0Cnum2.equals(Qubits.ket(bra0Cnum.times(cnum2.conjugate()))));
+		check("ket0Cnum * cnum2 == ket(bra0Cnum * cnum2.conjugate())", ket0Cnum2.equals(Qubits.ket(bra0Cnum.times(cnum2.conjugate()))));
 
 		Complex.printBoxText(boxShape, boxMargin, ok + " tests passed out of " + (ok + fail) + " taken. " + fail + " tests failed.");
 				

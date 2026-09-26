@@ -11910,3 +11910,30 @@ Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, docume
   - Candidatos de fondo, sin prisa: dimensionado físico del iris en CoupledCavityFilter; doc de aprendizaje estilo quantum_doc/ para mechanics; duplicación eval() en Fourier/Laplace/Z; .claude//Commands.txt sin trackear.
   - Nota de proceso para mí mismo: en este Bash tool hay que seguir anteponiendo export PATH=".../jdk.../bin" a mano en cada bloque de comandos con javac/java/gh — el intento de arreglarlo vía .bashrc/.bash_profile quedó correcto pero
   sin efecto real aquí (documentado en memoria para no reintentarlo).
+
+========================================================================================================================================
+#
+#	11/09/2026 DIA 18 - overload printLineText(int,int,String,boolean,boolean) (linefeed antes/después)
+#
+========================================================================================================================================
+● Todo guardado, comiteado y pusheado. Resumen de la jornada:
+
+  Resumen de hoy (11 sept 2026)
+
+  Punto de partida: el árbol de trabajo no compilaba — el usuario había seguido editando TestQubitsOperations.java y ComplexBoxArt.java en Eclipse en paralelo desde el cierre de la sesión anterior.
+
+  Lo que se hizo:
+  1. Bug de compilación arreglado: ComplexBoxArt ganó un overload printLineText(int,int,String,boolean,boolean) (linefeed antes/después), pero la fachada pública Complex.java no tenía el delegador correspondiente. Añadido
+     (Complex.VERSION 1.45→1.46). También corregida una llamada suelta System.out.println("...", true, false) en el test que debía ser Complex.printLineText(...).
+  2. Verificado por ejecución dos veces (el usuario siguió editando el test entre medias, ajustando la conjugación en la sub-sección |02>/<02|): pasó de 24/31 a 25/28 checks OK.
+  3. 3 FAIL deliberados en la sección "Esto lo aclara todo" — son contraejemplos que el propio usuario está usando para documentar que ket(bra(ket)*c) == ket*conjugate(c), no bugs a arreglar.
+  4. 2 commits de código (506aa04, 2c8122f) + 1 commit de documentación (f327d21), todo pusheado — HEAD == origin/master == f327d21.
+
+  Memoria actualizada: Claude/ComplexArithRev.md (doc de continuidad del repo) y la memoria persistente (complexarith_continuity_doc.md + índice MEMORY.md), ambas con la sesión de hoy y el punto de retomada exacto.
+
+  Por dónde seguir la próxima vez
+
+  TestQubitsOperations.java sigue siendo una batería viva. Los 3 FAIL de la sección bra/ket son intencionados, no hace falta tocarlos. Si retomas esa línea, lo natural es seguir explorando (productos tensoriales, o aplicar Hadamard/Pauli
+  al resultado del producto escalar). Candidatos arrastrados sin urgencia siguen igual: dimensionado físico del iris en CoupledCavityFilter, doc de aprendizaje para mechanics, duplicación eval() en Fourier/Laplace/Z, y
+  .claude//Claude/Commands.txt sin trackear.
+
