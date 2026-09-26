@@ -15,6 +15,7 @@ public class TestQubitsOperations {
 
 	static boolean check(String label, boolean condition) {
 		System.out.println((condition ? "OK   " : "FAIL ") + label);
+		System.out.println();
 		if (condition) { ok++; } else { fail++; }
 		return condition;
 	}
@@ -35,9 +36,9 @@ public class TestQubitsOperations {
 		Complex.printBoxText(boxShape, boxMargin, "OPERACIONES CON KETS");
 		Complex.printLineText(boxShape, boxMargin, "operador identidad con Kets |0> y |1>");
 		MatrixComplex ket0 = Qubits.ket0();
-		ket0.println("|0>");
+		ket0.println("|0> [ket0]");
 		MatrixComplex ket1 = Qubits.ket1();
-		ket1.println("|1>");
+		ket1.println("|1> [ket1]");
 		check("identity2()|0> == |0>", identity.times(ket0).equals(ket0, 9));
 		check("identity2()|1> == |1>", identity.times(ket1).equals(ket1, 9));
 
@@ -51,10 +52,11 @@ public class TestQubitsOperations {
 		 */
 		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con Ket |+>", true, false);
 		MatrixComplex ketPlus = ket0.plus(ket1).normalizeByCols();
-		ketPlus.println("|+>");
+		ketPlus.println("|+> [ketPlus = ket0.plus(ket1).normalizeByCols()]");
 		check("identity2()|+> == |+>", identity.times(ketPlus).equals(ketPlus, 9));
 
 		System.out.println("Con Hadamard y |0> : Qubits.hadamard().times(ket0)");
+		Qubits.hadamard().println("Hadamard: The Hadamard gate, (1/sqrt2)*[[1,1],[1,-1]] -- \n maps |0> /|1> to the equal-superposition states |+> /|-> ,\n the standard gate used to prepare a qubit for measurement in the X basis\n (e.g. the Bell-basis measurement of quantum teleportation, see Teleportation ).");
 		MatrixComplex hadKet0 = Qubits.hadamard().times(ket0);
 		check("hadamard*|0> == |+>",hadKet0.equals(ketPlus, 9));
 		
@@ -78,12 +80,12 @@ public class TestQubitsOperations {
 			  casualmente reveló el bug de opposite() porque el vector es no cuadrado. Al final lo dejé como
 			  Qubits.ket0().minus(Qubits.ket1()).normalizeByCols(), que sí es |−⟩ de verdad.
 		 */
-		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con ket |->", true, false);
+		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con ket |->", false, false);
 		MatrixComplex ketMinus = ket0.minus(ket1).normalizeByCols();
 		ketMinus.println("|->");
 		check("identity2()|-> == |->", identity.times(ketMinus).equals(ketMinus, 9));
 
-		Complex.printLineText(boxShape, boxMargin, "Con Hadamard y |1> : Qubits.hadamard().times(ket1) ", true, false);
+		Complex.printLineText(boxShape, boxMargin, "Con Hadamard y |1> : Qubits.hadamard().times(ket1) ", false, false);
 		MatrixComplex hadKet1 = Qubits.hadamard().times(ket1);
 		check("hadamard*|1> == |->",hadKet1.equals(ketMinus, 9));
 
@@ -107,21 +109,21 @@ public class TestQubitsOperations {
 		check("<0|identity2() == <0|", bra0.times(identity).equals(bra0, 9));
 		check("<1|identity2() == <1|", bra1.times(identity).equals(bra1, 9));
 
-		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con Bra <+|", true, false);
+		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con Bra <+|", false, false);
 		MatrixComplex braPlus = bra0.plus(bra1).normalizeByRows();
 		braPlus.println("<+| = ");
 		check("<+|identity2() == <+|", braPlus.times(identity).equals(braPlus, 9));
 
-		Complex.printLineText(boxShape, boxMargin, "Con Hadamard y <0| : hadBra0 = bra0.times(Qubits.hadamard())", true, false);
+		Complex.printLineText(boxShape, boxMargin, "Con Hadamard y <0| : hadBra0 = bra0.times(Qubits.hadamard())", false, false);
 		MatrixComplex hadBra0 = bra0.times(Qubits.hadamard());
 		check("<0|*hadamard == <+|",hadBra0.equals(braPlus, 9));
 		
-		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con bra <-|", true, false);
+		Complex.printLineText(boxShape, boxMargin, "operadores Hadamard e identidad con bra <-|", false, false);
 		MatrixComplex braMinus = bra0.minus(bra1).normalizeByRows();
 		braMinus.println("<-| = ");
 		check("<-|identity2() == <-|", braMinus.times(identity).equals(braMinus, 9));
 
-		Complex.printLineText(boxShape, boxMargin, "Con Hadamard y <1| : bra1.times(Qubits.hadamard())", true, false);
+		Complex.printLineText(boxShape, boxMargin, "Con Hadamard y <1| : bra1.times(Qubits.hadamard())", false, false);
 		MatrixComplex hadBra1 = bra1.times(Qubits.hadamard());
 		check("hadamard*|1> == |->",hadBra1.equals(braMinus, 9));
 
@@ -142,7 +144,7 @@ public class TestQubitsOperations {
 
 		check("ket0 == ket(bra0)", ket0.equals(Qubits.ket(bra0)));
 		
-		Complex.printLineText(boxShape, boxMargin, "Producto escalar de Kets |0> y <0| con nº Complejo", true, false);
+		Complex.printLineText(boxShape, boxMargin, "Producto escalar de Kets |0> y <0| con nº Complejo", false, false);
 
 		Complex cnum = new Complex("2-i");
 		
@@ -182,10 +184,10 @@ public class TestQubitsOperations {
 
 		}
 
-		Complex.printLineText(boxShape, boxMargin, "Producto escalar de Kets |02> y <02| con otro nº Complejo", true, false);
+		Complex.printLineText(boxShape, boxMargin, "Producto escalar de Kets |02> y <02| con otro nº Complejo", false, false);
 		ket0Cnum.println("ket0Cnum =");
 		bra0Cnum.println("bra0Cnum =");
-		Complex cnum2 = new Complex ("1 + i");
+		Complex cnum2 = new Complex("1 + i"); cnum2.setComplexRandomRec(9);
 		cnum2.println("cnum2 =");
 		MatrixComplex ket0Cnum2 = ket0Cnum.times(cnum2);
 		ket0Cnum2.println("ket0Cnum2: |02> * cnum2 = ");

@@ -1,5 +1,7 @@
 package com.ipserc.arith.quantum;
 
+import java.util.Random;
+
 import com.ipserc.arith.complex.Complex;
 import com.ipserc.arith.matrixcomplex.MatrixComplex;
 
@@ -20,8 +22,16 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.6 (2026_0831_1200)";
+	private final static String VERSION = "1.7 (2026_0926_1200)";
 	/* VERSION Release Note
+	 * 1.7 (2026_0926_1200)
+	 * measure(state,random) -- primera utilidad de medicion ESTOCASTICA del proyecto (todo lo
+	 * anterior en este fichero es exacto: estados y operadores, sin muestreo). Colapsa un ket de
+	 * n qubits a un unico estado base de la base computacional, con probabilidad |amplitud|^2
+	 * (regla de Born), muestreado contra un Random externo (reproducible en tests). measure(state,
+	 * shots,random) -- histograma de "shots" medidas independientes, delegando en la version de 1
+	 * disparo (sin duplicar la logica de muestreo). A peticion del usuario, llevado desde un test
+	 * suelto (TestQubitMeasure01) a la factoria.
 	 * 1.6 (2026_0831_1200)
 	 * ket(MatrixComplex bra) -- inverso de bra(MatrixComplex ket), a peticion del usuario. Mismo
 	 * envoltorio de 1 linea sobre adjoint() (involutivo), sin cambio de comportamiento en nada mas.
@@ -352,5 +362,66 @@ public final class Qubits {
 			i += step;
 		}
 		return result;
+	}
+
+	/**
+	 * Simulates a single projective measurement of an {@code n}-qubit ket in the computational
+	 * basis: collapses {@code state} to one of its {@code 2^n} basis states, chosen with
+	 * probability {@code |amplitude|^2} (the Born rule), by sampling {@code random.nextDouble()}
+	 * against the cumulative distribution of those probabilities. The only stochastic operation in
+	 * this factory -- every other method here (states, gates, operators) is exact; this is where a
+	 * ket actually becomes a classical outcome.
+	 * @param state An {@code n}-qubit ket, as a {@code 2^n x 1} column vector (need not be
+	 * separately re-normalized here: the cumulative probabilities are expected to sum to 1, as for
+	 * any valid quantum state).
+	 * @param random The source of randomness -- pass a seeded {@link Random} for reproducible tests.
+	 * @return The 0-based index of the measured basis state, {@code 0 <= result < state.rows()}
+	 * (e.g. for 1 qubit, {@code 0} means {@code |0>} was measured, {@code 1} means {@code |1>}).
+	 * @throws IllegalArgumentException if {@code state} is not a column vector, or its row count is
+	 * not a power of 2.
+	 */
+	public static int measure(MatrixComplex state, Random random) {
+		if (state.cols() != 1) {
+			throw new IllegalArgumentException("measure() needs a column vector (a ket), got a "
+					+ state.rows() + "x" + state.cols() + " matrix");
+		}
+		int nStates = state.rows();
+		if ((nStates & (nStates - 1)) != 0) {
+			throw new IllegalArgumentException("measure() needs a power-of-2 number of basis states, got " + nStates);
+		}
+		double r = random.nextDouble();
+		double cumulative = 0.0;
+		for (int i = 0; i < nStates; ++i) {
+			cumulative += Math.pow(state.getItem(i, 0).abs(), 2);
+			if (r < cumulative) {
+				return i;
+			}
+		}
+		return nStates - 1;
+	}
+
+	/**
+	 * Simulates {@code shots} independent measurements of {@code state} (each one collapsing a
+	 * FRESH copy of the state -- no cumulative back-action between shots, exactly what running the
+	 * same circuit {@code shots} times on real hardware means), returning a histogram of how many
+	 * times each basis state was measured. A thin loop over {@link #measure(MatrixComplex, Random)}
+	 * -- no separate sampling logic.
+	 * @param state An {@code n}-qubit ket, as a {@code 2^n x 1} column vector.
+	 * @param shots The number of independent measurements to simulate, must be at least 1.
+	 * @param random The source of randomness -- pass a seeded {@link Random} for reproducible tests.
+	 * @return An array of length {@code state.rows()}, {@code result[i]} = number of shots that
+	 * measured basis state {@code i}, summing to {@code shots}.
+	 * @throws IllegalArgumentException if {@code shots < 1}, or (from the underlying single-shot
+	 * call) {@code state} is not a valid ket.
+	 */
+	public static int[] measure(MatrixComplex state, int shots, Random random) {
+		if (shots < 1) {
+			throw new IllegalArgumentException("measure() needs shots>=1, got " + shots);
+		}
+		int[] counts = new int[state.rows()];
+		for (int i = 0; i < shots; ++i) {
+			counts[measure(state, random)]++;
+		}
+		return counts;
 	}
 }

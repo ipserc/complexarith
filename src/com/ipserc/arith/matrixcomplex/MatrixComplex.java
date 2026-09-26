@@ -1735,6 +1735,7 @@ public class MatrixComplex {
 	 */
 	public void println(String caption) {
 		MatrixComplexFormat.println(this, caption);
+		System.out.println();
 	}
 
 	/**
