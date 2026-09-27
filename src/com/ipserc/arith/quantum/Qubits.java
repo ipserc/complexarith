@@ -29,7 +29,9 @@ public final class Qubits {
 	 * "|01>"...), inverso de ket(int... bits): representacion binaria de index, MSB primero,
 	 * rellenada con ceros a la izquierda hasta n digitos. basisLabel(state,index) -- mismo calculo
 	 * tomando n de state.rows() (delega en la version de arriba), comodo en los puntos de uso de
-	 * measure()/measure(shots). A peticion del usuario.
+	 * measure()/measure(shots). ketText(ket) -- version a nivel de vector (no de indice): localiza
+	 * la fila de amplitud 1 y delega en basisLabel(); llevada a la factoria desde
+	 * TestQubitMeasure01 a peticion del usuario. Todo a peticion del usuario.
 	 * 1.7 (2026_0926_1200)
 	 * measure(state,random) -- primera utilidad de medicion ESTOCASTICA del proyecto (todo lo
 	 * anterior en este fichero es exacto: estados y operadores, sin muestreo). Colapsa un ket de
@@ -272,6 +274,32 @@ public final class Qubits {
 			throw new IllegalArgumentException("basisLabel() needs a power-of-2 number of basis states, got " + nStates);
 		}
 		return basisLabel(index, Integer.numberOfTrailingZeros(nStates));
+	}
+
+	/**
+	 * The Dirac ket label of a computational-basis ket -- the inverse of {@link #ket(int...)} at
+	 * the vector level (rather than the index level, like {@link #basisLabel(MatrixComplex, int)}):
+	 * finds the single row with amplitude {@code 1} and delegates to it.
+	 * @param ket A computational-basis ket, i.e. amplitude {@code 1} in exactly one row and {@code
+	 * 0} elsewhere (e.g. {@link #ket0()}, {@link #ket1()}, or any {@link #ket(int...)}) -- NOT a
+	 * superposition.
+	 * @return The bracketed label, e.g. {@code "|101>"}.
+	 * @throws IllegalArgumentException if no row of {@code ket} has amplitude {@code 1} (i.e.
+	 * {@code ket} is a superposition, not a basis ket), or (from {@link #basisLabel(MatrixComplex,
+	 * int)}) {@code ket.rows()} is not a power of 2.
+	 */
+	public static String ketText(MatrixComplex ket) {
+		int index = -1;
+		for (int row = 0; row < ket.rows(); ++row) {
+			if (Math.abs(ket.getItem(row, 0).abs() - 1.0) < 1e-9) {
+				index = row;
+				break;
+			}
+		}
+		if (index == -1) {
+			throw new IllegalArgumentException("ketText() needs a computational basis ket (amplitude 1 in exactly one row), got a superposition");
+		}
+		return basisLabel(ket, index);
 	}
 
 	/**

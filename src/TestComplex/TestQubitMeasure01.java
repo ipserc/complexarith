@@ -30,24 +30,10 @@ public class TestQubitMeasure01 {
 			System.out.printf("  |%d> -> %d (%.2f%%)\n",estado, counts[estado], 100.0 * counts[estado] / shots);
 	}
 	
-	public static String ket_text(MatrixComplex ket) {
-		int index = -1;
-		for (int row = 0; row < ket.rows(); ++row) {
-			if (Math.abs(ket.getItem(row, 0).abs() - 1.0) < 1e-9) {
-				index = row;
-				break;
-			}
-		}
-		if (index == -1) {
-			throw new IllegalArgumentException("ket_text() needs a computational basis ket (amplitude 1 in exactly one row), got a superposition");
-		}
-		return Qubits.basisLabel(ket, index);
-	}
-
-	public static void start_ket_circuit(String title, MatrixComplex theKet, int shots) {
+	public static void start_ket_circuit(String title, MatrixComplex theKet, String theKetText, int shots) {
 		Complex.printBoxText(3, 90, title);
 		// 1. Preparar el circuito: 1 cubit en |0>, puerta Hadamard para ponerlo en superposicion.
-		Complex.printLineText(1, 90, "1. Preparar el circuito: 1 cubit en |0>, puerta Hadamard para ponerlo en superposicion.", true, false);
+		Complex.printLineText(1, 90, "1. Preparar el circuito: 1 cubit en " + theKetText + ", puerta Hadamard para ponerlo en superposicion.", true, false);
 		theKet.println("Este es el qbit:");
 		MatrixComplex state = Qubits.hadamard().times(theKet);
 		state.println("Estado tras Hadamard: (|0>+|1>)/sqrt(2)");
@@ -62,12 +48,15 @@ public class TestQubitMeasure01 {
 	
 	public static void main(String[] args) {
 		MatrixComplex theKet;
+		String theKetText;
 		
 		theKet = Qubits.ket0();
-		start_ket_circuit("Circuito de 1 qubit: |0> --H--> (|0>+|1>)/sqrt(2), simulando la medicion en la base computacional múltiples veces (shots)", theKet, 357);
+		theKetText = Qubits.ketText(theKet);
+		start_ket_circuit("Circuito de 1 qubit: "+theKetText+" --H--> (|0>+|1>)/sqrt(2), simulando la medicion en la base computacional múltiples veces (shots)", theKet, theKetText, 357);
 
 		theKet = Qubits.ket1();
-		start_ket_circuit("Circuito de 1 qubit: |1> --H--> (|0>+|1>)/sqrt(2), simulando la medicion en la base computacional múltiples veces (shots)", theKet, 357);
+		theKetText = Qubits.ketText(theKet);
+		start_ket_circuit("Circuito de 1 qubit: "+theKetText+" --H--> (|0>+|1>)/sqrt(2), simulando la medicion en la base computacional múltiples veces (shots)", theKet, theKetText, 357);
 		
 	}
 }
