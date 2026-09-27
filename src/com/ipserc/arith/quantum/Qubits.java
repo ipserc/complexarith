@@ -29,7 +29,7 @@ public final class Qubits {
 	 * "|01>"...), inverso de ket(int... bits): representacion binaria de index, MSB primero,
 	 * rellenada con ceros a la izquierda hasta n digitos. basisLabel(state,index) -- mismo calculo
 	 * tomando n de state.rows() (delega en la version de arriba), comodo en los puntos de uso de
-	 * measure()/measure(shots). ketText(ket) -- version a nivel de vector (no de indice): localiza
+	 * measure()/measure(shots). ketLabel(ket) -- version a nivel de vector (no de indice): localiza
 	 * la fila de amplitud 1 y delega en basisLabel(); llevada a la factoria desde
 	 * TestQubitMeasure01 a peticion del usuario. Todo a peticion del usuario.
 	 * 1.7 (2026_0926_1200)
@@ -288,7 +288,7 @@ public final class Qubits {
 	 * {@code ket} is a superposition, not a basis ket), or (from {@link #basisLabel(MatrixComplex,
 	 * int)}) {@code ket.rows()} is not a power of 2.
 	 */
-	public static String ketText(MatrixComplex ket) {
+	public static String ketLabel(MatrixComplex ket) {
 		int index = -1;
 		for (int row = 0; row < ket.rows(); ++row) {
 			if (Math.abs(ket.getItem(row, 0).abs() - 1.0) < 1e-9) {
@@ -297,7 +297,7 @@ public final class Qubits {
 			}
 		}
 		if (index == -1) {
-			throw new IllegalArgumentException("ketText() needs a computational basis ket (amplitude 1 in exactly one row), got a superposition");
+			throw new IllegalArgumentException("ketLabel() needs a computational basis ket (amplitude 1 in exactly one row), got a superposition");
 		}
 		return basisLabel(ket, index);
 	}

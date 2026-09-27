@@ -51,11 +51,11 @@ public class TestQubitMeasure01 {
 		String theKetText;
 		
 		theKet = Qubits.ket0();
-		theKetText = Qubits.ketText(theKet);
+		theKetText = Qubits.ketLabel(theKet);
 		start_ket_circuit("Circuito de 1 qubit: "+theKetText+" --H--> (|0>+|1>)/sqrt(2), simulando la medicion en la base computacional múltiples veces (shots)", theKet, theKetText, 357);
 
 		theKet = Qubits.ket1();
-		theKetText = Qubits.ketText(theKet);
+		theKetText = Qubits.ketLabel(theKet);
 		start_ket_circuit("Circuito de 1 qubit: "+theKetText+" --H--> (|0>+|1>)/sqrt(2), simulando la medicion en la base computacional múltiples veces (shots)", theKet, theKetText, 357);
 		
 	}
