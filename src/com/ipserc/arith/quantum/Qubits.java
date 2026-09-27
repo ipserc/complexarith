@@ -367,6 +367,16 @@ public final class Qubits {
 	 * vector ({@code cols()==1}) goes to {@link #ketLabel(MatrixComplex)}, a row vector ({@code
 	 * rows()==1}) goes to {@link #braLabel(MatrixComplex)}. Convenient at a call site handling
 	 * both kets and bras generically, without the caller having to know which one it has.
+	 * <p>
+	 * The shape check this method dispatches on is not a mere formatting detail -- it is the same
+	 * distinction discussed in {@link #bra(MatrixComplex)}'s javadoc: a ket is the state vector
+	 * itself, a bra is that same vector read from the dual space, the operational form needed to
+	 * extract a number out of it (a probability, an amplitude, an expectation value). {@code
+	 * "|101>"} and {@code "<101|"} are not two arbitrary spellings of one idea, they are notation
+	 * for two genuinely different mathematical objects (column vs row, related but not identical
+	 * by the antilinear Riesz isomorphism) -- which is exactly why this method cannot just print
+	 * digits and pick brackets by convention: it must first determine, from {@code state}'s actual
+	 * shape, which of the two objects it was handed.
 	 * @param state A computational-basis ket or bra (not a superposition), as described by {@link
 	 * #ketLabel(MatrixComplex)}/{@link #braLabel(MatrixComplex)}.
 	 * @return The bracketed label, e.g. {@code "|101>"} for a ket or {@code "<101|"} for a bra.
