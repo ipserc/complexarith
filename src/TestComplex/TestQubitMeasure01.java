@@ -7,7 +7,7 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
 import com.ipserc.arith.quantum.Qubits;
 
 /**
- * Circuito de n cubits: |b1...bn> --H(x)n--> superposicion uniforme de los 2^n estados de la base
+ * Circuito de n qubits: |b1...bn> --H(x)n--> superposicion uniforme de los 2^n estados de la base
  * computacional, simulando la medicion en la base computacional multiples veces (shots) con
  * {@link Qubits#measure(MatrixComplex, int, Random)}.
  */
@@ -32,7 +32,7 @@ public class TestQubitMeasure01 {
 	}
 
 	/**
-	 * La puerta Hadamard sobre CADA uno de los {@code n} cubits del registro, {@code H(x)H(x)...(x)H}
+	 * La puerta Hadamard sobre CADA uno de los {@code n} qubits del registro, {@code H(x)H(x)...(x)H}
 	 * ({@code n} veces) -- misma construccion que ya usan {@code DeutschJozsa}/{@code QFT}/{@code QPE}
 	 * para poner un registro entero en superposicion uniforme, no extraida a la factoria porque ya
 	 * vive duplicada tal cual en esos 3 sitios (este test es el 4).
@@ -49,9 +49,9 @@ public class TestQubitMeasure01 {
 		Complex.printBoxText(3, 90, title);
 		int nQubits = Integer.numberOfTrailingZeros(theKet.rows());
 
-		// 1. Preparar el circuito: n cubits en theKet, puerta Hadamard sobre cada uno para ponerlo en superposicion.
-		Complex.printLineText(1, 90, "1. Preparar el circuito: " + nQubits + " cubit(s) en " + theKetText
-				+ ", puerta Hadamard sobre cada cubit para ponerlo en superposicion.", true, false);
+		// 1. Preparar el circuito: n qubits en theKet, puerta Hadamard sobre cada uno para ponerlo en superposicion.
+		Complex.printLineText(1, 90, "1. Preparar el circuito: " + nQubits + " qubit(s) en " + theKetText
+				+ ", puerta Hadamard sobre cada qubit para ponerlo en superposicion.", true, false);
 		theKet.println("Este es el qbit:");
 		MatrixComplex state = hadamardTransform(nQubits).times(theKet);
 		state.println("Estado tras Hadamard:");
@@ -66,17 +66,22 @@ public class TestQubitMeasure01 {
 	public static void main(String[] args) {
 		MatrixComplex theKet;
 		String theKetText;
+		int shots = 3477;
+		int nQubits; 
 
 		theKet = Qubits.ket0();
 		theKetText = Qubits.ketLabel(theKet);
-		start_ket_circuit("Circuito: " + theKetText + " --H--> superposicion, simulando la medicion en la base computacional multiples veces (shots)", theKet, theKetText, 357);
+		nQubits = Integer.numberOfTrailingZeros(theKet.rows());
+		start_ket_circuit("Circuito: " + theKetText + " --H(x)"+nQubits+"--> superposicion, simulando la medicion en la base computacional multiples veces ("+shots+")", theKet, theKetText, shots);
 
 		theKet = Qubits.ket1();
 		theKetText = Qubits.ketLabel(theKet);
-		start_ket_circuit("Circuito: " + theKetText + " --H--> superposicion, simulando la medicion en la base computacional multiples veces (shots)", theKet, theKetText, 357);
+		nQubits = Integer.numberOfTrailingZeros(theKet.rows());
+		start_ket_circuit("Circuito: " + theKetText + " --H(x)"+nQubits+"--> superposicion, simulando la medicion en la base computacional multiples veces ("+shots+")", theKet, theKetText, shots);
 
 		theKet = Qubits.ket(1, 1, 0);
 		theKetText = Qubits.ketLabel(theKet);
-		start_ket_circuit("Circuito: " + theKetText + " --H(x)3--> superposicion, simulando la medicion en la base computacional multiples veces (shots)", theKet, theKetText, 357);
+		nQubits = Integer.numberOfTrailingZeros(theKet.rows());
+		start_ket_circuit("Circuito: " + theKetText + " --H(x)"+nQubits+"--> superposicion, simulando la medicion en la base computacional multiples veces ("+shots+")", theKet, theKetText, shots);
 	}
 }
