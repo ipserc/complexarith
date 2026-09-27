@@ -22,8 +22,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.8 (2026_0927_1200)";
+	private final static String VERSION = "1.9 (2026_0927_1300)";
 	/* VERSION Release Note
+	 * 1.9 (2026_0927_1300)
+	 * braLabel(bra) -- espejo de ketLabel() para bras: localiza la columna de amplitud 1 y la
+	 * formatea como "<...|" en vez de "|...>". zeroPaddedBinary(index,n,caller) extraido de
+	 * basisLabel(index,n) como helper privado compartido (mensajes de error con el nombre del
+	 * metodo llamador), sin cambio de comportamiento en basisLabel(). A peticion del usuario.
 	 * 1.8 (2026_0927_1200)
 	 * basisLabel(index,n) -- string de Dirac de un estado de la base computacional ("|00>",
 	 * "|01>"...), inverso de ket(int... bits): representacion binaria de index, MSB primero,
@@ -242,19 +247,23 @@ public final class Qubits {
 	 * @throws IllegalArgumentException if {@code n<1}, or {@code index} is out of range.
 	 */
 	public static String basisLabel(int index, int n) {
+		return "|" + zeroPaddedBinary(index, n, "basisLabel") + ">";
+	}
+
+	private static String zeroPaddedBinary(int index, int n, String caller) {
 		if (n < 1) {
-			throw new IllegalArgumentException("basisLabel() needs at least 1 qubit, got n=" + n);
+			throw new IllegalArgumentException(caller + "() needs at least 1 qubit, got n=" + n);
 		}
 		int nStates = 1 << n;
 		if (index < 0 || index >= nStates) {
-			throw new IllegalArgumentException("basisLabel() index=" + index
+			throw new IllegalArgumentException(caller + "() index=" + index
 					+ " out of range for n=" + n + " qubits (0.." + (nStates - 1) + ")");
 		}
 		StringBuilder bits = new StringBuilder(Integer.toBinaryString(index));
 		while (bits.length() < n) {
 			bits.insert(0, '0');
 		}
-		return "|" + bits + ">";
+		return bits.toString();
 	}
 
 	/**
@@ -300,6 +309,40 @@ public final class Qubits {
 			throw new IllegalArgumentException("ketLabel() needs a computational basis ket (amplitude 1 in exactly one row), got a superposition");
 		}
 		return basisLabel(ket, index);
+	}
+
+	/**
+	 * The Dirac bra label of a computational-basis bra -- the {@link #bra(MatrixComplex)} mirror
+	 * of {@link #ketLabel(MatrixComplex)}: finds the single column with amplitude {@code 1} and
+	 * formats it as {@code "<...|"} instead of {@code "|...>"}.
+	 * @param bra A computational-basis bra, i.e. a {@code 1 x 2^n} row vector with amplitude
+	 * {@code 1} in exactly one column and {@code 0} elsewhere (e.g. {@code Qubits.bra(ket0())}) --
+	 * NOT a superposition.
+	 * @return The bracketed label, e.g. {@code "<101|"}.
+	 * @throws IllegalArgumentException if {@code bra} is not a row vector, its column count is not
+	 * a power of 2, or no column has amplitude {@code 1} (i.e. {@code bra} is a superposition, not
+	 * a basis bra).
+	 */
+	public static String braLabel(MatrixComplex bra) {
+		if (bra.rows() != 1) {
+			throw new IllegalArgumentException("braLabel() needs a row vector (a bra), got a "
+					+ bra.rows() + "x" + bra.cols() + " matrix");
+		}
+		int nStates = bra.cols();
+		if ((nStates & (nStates - 1)) != 0) {
+			throw new IllegalArgumentException("braLabel() needs a power-of-2 number of basis states, got " + nStates);
+		}
+		int index = -1;
+		for (int col = 0; col < nStates; ++col) {
+			if (Math.abs(bra.getItem(0, col).abs() - 1.0) < 1e-9) {
+				index = col;
+				break;
+			}
+		}
+		if (index == -1) {
+			throw new IllegalArgumentException("braLabel() needs a computational basis bra (amplitude 1 in exactly one column), got a superposition");
+		}
+		return "<" + zeroPaddedBinary(index, Integer.numberOfTrailingZeros(nStates), "braLabel") + "|";
 	}
 
 	/**
