@@ -96,6 +96,18 @@ public final class Qubits {
 	 * operator (where {@code .adjoint()} means its Hermitian conjugate/dagger, a different concept --
 	 * {@code U.adjoint()} is NOT "the bra of U"). Use this only on kets; keep using {@code
 	 * op.adjoint()} directly for operators.
+	 * <p>
+	 * Conceptually: the ket is the primary object, the state vector in Hilbert space -- what the
+	 * system "is". The bra is the operational vehicle for extracting information out of it:
+	 * probabilities via the Born rule ({@code <psi|psi>}, a norm), transition amplitudes ({@code
+	 * <phi|psi>}), expectation values of an operator ({@code <psi|A|psi>}). A ket alone, with no
+	 * bra to pair it against, yields no observable number. The nuance is that the bra is not a tool
+	 * of a different nature bolted onto the ket -- it is a vector in its own right, living in the
+	 * dual space (linear functionals over the Hilbert space); the Riesz representation theorem is
+	 * what guarantees that dual is (antilinearly) isomorphic to the original space, which is
+	 * exactly why {@code <psi|} literally IS the conjugate-transpose of {@code |psi>} rather than
+	 * some separately-constructed object -- the very code below. That duality is the structural
+	 * mechanism that turns vectors into measurable numbers, not an external convenience.
 	 * @param ket A ket, as a {@code MatrixComplex} column vector.
 	 * @return The corresponding bra, as a {@code MatrixComplex} row vector.
 	 */
