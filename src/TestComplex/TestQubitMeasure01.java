@@ -18,7 +18,7 @@ public class TestQubitMeasure01 {
 		Complex.printLineText(1, 90, "2. Probabilidades de cada resultado, |amplitud|^2 (regla de Born), solo a modo informativo.", false, false);
 		for (int row = 0; row < state.rows(); ++row)
 			for (int col = 0; col < state.cols(); ++col)
-				System.out.printf("P(%s) = %.2f\n", Qubits.basisLabel(state, row), Math.pow(state.getItem(row, col).abs(), 2));
+				System.out.printf("P(%s) = %.2f%%\n", Qubits.basisLabel(state, row), Math.pow(state.getItem(row, col).abs(), 2)*100.0);
 	}
 
 	public static void realizar_medidas_ket(int shots, MatrixComplex state) {
@@ -29,6 +29,8 @@ public class TestQubitMeasure01 {
 		System.out.println("Resultados sobre " + shots + " medidas:");
 		for (int estado = 0; estado < state.dim(); ++estado)
 			System.out.printf("  %s -> %d (%.2f%%)\n", Qubits.basisLabel(state, estado), counts[estado], 100.0 * counts[estado] / shots);
+		
+		System.out.println("\n");
 	}
 
 	/**
@@ -45,9 +47,10 @@ public class TestQubitMeasure01 {
 		return result;
 	}
 
-	public static void start_ket_circuit(String title, MatrixComplex theKet, String theKetText, int shots) {
-		Complex.printBoxText(3, 90, title);
+	public static void start_ket_circuit(MatrixComplex theKet, int shots) {
 		int nQubits = Integer.numberOfTrailingZeros(theKet.rows());
+		String theKetText = Qubits.ketLabel(theKet);
+		Complex.printBoxText(3, 90, "Circuito: " + theKetText + " --H(x)"+nQubits+"--> superposicion, simulando la medicion en la base computacional multiples veces ("+shots+")");
 
 		// 1. Preparar el circuito: n qubits en theKet, puerta Hadamard sobre cada uno para ponerlo en superposicion.
 		Complex.printLineText(1, 90, "1. Preparar el circuito: " + nQubits + " qubit(s) en " + theKetText
@@ -75,14 +78,17 @@ public class TestQubitMeasure01 {
 	 * @param n Numero de qubits del estado GHZ, debe ser al menos 2.
 	 * @param shots Numero de medidas simuladas.
 	 */
-	public static void start_ghz_circuit(int n, int shots) {
-		MatrixComplex state = Qubits.ghz(n);
+	public static void start_ghz_circuit(MatrixComplex theKet, int shots) {
+		int nQubits = Integer.numberOfTrailingZeros(theKet.rows());
+		
+		// 1. Preparar el circuito: estado GHZ de n qubits, ya entrelazado (sin Hadamard).
+		MatrixComplex state = Qubits.ghz(nQubits);
+
 		String stateText = "(" + Qubits.basisLabel(state, 0) + " + " + Qubits.basisLabel(state, state.dim() - 1) + ")/sqrt(2)";
-		Complex.printBoxText(3, 90, "Circuito: estado GHZ de " + n + " qubits " + stateText
+		Complex.printBoxText(3, 90, "Circuito: estado GHZ de " + nQubits + " qubits " + stateText
 				+ ", simulando la medicion en la base computacional multiples veces (" + shots + ")");
 
-		// 1. Preparar el circuito: estado GHZ de n qubits, ya entrelazado (sin Hadamard).
-		Complex.printLineText(1, 90, "1. Preparar el circuito: estado GHZ de " + n + " qubits, ya entrelazado (sin Hadamard).", true, false);
+		Complex.printLineText(1, 90, "1. Preparar el circuito: estado GHZ de " + nQubits + " qubits, ya entrelazado (sin Hadamard).", true, false);
 		state.println("Estado GHZ:");
 
 		// 2. Probabilidades de cada resultado, |amplitud|^2 (regla de Born), solo a modo informativo.
@@ -93,7 +99,7 @@ public class TestQubitMeasure01 {
 	}
 
 	/*
-	 * ● main() recorre 3 casos, todos con shots=3477, cada uno llamando a start_ket_circuit:
+	 * main() recorre 3 casos, todos con shots=3477, cada uno llamando a start_ket_circuit:
 	 * 1. theKet = Qubits.ket0() → |0>, 1 cúbit. Se le aplica H⊗1 (Hadamard normal) y queda en (|0>+|1>)/sqrt(2). Con 3477 disparos, el histograma sale ~50/50 entre |0> y |1>.
 	 * 2. theKet = Qubits.ket1() → |1>, 1 cúbit. Mismo Hadamard, pero da (|0>-|1>)/sqrt(2) (signo relativo distinto, pero la medición en base computacional también sale ~50/50 — la fase relativa no se ve al medir en esta base).
 	 * 3. theKet = Qubits.ket(1,1,0) → |110>, 3 cúbits. Se le aplica H⊗H⊗H sobre los 3 cúbits, dando una superposición uniforme de los 8 estados de la base (cada uno con distinto signo, pero |amplitud|² igual para todos = 1/8). El histograma
@@ -105,25 +111,16 @@ public class TestQubitMeasure01 {
 
 	public static void main(String[] args) {
 		MatrixComplex theKet;
-		String theKetText;
 		int shots = 3477;
-		int nQubits; 
 
 		theKet = Qubits.ket0();
-		theKetText = Qubits.ketLabel(theKet);
-		nQubits = Integer.numberOfTrailingZeros(theKet.rows());
-		start_ket_circuit("Circuito: " + theKetText + " --H(x)"+nQubits+"--> superposicion, simulando la medicion en la base computacional multiples veces ("+shots+")", theKet, theKetText, shots);
+		start_ket_circuit(theKet, shots);
 
 		theKet = Qubits.ket1();
-		theKetText = Qubits.ketLabel(theKet);
-		nQubits = Integer.numberOfTrailingZeros(theKet.rows());
-		start_ket_circuit("Circuito: " + theKetText + " --H(x)"+nQubits+"--> superposicion, simulando la medicion en la base computacional multiples veces ("+shots+")", theKet, theKetText, shots);
+		start_ket_circuit(theKet, shots);
 
 		theKet = Qubits.ket(1, 1, 0);
-		theKetText = Qubits.ketLabel(theKet);
-		nQubits = Integer.numberOfTrailingZeros(theKet.rows());
-		start_ket_circuit("Circuito: " + theKetText + " --H(x)"+nQubits+"--> superposicion, simulando la medicion en la base computacional multiples veces ("+shots+")", theKet, theKetText, shots);
-
-		start_ghz_circuit(3, shots);
+		start_ket_circuit(theKet, shots);
+		start_ghz_circuit(theKet, shots);
 	}
 }
