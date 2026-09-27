@@ -63,6 +63,46 @@ public class TestQubitMeasure01 {
 		realizar_medidas_ket(shots, state);
 	}
 
+	/**
+	 * Circuito con el estado GHZ (Greenberger-Horne-Zeilinger) de {@code n} qubits, {@link
+	 * Qubits#ghz(int)} -- a diferencia de {@link #start_ket_circuit(String, MatrixComplex, String,
+	 * int)}, NO parte de un ket de la base ni aplica Hadamard: {@code ghz(n)} ya es el estado
+	 * entrelazado en si mismo, {@code (|00...0> + |11...1>)/sqrt(2)}. Maximamente entrelazado, no
+	 * separable en un producto de estados por qubit -- a diferencia del caso {@code |110>} de
+	 * {@code main()} (superposicion uniforme de los 2^n estados, pero SIN correlacion entre
+	 * qubits), medir GHZ SOLO puede dar {@code |00...0>} o {@code |11...1>}, nunca ninguna
+	 * combinacion intermedia.
+	 * @param n Numero de qubits del estado GHZ, debe ser al menos 2.
+	 * @param shots Numero de medidas simuladas.
+	 */
+	public static void start_ghz_circuit(int n, int shots) {
+		MatrixComplex state = Qubits.ghz(n);
+		String stateText = "(" + Qubits.basisLabel(state, 0) + " + " + Qubits.basisLabel(state, state.dim() - 1) + ")/sqrt(2)";
+		Complex.printBoxText(3, 90, "Circuito: estado GHZ de " + n + " qubits " + stateText
+				+ ", simulando la medicion en la base computacional multiples veces (" + shots + ")");
+
+		// 1. Preparar el circuito: estado GHZ de n qubits, ya entrelazado (sin Hadamard).
+		Complex.printLineText(1, 90, "1. Preparar el circuito: estado GHZ de " + n + " qubits, ya entrelazado (sin Hadamard).", true, false);
+		state.println("Estado GHZ:");
+
+		// 2. Probabilidades de cada resultado, |amplitud|^2 (regla de Born), solo a modo informativo.
+		probabilidades_resultados_ket(state);
+
+		// 3. Simular las medidas.
+		realizar_medidas_ket(shots, state);
+	}
+
+	/*
+	 * ● main() recorre 3 casos, todos con shots=3477, cada uno llamando a start_ket_circuit:
+	 * 1. theKet = Qubits.ket0() → |0>, 1 cúbit. Se le aplica H⊗1 (Hadamard normal) y queda en (|0>+|1>)/sqrt(2). Con 3477 disparos, el histograma sale ~50/50 entre |0> y |1>.
+	 * 2. theKet = Qubits.ket1() → |1>, 1 cúbit. Mismo Hadamard, pero da (|0>-|1>)/sqrt(2) (signo relativo distinto, pero la medición en base computacional también sale ~50/50 — la fase relativa no se ve al medir en esta base).
+	 * 3. theKet = Qubits.ket(1,1,0) → |110>, 3 cúbits. Se le aplica H⊗H⊗H sobre los 3 cúbits, dando una superposición uniforme de los 8 estados de la base (cada uno con distinto signo, pero |amplitud|² igual para todos = 1/8). El histograma
+     de 3477 disparos sale repartido ~12,5% entre |000>...|111>.
+	 * 4. start_ghz_circuit(3, shots) → GHZ de 3 qubits, (|000>+|111>)/sqrt(2), ya entrelazado (sin Hadamard). El histograma sale SOLO entre |000> y |111> (~50/50), nunca ninguna combinacion intermedia -- a diferencia del caso 3, que reparte entre los 8 estados.
+     *
+     * En los casos 1-3, probabilidades_resultados_ket imprime las probabilidades exactas (regla de Born) y realizar_medidas_ket simula el muestreo real con Qubits.measure; start_ghz_circuit() reutiliza esas mismas 2 funciones.
+	 */
+
 	public static void main(String[] args) {
 		MatrixComplex theKet;
 		String theKetText;
@@ -83,5 +123,7 @@ public class TestQubitMeasure01 {
 		theKetText = Qubits.ketLabel(theKet);
 		nQubits = Integer.numberOfTrailingZeros(theKet.rows());
 		start_ket_circuit("Circuito: " + theKetText + " --H(x)"+nQubits+"--> superposicion, simulando la medicion en la base computacional multiples veces ("+shots+")", theKet, theKetText, shots);
+
+		start_ghz_circuit(3, shots);
 	}
 }
