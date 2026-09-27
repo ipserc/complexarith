@@ -11937,3 +11937,28 @@ Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, docume
   al resultado del producto escalar). Candidatos arrastrados sin urgencia siguen igual: dimensionado físico del iris en CoupledCavityFilter, doc de aprendizaje para mechanics, duplicación eval() en Fourier/Laplace/Z, y
   .claude//Claude/Commands.txt sin trackear.
 
+========================================================================================================================================
+#
+#	26/09/2026 DIA 19 - 
+#
+========================================================================================================================================
+● Confirmado: master==origin/master en 35c24c9, todo pusheado, solo quedan los sueltos sin trackear de siempre (.claude/, Commands.txt, PDFs/HTML de quantum_doc/).
+
+  Resumen de la jornada (26 septiembre 2026)
+
+  1. Limpieza de arranque: 2 cambios remanentes de la sesión anterior (log crudo + corrección cosmética), verificados por ejecución y comiteados/pusheados.
+  2. Qubits.measure() — primera medición estocástica del proyecto, a petición tuya: probaste primero con un ejemplo suelto (Hadamard + 1000 medidas), y luego lo llevamos a la factoría como dos métodos genéricos en Qubits.java (VERSION
+     1.6→1.7):
+     - measure(state, random) — colapso de 1 disparo, generalizado a n cúbits.
+     - measure(state, shots, random) — histograma de varios disparos, reutilizando el anterior.
+       Verificado con casos puros, validaciones de error, y el caso Hadamard (~50/50 estable).
+  3. 2 ediciones tuyas en paralelo (Eclipse) revisadas, verificadas por ejecución y comiteadas: ajustes en TestQubitsOperations.java/MatrixComplex.println(), y después printf + shots=523 en TestQubitMeasure01.java.
+  4. Lección de proceso aprendida y guardada: un git add que dejé a medias antes de revisar tus ediciones hizo que un commit se llevara de más la feature nueva junto con tu cambio — no incorrecto, pero menos atómico de lo ideal; ya lo
+     tengo anotado para no repetirlo.
+  5. Documentación actualizada: nueva sección de sesión en Claude/ComplexArithRev.md, y memoria persistente (complexarith_continuity_doc.md + MEMORY.md + nueva memoria de la lección de git add).
+
+  Todo pusheado, master==origin/master en 35c24c9. Sin trabajo a medias.
+
+  Por dónde seguir la próxima vez: sin punto de retomada obligatorio. Qubits.measure() queda como primitiva nueva disponible si quieres explorar muestreo real (p.ej. verificar BellTest/GHZ por histograma de disparos en vez de solo
+  valores esperados exactos, o medir de verdad en Grover/Shor). Candidatos de fondo arrastrados sin prisa: dimensionado físico del iris en CoupledCavityFilter, doc de aprendizaje para mechanics, duplicación eval() en Fourier/Laplace/Z, y
+  .claude//Commands.txt sin trackear.
