@@ -22,8 +22,14 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.7 (2026_0926_1200)";
+	private final static String VERSION = "1.8 (2026_0927_1200)";
 	/* VERSION Release Note
+	 * 1.8 (2026_0927_1200)
+	 * basisLabel(index,n) -- string de Dirac de un estado de la base computacional ("|00>",
+	 * "|01>"...), inverso de ket(int... bits): representacion binaria de index, MSB primero,
+	 * rellenada con ceros a la izquierda hasta n digitos. basisLabel(state,index) -- mismo calculo
+	 * tomando n de state.rows() (delega en la version de arriba), comodo en los puntos de uso de
+	 * measure()/measure(shots). A peticion del usuario.
 	 * 1.7 (2026_0926_1200)
 	 * measure(state,random) -- primera utilidad de medicion ESTOCASTICA del proyecto (todo lo
 	 * anterior en este fichero es exacto: estados y operadores, sin muestreo). Colapsa un ket de
@@ -221,6 +227,51 @@ public final class Qubits {
 		if (bit == 0) { return ket0(); }
 		if (bit == 1) { return ket1(); }
 		throw new IllegalArgumentException("ket() bits must be 0 or 1, got " + bit);
+	}
+
+	/**
+	 * The Dirac ket label of computational-basis state {@code index} within an {@code n}-qubit
+	 * register -- the inverse of {@link #ket(int...)}: {@code index}'s binary representation, MSB
+	 * (qubit 1) first, zero-padded to {@code n} digits, e.g. {@code n=1}: {@code "|0>"}/{@code
+	 * "|1>"}; {@code n=2}: {@code "|00>"}, {@code "|01>"}, {@code "|10>"}, {@code "|11>"}.
+	 * @param index The 0-based basis state index, {@code 0 <= index < 2^n}.
+	 * @param n The number of qubits, must be at least 1.
+	 * @return The bracketed label, e.g. {@code "|01>"}.
+	 * @throws IllegalArgumentException if {@code n<1}, or {@code index} is out of range.
+	 */
+	public static String basisLabel(int index, int n) {
+		if (n < 1) {
+			throw new IllegalArgumentException("basisLabel() needs at least 1 qubit, got n=" + n);
+		}
+		int nStates = 1 << n;
+		if (index < 0 || index >= nStates) {
+			throw new IllegalArgumentException("basisLabel() index=" + index
+					+ " out of range for n=" + n + " qubits (0.." + (nStates - 1) + ")");
+		}
+		StringBuilder bits = new StringBuilder(Integer.toBinaryString(index));
+		while (bits.length() < n) {
+			bits.insert(0, '0');
+		}
+		return "|" + bits + ">";
+	}
+
+	/**
+	 * Same as {@link #basisLabel(int, int)}, taking the number of qubits from an existing ket
+	 * instead of naming it explicitly -- convenient at a {@link #measure(MatrixComplex, int,
+	 * Random)} call site, where {@code state} is already at hand.
+	 * @param state An {@code n}-qubit ket, as a {@code 2^n x 1} column vector (only its row count
+	 * is used).
+	 * @param index The 0-based basis state index, {@code 0 <= index < state.rows()}.
+	 * @return The bracketed label, e.g. {@code "|01>"}.
+	 * @throws IllegalArgumentException if {@code state.rows()} is not a power of 2, or {@code
+	 * index} is out of range.
+	 */
+	public static String basisLabel(MatrixComplex state, int index) {
+		int nStates = state.rows();
+		if ((nStates & (nStates - 1)) != 0) {
+			throw new IllegalArgumentException("basisLabel() needs a power-of-2 number of basis states, got " + nStates);
+		}
+		return basisLabel(index, Integer.numberOfTrailingZeros(nStates));
 	}
 
 	/**
