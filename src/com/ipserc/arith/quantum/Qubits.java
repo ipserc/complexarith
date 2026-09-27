@@ -22,8 +22,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.9 (2026_0927_1300)";
+	private final static String VERSION = "1.10 (2026_0927_1400)";
 	/* VERSION Release Note
+	 * 1.10 (2026_0927_1400)
+	 * qubitLabel(state) -- despacha a ketLabel()/braLabel() segun la forma de state (columna vs
+	 * fila), para puntos de uso que manejan kets y bras indistintamente sin tener que saber cual
+	 * es cual de antemano. Lanza ante el caso degenerado 1x1 (ambiguo) o cualquier forma que no sea
+	 * columna/fila. A peticion del usuario.
 	 * 1.9 (2026_0927_1300)
 	 * braLabel(bra) -- espejo de ketLabel() para bras: localiza la columna de amplitud 1 y la
 	 * formatea como "<...|" en vez de "|...>". zeroPaddedBinary(index,n,caller) extraido de
@@ -343,6 +348,29 @@ public final class Qubits {
 			throw new IllegalArgumentException("braLabel() needs a computational basis bra (amplitude 1 in exactly one column), got a superposition");
 		}
 		return "<" + zeroPaddedBinary(index, Integer.numberOfTrailingZeros(nStates), "braLabel") + "|";
+	}
+
+	/**
+	 * The Dirac label of a computational-basis ket OR bra, dispatching on its shape -- a column
+	 * vector ({@code cols()==1}) goes to {@link #ketLabel(MatrixComplex)}, a row vector ({@code
+	 * rows()==1}) goes to {@link #braLabel(MatrixComplex)}. Convenient at a call site handling
+	 * both kets and bras generically, without the caller having to know which one it has.
+	 * @param state A computational-basis ket or bra (not a superposition), as described by {@link
+	 * #ketLabel(MatrixComplex)}/{@link #braLabel(MatrixComplex)}.
+	 * @return The bracketed label, e.g. {@code "|101>"} for a ket or {@code "<101|"} for a bra.
+	 * @throws IllegalArgumentException if {@code state} is neither a column nor a row vector (e.g.
+	 * a general matrix, or the degenerate {@code 1x1} case, ambiguous between the two), or (from
+	 * the delegated call) it is a superposition.
+	 */
+	public static String qubitLabel(MatrixComplex state) {
+		if (state.cols() == 1 && state.rows() != 1) {
+			return ketLabel(state);
+		}
+		if (state.rows() == 1 && state.cols() != 1) {
+			return braLabel(state);
+		}
+		throw new IllegalArgumentException("qubitLabel() needs a ket (column vector) or bra (row vector), got a "
+				+ state.rows() + "x" + state.cols() + " matrix");
 	}
 
 	/**
