@@ -98,6 +98,52 @@ public class TestQubitMeasure01 {
 		realizar_medidas_ket(shots, state);
 	}
 
+	/**
+	 * Verifica, disparo a disparo (no en agregado como el histograma de {@link
+	 * #realizar_medidas_ket(int, MatrixComplex)}), que el estado GHZ esta perfectamente
+	 * correlacionado: en CADA medida individual los {@code n} qubits salen siempre con el mismo
+	 * bit (todos 0 o todos 1), nunca una combinacion mixta -- la prueba de que "cambiar" el
+	 * resultado de un qubit fuerza el mismo cambio en los demas, sin haberlos tocado.
+	 * @param theKet Un ket cualquiera de {@code n} qubits, solo para derivar {@code n} (igual que
+	 * {@link #start_ghz_circuit(MatrixComplex, int)}, su valor concreto no se usa).
+	 * @param shots Numero de medidas simuladas, una a una.
+	 */
+	public static void verificar_correlacion_ghz(MatrixComplex theKet, int shots) {
+		int nQubits = Integer.numberOfTrailingZeros(theKet.rows());
+		MatrixComplex state = Qubits.ghz(nQubits);
+		Random random = new Random();
+
+		Complex.printBoxText(3, 90, "5. Correlacion GHZ: verificando disparo a disparo que los " + nQubits
+				+ " qubits salen siempre con el mismo bit (" + shots + " medidas individuales)");
+
+		int ceros = 0, unos = 0, mixtos = 0;
+		for (int shot = 0; shot < shots; ++shot) {
+			int resultado = Qubits.measure(state, random);
+			String bits = Qubits.basisLabel(resultado, nQubits).replace("|", "").replace(">", "");
+
+			boolean todosIguales = true;
+			for (int i = 1; i < bits.length(); ++i) {
+				if (bits.charAt(i) != bits.charAt(0)) {
+					todosIguales = false;
+					break;
+				}
+			}
+
+			if (!todosIguales) mixtos++;
+			else if (bits.charAt(0) == '0') ceros++;
+			else unos++;
+		}
+
+		System.out.printf("  Todos-0 (%s): %d (%.2f%%)\n", Qubits.basisLabel(0, nQubits), ceros, 100.0 * ceros / shots);
+		System.out.printf("  Todos-1 (%s): %d (%.2f%%)\n", Qubits.basisLabel((1 << nQubits) - 1, nQubits), unos, 100.0 * unos / shots);
+		System.out.printf("  Mixtos, nunca deberian aparecer: %d\n", mixtos);
+		if (mixtos > 0) {
+			throw new IllegalStateException("verificar_correlacion_ghz() encontro " + mixtos + " disparos mixtos -- la correlacion GHZ se ha roto");
+		}
+
+		System.out.println("\n");
+	}
+
 	/*
 	 * main() recorre 3 casos, todos con shots=3477, cada uno llamando a start_ket_circuit:
 	 * 1. theKet = Qubits.ket0() → |0>, 1 cúbit. Se le aplica H⊗1 (Hadamard normal) y queda en (|0>+|1>)/sqrt(2). Con 3477 disparos, el histograma sale ~50/50 entre |0> y |1>.
@@ -105,6 +151,7 @@ public class TestQubitMeasure01 {
 	 * 3. theKet = Qubits.ket(1,1,0) → |110>, 3 cúbits. Se le aplica H⊗H⊗H sobre los 3 cúbits, dando una superposición uniforme de los 8 estados de la base (cada uno con distinto signo, pero |amplitud|² igual para todos = 1/8). El histograma
      de 3477 disparos sale repartido ~12,5% entre |000>...|111>.
 	 * 4. start_ghz_circuit(3, shots) → GHZ de 3 qubits, (|000>+|111>)/sqrt(2), ya entrelazado (sin Hadamard). El histograma sale SOLO entre |000> y |111> (~50/50), nunca ninguna combinacion intermedia -- a diferencia del caso 3, que reparte entre los 8 estados.
+	 * 5. verificar_correlacion_ghz(3, shots) → mismo estado GHZ, pero en vez del histograma agregado del caso 4, mide disparo a disparo y comprueba que los 3 bits del resultado son siempre iguales (nunca una mezcla tipo |010>) -- la prueba directa de que "leer" un qubit ya determina los otros dos sin haberlos tocado.
      *
      * En los casos 1-3, probabilidades_resultados_ket imprime las probabilidades exactas (regla de Born) y realizar_medidas_ket simula el muestreo real con Qubits.measure; start_ghz_circuit() reutiliza esas mismas 2 funciones.
 	 */
@@ -122,5 +169,6 @@ public class TestQubitMeasure01 {
 		theKet = Qubits.ket(1, 1, 0);
 		start_ket_circuit(theKet, shots);
 		start_ghz_circuit(theKet, shots);
+		verificar_correlacion_ghz(theKet, shots);
 	}
 }
