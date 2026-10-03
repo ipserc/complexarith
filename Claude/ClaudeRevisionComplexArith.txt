@@ -11939,7 +11939,7 @@ Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, docume
 
 ========================================================================================================================================
 #
-#	26/09/2026 DIA 19 - 
+#	26/09/2026 DIA 19 - TestQubitMeasure01.java
 #
 ========================================================================================================================================
 ● Confirmado: master==origin/master en 35c24c9, todo pusheado, solo quedan los sueltos sin trackear de siempre (.claude/, Commands.txt, PDFs/HTML de quantum_doc/).
@@ -11962,3 +11962,5 @@ Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, docume
   Por dónde seguir la próxima vez: sin punto de retomada obligatorio. Qubits.measure() queda como primitiva nueva disponible si quieres explorar muestreo real (p.ej. verificar BellTest/GHZ por histograma de disparos en vez de solo
   valores esperados exactos, o medir de verdad en Grover/Shor). Candidatos de fondo arrastrados sin prisa: dimensionado físico del iris en CoupledCavityFilter, doc de aprendizaje para mechanics, duplicación eval() en Fourier/Laplace/Z, y
   .claude//Commands.txt sin trackear.
+  
+  

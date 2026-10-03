@@ -54,7 +54,7 @@ public class TestQubitMeasure01 {
 
 		// 1. Preparar el circuito: n qubits en theKet, puerta Hadamard sobre cada uno para ponerlo en superposicion.
 		Complex.printLineText(1, 90, "1. Preparar el circuito: " + nQubits + " qubit(s) en " + theKetText
-				+ ", puerta Hadamard sobre cada qubit para ponerlo en superposicion.", true, false);
+				+ ", puerta Hadamard sobre cada qubit para ponerlo en superposicion.", false, false);
 		theKet.println("Este es el qbit:");
 		MatrixComplex state = hadamardTransform(nQubits).times(theKet);
 		state.println("Estado tras Hadamard:");
@@ -88,7 +88,7 @@ public class TestQubitMeasure01 {
 		Complex.printBoxText(3, 90, "Circuito: estado GHZ de " + nQubits + " qubits " + stateText
 				+ ", simulando la medicion en la base computacional multiples veces (" + shots + ")");
 
-		Complex.printLineText(1, 90, "1. Preparar el circuito: estado GHZ de " + nQubits + " qubits, ya entrelazado (sin Hadamard).", true, false);
+		Complex.printLineText(1, 90, "1. Preparar el circuito: estado GHZ de " + nQubits + " qubits, ya entrelazado (sin Hadamard).", false, false);
 		state.println("Estado GHZ:");
 
 		// 2. Probabilidades de cada resultado, |amplitud|^2 (regla de Born), solo a modo informativo.
