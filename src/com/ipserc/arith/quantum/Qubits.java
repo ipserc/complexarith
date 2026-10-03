@@ -22,8 +22,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.10 (2026_0927_1400)";
+	private final static String VERSION = "1.11 (2026_1003_1500)";
 	/* VERSION Release Note
+	 * 1.11 (2026_1003_1500)
+	 * bellPsiPlus()/bellPsiMinus() -- los otros 2 estados de la base de Bell, anticorrelacionados
+	 * en la base computacional (a diferencia de bellPhiPlus()), a peticion del usuario tras
+	 * discutir que el caso fotonico mas citado en la bibliografia es el anticorrelacionado
+	 * (HV-VH, el singlete Psi-), no el correlacionado (HH+VV) que ya modelaba bellPhiPlus().
 	 * 1.10 (2026_0927_1400)
 	 * qubitLabel(state) -- despacha a ketLabel()/braLabel() segun la forma de state (columna vs
 	 * fila), para puntos de uso que manejan kets y bras indistintamente sin tener que saber cual
@@ -208,6 +213,32 @@ public final class Qubits {
 		MatrixComplex zeroZero = ket0().kroneckerprod(ket0());
 		MatrixComplex oneOne = ket1().kroneckerprod(ket1());
 		return zeroZero.plus(oneOne).normalizeByCols();
+	}
+
+	/**
+	 * The Bell state {@code |Psi+> = (|01> + |10>) / sqrt(2)} -- anti-correlated in the
+	 * computational basis (unlike {@link #bellPhiPlus()}'s same-value correlation), e.g. photon
+	 * pairs from Type-II spontaneous parametric down-conversion: measuring one photon Horizontal
+	 * forces the other Vertical. Correlation closed form: {@code E(a,b)=-cos(a+b)} for the {@link
+	 * #spinOperator(double)} family (NOT the simpler {@code cos(a-b)} of {@link #bellPhiPlus()}).
+	 */
+	public static MatrixComplex bellPsiPlus() {
+		MatrixComplex zeroOne = ket0().kroneckerprod(ket1());
+		MatrixComplex oneZero = ket1().kroneckerprod(ket0());
+		return zeroOne.plus(oneZero).normalizeByCols();
+	}
+
+	/**
+	 * The Bell state {@code |Psi-> = (|01> - |10>) / sqrt(2)} -- the singlet state, anti-correlated
+	 * like {@link #bellPsiPlus()} but rotationally invariant: unlike {@code Psi+}, its correlation
+	 * closed form is {@code E(a,b)=-cos(a-b)} for the {@link #spinOperator(double)} family, the
+	 * same {@code a-b} dependence as {@link #bellPhiPlus()} but with the opposite sign -- the Bell
+	 * state used by the E91 (Ekert) QKD protocol and most Type-II SPDC photon-pair experiments.
+	 */
+	public static MatrixComplex bellPsiMinus() {
+		MatrixComplex zeroOne = ket0().kroneckerprod(ket1());
+		MatrixComplex oneZero = ket1().kroneckerprod(ket0());
+		return zeroOne.minus(oneZero).normalizeByCols();
 	}
 
 	/**
