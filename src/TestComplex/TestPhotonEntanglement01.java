@@ -57,7 +57,13 @@ public class TestPhotonEntanglement01 {
 		int hv = 0, vh = 0, iguales = 0;
 		for (int shot = 0; shot < shots; ++shot) {
 			int resultado = Qubits.measure(parFotones, random);
+			// resultado siempre será < que Num Estados ==> qué puede ser 0, 1, 2, 3. 
+			
+			// [0 y 2 resultado >> 1 da 1]
+			// [1 y 3 resultado >> 1 da 0]
 			boolean fotonAesH = (resultado >> 1) == 0;
+			// [0 y 2 resultado & 1 da 0]
+			// [1 y 3 resultado & 1 da 1]
 			boolean fotonBesH = (resultado & 1) == 0;
 			if (fotonAesH == fotonBesH) iguales++;
 			else if (fotonAesH) hv++;
