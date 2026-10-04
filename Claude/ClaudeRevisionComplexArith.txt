@@ -11963,4 +11963,185 @@ Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, docume
   valores esperados exactos, o medir de verdad en Grover/Shor). Candidatos de fondo arrastrados sin prisa: dimensionado físico del iris en CoupledCavityFilter, doc de aprendizaje para mechanics, duplicación eval() en Fourier/Laplace/Z, y
   .claude//Commands.txt sin trackear.
   
+========================================================================================================================================
+#
+#	03/10/2026 DIA 20 - TestQubitMeasure01.java
+#
+========================================================================================================================================
+● Contexto recuperado completo. Estado actual:                                                                                                                                                                                               
+  Repo: master, 1 commit por delante de origin/master (e794cf7, una edición cosmética del usuario en TestQubitMeasure01.java que no llegó a pushearse al cierre de la sesión 45). Árbol de trabajo limpio salvo los sueltos sin trackear de
+  siempre (.claude/, Claude/Commands.txt, PDFs/HTML/DOCX de quantum_doc/).
+
+  Última sesión cerrada (45ª, 27 sept): se añadió la familia Qubits.basisLabel/ketLabel/braLabel/qubitLabel (notación de Dirac en string) y se generalizó TestQubitMeasure01 a n cúbits + caso GHZ. Sin candidato pendiente urgente.
+
+  Candidatos abiertos arrastrados (ninguno urgente):
+  1. Dimensionado físico real del iris en CoupledCavityFilter.
+  2. com.ipserc.arith.mechanics: doc de aprendizaje estilo quantum_doc/; más sistemas; Noether.
+  3. Duplicación eval() triplicado en Fourier/Laplace/Z (limpieza, no bug).
+  4. .claude//Claude/Commands.txt sin trackear, sin investigar.
+  5. quantum_doc/Computacion_Cuantica.docx sin trackear, sin investigar.
+
+  ¿Quieres que pushee primero ese commit e794cf7 pendiente, o directamente seguimos con algo nuevo?
+
+✻ Sautéed for 17s · done 19:31
+
+> define com.ipserc.arith.quantum
+
+● Bash(cd "C:\Users\josel\workspace-eclipse\complexarith_github" && find src -path "*com/ipserc/arith/quantum*" -name "*.java" | sort)
+  ⎿  src/com/ipserc/arith/quantum/BellTest.java
+     src/com/ipserc/arith/quantum/BernsteinVazirani.java
+     src/com/ipserc/arith/quantum/BlochSphere.java
+     … +14 lines (ctrl+o to expand)
+
+  Recalled 1 memory (ctrl+o to expand)
+
+● com.ipserc.arith.quantum
+
+  Paquete de computación cuántica simulada del proyecto complexarith, construido encima de MatrixComplex/Complex (no usa ninguna librería cuántica externa: qubits, puertas y mediciones son matrices y vectores complejos hechos a mano).
+  Tiene 17 clases:
+
+  Núcleo / primitivas
+  - Qubits.java — la factoría central: estados básicos (ket0/ket1/ket(int...)/ghz(n)), puertas (pauliX/Y/Z, hadamard, phaseGate(k), identity2), bra() (adjunto), spinOperator(theta), aplicación de puertas a un qubit o bloque dentro de un
+    registro de n qubits (operatorOnQubit, controlledGate, controlledBlockGate), medición estocástica por regla de Born (measure), y la familia de formato en notación de Dirac (basisLabel/ketLabel/braLabel/qubitLabel).
+  - QFT.java — transformada cuántica de Fourier (circuito por puertas + fórmula matricial literal como oráculo).
+  - QPE.java — estimación de fase cuántica (control-U elevado a potencias + QFT inversa), pieza intermedia hacia Shor.
+
+  Algoritmos
+  - DeutschJozsa.java, BernsteinVazirani.java, Grover.java — los "clásicos" de libro de texto.
+  - Shor.java — factorización completa, culmina la línea QFT→QPE→Shor.
+
+  Física del qubit más allá del circuito ideal
+  - DensityMatrix.java — formalismo de matriz densidad, traza parcial, entropía de von Neumann.
+  - Decoherence.java — canales de ruido (bit-flip, phase-flip, depolarizing, amplitude damping...) y encadenado de canales.
+  - BlochSphere.java — representación geométrica del estado de 1 qubit.
+  - TimeEvolution.java — evolución unitaria bajo un Hamiltoniano (exp(-iHt)).
+  - Teleportation.java / NoisyTeleportation.java — protocolo de teleportación y su versión con ruido.
+  - NoisyDeutschJozsa.java, NoisyBernsteinVazirani.java, NoisyGrover.java — los mismos algoritmos anteriores reejecutados bajo canales de ruido, para ver qué invariantes sobreviven y cuáles no.
+
+  Test de fundamentos
+  - BellTest.java — correlaciones EPR y desigualdad CHSH.
+
+  Todo el paquete tiene una guía de aprendizaje paralela en quantum_doc/ (18 documentos en español, uno por clase, con experimentos ejecutables verificados). Está cerrado: no hay ningún candidato cuántico pendiente — el último hito fue
+  Shor (25 agosto) y la última ampliación fue la familia de etiquetado Dirac en Qubits (27 septiembre).
   
+> Circuito: estado GHZ de 3 qubits (|000> + |111>)/sqrt(2) ¿cómo puedo probar qué cambiando el estado de uno de los qubit el otro cambia tambien?
+
+  1. Ligera (ya la tienes): el histograma de start_ghz_circuit() muestra que de los 8 estados posibles de 3 qubits, el 100% de los disparos caen en |000> o |111>, nunca en una mezcla. Eso ya implica la correlación, pero de forma
+     agregada.
+  2. Más directa: hacer N disparos de 1 en 1 (measure(ghz(3), random) en bucle, no el histograma), decodificar cada resultado en sus 3 bits individuales, y comprobar disparo a disparo que bit0==bit1==bit2 siempre — es decir, que con solo     mirar el primer qubit ya sabes con certeza el valor de los otros dos, sin haberlos tocado. Esto es justo la demostración de "cambia uno, cambia el otro": nunca aparece un resultado mixto tipo 010.
+
+  Lo haría como un 5º caso en TestQubitMeasure01.java reusando Qubits.measure(state, random) en un bucle (en vez de measure(state, shots, random)), extrayendo los bits de cada índice con basisLabel o aritmética de bits, y afirmando la
+  igualdad entre los 3 en cada disparo.
+
+  ¿Lo implemento así, como 5º caso en la batería existente?
+
+✻ Baked for 34s · done 19:45
+
+> Sí, impleméntalo como 5º caso
+● Comiteado (bae93c0). Quedan 2 commits locales sin pushear (e794cf7 + bae93c0).
+
+  Resumen: añadido verificar_correlacion_ghz(theKet, shots) en TestQubitMeasure01.java como 5º caso — en vez del histograma agregado del caso 4, mide el estado GHZ una medida a la vez y comprueba que, en cada disparo individual, los n
+  bits del resultado salen siempre iguales (nunca una mezcla como |010>). Verificado: 0 mixtos en 3477 disparos, ~50/50 entre todo-ceros y todo-unos — es la prueba directa de que "leer" un qubit ya determina los otros sin haberlos
+  medido.
+
+> ¿Cómo se modelan dos fotones entrelazados en este modelo?
+● Buena pregunta de modelado físico. En este proyecto, dos fotones entrelazados (el par EPR estándar del experimento Bell) se modelan exactamente igual que dos qubits de espín, por una razón concreta que ya está documentada en
+  quantum_doc/17_limites_y_extensiones.md: el fotón no tiene masa, así que su grado de libertad de polarización tiene solo 2 estados físicamente realizables (helicidad +1/-1, o equivalentemente polarización horizontal/vertical, o ±45°, o
+  circular izquierda/derecha — cualquier base 2D). Eso lo mete, dimensionalmente, en el mismo espacio de Hilbert 2D que un qubit de espín-1/2.
+
+  Así que, con lo que ya existe en el paquete:
+
+  1. Cada fotón individual = un qubit — Qubits.ket0()/ket1() (o cualquier combinación) hace de base de polarización (p.ej. |0>=horizontal, |1>=vertical).
+  2. El par entrelazado = Qubits.bellPhiPlus(), que da exactamente (|00> + |11>)/sqrt(2) — un vector 4x1, producto tensorial de los 2 qubits vía kroneckerprod() bajo el capó. Es el estado EPR canónico: si mides un fotón en polarización
+     horizontal, el otro sale horizontal con certeza, y viceversa.
+  3. Medir en un ángulo de polarizador arbitrario (no solo la base computacional) = Qubits.spinOperator(theta), que da el operador hermítico de medida en el plano X-Z a ángulo theta — esto es literalmente lo que hace BellTest.java:
+     correlation(state, opA, qubitA, opB, qubitB, nQubits) calcula E(a,b) entre los dos "polarizadores" a ángulos distintos, y chsh(...) monta la desigualdad de Bell/CHSH completa con 4 ángulos.
+  4. Verificación estocástica (en vez de solo el valor esperado exacto) = BellTest.simulateCorrelation()/simulateChsh(), que samplean disparo a disparo con Random, igual que hiciste tú mismo en el 5º caso de TestQubitMeasure01 hace un
+     momento.
+
+  La correlación angular que sale de bellPhiPlus() es E(a,b)=cos(a-b) — la misma fórmula de libro de texto para el experimento de Aspect con fotones (polarizadores a a y b), y los ángulos que maximizan la violación de CHSH son los
+  espaciados π/4 (no π/8, gotcha ya documentado en memoria del paquete).
+
+  Lo que el modelo NO captura (también en ese documento): la parte espacial del fotón (hacia dónde viaja, con qué momento) — eso viviría en un Hilbert de dimensión infinita, fuera del alcance de MatrixComplex. Aquí solo se modela el
+  grado de libertad discreto de polarización/helicidad, que es justo la parte relevante para el experimento Bell/EPR.
+
+  ¿Quieres que monte un ejemplo concreto (tipo TestBell01 ya existente, o un caso nuevo) que explicite esta lectura "fotónica" — con comentarios usando polarización H/V en vez de |0>/|1> genéricos?
+  
+> Sí, implementa un caso nuevo con explicaciones
+  ⎿  ******************************************************************************************
+     |              Par de fotones entrelazados: |Phi+> = (|HH> + |VV>)/sqrt(2)               |
+     ******************************************************************************************
+     … +31 lines (ctrl+o to expand)
+
+● Todo verificado: correlación perfecta (0 mixtos), E(a,b)=cos(a-b) exacto en los 5 ángulos, y CHSH S=2.828427 igual al límite de Tsirelson, violando el límite clásico. Comiteo.
+
+> Pero el entrelazamiento no sería |HV> y |VH>? eso es lo qué dice la física, si un fotón esta en polarización Horizonal, el otro entrelazado en vertical                                                                                    
+● Tienes razón en que es el caso más habitual en los experimentos reales, pero no es el único estado de Bell físicamente válido — hay 4, y la física real produce uno u otro según el montaje:
+
+  - |Φ+> = (|HH>+|VV>)/sqrt(2) — correlacionado (igual polarización). Típico de conversión paramétrica descendente Tipo I.
+  - |Ψ+> = (|HV>+|VH>)/sqrt(2) — anticorrelacionado (la que tú describes). Típico de Tipo II (el más usado en experimentos de Bell con fotones, incluido el estado singlete |Ψ-> = (|HV>-|VH>)/sqrt(2) del protocolo E91 de Ekert).
+
+  Qubits.bellPhiPlus() solo da el primero — elegí ese sin plantearme que el caso anticorrelacionado es el más representativo de tu intuición física. Importante: ambos son localmente equivalentes (aplicar una puerta Pauli-X solo al fotón
+  B sobre |Φ+> da exactamente |Ψ+> — es como invertir qué llamas H/V para ese fotón, p.ej. con una lámina de media onda), así que no es una física distinta, solo una convención de montaje distinta.
+
+  ¿Quieres que añada Qubits.bellPsiPlus()/bellPsiMinus() a la factoría y recableé TestPhotonEntanglement01 para usar el estado anticorrelacionado (más fiel a lo que describes), o prefieres que simplemente añada un comentario aclarando la
+  elección y dejando Φ+ como está?
+
+✻ Cogitated for 34s · done 22:50
+
+> Sí hazlo, aunque desconocía el caso correlacionado (igual polarización). En todo lo que he leído de física siempre ha sido, o he supuesto, el caso de polarización opuesta entre fotones, HV - VH.
+  ⎿  ******************************************************************************************
+     |              Par de fotones entrelazados: |Psi-> = (|HV> - |VH>)/sqrt(2)               |
+     ******************************************************************************************
+     … +44 lines (ctrl+o to expand)
+
+● Mi derivación era correcta: E(a,b)=-cos(a-b) cuadra exacto en los 5 ángulos, anticorrelación perfecta (0 "iguales" en 3477 disparos) y CHSH |S|=2.828427 igual al límite de Tsirelson. TestBell01 (que sigue usando bellPhiPlus()) no tiene  regresión, 12/12 OK. Comiteo.
+
+> ¿Como se implenetaría un semiespejo con el modelo que hemos desarrollado?                                                                                                                                                                  
+● Para un fotón es sencillo con lo que ya tienes: se modela como un qubit de "camino" (no de polarización) — |0>=transmitido, |1>=reflejado — y el semiespejo es literalmente una puerta unitaria 2x2 sobre ese qubit, matemáticamente el
+  mismo tipo de objeto que Qubits.hadamard() (de hecho, un semiespejo 50/50 simétrico es exactamente Hadamard salvo convenio de fase: (1/√2)[[1,i],[i,1]] en vez de (1/√2)[[1,1],[1,-1]]). Con eso ya se monta un interferómetro de
+  Mach-Zehnder completo: semiespejo (Hadamard-like) → Qubits.phaseGate(k) en un brazo → segundo semiespejo → measure(), el mismo patrón H-fase-H que ya usas en QPE/QFT, sin ninguna infraestructura nueva.
+
+  El salto grande viene si quieres dos fotones en el mismo semiespejo (el efecto Hong-Ou-Mandel, el candidato interesante de verdad — interferencia entre fotones indistinguibles): eso ya no es un qubit por fotón, necesita espacio de Fock
+  (números de ocupación, operadores creación/aniquilación) — fuera del modelo qubit actual, parecido en espíritu al candidato de la doble rendija que quedó aplazado.
+
+  ¿Quieres que implemente primero el caso de 1 fotón (semiespejo + Mach-Zehnder, con lo que ya existe), o te interesa directamente plantear el caso de 2 fotones (HOM), que es un candidato más grande?
+> Implementa primero el caso de 1 fotón
+  ⎿  ******************************************************************************************
+     |       Interferometro de Mach-Zehnder de 1 foton: semiespejo--desfase--semiespejo       |
+     ******************************************************************************************
+     … +31 lines (ctrl+o to expand)
+
+● Exacto: k=0 da 100% determinista en transmitido (interferencia constructiva total pese a 2 semiespejos "50/50"), k=1 conmuta a 100% reflejado, y k=2,3,4 cuadran con la fórmula cerrada cos²(φ/2)/sin²(φ/2) a precisión de máquina.
+  3477/3477 disparos consistentes con la probabilidad exacta en ambos casos extremos. Comiteo.
+● Comiteado (8fb33fd), sin tocar Qubits.java — todo reutiliza hadamard() y phaseGate(k) ya existentes.
+
+  Resumen: TestBeamSplitter01 modela un Mach-Zehnder de 1 fotón: semiespejo (Hadamard) → desfase (phaseGate(k)) → semiespejo → medición, sobre un qubit de "camino" (no de polarización). Confirma que el puerto de salida queda determinado
+  por el desfase relativo entre brazos (P=cos²(φ/2)/sin²(φ/2)), incluyendo los dos casos deterministas (k=0: 100% transmitido; k=1: 100% reflejado) — la firma de interferencia cuántica, frente al 50/50 fijo que daría un modelo clásico de  probabilidades.
+
+  Quedan 3 commits locales sin pushear ahora (938d346, 2e284b7, 8fb33fd). ¿Los pusheo, o seguimos con el caso de 2 fotones (HOM)?
+  
+  
+ ● Todo confirmado y guardado. Resumen de la jornada:
+
+  Resumen de la sesión (3-4 octubre 2026)
+
+  Repo: master == origin/master == a27cd24. Árbol limpio (salvo los sueltos sin trackear de siempre: .claude/, Claude/Commands.txt, PDFs/HTML/DOCX de quantum_doc/).
+
+  5 commits (4 de feature + 1 de doc), todos pusheados:
+  1. bae93c0 — TestQubitMeasure01: 5º caso, verifica disparo a disparo que el estado GHZ nunca da un resultado mixto (correlación perfecta).
+  2. 938d346 — TestPhotonEntanglement01: lectura fotónica del par de Bell, sin clase nueva (el fotón cae en el mismo Hilbert 2D que un espín-1/2).
+  3. 2e284b7 — Qubits.bellPsiPlus()/bellPsiMinus() (VERSION 1.11): los 2 estados de Bell anticorrelacionados, a raíz de que señalaste que la bibliografía habitual describe el caso HV-VH, no el HH+VV. Test recableado al singlete Psi-.
+  4. 8fb33fd — TestBeamSplitter01: Mach-Zehnder de 1 fotón, reusando hadamard()+phaseGate(k) sin tocar Qubits.java — demuestra interferencia cuántica real.
+  5. a27cd24 — doc de la sesión en Claude/ComplexArithRev.md.
+
+  Memoria del proyecto actualizada: documento de continuidad, notas del paquete quantum, índice MEMORY.md, y una memoria nueva para el candidato aplazado.
+
+  Punto de retomada exacto para la próxima vez: decidir si se aborda Hong-Ou-Mandel (2 fotones en el mismo semiespejo) — lo planteaste tú mismo como el siguiente paso natural. Ya no encaja en el modelo de 1-qubit-por-fotón: hace falta
+  espacio de Fock truncado (números de ocupación bosónicos). Quedan 2 vías de diseño sin decidir (truncado ad-hoc vs. infraestructura de Fock genérica) — lo primero será elegir una antes de escribir código.
+
+========================================================================================================================================
+#
+#	03/10/2026 DIA 21 - 
+#
+========================================================================================================================================
