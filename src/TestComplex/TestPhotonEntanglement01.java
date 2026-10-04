@@ -36,7 +36,7 @@ public class TestPhotonEntanglement01 {
 	}
 
 	public static void main(String[] args) {
-		int shots = 3477;
+		int shots = 100001;
 		Random random = new Random();
 
 		// 1. Preparar el par de fotones entrelazados (singlete, anticorrelacionado).
@@ -83,9 +83,10 @@ public class TestPhotonEntanglement01 {
 		// Qubits.bellPsiMinus()); theta en spinOperator() es el angulo COMPLETO del operador, no
 		// el "angulo de polarizador" de libro de texto, que llevaria cos(2*(a-b)).
 		Complex.printLineText(1, 90, "3. Correlacion angular E(a,b) a varios desalineamientos de polarizador (formula exacta: E(a,b)=-cos(a-b)).", true, false);
+		Complex.printLineText(1, 90, "a = Math.PI / 4, desalineamientos = { 0, Math.PI / 8, Math.PI / 4, Math.PI / 2, Math.PI };", false, false);
 		double[] desalineamientos = { 0, Math.PI / 8, Math.PI / 4, Math.PI / 2, Math.PI };
 		for (double delta : desalineamientos) {
-			double a = 0, b = delta;
+			double a = Math.PI / 4, b = delta;
 			double eExacta = BellTest.correlation(parFotones, Qubits.spinOperator(a), Qubits.spinOperator(b));
 			double eFormula = -Math.cos(a - b);
 			System.out.printf("  delta=%.4f rad -> E(a,b)=%.6f (-cos(a-b)=%.6f)\n", delta, eExacta, eFormula);
