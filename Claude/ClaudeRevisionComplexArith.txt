@@ -12225,3 +12225,34 @@ Punto de retomada para la próxima vez: sigue abierto, sin decidir, el candidato
 #	03/10/2026 DIA 21 - 
 #
 ========================================================================================================================================
+Continuamos con el proyecto. Recupera TODO el contexto.
+
+[Recuperado: HEAD==origin/master==5514512, con el log crudo de la sesión anterior (Cuadragesimoséptima) sin comitear pese a que su resumen en ComplexArithRev.md ya estaba pusheado. Comiteado y pusheado (2386c9f) antes de seguir.]
+
+voy a refactorizar rodos los test que tenemos de cuántica. me los listas?
+
+[Listados 9 Test*/TestQuantum_* + 22 Scratch*Audit01 en src/TestComplex/ que referencian com.ipserc.arith.quantum.]
+
+pues voy a refactorizar los test y los scratch. Primero los test. Pasan de llamarse Test a TestQuantum_ ya hay algunos así, no los toques. ¿Lo haces tú?
+
+[Sí. Renombrados los 5 Test* que no llevaban el prefijo (TestBeamSplitter01, TestBell01, TestPhotonEntanglement01, TestQubitMeasure01, TestQubitsOperations -> TestQuantum_*), fichero + clase pública, git mv. Verificado: compila limpio, 7/9 ejecutados sin regresión, TestQuantum_QubitsOperations 25/28 OK (3 fails deliberados ya conocidos), TestQuantum_QFTBridge01 no verificable headless (plot síncrono, preexistente). Comiteado: 3995c90.]
+
+lístame los scratch
+
+[Listados los 22 Scratch*Audit01.]
+
+mismo criterio: pasan a ScratchQuantum_
+
+[Renombrados los 22, fichero + clase pública, git mv. Encontradas y actualizadas 8 referencias javadoc VIVAS ({@code Scratch...Audit01}, "verificado en...") en BellTest.java, Decoherence.java (x4), Grover.java, NoisyDeutschJozsa.java, NoisyTeleportation.java, Teleportation.java (x2) y TestQuantum_QFTBridge01.java -- distinguidas de las notas de VERSION/changelog históricas, que no se tocan. Verificado: compila limpio todo el conjunto, smoke-test de 6 scratch representativos sin regresión. Comiteado: 93879f0.]
+
+Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, documentos, planes, reglas, workflows, skills que tengas y la memoria del proyecto. Recuerda todo lo que has aprendido. Haz push de todos los commits, si es necesario. Cuando vuelva a conectar me recuerdas por donde seguir.
+
+[Pusheado (2386c9f..93879f0). Sección "Cuadragesimoctava sesión" añadida a ComplexArithRev.md, este log actualizado, memoria del proyecto actualizada (complexarith_continuity_doc, complexarith_quantum_package_notes, nueva lección de proceso sobre javac -d con rutas absolutas Unix-style en este entorno).]
+
+Punto de retomada: el refactor de nombres (Test*/Scratch* -> TestQuantum_*/ScratchQuantum_*) queda completo para src/TestComplex/, pero no se preguntó si el alcance incluye también nombres de clase dentro de com.ipserc.arith.quantum o quantum_doc/. Confirmar con el usuario antes de dar la refactorización por cerrada del todo.
+
+========================================================================================================================================
+#
+#	07/10/2026 DIA 22 -
+#
+========================================================================================================================================
