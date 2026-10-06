@@ -12145,3 +12145,83 @@ Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, docume
 #	03/10/2026 DIA 21 - 
 #
 ========================================================================================================================================
+Este trozo de código es un poco de pegote
+			int resultado = Qubits.measure(parFotones, random);
+			// resultado siempre será < que Num Estados ==> qué puede ser 0, 1, 2, 3. 
+			
+			// [0 y 2 resultado >> 1 da 1]
+			// [1 y 3 resultado >> 1 da 0]
+			boolean fotonAesH = (resultado >> 1) == 0;
+			// [0 y 2 resultado & 1 da 0]
+			// [1 y 3 resultado & 1 da 1]
+			boolean fotonBesH = (resultado & 1) == 0;
+
+bastaría con
+	boolean fotonAesH = (resultado >> 1) == 0;
+fotonBesH es SIEMPRE !fotonAesH
+
+			if (fotonAesH == fotonBesH) iguales++;
+			else if (fotonAesH) hv++;
+			else vh++;
+Este código sobre actua. Basta con
+		if (fotonAesH) hv++;
+		else vh++;	
+Creo qe nunca se podrá dar (fotonAesH == fotonBesH), no por entrlazamiento, simplemente por cómo se ha construido el decaimiento de la medida
+			// [0 y 2 resultado >> 1 da 1]
+			// [1 y 3 resultado >> 1 da 0]
+			boolean fotonAesH = (resultado >> 1) == 0;
+			// [0 y 2 resultado & 1 da 0]
+			// [1 y 3 resultado & 1 da 1]
+			boolean fotonBesH = (resultado & 1) == 0;
+¿estoy equivocado?
+Buena pregunta — pero aquí hay una distinción importante que cambia la respuesta.
+
+Sobre la causa (sí estás equivocado en ese punto): no es "por cómo se ha construido el decaimiento de la medida" en abstracto. resultado >> 1 y resultado & 1 son simplemente el bit alto y el bit bajo de un índice de 2 bits — para los 4 índices posibles (0,1,2,3) no son complementarios en general:
+
+┌───────────┬──────────────┬──────────────┬───────────┐
+│ resultado │ bit alto (A) │ bit bajo (B) │ ¿iguales? │
+├───────────┼──────────────┼──────────────┼───────────┤
+│ 0 (HH)    │ H            │ H            │ sí        │
+├───────────┼──────────────┼──────────────┼───────────┤
+│ 1 (HV)    │ H            │ V            │ no        │
+├───────────┼──────────────┼──────────────┼───────────┤
+│ 2 (VH)    │ V            │ H            │ no        │
+├───────────┼──────────────┼──────────────┼───────────┤
+│ 3 (VV)    │ V            │ V            │ sí        │
+└───────────┴──────────────┴──────────────┴───────────┘
+
+Que fotonBesH salga siempre !fotonAesH en este test es porque parFotones = Qubits.bellPsiMinus() tiene amplitud exactamente cero en los índices 0 y 3 (HH, VV) — measure() nunca puede devolverlos. Eso es la anticorrelación del entrelazamiento, no un artefacto de la aritmética de bits. Si este mismo bucle midiera bellPhiPlus() en vez de bellPsiMinus(), pasaría justo lo contrario: resultado solo podría ser 0 o 3, fotonAesH==fotonBesH siempre, y hv/vh nunca se incrementarían.
+
+Por eso no simplificaría como propones. La línea 75-77 (if (iguales > 0) throw ...) es la verificación por ejecución de que el entrelazamiento no se ha roto — es el fail-loud del proyecto. Si sustituyes fotonBesH por !fotonAesH, iguales se vuelve una tautología que siempre da 0 pase lo que pase (incluso si measure() tuviera un bug, o si alguien cambiara por error bellPsiMinus() por bellPhiPlus()), y el throw dejaría de poder dispararse nunca. El código, tal cual está, calcula los 2 bits de forma independiente precisamente para que esa comprobación sea real.
+
+Lo que sí es "pegote" de verdad son los 4 comentarios línea a línea explicando el >>/& — eso lo puedo condensar en 1-2 líneas. ¿Lo dejo así (limpiando solo comentarios, conservando la doble computación independiente)?
+
+> Entonces, lo único que se decide aleatoriamente es si tenemos una pareja HV o VH, ya que las otras al tener probabilidad cero, nunca existiran, nunca se podrán dar
+
+Exacto, correcto. measure() muestrea contra la distribución acumulada de |amplitud|², y en bellPsiMinus() = (|HV> - |VH>)/sqrt(2) las amplitudes de |HH> y |VV> son matemáticamente cero (no "muy pequeñas" — cero exacto). Eso significa que esos dos términos nunca entran siquiera en el acumulado: la variable aleatoria tiene soporte en solo 2 de los 4 índices posibles. Lo único que decide el azar es, de esos 2 casos igualmente probables (50/50 exacto, por los coeficientes ±1/√2 con igual módulo), cuál de los dos sale — HV o VH. Una vez sale uno, el otro fotón queda determinado con certeza (de ahí la anticorrelación), pero cuál de los dos pares ocurre en cada disparo sí es genuinamente aleatorio.
+
+== 3. Correlacion angular E(a,b) a varios desalineamientos de polarizador (formula exacta: E(a,b)=-cos(a-b)). ==
+======= desalineamientos = { 0, Math.PI / 8, Math.PI / 4, Math.PI / 2, Math.PI }; ========
+  delta=0,0000 rad -> E(a,b)=-1,000000 (-cos(a-b)=-1,000000)
+  delta=0,3927 rad -> E(a,b)=-0,923880 (-cos(a-b)=-0,923880)
+  delta=0,7854 rad -> E(a,b)=-0,707107 (-cos(a-b)=-0,707107)
+  delta=1,5708 rad -> E(a,b)=-0,000000 (-cos(a-b)=-0,000000)
+  delta=3,1416 rad -> E(a,b)=1,000000 (-cos(a-b)=1,000000)
+  
+Todo guardado y pusheado. Resumen de la jornada:
+
+Repo: master == origin/master == 5514512, árbol limpio (salvo los sueltos sin trackear de siempre). 4 commits de hoy:
+1. a62204e — comentarios del usuario conservados en TestPhotonEntanglement01.
+2. 48da9ac — log crudo de la sesión anterior.
+3. 5bc9770 — otro ajuste en paralelo del usuario (shots=100001, polarizador base a=π/4 en vez de 0), verificado sin regresión.
+4. 5514512 — doc de la sesión en ComplexArithRev.md.
+
+Lo sustantivo de hoy: discusión conceptual sobre TestPhotonEntanglement01, sin cambio de código. Señalaste el bucle de medición como redundante; te mostré que la igualdad fotonBesH == !fotonAesH no es un artefacto de la aritmética de bits sino una consecuencia de que bellPsiMinus() tiene amplitud cero en HH/VV — y que colapsar esa comprobación volvería inalcanzable el throw fail-loud que detecta si la anticorrelación se rompe. Decidiste conservar el código tal cual. Queda capturado como lección nueva en memoria (feedback_invariantes_no_colapsar_en_tautologia).
+
+Punto de retomada para la próxima vez: sigue abierto, sin decidir, el candidato Hong-Ou-Mandel (2 fotones en el mismo semiespejo) — requiere espacio de Fock truncado, fuera del modelo qubit actual. Nada más pendiente.
+
+========================================================================================================================================
+#
+#	03/10/2026 DIA 21 - 
+#
+========================================================================================================================================
