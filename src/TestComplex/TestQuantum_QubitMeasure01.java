@@ -11,7 +11,7 @@ import com.ipserc.arith.quantum.Qubits;
  * computacional, simulando la medicion en la base computacional multiples veces (shots) con
  * {@link Qubits#measure(MatrixComplex, int, Random)}.
  */
-public class TestQubitMeasure01 {
+public class TestQuantum_QubitMeasure01 {
 
 	public static void probabilidades_resultados_ket(MatrixComplex state) {
 		// 2. Probabilidades de cada resultado, |amplitud|^2 (regla de Born), solo a modo informativo.

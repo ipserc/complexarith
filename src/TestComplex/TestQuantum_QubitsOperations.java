@@ -9,7 +9,7 @@ import com.ipserc.arith.quantum.Qubits;
  * el operador identidad {@code Qubits.identity2()} debe dejar cualquier estado invariante, tanto
  * aplicado a un ket como compuesto con otro operador.
  */
-public class TestQubitsOperations {
+public class TestQuantum_QubitsOperations {
 
 	static int ok = 0, fail = 0;
 

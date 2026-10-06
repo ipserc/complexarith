@@ -13,7 +13,7 @@ import com.ipserc.arith.quantum.Qubits;
  * el límite de Tsirelson (2*sqrt(2)) conocido, y que la simulación Monte Carlo converge a ese
  * mismo valor exacto según crecen los "trials".
  */
-public class TestBell01 {
+public class TestQuantum_Bell01 {
 	static int ok = 0, total = 0;
 
 	static void check(String name, boolean cond) {

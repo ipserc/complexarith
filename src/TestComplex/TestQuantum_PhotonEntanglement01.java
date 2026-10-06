@@ -25,7 +25,7 @@ import com.ipserc.arith.quantum.Qubits;
  * angular a polarizadores desalineados, y la violacion de la desigualdad de Bell (CHSH) tipo
  * experimento de Aspect.
  */
-public class TestPhotonEntanglement01 {
+public class TestQuantum_PhotonEntanglement01 {
 
 	private static String polarizacionLabel(int bit) {
 		return bit == 0 ? "H" : "V";

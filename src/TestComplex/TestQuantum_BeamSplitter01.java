@@ -30,7 +30,7 @@ import com.ipserc.arith.quantum.Qubits;
  * cada semiespejo por separado sigue siendo 50/50 -- la firma de la naturaleza ondulatoria/cuantica
  * de un solo foton, no una mezcla estadistica clasica.
  */
-public class TestBeamSplitter01 {
+public class TestQuantum_BeamSplitter01 {
 
 	/**
 	 * Formula cerrada de las probabilidades de salida del Mach-Zehnder para un desfase {@code phi}
