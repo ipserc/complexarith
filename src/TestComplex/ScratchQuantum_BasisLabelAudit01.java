@@ -2,7 +2,7 @@ package TestComplex;
 
 import com.ipserc.arith.quantum.Qubits;
 
-public class ScratchBasisLabelAudit01 {
+public class ScratchQuantum_BasisLabelAudit01 {
 
 	public static void main(String[] args) {
 		// n=1

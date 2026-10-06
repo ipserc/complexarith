@@ -11,7 +11,7 @@ import com.ipserc.arith.quantum.Qubits;
  * phase + SWAP) before generalizing to any n in TestComplex/TestQuantum_QFT01.java; matrix() is
  * the literal defining formula, used here as the independent oracle circuit() is checked against.
  */
-public class ScratchQFTAudit01 {
+public class ScratchQuantum_QFTAudit01 {
 
 	static int ok = 0, fail = 0;
 

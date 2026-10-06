@@ -21,7 +21,7 @@ import com.ipserc.arith.quantum.NoisyGrover;
  * target's bit at noisyQubit (0 or 1), because amplitudeDamping is the only channel here that
  * isn't symmetric under |0><->|1>.
  */
-public class ScratchNoisyGroverAudit01 {
+public class ScratchQuantum_NoisyGroverAudit01 {
 
 	static int ok = 0, fail = 0;
 

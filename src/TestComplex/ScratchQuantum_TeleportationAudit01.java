@@ -12,7 +12,7 @@ import com.ipserc.arith.quantum.Teleportation;
  * candidate "toy quantum algorithm" of the Rol Fisica/Mecanica Cuantica roadmap catalogued at the
  * close of the Trigesimosexta sesion.
  */
-public class ScratchTeleportationAudit01 {
+public class ScratchQuantum_TeleportationAudit01 {
 
 	static int ok = 0, fail = 0;
 

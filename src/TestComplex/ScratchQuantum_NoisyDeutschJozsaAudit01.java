@@ -17,7 +17,7 @@ import com.ipserc.arith.quantum.NoisyDeutschJozsa;
  * input qubit degrades the guarantee", both WRONG; both failed and were replaced by what the math
  * actually does, see checks 2/3/5 below).
  */
-public class ScratchNoisyDeutschJozsaAudit01 {
+public class ScratchQuantum_NoisyDeutschJozsaAudit01 {
 
 	static int ok = 0, fail = 0;
 

@@ -11,7 +11,7 @@ import com.ipserc.arith.quantum.Qubits;
  * "ruido/decoherencia" of the Rol Fisica/Mecanica Cuantica roadmap catalogued at the close of the
  * Trigesimosexta sesion.
  */
-public class ScratchDecoherenceAudit01 {
+public class ScratchQuantum_DecoherenceAudit01 {
 
 	static int ok = 0, fail = 0;
 

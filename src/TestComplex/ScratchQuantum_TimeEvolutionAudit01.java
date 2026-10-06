@@ -13,7 +13,7 @@ import com.ipserc.arith.quantum.TimeEvolution;
  * U(t1)*U(t2)=U(t1+t2), exact stationarity of energy eigenstates, and a finite-difference check of
  * the Schrodinger equation i*d|psi>/dt = H|psi> itself.
  */
-public class ScratchTimeEvolutionAudit01 {
+public class ScratchQuantum_TimeEvolutionAudit01 {
 
 	static int ok = 0, fail = 0;
 

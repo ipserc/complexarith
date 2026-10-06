@@ -13,7 +13,7 @@ import com.ipserc.arith.quantum.Teleportation;
  * (the protocol), the first cross-exercise combination candidate from the close of the
  * Trigesimoseptima sesion.
  */
-public class ScratchNoisyTeleportationAudit01 {
+public class ScratchQuantum_NoisyTeleportationAudit01 {
 
 	static int ok = 0, fail = 0;
 

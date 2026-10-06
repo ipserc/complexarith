@@ -17,7 +17,7 @@ import com.ipserc.arith.signal.Fourier.e_operator;
  * que {@link Fourier#IDFT()} (no el de {@link Fourier#DFT(int)}, que usa signo negativo y sin
  * normalizar). Por eso, para comparar contra {@code Fourier.DFT()} hay que aplicar la QFT
  * INVERSA -- la adjunta de {@code circuit(n)}, ya que es unitaria (verificado en
- * {@code ScratchQFTAudit01}) -- no {@code circuit(n)} directamente.
+ * {@code ScratchQuantum_QFTAudit01}) -- no {@code circuit(n)} directamente.
  */
 public class TestQuantum_QFTBridge01 {
 

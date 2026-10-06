@@ -53,7 +53,7 @@ public final class BellTest {
 	 * other qubit is left untouched (implicit identity), so this is exactly the same expectation
 	 * value a partial-trace-then-{@code Tr(rho*(opA tensor opB))} calculation over the reduced
 	 * 2-qubit density matrix of {@code qubitA}/{@code qubitB} would give (verified in {@code
-	 * ScratchBellTestNQubitAudit01} against {@link DensityMatrix}).
+	 * ScratchQuantum_BellTestNQubitAudit01} against {@link DensityMatrix}).
 	 * @param state The {@code 2^nQubits x 1} state.
 	 * @param opA The measurement operator for {@code qubitA} (e.g. {@link
 	 * Qubits#spinOperator(double)}).

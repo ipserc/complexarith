@@ -21,7 +21,7 @@ import com.ipserc.arith.quantum.NoisyGrover;
  * tested, exactly like depolarizing/phaseFlip already were under the single-dose model), not
  * target-dependent the way amplitudeDamping is.
  */
-public class ScratchNoisyGroverPerIterationAudit01 {
+public class ScratchQuantum_NoisyGroverPerIterationAudit01 {
 
 	static int ok = 0, fail = 0;
 

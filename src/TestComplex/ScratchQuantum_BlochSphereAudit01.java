@@ -22,7 +22,7 @@ import com.ipserc.arith.quantum.TimeEvolution;
  * SimpleGnuplot.cachedExe to a decoy .bat that captures the script) to verify the plot's generated
  * script by text, without opening any window.
  */
-public class ScratchBlochSphereAudit01 {
+public class ScratchQuantum_BlochSphereAudit01 {
 
 	static int ok = 0, fail = 0;
 

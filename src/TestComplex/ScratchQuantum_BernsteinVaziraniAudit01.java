@@ -9,7 +9,7 @@ import com.ipserc.arith.quantum.DeutschJozsa;
  * Audit of BernsteinVazirani.java (oracleFunction()/findSecret()) -- second "algoritmo cuantico
  * mas grande" follow-up of the Rol Fisica/Mecanica Cuantica, after DeutschJozsa.
  */
-public class ScratchBernsteinVaziraniAudit01 {
+public class ScratchQuantum_BernsteinVaziraniAudit01 {
 
 	static int ok = 0, fail = 0;
 

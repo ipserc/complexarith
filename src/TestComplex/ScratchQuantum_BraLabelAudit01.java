@@ -2,7 +2,7 @@ package TestComplex;
 
 import com.ipserc.arith.quantum.Qubits;
 
-public class ScratchBraLabelAudit01 {
+public class ScratchQuantum_BraLabelAudit01 {
 
 	public static void main(String[] args) {
 		// bra(ket0()), bra(ket1())

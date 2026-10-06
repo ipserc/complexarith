@@ -20,7 +20,7 @@ import java.util.function.IntPredicate;
  * (pure, mixed, or however it got there), so chaining more noise onto an already-noisy ancilla
  * changes nothing about the argument.
  */
-public class ScratchNoisyDeutschJozsaChainAudit01 {
+public class ScratchQuantum_NoisyDeutschJozsaChainAudit01 {
 
 	static int ok = 0, fail = 0;
 

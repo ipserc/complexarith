@@ -13,7 +13,7 @@ import com.ipserc.arith.quantum.Qubits;
  * simulateChsh() -- candidate "generalizar BellTest a n qubits" of the Rol Fisica/Mecanica
  * Cuantica roadmap.
  */
-public class ScratchBellTestNQubitAudit01 {
+public class ScratchQuantum_BellTestNQubitAudit01 {
 
 	static int ok = 0, fail = 0;
 

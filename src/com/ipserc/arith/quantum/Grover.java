@@ -95,7 +95,7 @@ public final class Grover {
 	 * The optimal number of Grover iterations for a single marked item among {@code N=2^n}, {@code
 	 * floor(pi/4 * sqrt(N))} -- past this point the target's measurement probability starts
 	 * shrinking again ("over-rotation"), verified numerically (not just by this formula) in {@code
-	 * ScratchGroverAudit01}.
+	 * ScratchQuantum_GroverAudit01}.
 	 * @param n The number of qubits, must be at least 1.
 	 * @return The optimal iteration count, at least {@code 1} for any {@code n>=1}.
 	 */

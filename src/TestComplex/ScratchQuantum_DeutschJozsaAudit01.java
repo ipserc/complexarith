@@ -11,7 +11,7 @@ import com.ipserc.arith.quantum.Qubits;
  * cuantico mas grande" follow-up of the Rol Fisica/Mecanica Cuantica, after the 7-candidate
  * roadmap catalogued at the close of the Trigesimosexta sesion was closed.
  */
-public class ScratchDeutschJozsaAudit01 {
+public class ScratchQuantum_DeutschJozsaAudit01 {
 
 	static int ok = 0, fail = 0;
 

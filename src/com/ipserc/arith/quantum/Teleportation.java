@@ -45,7 +45,7 @@ public final class Teleportation {
 	 * The Born-rule probability of Alice measuring the classical outcome {@code (m1,m2)} on qubits
 	 * 0/1 -- the sum of squared moduli of the 2 (qubit-2) amplitudes of {@link #circuitState} whose
 	 * index matches {@code (m1,m2)}. A hallmark of teleportation, verified in {@code
-	 * ScratchTeleportationAudit01}: this comes out exactly {@code 0.25} for all 4 outcomes,
+	 * ScratchQuantum_TeleportationAudit01}: this comes out exactly {@code 0.25} for all 4 outcomes,
 	 * regardless of {@code psi} -- Alice's measurement carries no information about {@code psi}
 	 * itself, only the (uniformly random) classical bits Bob needs for his correction.
 	 * @param psi Alice's qubit to teleport.
@@ -76,7 +76,7 @@ public final class Teleportation {
 	 * @return Bob's corrected qubit, normalized -- EXACTLY equal to {@code psi} (not just up to a
 	 * global phase: the amplitude ratio extracted per branch from {@link #circuitState} is always
 	 * {@code psi}'s own ratio scaled by a positive real factor, so normalizing preserves the exact
-	 * phase), verified in {@code ScratchTeleportationAudit01}.
+	 * phase), verified in {@code ScratchQuantum_TeleportationAudit01}.
 	 */
 	public static MatrixComplex correctedStateForOutcome(MatrixComplex psi, int m1, int m2) {
 		MatrixComplex state = circuitState(psi);

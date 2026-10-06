@@ -7,7 +7,7 @@ import com.ipserc.arith.quantum.Grover;
  * Audit of Grover.java (oracle()/diffusion()/run()/search()) -- third "algoritmo cuantico mas
  * grande" follow-up of the Rol Fisica/Mecanica Cuantica, after DeutschJozsa/BernsteinVazirani.
  */
-public class ScratchGroverAudit01 {
+public class ScratchQuantum_GroverAudit01 {
 
 	static int ok = 0, fail = 0;
 

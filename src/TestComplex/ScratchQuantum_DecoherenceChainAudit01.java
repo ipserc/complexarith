@@ -24,7 +24,7 @@ import com.ipserc.arith.quantum.Qubits;
  * -- but amplitudeDamping does NOT commute with bitFlip (confirmed numerically, no such algebraic
  * cancellation applies).
  */
-public class ScratchDecoherenceChainAudit01 {
+public class ScratchQuantum_DecoherenceChainAudit01 {
 
 	static int ok = 0, fail = 0;
 

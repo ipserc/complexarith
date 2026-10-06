@@ -37,7 +37,7 @@ public final class Decoherence {
 	 * Qubits#operatorOnQubit(MatrixComplex, int, int)} (identity on every other qubit, so the
 	 * channel acts locally on {@code qubitIndex} alone). Trace-preserving whenever {@code kraus}
 	 * satisfies the completeness relation {@code sum_k E_k^dagger*E_k = I} -- true by construction
-	 * for every channel factory in this class (verified in {@code ScratchDecoherenceAudit01}), but
+	 * for every channel factory in this class (verified in {@code ScratchQuantum_DecoherenceAudit01}), but
 	 * not re-checked here on every call for a caller-supplied {@code kraus} array (would be
 	 * redundant work on a hot path; the completeness relation is a one-time property of the
 	 * channel, not of each state it's applied to).
@@ -64,7 +64,7 @@ public final class Decoherence {
 	 * channel_1(channel_0(rho))...)}, {@code channels[i]} acting on qubit {@code qubitIndices[i]}.
 	 * The channels can be repeats of the same family (e.g. 2 independent bit-flip events on the
 	 * same qubit -- NOT the same as one bit-flip with a combined probability, see {@code
-	 * ScratchDecoherenceChainAudit01} for the exact combination formula), different families on the
+	 * ScratchQuantum_DecoherenceChainAudit01} for the exact combination formula), different families on the
 	 * same qubit, or the same/different families on different qubits -- all physically meaningful
 	 * ("a qubit sits in a noisy environment for a while, and multiple distinct noise processes act
 	 * on it/its neighbours over that time"). A composition of trace-preserving channels is itself
@@ -75,7 +75,7 @@ public final class Decoherence {
 	 * same qubit is NOT the same channel as the reverse order; but some pairs DO commute regardless
 	 * of order -- e.g. {@link #bitFlip(double)}/{@link #phaseFlip(double)} with each other, or either
 	 * with {@link #amplitudeDamping(double)} paired with {@link #phaseFlip(double)} -- see {@code
-	 * ScratchDecoherenceChainAudit01} for which pairs were actually checked, not assumed).
+	 * ScratchQuantum_DecoherenceChainAudit01} for which pairs were actually checked, not assumed).
 	 * @param rho The {@code 2^nQubits x 2^nQubits} density matrix to start from.
 	 * @param nQubits The total number of qubits {@code rho} represents.
 	 * @param channels The Kraus operators of each channel in the chain, applied in array order
@@ -150,7 +150,7 @@ public final class Decoherence {
 	 * sqrt(p/4)*Z}} (Nielsen &amp; Chuang's standard single-qubit form).
 	 * @param p The depolarizing probability, in {@code [0,1]} (at {@code p=1} the qubit becomes
 	 * exactly {@code I/2}, the maximally mixed state -- verified in {@code
-	 * ScratchDecoherenceAudit01} for several input states, not just algebraically).
+	 * ScratchQuantum_DecoherenceAudit01} for several input states, not just algebraically).
 	 * @return The 4 Kraus operators of the channel.
 	 * @throws IllegalArgumentException if {@code p} is outside {@code [0,1]}.
 	 */
@@ -175,7 +175,7 @@ public final class Decoherence {
 	 * {@code |0><->|1>}: {@code |0>} is a fixed point ({@code E0|0>=|0>}, {@code E1|0>=0}), only
 	 * {@code |1>} decays.
 	 * @param gamma The decay probability, in {@code [0,1]} (at {@code gamma=1}, {@code |1><1|}
-	 * decays to exactly {@code |0><0|} -- verified in {@code ScratchDecoherenceAudit01}).
+	 * decays to exactly {@code |0><0|} -- verified in {@code ScratchQuantum_DecoherenceAudit01}).
 	 * @return The 2 Kraus operators of the channel.
 	 * @throws IllegalArgumentException if {@code gamma} is outside {@code [0,1]}.
 	 */

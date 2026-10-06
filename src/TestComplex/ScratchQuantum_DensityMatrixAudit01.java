@@ -10,7 +10,7 @@ import com.ipserc.arith.quantum.Qubits;
  * parcial + entropía de von Neumann): {@code of()}, {@code partialTrace()}, {@code
  * vonNeumannEntropy()}.
  */
-public class ScratchDensityMatrixAudit01 {
+public class ScratchQuantum_DensityMatrixAudit01 {
 
 	static int ok = 0;
 	static int total = 0;

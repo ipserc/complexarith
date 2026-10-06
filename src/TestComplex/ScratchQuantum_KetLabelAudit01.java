@@ -2,7 +2,7 @@ package TestComplex;
 
 import com.ipserc.arith.quantum.Qubits;
 
-public class ScratchKetLabelAudit01 {
+public class ScratchQuantum_KetLabelAudit01 {
 	public static void main(String[] args) {
 		System.out.println(Qubits.ketLabel(Qubits.ket0()) + " (esperado |0>)");
 		System.out.println(Qubits.ketLabel(Qubits.ket1()) + " (esperado |1>)");

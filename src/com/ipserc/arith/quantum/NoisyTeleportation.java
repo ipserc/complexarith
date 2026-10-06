@@ -75,7 +75,7 @@ public final class NoisyTeleportation {
 	 * applied to qubit {@code noisyQubit} -- {@code Tr(rho*P_(m1,m2))}, {@code rho} from {@link
 	 * #circuitDensityMatrix(MatrixComplex, MatrixComplex[], int)}. Unlike the noiseless {@link
 	 * Teleportation#probabilityOfOutcome} (implicit, always exactly {@code 0.25}), noise CAN skew
-	 * these away from uniform -- verified NOT to in {@code ScratchNoisyTeleportationAudit01} for
+	 * these away from uniform -- verified NOT to in {@code ScratchQuantum_NoisyTeleportationAudit01} for
 	 * every channel family this package provides (they all commute with the Bell-pair symmetry that
 	 * makes Alice's outcome probabilities uniform in the noiseless case), but the API doesn't assume
 	 * that in general.

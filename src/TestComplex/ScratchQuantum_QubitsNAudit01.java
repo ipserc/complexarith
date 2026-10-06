@@ -8,7 +8,7 @@ import com.ipserc.arith.quantum.Qubits;
  * Verification for the n-qubit basics added to {@code Qubits} (Rol Física/Mecánica Cuántica,
  * generalización a n qubits): {@code ket(int...)}, {@code ghz(int)}, {@code operatorOnQubit}.
  */
-public class ScratchQubitsNAudit01 {
+public class ScratchQuantum_QubitsNAudit01 {
 
 	static int ok = 0;
 	static int total = 0;

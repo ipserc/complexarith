@@ -2,7 +2,7 @@ package TestComplex;
 
 import com.ipserc.arith.quantum.Qubits;
 
-public class ScratchQubitLabelAudit01 {
+public class ScratchQuantum_QubitLabelAudit01 {
 
 	public static void main(String[] args) {
 		// ket -> mismo resultado que ketLabel()

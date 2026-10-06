@@ -83,7 +83,7 @@ public final class NoisyDeutschJozsa {
 	 * ancilla).
 	 * @return The probability, in {@code [0,1]} -- EXACTLY {@code 1}/{@code 0} for a constant/
 	 * balanced {@code f} with a no-op channel (matching {@link DeutschJozsa} exactly). WHERE noise
-	 * matters is asymmetric and non-obvious, verified in {@code ScratchNoisyDeutschJozsaAudit01}
+	 * matters is asymmetric and non-obvious, verified in {@code ScratchQuantum_NoisyDeutschJozsaAudit01}
 	 * rather than assumed: noise on the ANCILLA ({@code noisyQubit=n}) never moves this probability
 	 * at all for a CONSTANT {@code f} (stays EXACTLY {@code 1} under any channel, any strength -- a
 	 * constant {@code f} never entangles the ancilla with the input register, so the final {@code

@@ -18,7 +18,7 @@ import com.ipserc.arith.quantum.NoisyBernsteinVazirani;
  * probability go" question (check 3) are new findings specific to this class, confirmed
  * numerically before being written down as assertions here.
  */
-public class ScratchNoisyBernsteinVaziraniAudit01 {
+public class ScratchQuantum_NoisyBernsteinVaziraniAudit01 {
 
 	static int ok = 0, fail = 0;
 
