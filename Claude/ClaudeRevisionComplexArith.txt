@@ -12256,3 +12256,6 @@ Punto de retomada: el refactor de nombres (Test*/Scratch* -> TestQuantum_*/Scrat
 #	07/10/2026 DIA 22 -
 #
 ========================================================================================================================================
+No, solo los tests y scratch por ahora, nada más
+
+[Confirmado el cierre del refactor con el alcance ya completado. ComplexArithRev.md sección "Cuadragesimoctava sesión" marcada CERRADA Y PUSHEADA. Memoria actualizada (complexarith_continuity_doc, complexarith_quantum_package_notes, MEMORY.md).]

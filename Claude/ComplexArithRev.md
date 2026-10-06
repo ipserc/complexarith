@@ -5104,7 +5104,7 @@ tocado ni decidido.
 
 ---
 
-## Cuadragesimoctava sesión (6-7 octubre 2026) — refactorización de nombres en `quantum`, EN CURSO
+## Cuadragesimoctava sesión (6-7 octubre 2026) — refactorización de nombres en `quantum`, CERRADA Y PUSHEADA
 
 Arrancada recuperando contexto (confirmado `HEAD==origin/master==5514512`, con 1 commit local sin
 pushear arrastrado: el log crudo de la Cuadragesimoséptima sesión, que se había quedado sin subir
@@ -5156,15 +5156,14 @@ a media sesión (pusheado), sesión EN CURSO, parada a petición del usuario con
    y no generar ningún `.class` — hay que usar la ruta absoluta estilo Windows del scratchpad
    (`C:\cygwin64\tmp\...`) o una ruta relativa.
 
-**Punto de retomada EXACTO**: el usuario paró la sesión justo tras cerrar el refactor de
-`Scratch*`→`ScratchQuantum_*` (commit `93879f0`, pusheado). La refactorización de nombres de
-`quantum` que el usuario planteó como objetivo de la sesión queda, en principio, COMPLETA para
-`src/TestComplex/` (9 `Test*` + 22 `Scratch*`, todos con el prefijo correcto) — pero no se le ha
-preguntado explícitamente si hay más alcance previsto (p.ej. nombres de clase dentro del propio
-paquete `com.ipserc.arith.quantum`, o los ficheros de `quantum_doc/`). Confirmar con el usuario si
-el refactor se da por cerrado o si queda algo más antes de pasar a otra cosa. El candidato
-Hong-Ou-Mandel (`[[complexarith_quantum_hom_candidate]]`) sigue abierto y aplazado, sin tocar esta
-sesión.
+6. **Alcance confirmado por el usuario**: preguntado explícitamente si el refactor se extendía a
+   nombres de clase dentro del propio paquete `com.ipserc.arith.quantum` o a `quantum_doc/`, el
+   usuario confirmó que NO — "solo los tests y scratch por ahora, nada más". Refactorización
+   DADA POR CERRADA con el alcance ya completado (9 `Test*` + 22 `Scratch*`, todos con el prefijo
+   correcto, commits `3995c90`/`93879f0`/`f58b152`, pusheados).
+
+**Sin punto de retomada de trabajo en curso.** El candidato Hong-Ou-Mandel
+(`[[complexarith_quantum_hom_candidate]]`) sigue abierto y aplazado, sin tocar esta sesión.
 
 ---
 
