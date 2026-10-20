@@ -65,7 +65,7 @@ public class TestQuantum_BeamSplitter01 {
 		// semiespejo, para varios valores de k -- demuestra que el puerto de salida depende del
 		// desfase, no es un 50/50 fijo como seria con monedas clasicas independientes.
 		Complex.printLineText(1, 90, "3. Desfase phaseGate(k) en un brazo + segundo semiespejo, para varios k.", true, false);
-		for (int k = 0; k <= 4; ++k) {
+		for (int k = 0; k <= 5; ++k) {
 			double phi = 2.0 * Math.PI / Math.pow(2, k);
 			MatrixComplex trasDesfase = Qubits.phaseGate(k).times(trasPrimerSemiespejo);
 			MatrixComplex salida = Qubits.hadamard().times(trasDesfase);
@@ -76,16 +76,17 @@ public class TestQuantum_BeamSplitter01 {
 			probabilidadesEsperadas(phi);
 		}
 
-		// 4. Simular las medidas en los 2 casos extremos: k=0 (phi=2*pi==0, interferencia
+		// 4. Simular las medidas en todos los casos: k=0 (phi=2*pi==0, interferencia
 		// constructiva total en el puerto transmitido pese a los 2 semiespejos 50/50) y k=1
 		// (phi=pi, interferencia destructiva total en el puerto transmitido -- el foton sale
 		// SIEMPRE por el puerto reflejado).
-		Complex.printLineText(1, 90, "4. Simulacion de medidas (" + shots + " disparos) en los 2 casos extremos: k=0 y k=1.", true, false);
-		for (int k : new int[] { 0, 1 }) {
+		Complex.printLineText(1, 90, "4. Simulacion de medidas (" + shots + " disparos) en todos los casos.", true, false);
+		for (int k : new int[] { 0, 1, 2, 3, 4, 5 }) {
 			MatrixComplex salida = Qubits.hadamard().times(Qubits.phaseGate(k).times(trasPrimerSemiespejo));
 			int[] counts = Qubits.measure(salida, shots, random);
-			System.out.printf("  k=%d -> transmitido: %d (%.2f%%), reflejado: %d (%.2f%%)\n",
-					k, counts[0], 100.0 * counts[0] / shots, counts[1], 100.0 * counts[1] / shots);
+			double phi = 2.0 * Math.PI / Math.pow(2, k);
+			System.out.printf("  k=%d (phi = %1.4f)-> transmitido: %4d (%6.2f%%), reflejado: %4d (%6.2f%%)\n",
+					k, phi, counts[0], 100.0 * counts[0] / shots, counts[1], 100.0 * counts[1] / shots);
 		}
 
 		System.out.println("\n");
