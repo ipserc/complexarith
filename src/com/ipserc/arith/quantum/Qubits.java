@@ -22,8 +22,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.11 (2026_1003_1500)";
+	private final static String VERSION = "1.12 (2026_1021_0017)";
 	/* VERSION Release Note
+	 * 1.12 (2026_1021_0017)
+	 * bornSample(state,random) -- muestreo de Born extraido de measure() como helper
+	 * package-private, para reutilizarlo desde Fock.measure() (espacio de Fock, dimension no
+	 * potencia de 2) sin duplicar el bucle. Sin cambio de comportamiento en measure(): conserva
+	 * sus validaciones (columna, potencia de 2) y consume el Random exactamente igual.
 	 * 1.11 (2026_1003_1500)
 	 * bellPsiPlus()/bellPsiMinus() -- los otros 2 estados de la base de Bell, anticorrelacionados
 	 * en la base computacional (a diferencia de bellPhiPlus()), a peticion del usuario tras
@@ -592,6 +597,20 @@ public final class Qubits {
 		if ((nStates & (nStates - 1)) != 0) {
 			throw new IllegalArgumentException("measure() needs a power-of-2 number of basis states, got " + nStates);
 		}
+		return bornSample(state, random);
+	}
+
+	/**
+	 * Born-rule sampling shared by {@link #measure(MatrixComplex, Random)} and {@link
+	 * Fock#measure(MatrixComplex, Random)}: draws {@code random.nextDouble()} against the cumulative
+	 * distribution of {@code |amplitude|^2} over the rows of a column vector already validated by
+	 * the caller (each caller keeps its own shape checks -- power of 2 for qubits, any size for Fock).
+	 * @param state A ket, as a column vector.
+	 * @param random The source of randomness.
+	 * @return The 0-based index of the sampled basis state.
+	 */
+	static int bornSample(MatrixComplex state, Random random) {
+		int nStates = state.rows();
 		double r = random.nextDouble();
 		double cumulative = 0.0;
 		for (int i = 0; i < nStates; ++i) {
