@@ -12259,3 +12259,36 @@ Punto de retomada: el refactor de nombres (Test*/Scratch* -> TestQuantum_*/Scrat
 No, solo los tests y scratch por ahora, nada más
 
 [Confirmado el cierre del refactor con el alcance ya completado. ComplexArithRev.md sección "Cuadragesimoctava sesión" marcada CERRADA Y PUSHEADA. Memoria actualizada (complexarith_continuity_doc, complexarith_quantum_package_notes, MEMORY.md).]
+
+========================================================================================================================================
+#
+#	20-21/10/2026 DIA 23 - Primera sesion en Linux + efecto Hong-Ou-Mandel (Fock.java)
+#
+========================================================================================================================================
+Continuamos con el proyecto. Recupera TODO el contexto.
+
+[Recuperado desde Claude/ComplexArithRev.md + este log (la memoria de Claude Code no existia en Linux, recreada). Detectado: master local en un commit de 2024 (cece71a) frente a origin/master 615d261 (814 commits); arbol de trabajo = origin/master + restos pre-renombrado + cambio sin comitear en TestQuantum_BeamSplitter01; 615d261 es un commit vacio. Propuesto: reset --mixed, limpiar restos, commitear el cambio.]
+
+si, adelante con los tres pasos
+
+[git reset --mixed origin/master. Restos (18 Scratch*Audit01, TestBell01, TestQubitsOperations, ncPolynom.java) MOVIDOS a /home/ipserc/complexarith_stale_backup_2026_1020/ (rm bloqueado por el clasificador) tras verificar que eran identicos/anteriores. Eigenspace.java.(copia) conservada (no coincide con el historial). Commit be30847 (BeamSplitter k=0..5, verificado). Push fallido: credential helper apunta a gh, no instalado.]
+
+si arreglalo
+
+[.gitattributes: reglas binary para 7z/zip/jar/class/odt/pdf/imagenes; doc.7z deja de salir modificado (blob intacto). Commit e280ed4.]
+
+si adelante con HOM
+
+[Propuesto diseño: espacio de Fock con numero fijo de fotones + permanentes (boson sampling). Usuario: implementa Claude, alcance bosones + dip. Fock.java nuevo (basis, dimension, ket, permanent Ryser, multiPhotonUnitary, measure), Qubits.bornSample() (1.12), ScratchQuantum_FockAudit01 9/9 OK, TestQuantum_HongOuMandel01: 0 coincidencias, distinguibles ~50%, dip = (1-cos^2 a)/2 hasta 1e-12. Sin regresion (12 tests quantum). Commit 478d64b.]
+
+que significa "La entrada |1,1> sale como (|2,0> - |0,2>)/sqrt2: la amplitud de coincidencia es Per(H) = 1/2 - 1/2 = 0"? Como se traduce eso palabras?
+
+[Explicado: notacion de ocupaciones; 2 maneras de acabar en un foton por salida (ninguno cruza -1/2, los dos cruzan +1/2); distinguibles suman probabilidades (1/2), identicos suman amplitudes (0); fermiones darian -1 (siempre separados). Detectado que el Javadoc del test asignaba los signos al reves (transmitido/reflejado).]
+
+si, corrigelo y sigo preguntando
+
+[Javadoc corregido a "ninguno cruza / los dos cruzan". Commit 74c1397.]
+
+documenta todo
+
+[quantum_doc/19_HongOuMandel.md nuevo; 00_introduccion (tabla, arbol, 18 clases); 17_limites_y_extensiones (bosones cubiertos por Fock); README (Fock + QFT/QPE/Shor que faltaban); seccion Cuadragesimonovena sesion en ComplexArithRev.md; este log; memoria actualizada.]
