@@ -20,11 +20,15 @@ import com.ipserc.arith.quantum.Qubits;
  * clase {@link Fock}: el semiespejo actua sobre 2 fotones con {@code Phi_2(H)}, construido con
  * permanentes de submatrices de {@code H}.
  * <p>
- * Por que salen juntos: la amplitud de "un foton en cada salida" es la suma de 2 caminos --
- * ambos transmitidos ({@code +1/2}) y ambos reflejados ({@code -1/2}, el signo del reflejo en un
- * puerto) -- que, al ser los fotones indistinguibles, se SUMAN como amplitudes y se cancelan:
- * {@code Per(H) = 1/2 - 1/2 = 0}. Si los fotones se pueden distinguir (por ejemplo, llegan con un
- * retardo), los 2 caminos dejan de interferir y la cancelacion desaparece: el "dip" de HOM.
+ * Por que salen juntos: hay 2 maneras de acabar con "un foton en cada salida" -- NINGUNO cruza
+ * (a sale por a, b sale por b: {@code H[a<-a]*H[b<-b] = (1/sqrt2)*(-1/sqrt2) = -1/2}, el {@code -1}
+ * de {@code H} esta en {@code b->b}) y LOS DOS cruzan (a sale por b, b sale por a: {@code
+ * H[b<-a]*H[a<-b] = +1/2}). Con fotones distinguibles se suman sus PROBABILIDADES ({@code 1/4 +
+ * 1/4 = 1/2}, el 50% clasico); con fotones identicos no hay forma, ni en principio, de saber cual
+ * de las 2 maneras ocurrio, asi que se suman sus AMPLITUDES y se cancelan: {@code Per(H) = -1/2 +
+ * 1/2 = 0}. Si los fotones se pueden distinguir parcialmente (por ejemplo, llegan con un retardo),
+ * las 2 maneras dejan de interferir del todo y la cancelacion desaparece gradualmente: el "dip" de
+ * HOM.
  */
 public class TestQuantum_HongOuMandel01 {
 
