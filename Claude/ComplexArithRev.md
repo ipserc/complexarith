@@ -5169,7 +5169,7 @@ a media sesión (pusheado), sesión EN CURSO, parada a petición del usuario con
 
 ---
 
-## Cuadragesimonovena sesión (20-21 octubre 2026) — migración a Linux + efecto Hong-Ou-Mandel (`Fock.java`), CERRADA, commits locales SIN PUSHEAR (credenciales)
+## Cuadragesimonovena sesión (20-21 octubre 2026) — migración a Linux + efecto Hong-Ou-Mandel (`Fock.java`), CERRADA Y PUSHEADA
 
 **Primera sesión en Linux.** Hasta la 48 todo se hizo en Windows (`C:\Users\josel\workspace-eclipse\complexarith_github`,
 Git Bash/cygwin). Ahora el repo vive en `/home/ipserc/eclipse-workspace/complexarith_github`. Lo que en
@@ -5318,8 +5318,10 @@ aceptar DSA en 2022; `Permission denied (publickey)`). Opciones para el usuario:
 gh && gh auth login`; (b) `ssh-keygen -t ed25519`, añadir la clave pública en GitHub y cambiar el remoto
 a `git@github.com:ipserc/complexarith.git`. Hasta entonces todos los commits de esta sesión están solo en local.
 
+> **Resuelto al cierre (21 oct 2026):** el usuario instaló `gh` (2.4.0) e hizo `gh auth login` (navegador). El remoto sigue en HTTPS y el helper `gh auth git-credential` ya funciona: push hecho `615d261..7426f0d` y siguientes. La subida de la clave DSA falló (HTTP 422, GitHub no acepta `ssh-dss`) y no hace falta. Ojo: `gh` quedó con `git_protocol ssh`, lo que solo afecta a `gh repo clone`/`gh` y requeriría una clave ed25519; para este repo, HTTPS + gh basta.
+
 **SESIÓN CERRADA — punto de retomada EXACTO**:
-1. Hacer push de los commits locales en cuanto haya credenciales (comprobar con `git status -sb`).
+1. ~~Push~~ hecho al cierre. Al retomar: `git fetch; git status -sb`.
 2. Decisiones pendientes del usuario: `Eigenspace.java.(copia)`, `LICENSE.md`, el `.odt` con `:` en
    `Claude/Revisiones/`, `TestRoots.java.desktop` (solo CRLF), `Claude_Talks.txt` (nuevo, suyo), y borrar o
    no `/home/ipserc/complexarith_stale_backup_2026_1020/`.
