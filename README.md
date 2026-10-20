@@ -97,6 +97,14 @@ una medida física una matriz Hermítica, una puerta una matriz unitaria:
   búsqueda con ventaja cuadrática).
 - `NoisyTeleportation` / `NoisyDeutschJozsa` / `NoisyBernsteinVazirani` / `NoisyGrover` —
   combinaciones cruzadas de cada algoritmo/protocolo anterior con `Decoherence`.
+- `QFT` / `QPE` / `Shor` — la Transformada Cuántica de Fourier construida por puertas
+  elementales (verificada contra su fórmula literal), la estimación de fase cuántica sobre ella,
+  y el algoritmo de factorización de Shor que las culmina (QPE sobre `U_a|y> = |a·y mod N>` +
+  fracciones continuas + verificación clásica del orden).
+- `Fock` — espacio de Fock de `n` fotones idénticos en `m` modos (números de ocupación) y la
+  acción de cualquier red óptica lineal sobre él vía permanentes (fórmula del *boson sampling*):
+  la base para el efecto Hong-Ou-Mandel (2 fotones idénticos en un semiespejo salen siempre
+  juntos), que el modelo de un qubit por partícula —partículas distinguibles— no puede expresar.
 
 Guía de aprendizaje completa, en español y para un lector sin conocimientos previos de mecánica
 cuántica, en [`quantum_doc/`](quantum_doc/00_introduccion.md) — un documento por clase, con cada

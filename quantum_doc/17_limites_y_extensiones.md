@@ -61,8 +61,16 @@ es una posición física distinta, por tanto ya distinguible sin necesidad de
 (anti)simetrizar nada). Pero no basta para modelar partículas genuinamente
 idénticas: para eso hace falta (anti)simetrizar explícitamente el vector
 conjunto, o pasar a segunda cuantización (espacio de Fock, operadores de
-creación/aniquilación). Nada de eso existe hoy en
+creación/aniquilación). Cuando se escribió esta nota no existía nada de eso en
 `com.ipserc.arith.quantum`.
+
+> **Actualización (octubre 2026):** el caso **bosónico** ya está cubierto por
+> `Fock.java` (ver `19_HongOuMandel.md`): espacio de Fock de `n` fotones
+> idénticos en `m` modos (números de ocupación), con la acción de cualquier
+> red óptica lineal obtenida por permanentes. Es la vía "segunda
+> cuantización" de la pieza (b) de abajo, para bosones sin interacción. El
+> caso **fermiónico** (determinantes en vez de permanentes) sigue sin
+> implementar.
 
 ## 4. ¿Sería extensible en el futuro?
 
@@ -108,9 +116,9 @@ pero un candidato grande y aparte, no una extensión pequeña de
 |---|---|---|
 | Espín/polarización (dimensión finita fija, p.ej. 2D) | Sí, ya hecho | -- |
 | Espín general `2s+1` | No hay fábricas, pero el álgebra ya lo soporta | (a) esfuerzo moderado |
-| Partículas idénticas (fermión/bosón, `n` partículas) | No | (b) proyecto nuevo, coste factorial en `n` |
+| Partículas idénticas (fermión/bosón, `n` partículas) | Bosones: sí, `Fock.java` (oct. 2026). Fermiones: no | (b) fermiones: determinante en vez de permanente, extensión pequeña sobre `Fock` |
 | Posición/momento continuos | No (solo aproximable) | (c) aproximación por truncamiento, conexión con `com.ipserc.arith.signal` |
 
-Ninguno de los tres es un candidato en marcha -- quedan anotados aquí como
-posibles líneas futuras si el "Rol Física/Mecánica Cuántica" se retoma más
-adelante.
+De los tres, (b) se abordó en su parte bosónica con `Fock.java` (efecto
+Hong-Ou-Mandel, `19_HongOuMandel.md`); el resto queda anotado como posibles
+líneas futuras del "Rol Física/Mecánica Cuántica".
