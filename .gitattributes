@@ -1,1 +1,17 @@
 * text eol=lf
+
+# Binarios: sin conversion de fin de linea ni diff textual
+*.7z    binary
+*.zip   binary
+*.jar   binary
+*.class binary
+*.odt   binary
+*.ods   binary
+*.docx  binary
+*.xlsx  binary
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
