@@ -59,6 +59,8 @@ Preguntado explícitamente si el trabajo real (15 sesiones: auditorías de corre
 
 # ESTADO DE LA SESIÓN Y CONTINUACIÓN (leer esto primero al retomar)
 
+> **Al retomar (desde la sesión 49, octubre 2026): leer primero la ÚLTIMA sección de este documento** ("Cuadragesimonovena sesión" o posterior) — contiene el estado actual, el workflow en **Linux** (el proyecto ya no está en Windows: las recetas de CRLF/`sed`/cygwin de este bloque son históricas) y el punto exacto de retomada. Este bloque inicial se conserva como historia de las primeras sesiones.
+
 > Este bloque es un documento vivo de continuidad. Está escrito para que, si se retoma el trabajo en una sesión nueva sin memoria de esta conversación, se pueda reconstruir todo el contexto, las reglas acordadas y el estado exacto en el que se dejó el trabajo, sin tener que releer todo el historial de git ni redescubrir los mismos bugs.
 
 ## Dónde estamos
@@ -5167,7 +5169,7 @@ a media sesión (pusheado), sesión EN CURSO, parada a petición del usuario con
 
 ---
 
-## Cuadragesimonovena sesión (20-21 octubre 2026) — migración a Linux + efecto Hong-Ou-Mandel (`Fock.java`), commits locales SIN PUSHEAR
+## Cuadragesimonovena sesión (20-21 octubre 2026) — migración a Linux + efecto Hong-Ou-Mandel (`Fock.java`), CERRADA, commits locales SIN PUSHEAR (credenciales)
 
 **Primera sesión en Linux.** Hasta la 48 todo se hizo en Windows (`C:\Users\josel\workspace-eclipse\complexarith_github`,
 Git Bash/cygwin). Ahora el repo vive en `/home/ipserc/eclipse-workspace/complexarith_github`. Lo que en
@@ -5245,6 +5247,86 @@ locales; (2) decisión sobre `Eigenspace.java.(copia)`, `LICENSE.md`, el `.odt` 
 `Claude/Revisiones/` y el cambio solo-CRLF de `TestRoots.java.desktop`; (3) candidatos abiertos:
 caso fermiónico en `Fock` (determinante, antiagrupamiento), HOM en multipuerto (3 fotones en la DFT
 3x3), doble rendija (aplazado de antes). El usuario sigue haciendo preguntas de aprendizaje sobre HOM.
+
+### 4. Cierre de la sesión — reglas, workflow en Linux y errores cometidos (para no repetirlos)
+
+**Reglas vigentes confirmadas o aprendidas esta sesión** (además de todas las de sesiones anteriores):
+- Responder en español. Regla permanente de la sesión 39: si compila limpio, comitear los cambios del
+  usuario sin preguntar; si no compila, no comitear.
+- Antes de tocar código en una fase nueva: resumen breve y esperar confirmación. Para decisiones de
+  diseño reales (modo tutor o implementación directa, alcance), `AskUserQuestion` con la opción recomendada
+  primero — así se decidió HOM.
+- Subir `VERSION` (con release note en español) en cada clase tocada; **tomar la fecha con `date
+  +"%Y_%m%d_%H%M"` ANTES de escribirla**, no inventarla y corregirla después (pasó con `Fock` 1.0).
+- **Borrados: preferir mover a una carpeta de respaldo fuera del repo** (reversible) en vez de `rm`. El
+  clasificador de permisos de Claude Code bloquea `rm` de ficheros sin trackear (irreversible), y además
+  mover es lo correcto para material del usuario.
+- **Antes de borrar o mover un "resto", comprobar que su contenido existe en otro sitio** (versión
+  renombrada idéntica, o versión en el historial de git). Si no existe, NO tocarlo y preguntar.
+- No tocar ficheros sin trackear que no son de la tarea (`Claude_Talks.txt`, `LICENSE.md`, el `.odt`
+  duplicado, `Eigenspace.java.(copia)`) ni el cambio solo-CRLF de `TestRoots.java.desktop`.
+- Comitear por separado la documentación pública (`quantum_doc/`, `README.md`) y los logs de
+  continuidad (`Claude/`).
+- Al cerrar una sesión: sección en este documento + entrada "DIA N" en el log crudo + memoria de
+  Claude Code + commit + push.
+
+**Workflow de compilación y verificación en Linux** (sustituye las recetas de Windows de este documento):
+```bash
+cd /home/ipserc/eclipse-workspace/complexarith_github
+O=$(mktemp -d); cp -r classes/com $O/          # Chronometer y ComplexParser solo existen como bytecode
+find src/com -name '*.java' > $O/s.txt
+ls src/TestComplex/TestQuantum_*.java src/TestComplex/ScratchQuantum_*.java >> $O/s.txt
+javac -nowarn -encoding UTF-8 -cp "$O:classes" -d $O @$O/s.txt
+java -Djava.awt.headless=true -cp "$O:classes" TestComplex.ScratchQuantum_FockAudit01
+```
+Batería de regresión de `quantum` usada esta sesión (todas deben dar exit 0, sin `FAIL`):
+`TestQuantum_QubitMeasure01`, `_Bell01` (12/12), `_PhotonEntanglement01`, `_BeamSplitter01`, `_QFT01`,
+`_QPE01`, `_Shor01`, `_HongOuMandel01`, `ScratchQuantum_GroverAudit01` (9/9), `_TeleportationAudit01`
+(9/9), `_DensityMatrixAudit01` (18/18), `_QubitsNAudit01` (16/16), `_DecoherenceAudit01` (10/10),
+`_FockAudit01` (9/9). `TestQuantum_QFTBridge01` y `ScratchQuantum_BlochSphereAudit01` abren gráficos:
+no se ejecutan sin pantalla.
+
+**Comprobar el estado de git al retomar**: `git fetch` PRIMERO (en esta sesión `origin/master` avanzó
+mientras se comparaba), y para comparar disco con un commit cuando el índice no es de fiar usar
+`git archive <ref> | tar -x -C $T` + `diff -rq --strip-trailing-cr` — `git diff <ref>` con un índice
+desfasado da recuentos de borrados engañosos (los ficheros sin trackear aparecen como borrados).
+
+**Skills**: el proyecto no tiene skills propias de Claude Code; todo el procedimiento vive en este
+documento y en la memoria. No se ha creado ninguna.
+
+**Errores cometidos esta sesión** (todos detectados y corregidos antes de causar daño):
+1. **Signos mal etiquetados en un Javadoc de física** (`TestQuantum_HongOuMandel01`): "transmitido +½,
+   reflejado −½" cuando con la `H` del código es al revés. Corregido en `74c1397`. Lección: derivar las
+   etiquetas de los índices de la matriz concreta ("ninguno cruza / los dos cruzan"), no de la intuición
+   física.
+2. **Se propuso borrar `Eigenspace.java.(copia)` como "resto" sin haber comprobado su contenido**; al
+   comprobarlo resultó tener 111 líneas que no están en el historial. No se borró. Lección: la regla de
+   "comprobar antes de borrar" se aplica antes de PROPONER el borrado, no solo antes de ejecutarlo.
+3. **Intento de `rm`** de los restos, bloqueado por el clasificador; rehecho como `mv` a una carpeta de
+   respaldo. Lección: proponer directamente mover a respaldo.
+4. **Comparación inicial de git sin `git fetch`**: el primer análisis se hizo contra un `origin/master`
+   ya desfasado (el usuario había subido `615d261` desde otro sitio). Lección: `git fetch` antes de
+   diagnosticar el estado.
+5. **`VERSION` de `Fock` escrita con una fecha inventada** y corregida después con `sed`. Lección: `date`
+   primero.
+6. Menor: una edición con `sed` sobre la memoria no encajó con el patrón a la primera (la línea no
+   empezaba donde se suponía); verificar con `tail`/`grep` tras editar con `sed`.
+
+**Push**: NO hecho. El credential helper HTTPS de `~/.gitconfig` apunta a `/usr/bin/gh`, que no está
+instalado, y la única clave SSH (`~/.ssh/id_dsa_GitHub`, tipo `ssh-dss`) la rechaza GitHub (dejó de
+aceptar DSA en 2022; `Permission denied (publickey)`). Opciones para el usuario: (a) `sudo apt install
+gh && gh auth login`; (b) `ssh-keygen -t ed25519`, añadir la clave pública en GitHub y cambiar el remoto
+a `git@github.com:ipserc/complexarith.git`. Hasta entonces todos los commits de esta sesión están solo en local.
+
+**SESIÓN CERRADA — punto de retomada EXACTO**:
+1. Hacer push de los commits locales en cuanto haya credenciales (comprobar con `git status -sb`).
+2. Decisiones pendientes del usuario: `Eigenspace.java.(copia)`, `LICENSE.md`, el `.odt` con `:` en
+   `Claude/Revisiones/`, `TestRoots.java.desktop` (solo CRLF), `Claude_Talks.txt` (nuevo, suyo), y borrar o
+   no `/home/ipserc/complexarith_stale_backup_2026_1020/`.
+3. El usuario estaba haciendo preguntas de aprendizaje sobre HOM; continuar por ahí si quiere.
+4. Candidatos abiertos: fermiones en `Fock` (determinante: antiagrupamiento, 100 % de coincidencias), HOM en
+   multipuerto (3 fotones en la DFT 3x3), doble rendija (aplazado de antes), ampliar
+   `16_experimentos_guiados.md` con HOM (opcional).
 
 ---
 
