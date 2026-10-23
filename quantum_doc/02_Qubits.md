@@ -74,6 +74,25 @@ MatrixComplex plus = Qubits.hadamard().times(Qubits.ket0());
 // plus = [0.7071; 0.7071]  -- superposición equitativa
 ```
 
+### `phaseShift(phi)` y `phaseGate(k)`
+`phaseShift(phi)` = `diag(1, e^(i·phi))` -- deja `|0>` igual y multiplica
+`|1>` por la fase `e^(i·phi)`, para **cualquier ángulo real** `phi` (en
+radianes). Es el desfasador de un interferómetro: en
+`TestQuantum_BeamSplitter01` (Mach-Zehnder) el fotón sale por el puerto
+transmitido con probabilidad `cos²(phi/2)`, también para ángulos como
+`pi/sqrt(3)`. Difiere de la rotación `Rz(phi) = diag(e^(-i·phi/2),
+e^(i·phi/2))` solo en una fase global, que no se puede medir.
+
+`phaseGate(k)` es el caso particular de ángulo `2·pi/2^k` (`R_k`), el que
+usa la QFT: `k=1` da `Z`, `k=2` da `S`, `k=3` da `T`. El argumento `k` es
+un **índice** de esa familia, no un ángulo; para un ángulo arbitrario, usa
+`phaseShift`.
+
+```java
+MatrixComplex p = Qubits.phaseShift(Math.PI / Math.sqrt(3.0));
+// Qubits.phaseGate(2) es lo mismo que Qubits.phaseShift(Math.PI / 2)
+```
+
 ### `spinOperator(double theta)`
 `A(theta) = cos(theta)·Z + sin(theta)·X` -- una familia de medidas de
 espín/polarización, parametrizada por un ángulo. Es el operador de medida

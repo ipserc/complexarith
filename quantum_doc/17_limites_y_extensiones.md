@@ -68,9 +68,11 @@ creación/aniquilación). Cuando se escribió esta nota no existía nada de eso 
 > `Fock.java` (ver `19_HongOuMandel.md`): espacio de Fock de `n` fotones
 > idénticos en `m` modos (números de ocupación), con la acción de cualquier
 > red óptica lineal obtenida por permanentes. Es la vía "segunda
-> cuantización" de la pieza (b) de abajo, para bosones sin interacción. El
-> caso **fermiónico** (determinantes en vez de permanentes) sigue sin
-> implementar.
+> cuantización" de la pieza (b) de abajo, para bosones sin interacción.
+> Desde `Fock` 1.1 (octubre 2026) también el caso **fermiónico**
+> (determinantes en vez de permanentes, ocupaciones 0/1): antiagrupamiento en
+> el semiespejo, y con espín el singlete que se agrupa como un par de bosones
+> (`TestQuantum_HongOuMandelFermiones01`).
 
 ## 4. ¿Sería extensible en el futuro?
 
@@ -116,9 +118,9 @@ pero un candidato grande y aparte, no una extensión pequeña de
 |---|---|---|
 | Espín/polarización (dimensión finita fija, p.ej. 2D) | Sí, ya hecho | -- |
 | Espín general `2s+1` | No hay fábricas, pero el álgebra ya lo soporta | (a) esfuerzo moderado |
-| Partículas idénticas (fermión/bosón, `n` partículas) | Bosones: sí, `Fock.java` (oct. 2026). Fermiones: no | (b) fermiones: determinante en vez de permanente, extensión pequeña sobre `Fock` |
+| Partículas idénticas (fermión/bosón, `n` partículas) | Sí, `Fock.java` (oct. 2026): bosones (permanentes) y fermiones (determinantes), sin interacción | Interacción entre partículas (no modelada) |
 | Posición/momento continuos | No (solo aproximable) | (c) aproximación por truncamiento, conexión con `com.ipserc.arith.signal` |
 
-De los tres, (b) se abordó en su parte bosónica con `Fock.java` (efecto
+De los tres, (b) se abordó con `Fock.java`, para bosones y fermiones (efecto
 Hong-Ou-Mandel, `19_HongOuMandel.md`); el resto queda anotado como posibles
 líneas futuras del "Rol Física/Mecánica Cuántica".

@@ -36,7 +36,7 @@ proyecciones, operadores lineales) para anclar los conceptos nuevos.
 | `16_experimentos_guiados.md` | Recetario paso a paso: cómo volver a ejecutar (y modificar) los experimentos ya hechos, con los comandos exactos. |
 | `17_limites_y_extensiones.md` | Nota conceptual (sin clase Java asociada): qué partículas/grados de libertad puede representar este paquete hoy (espín en dimensión finita), cuáles no (grados de libertad continuos, estadística fermión/bosón de partículas idénticas), y cómo de extensible sería cada hueco en el futuro. |
 | `18_QFT.md` | `QFT.java` -- la Transformada Cuántica de Fourier, construida por puertas elementales y verificada contra su fórmula literal. |
-| `19_HongOuMandel.md` | `Fock.java` -- espacio de Fock de `n` fotones idénticos, permanentes, y el efecto Hong-Ou-Mandel (2 fotones en un semiespejo salen siempre juntos), incluido el "dip" por distinguibilidad parcial. |
+| `19_HongOuMandel.md` | `Fock.java` -- espacio de Fock de `n` partículas idénticas: fotones (permanentes) y fermiones (determinantes). El efecto Hong-Ou-Mandel (2 fotones en un semiespejo salen siempre juntos, 2 fermiones siempre separados), el "dip" por distinguibilidad parcial y el papel del espín (el singlete se agrupa). |
 
 ## Orden de lectura recomendado
 

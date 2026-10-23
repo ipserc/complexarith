@@ -1,4 +1,4 @@
-# `Fock.java` -- espacio de Fock y efecto Hong-Ou-Mandel
+# `Fock.java` -- espacio de Fock y efecto Hong-Ou-Mandel (bosones y fermiones)
 
 ## Qué es
 
@@ -103,9 +103,9 @@ varios fotones en el mismo modo (como `|2,0>`). Es la fórmula estándar del
 
 **Fermiones**: el mismo esquema con el **determinante** en vez del
 permanente (el intercambio de dos fermiones idénticos lleva signo `-`). En
-el semiespejo daría `-1/2 - 1/2 = -1`: dos fermiones idénticos saldrían
-**siempre separados** -- el principio de exclusión de Pauli visto en un
-semiespejo. No implementado (aplazado).
+el semiespejo da `-1/2 - 1/2 = -1`: dos fermiones idénticos salen
+**siempre separados**. Implementado en `Fock` 1.1, ver la sección "HOM con
+fermiones" más abajo.
 
 ## API de `Fock.java`
 
@@ -122,7 +122,12 @@ Clase de utilidades estática, mismo patrón que `Qubits`. Los estados son
 | `basisLabel(occ...)` | Etiqueta de Dirac, `"\|1,1>"`. |
 | `permanent(A)` | Permanente por la fórmula de Ryser, `O(2^n n^2)`. Calcular permanentes es #P-difícil (la raíz de la dificultad clásica del boson sampling): solo práctico para pocos fotones. |
 | `multiPhotonUnitary(U, n)` | `Phi_n(U)`. Para `n=1` devuelve `U`. Falla alto si `U` no es unitaria, y vuelve a comprobar la unitariedad del resultado. |
-| `measure(state, random)` / `measure(state, shots, random)` | Medida con detectores que cuentan fotones, regla de Born sobre la base de Fock. Comparte el muestreo con `Qubits.measure()` (vía el helper `Qubits.bornSample()`), sin su exigencia de dimensión potencia de 2. |
+| `measure(state, random)` / `measure(state, shots, random)` | Medida con detectores que cuentan fotones, regla de Born sobre la base de Fock. Comparte el muestreo con `Qubits.measure()` (vía el helper `Qubits.bornSample()`), sin su exigencia de dimensión potencia de 2. Sirve igual para estados fermiónicos. |
+| `fermionDimension(n, m)` | `C(m, n)`: estados de `n` fermiones en `m` modos (cada modo 0 o 1). Exige `n <= m` (Pauli). |
+| `fermionBasis(n, m)` | Vectores de ocupación 0/1, mismo orden lexicográfico descendente (`[1,1,0], [1,0,1], [0,1,1]`). |
+| `fermionIndexOf(occ...)` / `fermionKet(occ...)` | Posición en esa base / estado base. Falla alto ante una ocupación distinta de 0 o 1. `fermionKet(1,0,1)` es `a†_0 a†_2 \|0>`, con los modos ocupados en orden **ascendente**: los operadores de creación de fermiones anticonmutan, así que ese orden fija el signo de cada estado base. |
+| `determinant(A)` | Determinante por eliminación gaussiana con pivoteo parcial, `O(n^3)` (a diferencia del permanente, es fácil de calcular). |
+| `multiFermionUnitary(U, n)` | `Lambda_n(U)`: `<s\|Lambda_n(U)\|t> = det(U[s,t])` (filas = modos ocupados de `s`, columnas = los de `t`, ambos ascendentes; sin factoriales). Para `n=1` devuelve `U`. Mismas comprobaciones de unitariedad que `multiPhotonUnitary`. |
 
 Ejemplo mínimo (el núcleo de HOM en 3 líneas):
 
@@ -162,9 +167,69 @@ de los dos fotones (la componente temprana del fotón 2, de peso `cos²(α)`)
 interfiere y se cancela; la parte distinguible (la tardía) se comporta de
 forma clásica, con su 50 %.
 
+## HOM con fermiones: antiagrupamiento
+
+Con dos **fermiones** idénticos (electrones, por ejemplo) en el mismo
+semiespejo pasa lo contrario: salen **siempre separados**, uno por cada
+puerto.
+
+**Por qué.** Las dos maneras de acabar en coincidencia son las mismas
+(ninguno cruza `-1/2`, los dos cruzan `+1/2`), pero "los dos cruzan" es
+"ninguno cruza" con las dos partículas **intercambiadas**, y para fermiones
+el intercambio lleva un signo `-`:
+
+| Partículas | Cómo se combinan | Amplitud de coincidencia | P(coincidencia) |
+|---|---|---|---|
+| Bosones idénticos | permanente | `-1/2 + 1/2 = 0` | 0 (salen juntos) |
+| Distinguibles | se suman probabilidades | -- | `1/4 + 1/4 = 1/2` |
+| Fermiones idénticos | determinante | `-1/2 - 1/2 = -1` | 1 (salen separados) |
+
+El **principio de exclusión de Pauli** es el caso particular "los dos en la
+misma salida": `|2,0>` y `|0,2>` ni siquiera existen en el espacio de Fock
+fermiónico (cada modo tiene 0 o 1 partícula), así que con 2 fermiones en 2
+modos el único estado es `|1,1>`, y `Lambda_2(H)` es la matriz `1x1`
+`det(H) = -1`: `|1,1> -> -|1,1>`. Pauli no es una regla añadida: sale del
+mismo signo `-` del intercambio, que también explica que los fotones se
+agrupen.
+
+```java
+MatrixComplex salida = Fock.multiFermionUnitary(Qubits.hadamard(), 2).times(Fock.fermionKet(1, 1));
+// salida = -|1,1>: probabilidad de coincidencia 1
+```
+
+**El matiz del espín.** El antiagrupamiento total exige que los dos
+fermiones sean idénticos en **todo**, también en el espín. El signo `-`
+afecta a la función de onda completa (camino x espín). Se modela con 4
+modos (camino *a*/*b* x espín arriba/abajo, modo = 2·camino + espín) y el
+semiespejo `U = H (x) I_2`, que actúa solo sobre el camino:
+
+| Estado de espín de entrada | P(coincidencia) |
+|---|---|
+| mismo espín, `\|a↑, b↑>` | 1 (separados) |
+| triplete `m=0`, `(\|a↑,b↓> + \|a↓,b↑>)/√2` | 1 (separados) |
+| singlete, `(\|a↑,b↓> - \|a↓,b↑>)/√2` | **0: se agrupan como bosones** |
+
+En el singlete la parte de espín es antisimétrica, así que la parte de
+camino queda **simétrica**, y los dos electrones salen juntos (`|1,1,0,0>`
+o `|0,0,1,1>`: los dos por *a* con espines opuestos, o los dos por *b*).
+Pauli no prohíbe "dos electrones por la misma salida": prohíbe "dos
+electrones en el mismo estado **completo**".
+
+**El "pico" fermiónico**, espejo del dip: el electrón 1 entra por *a* con
+espín arriba, el 2 por *b* con espín `cos(α)|↑> + sin(α)|↓>`. El cálculo
+en Fock da
+
+```
+P(coincidencia) = (1 + cos²(α)) / 2
+```
+
+que baja de `1` (espines idénticos) a `1/2` (espines ortogonales,
+distinguibles). Con bosones el mismo barrido da `(1 - cos²(α))/2`, de `0`
+a `1/2`: dip para bosones, pico para fermiones.
+
 ## Verificación
 
-**`ScratchQuantum_FockAudit01`** (9/9 OK), cada comprobación contra un
+**`ScratchQuantum_FockAudit01`** (15/15 OK), cada comprobación contra un
 oráculo independiente del código:
 
 1. `basis`/`dimension`/`indexOf` coherentes para 7 combinaciones `(n, m)`.
@@ -176,6 +241,12 @@ oráculo independiente del código:
 7. `Phi_2(H)|1,1> == (|2,0> - |0,2>)/√2`.
 8. Rechazo de una `U` no unitaria.
 9. `measure()` sobre dimensión 3: nunca `|1,1>`, ~50/50 entre `|2,0>` y `|0,2>`.
+10. `fermionBasis`/`fermionDimension`/`fermionIndexOf` coherentes para 8 combinaciones `(n, m)` y orden `|1,1,0>, |1,0,1>, |0,1,1>`.
+11. Pauli: `fermionBasis(3,2)` y `fermionKet(2,0)` se rechazan.
+12. `determinant()` == suma literal con signo sobre permutaciones, `n=1..6`; matriz con dos filas iguales -> exactamente 0.
+13. `Lambda_1(U) == U` y homomorfismo `Lambda_n(UV) == Lambda_n(U)*Lambda_n(V)` (`n=2..3`, 4 modos).
+14. HOM fermiónico: `Lambda_2(H)|1,1> == -|1,1>`.
+15. Signo del intercambio: con `U = SWAP`, fermiones `|1,1> -> -|1,1>`, bosones `|1,1> -> +|1,1>`.
 
 **`TestQuantum_HongOuMandel01`** (demostración didáctica):
 
@@ -193,6 +264,13 @@ alfa/(pi/2)  solapamiento  P(coinc) Fock  formula (1-cos^2)/2  medido (3477 disp
    1,000        0,0000         0,5000            0,5000            1742 ( 50,10%)
 ```
 
+**`TestQuantum_HongOuMandelFermiones01`** (demostración didáctica):
+
+1. Base fermiónica de 2 en 2 (solo `|1,1>`), `Lambda_2(H) = det(H) = -1`, comparado con `Per(H) = 0`.
+2. 3477 disparos: **100 % de coincidencias** (lanza excepción si no).
+3. Con espín: mismo espín y triplete -> 100 %, singlete -> 0 %, mostrando el estado de salida de cada uno.
+4. Pico: 9 valores de `α`; la probabilidad calculada en Fock coincide con `(1+cos²(α))/2` hasta `1e-12` (lanza excepción si no).
+
 ## Para ejecutarlo
 
 Desde la raíz del proyecto (Linux; `classes/` aporta `Chronometer` y
@@ -202,15 +280,17 @@ Desde la raíz del proyecto (Linux; `classes/` aporta `Chronometer` y
 O=$(mktemp -d); cp -r classes/com $O/
 javac -nowarn -encoding UTF-8 -cp "$O:classes" -d $O \
   $(find src/com -name '*.java') \
-  src/TestComplex/ScratchQuantum_FockAudit01.java src/TestComplex/TestQuantum_HongOuMandel01.java
+  src/TestComplex/ScratchQuantum_FockAudit01.java src/TestComplex/TestQuantum_HongOuMandel01.java \
+  src/TestComplex/TestQuantum_HongOuMandelFermiones01.java
 java -cp "$O:classes" TestComplex.ScratchQuantum_FockAudit01
 java -cp "$O:classes" TestComplex.TestQuantum_HongOuMandel01
+java -cp "$O:classes" TestComplex.TestQuantum_HongOuMandelFermiones01
 ```
 
 ## Límites y extensiones posibles
 
-- **Fermiones** (determinante en vez de permanente): antiagrupamiento, 100 %
-  de coincidencias. Extensión pequeña sobre la misma estructura.
+- **Fermiones**: hechos (`Fock` 1.1). Sin interacción entre partículas: no
+  hay repulsión de Coulomb entre electrones, solo la estadística.
 - **Más fotones/modos**: `Fock` ya es general (`n` fotones, `m` modos), p.ej.
   HOM generalizado en un *multiport* (la DFT `3x3` como divisor de 3 vías ya
   se usa en el scratch). El coste crece con la dimensión `C(n+m-1, n)` y con
