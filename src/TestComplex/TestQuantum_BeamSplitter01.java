@@ -89,6 +89,25 @@ public class TestQuantum_BeamSplitter01 {
 					k, phi, counts[0], 100.0 * counts[0] / shots, counts[1], 100.0 * counts[1] / shots);
 		}
 
+		// 5. Desfases arbitrarios con phaseShift(phi): el desfase entre brazos es un angulo real
+		// cualquiera, no solo las fracciones diadicas 2*pi/2^k de phaseGate(k). Cada caso se
+		// compara contra la formula cerrada cos^2(phi/2).
+		Complex.printLineText(1, 90, "5. Desfase arbitrario phaseShift(phi) + segundo semiespejo, contra cos^2(phi/2).", true, false);
+		double[] angulos = { Math.PI / 3.0, 2.0 * Math.PI / 3.0, Math.PI / Math.sqrt(3.0), 1.0, Math.E, -Math.PI / 5.0 };
+		String[] nombres = { "pi/3", "2pi/3", "pi/sqrt(3)", "1 rad", "e rad", "-pi/5" };
+		int fallos = 0;
+		for (int i = 0; i < angulos.length; ++i) {
+			double phi = angulos[i];
+			MatrixComplex salida = Qubits.hadamard().times(Qubits.phaseShift(phi).times(trasPrimerSemiespejo));
+			double pTransmitido = Math.pow(salida.getItem(0, 0).abs(), 2);
+			double esperado = Math.pow(Math.cos(phi / 2.0), 2);
+			boolean ok = Math.abs(pTransmitido - esperado) < 1e-12;
+			if (!ok) ++fallos;
+			System.out.printf("  phi=%-10s (%8.5f rad): P(transmitido)=%.10f, cos^2(phi/2)=%.10f  %s\n",
+					nombres[i], phi, pTransmitido, esperado, ok ? "OK" : "FAIL");
+		}
+		System.out.println("  Desfases arbitrarios: " + (angulos.length - fallos) + " OK, " + fallos + " FAIL");
+
 		System.out.println("\n");
 	}
 }

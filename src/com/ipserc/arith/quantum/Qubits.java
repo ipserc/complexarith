@@ -22,8 +22,13 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.12 (2026_1021_0017)";
+	private final static String VERSION = "1.13 (2026_1024_0137)";
 	/* VERSION Release Note
+	 * 1.13 (2026_1024_0137)
+	 * phaseShift(phi) -- desfase general P(phi) = diag(1, e^(i*phi)) para cualquier angulo real,
+	 * a peticion del usuario ("no se puede girar un angulo de pi/sqrt(3)?"). phaseGate(k) pasa a
+	 * delegar en phaseShift(2*pi/2^k): mismo calculo, resultado bit a bit identico. Falla alto
+	 * ante phi NaN o infinito.
 	 * 1.12 (2026_1021_0017)
 	 * bornSample(state,random) -- muestreo de Born extraido de measure() como helper
 	 * package-private, para reutilizarlo desde Fock.measure() (espacio de Fock, dimension no
@@ -187,10 +192,26 @@ public final class Qubits {
 		if (k < 0) {
 			throw new IllegalArgumentException("phaseGate index k must be >= 0, got k=" + k);
 		}
-		double angle = 2.0 * Math.PI / Math.pow(2, k);
+		return phaseShift(2.0 * Math.PI / Math.pow(2, k));
+	}
+
+	/**
+	 * The general phase shift {@code P(phi) = diag(1, e^(i*phi))}, for any real angle {@code phi}
+	 * -- e.g. the relative phase between the 2 arms of a Mach-Zehnder interferometer. {@link
+	 * #phaseGate(int)} is the dyadic special case {@code R_k = P(2*pi/2^k)}. Differs from the
+	 * rotation {@code Rz(phi) = diag(e^(-i*phi/2), e^(i*phi/2))} only by a global phase.
+	 * @param phi The phase angle, in radians (any real value; {@code phi} and {@code phi+2*pi}
+	 * give the same gate up to rounding).
+	 * @return The 2x2 phase shift gate.
+	 * @throws IllegalArgumentException if {@code phi} is NaN or infinite.
+	 */
+	public static MatrixComplex phaseShift(double phi) {
+		if (Double.isNaN(phi) || Double.isInfinite(phi)) {
+			throw new IllegalArgumentException("phaseShift angle must be finite, got phi=" + phi);
+		}
 		MatrixComplex m = new MatrixComplex(2, 2);
 		m.setItem(0, 0, 1.0); m.setItem(0, 1, 0.0);
-		m.setItem(1, 0, 0.0); m.setItem(1, 1, new Complex(Math.cos(angle), Math.sin(angle)));
+		m.setItem(1, 0, 0.0); m.setItem(1, 1, new Complex(Math.cos(phi), Math.sin(phi)));
 		return m;
 	}
 
