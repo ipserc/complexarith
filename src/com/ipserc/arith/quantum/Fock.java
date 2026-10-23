@@ -28,12 +28,27 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  * matrix {@code Qubits} applies to a 1-photon path qubit). Its action on {@code n} photons is
  * obtained exactly -- no truncation, no operator exponential -- from permanents of submatrices of
  * {@code U} (the standard boson-sampling formula, see {@link #multiPhotonUnitary(MatrixComplex,
- * int)}). For fermions the same construction would use determinants instead; not implemented.
+ * int)}).
+ * <p>
+ * Fermions (electrons...) use the same construction with determinants instead of permanents --
+ * the {@code fermion*} methods and {@link #multiFermionUnitary(MatrixComplex, int)}. Their
+ * occupations are 0 or 1 (Pauli), so the space of {@code n} fermions in {@code m} modes has
+ * dimension {@code C(m, n)} and needs {@code n <= m}. A fermionic basis state {@code |n_1,...,n_m>}
+ * stands for {@code a}<sup>&#8224;</sup>{@code _i1 a}<sup>&#8224;</sup>{@code _i2 ... |0>} with
+ * the occupied modes in ASCENDING order {@code i1 < i2 < ...}: creation operators anticommute, so
+ * this ordering fixes the sign of every basis state.
  */
 public final class Fock {
 
-	private final static String VERSION = "1.0 (2026_1021_0017)";
+	private final static String VERSION = "1.1 (2026_1024_0138)";
 	/* VERSION Release Note
+	 * 1.1 (2026_1024_0138)
+	 * Fermiones, a peticion del usuario (candidato abierto desde la Cuadragesimonovena sesion):
+	 * fermionDimension (C(m,n)), fermionBasis/fermionIndexOf/fermionKet (ocupaciones 0/1, mismo
+	 * orden lexicografico descendente, modos ocupados en orden ascendente para fijar el signo),
+	 * determinant (eliminacion gaussiana con pivoteo parcial), y multiFermionUnitary(U,n) =
+	 * Lambda_n(U), la potencia exterior de U: <s|Lambda_n(U)|t> = det(U[s,t]), sin factoriales.
+	 * measure() sirve igual para estados fermionicos. Nada de lo bosonico cambia.
 	 * 1.0 (2026_1021_0017)
 	 * Primera version: base de numeros de ocupacion (basis, dimension, indexOf, ket, basisLabel),
 	 * permanente por la formula de Ryser, operador de n fotones Phi_n(U) a partir de la unitaria
@@ -235,11 +250,203 @@ public final class Fock {
 	}
 
 	/**
+	 * The dimension of the Fock space of {@code nFermions} identical fermions in {@code nModes}
+	 * modes, {@code C(nModes, nFermions)}: each mode holds 0 or 1 fermion (Pauli exclusion).
+	 * @param nFermions Number of fermions, between 1 and {@code nModes}.
+	 * @param nModes Number of modes, at least 1.
+	 * @return The number of occupation-number basis states.
+	 * @throws IllegalArgumentException if {@code nFermions < 1}, {@code nModes < 1} or {@code
+	 * nFermions > nModes}.
+	 */
+	public static int fermionDimension(int nFermions, int nModes) {
+		checkFermionSizes(nFermions, nModes, "fermionDimension");
+		long result = 1;
+		// C(m, n) as an incremental product: each partial product C(m-n+k, k) is an integer.
+		for (int k = 1; k <= nFermions; ++k) {
+			result = result * (nModes - nFermions + k) / k;
+		}
+		return (int) result;
+	}
+
+	/**
+	 * All occupation-number basis states of {@code nFermions} fermions in {@code nModes} modes
+	 * (occupations 0 or 1), in the canonical order used by every fermionic method of this class:
+	 * lexicographically descending, as in {@link #basis(int, int)} ({@code [1,1,0], [1,0,1],
+	 * [0,1,1]} for 2 fermions in 3 modes).
+	 * @param nFermions Number of fermions, between 1 and {@code nModes}.
+	 * @param nModes Number of modes, at least 1.
+	 * @return An array of {@link #fermionDimension(int, int)} occupation vectors.
+	 * @throws IllegalArgumentException if {@code nFermions < 1}, {@code nModes < 1} or {@code
+	 * nFermions > nModes}.
+	 */
+	public static int[][] fermionBasis(int nFermions, int nModes) {
+		checkFermionSizes(nFermions, nModes, "fermionBasis");
+		List<int[]> states = new ArrayList<>();
+		fillFermionBasis(new int[nModes], 0, nFermions, states);
+		return states.toArray(new int[0][]);
+	}
+
+	/** Recursive generator for {@link #fermionBasis(int, int)}: occupied (1) before empty (0). */
+	private static void fillFermionBasis(int[] current, int mode, int remaining, List<int[]> states) {
+		if (mode == current.length) {
+			if (remaining == 0) {
+				states.add(current.clone());
+			}
+			return;
+		}
+		if (remaining > 0) {
+			current[mode] = 1;
+			fillFermionBasis(current, mode + 1, remaining - 1, states);
+		}
+		if (current.length - mode - 1 >= remaining) {
+			current[mode] = 0;
+			fillFermionBasis(current, mode + 1, remaining, states);
+		}
+	}
+
+	/**
+	 * The position of a fermionic occupation vector in the canonical order of {@link
+	 * #fermionBasis(int, int)}.
+	 * @param occupations The occupation of each mode, each 0 or 1, at least one 1.
+	 * @return The 0-based basis index.
+	 * @throws IllegalArgumentException if an occupation is not 0 or 1, or all are 0.
+	 */
+	public static int fermionIndexOf(int... occupations) {
+		int nFermions = totalFermions(occupations, "fermionIndexOf");
+		int[][] basis = fermionBasis(nFermions, occupations.length);
+		for (int i = 0; i < basis.length; ++i) {
+			if (java.util.Arrays.equals(basis[i], occupations)) {
+				return i;
+			}
+		}
+		throw new IllegalStateException("fermionIndexOf(): occupation vector not found in its own basis (bug)");
+	}
+
+	/**
+	 * The fermionic Fock basis state {@code |n_1,...,n_m>} = {@code a}<sup>&#8224;</sup>{@code _i1
+	 * a}<sup>&#8224;</sup>{@code _i2 ... |0>} (occupied modes ascending), as a column vector over
+	 * {@link #fermionBasis(int, int)} with a single amplitude 1.
+	 * @param occupations The occupation of each mode, each 0 or 1, at least one 1.
+	 * @return The basis ket, a {@code fermionDimension x 1} column vector.
+	 * @throws IllegalArgumentException if an occupation is not 0 or 1, or all are 0.
+	 */
+	public static MatrixComplex fermionKet(int... occupations) {
+		int nFermions = totalFermions(occupations, "fermionKet");
+		MatrixComplex ket = new MatrixComplex(fermionDimension(nFermions, occupations.length), 1);
+		ket.setItem(fermionIndexOf(occupations), 0, 1.0);
+		return ket;
+	}
+
+	/**
+	 * The determinant of a square matrix, {@code det(A) = sum over permutations s of sign(s) prod_i
+	 * A[i][s(i)]} -- the quantity that encodes fermionic exchange antisymmetry, as {@link
+	 * #permanent(MatrixComplex)} encodes the bosonic one. Computed directly by Gaussian elimination
+	 * with partial pivoting (largest modulus), {@code O(n^3)}, on a private copy of the entries --
+	 * no rounding or tolerance heuristics, so an exactly singular matrix gives exactly 0.
+	 * @param a A square matrix.
+	 * @return {@code det(a)}; {@code 1} for a {@code 0x0} matrix (empty product).
+	 * @throws IllegalArgumentException if {@code a} is not square.
+	 */
+	public static Complex determinant(MatrixComplex a) {
+		int n = a.rows();
+		if (a.cols() != n) {
+			throw new IllegalArgumentException("determinant() needs a square matrix, got " + n + "x" + a.cols());
+		}
+		Complex[][] m = new Complex[n][n];
+		for (int i = 0; i < n; ++i) {
+			for (int j = 0; j < n; ++j) {
+				Complex x = a.getItem(i, j);
+				m[i][j] = new Complex(x.rep(), x.imp());
+			}
+		}
+		Complex det = new Complex(1.0, 0.0);
+		for (int col = 0; col < n; ++col) {
+			int pivot = col;
+			for (int i = col + 1; i < n; ++i) {
+				if (m[i][col].abs() > m[pivot][col].abs()) {
+					pivot = i;
+				}
+			}
+			if (m[pivot][col].abs() == 0.0) {
+				return new Complex(0.0, 0.0);
+			}
+			if (pivot != col) {
+				Complex[] tmp = m[pivot]; m[pivot] = m[col]; m[col] = tmp;
+				det = det.times(-1.0);
+			}
+			det = det.times(m[col][col]);
+			for (int i = col + 1; i < n; ++i) {
+				Complex factor = m[i][col].divides(m[col][col]);
+				for (int j = col + 1; j < n; ++j) {
+					m[i][j] = m[i][j].minus(factor.times(m[col][j]));
+				}
+			}
+		}
+		return det;
+	}
+
+	/**
+	 * The operator {@code Lambda_n(U)} by which a linear network with single-particle unitary
+	 * {@code U} acts on the Fock space of {@code nFermions} identical fermions:
+	 * <p>
+	 * {@code <s|Lambda_n(U)|t> = det(U[s,t])}
+	 * <p>
+	 * where {@code U[s,t]} is the {@code n x n} submatrix of {@code U} with the occupied modes of
+	 * {@code s} as rows and those of {@code t} as columns, both ascending. This is the {@code n}-th
+	 * exterior power of {@code U}: same convention {@code a}<sup>&#8224;</sup>{@code _j -> sum_i
+	 * U_ij a}<sup>&#8224;</sup>{@code _i} as {@link #multiPhotonUnitary(MatrixComplex, int)}, but
+	 * reordering anticommuting creation operators into ascending order contributes the sign of the
+	 * permutation, turning the permanent into a determinant; and there are no factorials because
+	 * every occupation is 0 or 1. For {@code nFermions=1} this is {@code U} itself. The result is
+	 * re-checked for unitarity before returning (fail-loud).
+	 * @param u The single-particle unitary, {@code m x m}.
+	 * @param nFermions Number of fermions, between 1 and {@code m}.
+	 * @return {@code Lambda_n(U)}, a {@code fermionDimension(n,m) x fermionDimension(n,m)} unitary
+	 * over {@link #fermionBasis(int, int)}.
+	 * @throws IllegalArgumentException if {@code u} is not square or not unitary, or {@code
+	 * nFermions} is out of range.
+	 * @throws IllegalStateException if the constructed operator is not unitary (internal bug).
+	 */
+	public static MatrixComplex multiFermionUnitary(MatrixComplex u, int nFermions) {
+		int nModes = u.rows();
+		if (u.cols() != nModes) {
+			throw new IllegalArgumentException("multiFermionUnitary() needs a square single-particle matrix, got "
+					+ nModes + "x" + u.cols());
+		}
+		if (!u.isUnitary()) {
+			throw new IllegalArgumentException("multiFermionUnitary() needs a unitary single-particle matrix");
+		}
+		int[][] basis = fermionBasis(nFermions, nModes);
+		int dim = basis.length;
+		int[][] modeLists = new int[dim][];
+		for (int k = 0; k < dim; ++k) {
+			modeLists[k] = repeatedModes(basis[k], nFermions);
+		}
+		MatrixComplex lambda = new MatrixComplex(dim, dim);
+		MatrixComplex sub = new MatrixComplex(nFermions, nFermions);
+		for (int s = 0; s < dim; ++s) {
+			for (int t = 0; t < dim; ++t) {
+				for (int i = 0; i < nFermions; ++i) {
+					for (int j = 0; j < nFermions; ++j) {
+						sub.setItem(i, j, u.getItem(modeLists[s][i], modeLists[t][j]));
+					}
+				}
+				lambda.setItem(s, t, determinant(sub));
+			}
+		}
+		if (!lambda.isUnitary()) {
+			throw new IllegalStateException("multiFermionUnitary(): Lambda_n(U) is not unitary (bug)");
+		}
+		return lambda;
+	}
+
+	/**
 	 * Simulates a single photon-number-resolving measurement of every mode: collapses {@code state}
 	 * to one Fock basis state with probability {@code |amplitude|^2} (Born rule). Same sampling as
 	 * {@link Qubits#measure(MatrixComplex, Random)}, without its power-of-2 requirement (a Fock
 	 * space has dimension {@code C(n+m-1, n)}, rarely a power of 2).
-	 * @param state A ket over {@link #basis(int, int)}, as a column vector.
+	 * @param state A ket over {@link #basis(int, int)} (or over {@link #fermionBasis(int, int)}
+	 * for fermions), as a column vector.
 	 * @param random The source of randomness -- pass a seeded {@link Random} for reproducible tests.
 	 * @return The 0-based index of the measured basis state (look it up in {@code basis(n, m)}).
 	 * @throws IllegalArgumentException if {@code state} is not a column vector.
@@ -306,6 +513,27 @@ public final class Fock {
 			throw new IllegalArgumentException(caller + "() needs at least 1 mode and 1 photon");
 		}
 		return total;
+	}
+
+	private static int totalFermions(int[] occupations, String caller) {
+		int total = 0;
+		for (int n : occupations) {
+			if (n != 0 && n != 1) {
+				throw new IllegalArgumentException(caller + "() needs fermionic occupations 0 or 1 (Pauli), got " + n);
+			}
+			total += n;
+		}
+		if (occupations.length < 1 || total < 1) {
+			throw new IllegalArgumentException(caller + "() needs at least 1 mode and 1 fermion");
+		}
+		return total;
+	}
+
+	private static void checkFermionSizes(int nFermions, int nModes, String caller) {
+		if (nFermions < 1 || nModes < 1 || nFermions > nModes) {
+			throw new IllegalArgumentException(caller + "() needs 1 <= nFermions <= nModes (Pauli), got "
+					+ nFermions + ", " + nModes);
+		}
 	}
 
 	private static void checkSizes(int nPhotons, int nModes, String caller) {

@@ -8,8 +8,8 @@ import com.ipserc.arith.quantum.Fock;
 import com.ipserc.arith.quantum.Qubits;
 
 /**
- * Audit of Fock.java (basis/dimension/permanent/multiPhotonUnitary/measure), built for the
- * Hong-Ou-Mandel effect (see Claude/ComplexArithRev.md, Cuadragesimonovena sesion). Every check
+ * Audit of Fock.java (basis/dimension/permanent/multiPhotonUnitary/measure, and since Fock 1.1 the
+ * fermionic side: fermionBasis/determinant/multiFermionUnitary), built for the Hong-Ou-Mandel effect (see Claude/ComplexArithRev.md, Cuadragesimonovena sesion). Every check
  * uses an oracle independent of the code under test: the literal sum-over-permutations definition
  * for the permanent, the group-homomorphism property for Phi_n(U), and the textbook HOM output
  * state worked out by hand.
@@ -109,6 +109,85 @@ public class ScratchQuantum_FockAudit01 {
 		check("measure(): |1,1> never measured after HOM, ~50/50 bunching",
 				counts[1] == 0 && Math.abs(counts[0] - shots / 2) < 4 * Math.sqrt(shots / 4.0));
 
+		// ---- Fermions (Fock 1.1) ----
+
+		// 10. fermionBasis(n,m): dimension C(m,n), occupations 0/1 summing to n, indexOf round-trip,
+		//     and the order [1,1,0],[1,0,1],[0,1,1] for 2 fermions in 3 modes.
+		boolean fBasisOk = true;
+		int[][] fermionDims = { { 1, 1, 1 }, { 1, 4, 4 }, { 2, 2, 1 }, { 2, 3, 3 }, { 2, 4, 6 }, { 3, 5, 10 }, { 3, 6, 20 }, { 4, 4, 1 } };
+		for (int[] c : fermionDims) {
+			int[][] b = Fock.fermionBasis(c[0], c[1]);
+			if (Fock.fermionDimension(c[0], c[1]) != c[2] || b.length != c[2]) { fBasisOk = false; }
+			for (int k = 0; k < b.length; ++k) {
+				int sum = 0;
+				for (int x : b[k]) { sum += x; if (x != 0 && x != 1) fBasisOk = false; }
+				if (sum != c[0] || Fock.fermionIndexOf(b[k]) != k) { fBasisOk = false; }
+			}
+		}
+		int[][] f23 = Fock.fermionBasis(2, 3);
+		fBasisOk &= Fock.basisLabel(f23[0]).equals("|1,1,0>") && Fock.basisLabel(f23[1]).equals("|1,0,1>")
+				&& Fock.basisLabel(f23[2]).equals("|0,1,1>");
+		check("fermionBasis(n,m): dimension C(m,n), 0/1 occupations, order, fermionIndexOf round-trip", fBasisOk);
+
+		// 11. Pauli: more fermions than modes, or an occupation 2, is rejected.
+		boolean pauliOk = false, occOk = false;
+		try { Fock.fermionBasis(3, 2); } catch (IllegalArgumentException e) { pauliOk = true; }
+		try { Fock.fermionKet(2, 0); } catch (IllegalArgumentException e) { occOk = true; }
+		check("Pauli: fermionBasis(3,2) and fermionKet(2,0) rejected", pauliOk && occOk);
+
+		// 12. determinant() == literal signed sum over permutations, random complex nxn, n=1..6,
+		//     plus an exactly singular matrix (two equal rows) -> 0.
+		boolean detOk = true;
+		for (int n = 1; n <= 6; ++n) {
+			for (int trial = 0; trial < 5; ++trial) {
+				MatrixComplex a = new MatrixComplex(n, n);
+				for (int i = 0; i < n; ++i) for (int j = 0; j < n; ++j)
+					a.setItem(i, j, new Complex(rnd.nextGaussian(), rnd.nextGaussian()));
+				Complex gauss = Fock.determinant(a);
+				Complex brute = bruteDeterminant(a, 0, new boolean[n], new int[n]);
+				if (gauss.minus(brute).abs() > 1e-9 * Math.max(1.0, brute.abs())) { detOk = false; }
+			}
+		}
+		MatrixComplex singular = new MatrixComplex(3, 3);
+		for (int j = 0; j < 3; ++j) {
+			singular.setItem(0, j, new Complex(j + 1.0, 0.5));
+			singular.setItem(1, j, new Complex(j + 1.0, 0.5));
+			singular.setItem(2, j, new Complex(-j, 2.0));
+		}
+		detOk &= Fock.determinant(singular).abs() == 0.0;
+		check("determinant() (Gauss) == signed sum over permutations, n=1..6; equal rows -> 0", detOk);
+
+		// 13. Lambda_1(U) == U and homomorphism Lambda_n(UV) == Lambda_n(U) Lambda_n(V), 4 modes
+		//     (DFT 4x4 dressed with phases), n=2..3.
+		MatrixComplex f4 = dft(4);
+		MatrixComplex d4 = new MatrixComplex(4, 4);
+		double[] ph = { 0.3, 1.1, -2.0, 0.7 };
+		for (int i = 0; i < 4; ++i) d4.setItem(i, i, new Complex(Math.cos(ph[i]), Math.sin(ph[i])));
+		MatrixComplex u4 = f4.times(d4), v4 = d4.times(f4).times(d4);
+		boolean fHomOk = Fock.multiFermionUnitary(f4, 1).equals(f4, 10);
+		for (int n = 2; n <= 3; ++n) {
+			MatrixComplex lhs = Fock.multiFermionUnitary(u4.times(v4), n);
+			MatrixComplex rhs = Fock.multiFermionUnitary(u4, n).times(Fock.multiFermionUnitary(v4, n));
+			if (lhs.minus(rhs).norm() > 1e-9) { fHomOk = false; }
+		}
+		check("Lambda_1(U) == U; Lambda_n(UV) == Lambda_n(U)*Lambda_n(V), n=2..3, 4 modes", fHomOk);
+
+		// 14. Fermionic HOM: Lambda_2(H)|1,1> == det(H)|1,1> == -|1,1> (only one basis state).
+		MatrixComplex fOut = Fock.multiFermionUnitary(Qubits.hadamard(), 2).times(Fock.fermionKet(1, 1));
+		check("fermionic HOM: Lambda_2(H)|1,1> == -|1,1>", fOut.rows() == 1
+				&& Math.abs(fOut.getItem(0, 0).rep() + 1.0) < 1e-12 && Math.abs(fOut.getItem(0, 0).imp()) < 1e-12);
+
+		// 15. Sign convention (anticommutation): swapping the order of 2 creation operators flips the
+		//     sign. Built by hand: a_1^+ a_0^+ |0> = -|1,1>, so applying U = SWAP (a_0 <-> a_1) to
+		//     |1,1> = a_0^+ a_1^+|0> gives a_1^+ a_0^+|0> = -|1,1>, i.e. det(SWAP) = -1; for bosons
+		//     Phi_2(SWAP)|1,1> = +|1,1>.
+		MatrixComplex swap = Qubits.pauliX();
+		MatrixComplex fSwap = Fock.multiFermionUnitary(swap, 2).times(Fock.fermionKet(1, 1));
+		MatrixComplex bSwap = Fock.multiPhotonUnitary(swap, 2).times(Fock.ket(1, 1));
+		check("exchange sign: fermions SWAP|1,1> == -|1,1>, bosons SWAP|1,1> == +|1,1>",
+				Math.abs(fSwap.getItem(0, 0).rep() + 1.0) < 1e-12
+				&& Math.abs(bSwap.getItem(Fock.indexOf(1, 1), 0).rep() - 1.0) < 1e-12);
+
 		System.out.println("\nScratchQuantum_FockAudit01: " + ok + " OK, " + fail + " FAIL");
 		if (fail > 0) System.exit(1);
 	}
@@ -122,6 +201,27 @@ public class ScratchQuantum_FockAudit01 {
 			if (used[col]) continue;
 			used[col] = true;
 			total = total.plus(a.getItem(row, col).times(brutePermanent(a, row + 1, used)));
+			used[col] = false;
+		}
+		return total;
+	}
+
+	/** Literal definition: sum over permutations of sign(perm) prod_i a[i][perm(i)]. */
+	private static Complex bruteDeterminant(MatrixComplex a, int row, boolean[] used, int[] perm) {
+		int n = a.rows();
+		if (row == n) {
+			int inversions = 0;
+			for (int i = 0; i < n; ++i) for (int j = i + 1; j < n; ++j) if (perm[i] > perm[j]) inversions++;
+			Complex prod = new Complex(inversions % 2 == 0 ? 1.0 : -1.0, 0.0);
+			for (int i = 0; i < n; ++i) prod = prod.times(a.getItem(i, perm[i]));
+			return prod;
+		}
+		Complex total = new Complex(0.0, 0.0);
+		for (int col = 0; col < n; ++col) {
+			if (used[col]) continue;
+			used[col] = true;
+			perm[row] = col;
+			total = total.plus(bruteDeterminant(a, row + 1, used, perm));
 			used[col] = false;
 		}
 		return total;
