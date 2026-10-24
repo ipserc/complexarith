@@ -93,6 +93,29 @@ MatrixComplex p = Qubits.phaseShift(Math.PI / Math.sqrt(3.0));
 // Qubits.phaseGate(2) es lo mismo que Qubits.phaseShift(Math.PI / 2)
 ```
 
+### `beamSplitter(R)`
+Divisor de haz sin pérdidas de **reflectividad** `R` (probabilidad de
+reflejarse, entre 0 y 1), con `T = 1 - R`:
+
+```
+B(R) = [[√T, √R], [√R, -√T]]
+```
+
+Los elementos fuera de la diagonal son las amplitudes de **cambiar de
+camino** (reflexión); los de la diagonal, de seguir por el mismo
+(transmisión). `beamSplitter(0.5)` es `hadamard()`, y `R=0` (transparente)
+y `R=1` (espejo perfecto) son los extremos. El parámetro es una
+reflectividad y no un ángulo **a propósito**: no es el giro del espejo
+respecto al haz. La relación entre ese giro y la reflectividad depende del
+recubrimiento, de las ecuaciones de Fresnel y de la polarización, y queda
+fuera de este modelo.
+
+Qué enseña (ver `TestQuantum_BeamSplitter01`, paso 6, y
+`19_HongOuMandel.md`):
+- En un Mach-Zehnder con dos divisores iguales, las franjas pierden
+  contraste: visibilidad `V = 2RT/(R²+T²)`, que vale 1 solo con `R = 1/2`.
+- En HOM, el agrupamiento de dos fotones solo es total con `R = 1/2`.
+
 ### `spinOperator(double theta)`
 `A(theta) = cos(theta)·Z + sin(theta)·X` -- una familia de medidas de
 espín/polarización, parametrizada por un ángulo. Es el operador de medida

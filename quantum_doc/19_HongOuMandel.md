@@ -167,6 +167,24 @@ de los dos fotones (la componente temprana del fotón 2, de peso `cos²(α)`)
 interfiere y se cancela; la parte distinguible (la tardía) se comporta de
 forma clásica, con su 50 %.
 
+## Divisor descompensado: el dip solo llega a 0 con un 50/50
+
+Con `Qubits.beamSplitter(R)` (reflectividad `R`, `T = 1-R`) en lugar de
+`hadamard()`, las dos maneras de acabar en coincidencia ya no pesan lo
+mismo: "ninguno cruza" vale `-T` y "los dos cruzan" vale `+R`. Para fotones
+idénticos
+
+```
+Per(B) = R - T     ->     P(coincidencia) = (T - R)²
+```
+
+que es 0 **solo** si `R = T = 1/2`. Con `R = 0.4`, por ejemplo, ya queda un
+4 % de coincidencias aunque los fotones sean perfectamente idénticos. Es
+una condición experimental real del efecto HOM: el divisor tiene que estar
+equilibrado. En los extremos (`R=0`, transparente; `R=1`, espejo perfecto)
+cada fotón sigue un camino fijo, no hay interferencia y las coincidencias
+son el 100 %. Lo verifica el paso 5 de `TestQuantum_HongOuMandel01`.
+
 ## HOM con fermiones: antiagrupamiento
 
 Con dos **fermiones** idénticos (electrones, por ejemplo) en el mismo
@@ -227,6 +245,14 @@ que baja de `1` (espines idénticos) a `1/2` (espines ortogonales,
 distinguibles). Con bosones el mismo barrido da `(1 - cos²(α))/2`, de `0`
 a `1/2`: dip para bosones, pico para fermiones.
 
+**Con un divisor descompensado** (`beamSplitter(R)`) el contraste con los
+bosones es aún más claro: `det(B) = -T - R = -1` para **cualquier** `R`, así
+que dos fermiones idénticos salen separados el 100 % de las veces sea cual
+sea la reflectividad. Con 2 fermiones en 2 modos no hay otro estado posible
+que `|1,1>`. El agrupamiento bosónico es una **interferencia** que exige
+`R = T`; el antiagrupamiento fermiónico es **exclusión** y no necesita
+ningún ajuste. (Paso 5 de `TestQuantum_HongOuMandelFermiones01`.)
+
 ## Verificación
 
 **`ScratchQuantum_FockAudit01`** (15/15 OK), cada comprobación contra un
@@ -254,6 +280,7 @@ oráculo independiente del código:
 2. 3477 disparos: **0 coincidencias** (lanza excepción si apareciera alguna).
 3. Comparación con 2 fotones distinguibles en el modelo de qubits (`H (x) H`): ~50 % de coincidencias.
 4. Dip: 9 valores de `α` en `[0, π/2]`; la probabilidad calculada en Fock coincide con `(1-cos²(α))/2` hasta `1e-12` (lanza excepción si no), y las frecuencias medidas la siguen.
+5. Divisor descompensado: 11 valores de `R`; `P(coincidencia) = (T-R)²` hasta `1e-12`.
 
 Salida típica del punto 4:
 
@@ -270,6 +297,7 @@ alfa/(pi/2)  solapamiento  P(coinc) Fock  formula (1-cos^2)/2  medido (3477 disp
 2. 3477 disparos: **100 % de coincidencias** (lanza excepción si no).
 3. Con espín: mismo espín y triplete -> 100 %, singlete -> 0 %, mostrando el estado de salida de cada uno.
 4. Pico: 9 valores de `α`; la probabilidad calculada en Fock coincide con `(1+cos²(α))/2` hasta `1e-12` (lanza excepción si no).
+5. Divisor descompensado: `det(B) = -1` y `P(coincidencia) = 1` para 7 valores de `R`, junto a la columna bosónica `(T-R)²`.
 
 ## Para ejecutarlo
 
