@@ -12745,3 +12745,36 @@ Si quieres, puedo hacer un test que junte el dip temporal, el espacial y la pola
 [Seccion "Quincuagesima sesion" en ComplexArithRev.md (limpieza, preguntas, phaseShift 0684cfd, Fock 1.1 fermiones e52ec98, beamSplitter(R) 8e8ba87, docs 41792fa/c9e085e, reglas/workflow, errores: suponer una confusion inexistente con beamSplitter(pi/4); "R=1 sin divisor"). Memoria actualizada. Commit + push.]
 
 Punto de retomada: git fetch; decisiones pendientes (LICENSE.md, .odt con ':', TestRoots.java.desktop, Claude_Talks.txt); oferta abierta: test que combine dip temporal + solapamiento espacial + polarizacion R_s != R_p en Fock; candidatos: HOM multipuerto DFT 3x3, doble rendija, HOM en 16_experimentos_guiados.md.
+
+Resumen de la sesion 50 (23-24 oct 2026) -- CERRADA Y PUSHEADA (808a415..fadcc7b)
+
+Limpieza: a peticion del usuario, borrados Eigenspace.java.(copia) y la carpeta de respaldo /home/ipserc/complexarith_stale_backup_2026_1020/.
+
+Preguntas de aprendizaje:
+- Por que los fermiones salen separados: la antisimetria (Pauli es un caso particular) y el matiz del espin (el singlete se agrupa).
+- Por que phaseGate toma un int.
+- Diferencia de camino frente a giro del espejo.
+- Efectos de un semiespejo que no esta a 45 grados.
+- Que es el dip.
+
+Codigo (cada paso nuevo se comprueba contra una formula cerrada y lanza excepcion si no coincide):
+- 0684cfd  Qubits.phaseShift(phi) (1.13): fase para cualquier angulo. phaseGate(k) da bit a bit lo mismo que antes.
+- e52ec98  Fock 1.1, fermiones: base de ocupaciones 0/1, determinante, multiFermionUnitary. Audit 15/15 y test nuevo de HOM con fermiones: separados al 100%, el singlete se agrupa, pico (1+cos^2 a)/2.
+- 8e8ba87  Qubits.beamSplitter(R) (1.14), parametrizado por la reflectividad. Bosones: (T-R)^2, el dip solo llega a 0 con 50/50. Fermiones: det = -1 para cualquier R. Mach-Zehnder: visibilidad 2RT/(R^2+T^2).
+- 41792fa, c9e085e  Documentacion: 19_HongOuMandel.md, 02_Qubits.md, 17_limites_y_extensiones.md, 00_introduccion.md, README.md.
+- fadcc7b  Cierre: seccion "Quincuagesima sesion" en ComplexArithRev.md y log DIA 24.
+
+Que queda anotado:
+- Seccion "Quincuagesima sesion" en Claude/ComplexArithRev.md: reglas vigentes; verificacion bit a bit contra un build anterior para refactorizaciones sin cambio de comportamiento; comprobacion contra formula cerrada para fisica nueva; bateria de regresion de 15 programas (filtrar las lineas "0 FAIL"); ediciones con python3 y assert de texto unico; no reescribir lo que el usuario pega en el log, solo anadir al final; sin skills propias; errores de la sesion.
+- Log crudo: el bloque DIA 24 del usuario intacto, con el cierre anadido al final.
+- Memoria: punto de retomada y una leccion nueva. Error de la sesion: suponer que el usuario confundia la reflectividad con un angulo en beamSplitter(pi/4). Leccion: sus valores son deliberados, primero responder a lo que pregunta.
+
+Por donde lo dejamos:
+1. Al empezar: git fetch; git status -sb.
+2. Pendiente de decision del usuario: LICENSE.md, el .odt con ':' en Claude/Revisiones/, TestRoots.java.desktop (solo CRLF) y Claude_Talks.txt.
+3. Oferta abierta: test en Fock que combine imperfecciones (dip temporal, mal solapamiento espacial y polarizacion con R_s != R_p).
+4. Otros candidatos: HOM con 3 fotones en la DFT 3x3, doble rendija, HOM en 16_experimentos_guiados.md.
+
+❯ incluye el resumen en el log crudo
+
+[Resumen anadido a este log. Commit + push.]
