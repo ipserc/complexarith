@@ -15,10 +15,12 @@ import com.ipserc.arith.quantum.Qubits;
  * <p>
  * Un semiespejo 50/50 simetrico es, matematicamente, el mismo tipo de objeto que {@link
  * Qubits#hadamard()} -- una matriz unitaria 2x2 real que reparte {@code |0>}/{@code |1>} en partes
- * iguales -- asi que se reusa directamente, sin una fabrica "beamSplitter()" separada. El desfase
- * de uno de los 2 brazos del interferometro (un espejo movido unas pocas longitudes de onda, o una
- * lamina de fase) es, igual de directo, {@link Qubits#phaseGate(int)} (el mismo gate que ya usa la
- * QFT), aplicado entre los 2 semiespejos.
+ * iguales -- asi que se reusa directamente. El desfase de uno de los 2 brazos del interferometro
+ * (un espejo movido unas pocas longitudes de onda, o una lamina de fase) es, igual de directo,
+ * {@link Qubits#phaseGate(int)} (el mismo gate que ya usa la QFT), aplicado entre los 2
+ * semiespejos; para un desfase arbitrario, {@link Qubits#phaseShift(double)} (paso 5). Un divisor
+ * que no sea 50/50 es {@link Qubits#beamSplitter(double)}, parametrizado por su reflectividad
+ * (paso 6; {@code beamSplitter(0.5)} es {@code hadamard()}).
  * <p>
  * El circuito completo -- semiespejo, desfase, semiespejo -- es EXACTAMENTE {@code H}-fase-{@code
  * H} sobre 1 qubit, el mismo patron que ya aparece (sobre un registro de varios qubits) dentro de
@@ -107,6 +109,26 @@ public class TestQuantum_BeamSplitter01 {
 					nombres[i], phi, pTransmitido, esperado, ok ? "OK" : "FAIL");
 		}
 		System.out.println("  Desfases arbitrarios: " + (angulos.length - fallos) + " OK, " + fallos + " FAIL");
+
+		// 6. Mach-Zehnder con 2 divisores iguales descompensados, Qubits.beamSplitter(R): la amplitud
+		// del puerto transmitido es T + R*e^(i*phi), asi que P(transmitido) = T^2 + R^2 + 2RT*cos(phi)
+		// y las franjas pierden contraste: visibilidad V = (Pmax-Pmin)/(Pmax+Pmin) = 2RT/(R^2+T^2),
+		// que solo vale 1 con R = 1/2. Pmax (phi=0) y Pmin (phi=pi) salen del calculo real.
+		Complex.printLineText(1, 90, "6. Divisores descompensados beamSplitter(R): visibilidad de las franjas.", true, false);
+		int fallosV = 0;
+		for (double r : new double[] { 0.5, 0.4, 0.3, 0.2, 0.1, 0.0 }) {
+			MatrixComplex b = Qubits.beamSplitter(r);
+			double pMax = Math.pow(b.times(Qubits.phaseShift(0.0)).times(b).times(foton).getItem(0, 0).abs(), 2);
+			double pMin = Math.pow(b.times(Qubits.phaseShift(Math.PI)).times(b).times(foton).getItem(0, 0).abs(), 2);
+			double visibilidad = (pMax - pMin) / (pMax + pMin);
+			double t = 1.0 - r;
+			double esperado = 2.0 * r * t / (r * r + t * t);
+			boolean ok = Math.abs(visibilidad - esperado) < 1e-12;
+			if (!ok) ++fallosV;
+			System.out.printf("  R=%.2f: P(transmitido) entre %.4f (phi=pi) y %.4f (phi=0); V=%.6f, 2RT/(R^2+T^2)=%.6f  %s\n",
+					r, pMin, pMax, visibilidad, esperado, ok ? "OK" : "FAIL");
+		}
+		System.out.println("  Visibilidad: " + (6 - fallosV) + " OK, " + fallosV + " FAIL");
 
 		System.out.println("\n");
 	}

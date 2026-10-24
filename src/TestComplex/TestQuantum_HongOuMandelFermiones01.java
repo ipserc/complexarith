@@ -100,6 +100,24 @@ public class TestQuantum_HongOuMandelFermiones01 {
 		}
 		System.out.println("  -> solapamiento 1 (identicos): 100% coincidencias; solapamiento 0 (distinguibles): 50%.");
 		System.out.println("     Con bosones el mismo barrido da (1 - cos^2)/2: de 0% a 50% (el dip de HOM).");
+
+		// 5. Divisor descompensado, Qubits.beamSplitter(R): det(B) = -T - R = -1 para TODA R. Con 2
+		// fermiones en 2 modos el unico estado posible es |1,1>, asi que salen separados siempre,
+		// sin depender de que el divisor sea 50/50 -- a diferencia de los bosones, cuyo
+		// agrupamiento es una interferencia que exige R = T. Aqui manda la exclusion, no el ajuste.
+		Complex.printLineText(1, 90, "5. Divisor descompensado beamSplitter(R): det(B) = -1 para toda R.", true, false);
+		System.out.println("     R       T     det(B)    Per(B)  P(coinc) fermiones  P(coinc) bosones (T-R)^2");
+		for (double r : new double[] { 0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0 }) {
+			MatrixComplex b = Qubits.beamSplitter(r);
+			MatrixComplex salidaR = Fock.multiFermionUnitary(b, 2).times(Fock.fermionKet(1, 1));
+			double pFermiones = Math.pow(salidaR.getItem(0, 0).abs(), 2);
+			if (Math.abs(pFermiones - 1.0) > 1e-12) {
+				throw new IllegalStateException("Divisor R=" + r + ": P(coincidencia) fermionica=" + pFermiones + " frente a 1");
+			}
+			System.out.printf("   %4.2f    %4.2f   %+7.4f   %+7.4f        %6.4f               %6.4f\n",
+					r, 1.0 - r, Fock.determinant(b).rep(), Fock.permanent(b).rep(), pFermiones, Math.pow(1.0 - 2.0 * r, 2));
+		}
+		System.out.println("  -> fermiones: 100% coincidencias con cualquier divisor; bosones: 0% solo con R = 1/2.");
 	}
 
 	/** Aplica el semiespejo a un estado de espin, imprime la salida y comprueba P(coincidencia). */

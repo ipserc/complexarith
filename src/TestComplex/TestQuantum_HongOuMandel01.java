@@ -109,6 +109,27 @@ public class TestQuantum_HongOuMandel01 {
 					paso / 8.0, Math.cos(alfa), pCoincidencia, formula, coincidencias4, 100.0 * coincidencias4 / shots);
 		}
 		System.out.println("  -> solapamiento 1 (fotones identicos): 0 coincidencias; solapamiento 0 (distinguibles): 50%.");
+
+		// 5. Divisor descompensado, Qubits.beamSplitter(R): fotones identicos (solapamiento 1), pero
+		// el divisor ya no es 50/50. Las 2 maneras de acabar en coincidencia valen ahora -T (ninguno
+		// cruza) y +R (los dos cruzan): Per(B) = R - T, y solo se cancelan si R = T = 1/2. La
+		// probabilidad sale del calculo en Fock y se compara con (T - R)^2.
+		Complex.printLineText(1, 90, "5. Divisor descompensado beamSplitter(R): el dip solo llega a 0 con R = 1/2.", true, false);
+		System.out.println("     R       T     Per(B)=R-T  P(coinc) Fock  formula (T-R)^2  medido (" + shots + " disparos)");
+		for (double r : new double[] { 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 }) {
+			MatrixComplex b = Qubits.beamSplitter(r);
+			MatrixComplex salidaR = Fock.multiPhotonUnitary(b, 2).times(Fock.ket(1, 1));
+			double pCoincidencia = Math.pow(salidaR.getItem(Fock.indexOf(1, 1), 0).abs(), 2);
+			double formula = Math.pow((1.0 - r) - r, 2);
+			if (Math.abs(pCoincidencia - formula) > 1e-12) {
+				throw new IllegalStateException("Divisor R=" + r + ": P(coincidencia)=" + pCoincidencia + " frente a formula=" + formula);
+			}
+			int[] cuentasR = Fock.measure(salidaR, shots, random);
+			int coincR = cuentasR[Fock.indexOf(1, 1)];
+			System.out.printf("   %4.2f    %4.2f    %+7.4f        %6.4f          %6.4f         %4d (%6.2f%%)\n",
+					r, 1.0 - r, Fock.permanent(b).rep(), pCoincidencia, formula, coincR, 100.0 * coincR / shots);
+		}
+		System.out.println("  -> R = 0 (transparente) o R = 1 (espejo perfecto): cada foton sigue un camino fijo, sin interferencia: 100% coincidencias; R = 1/2: 0%.");
 	}
 
 	/** Vector de ocupacion de 4 modos con un foton en cada uno de los 2 modos dados. */

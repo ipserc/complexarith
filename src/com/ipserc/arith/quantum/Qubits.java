@@ -22,8 +22,14 @@ import com.ipserc.arith.matrixcomplex.MatrixComplex;
  */
 public final class Qubits {
 
-	private final static String VERSION = "1.13 (2026_1024_0137)";
+	private final static String VERSION = "1.14 (2026_1024_0200)";
 	/* VERSION Release Note
+	 * 1.14 (2026_1024_0200)
+	 * beamSplitter(reflectivity) -- divisor de haz sin perdidas de reflectividad R,
+	 * [[sqrt(T), sqrt(R)], [sqrt(R), -sqrt(T)]], misma convencion que hadamard() (beamSplitter(0.5)
+	 * == hadamard() salvo 1 ULP). A peticion del usuario, parametrizado por la reflectividad y no
+	 * por un angulo, para que no se confunda con el giro fisico del espejo. Falla alto fuera de
+	 * [0, 1] o ante NaN.
 	 * 1.13 (2026_1024_0137)
 	 * phaseShift(phi) -- desfase general P(phi) = diag(1, e^(i*phi)) para cualquier angulo real,
 	 * a peticion del usuario ("no se puede girar un angulo de pi/sqrt(3)?"). phaseGate(k) pasa a
@@ -226,6 +232,38 @@ public final class Qubits {
 		MatrixComplex m = new MatrixComplex(2, 2);
 		m.setItem(0, 0, s); m.setItem(0, 1, s);
 		m.setItem(1, 0, s); m.setItem(1, 1, -s);
+		return m;
+	}
+
+	/**
+	 * A lossless beam splitter of reflectivity {@code R} acting on a path qubit ({@code |0>},
+	 * {@code |1>} = the 2 paths/modes):
+	 * <p>
+	 * {@code B(R) = [[sqrt(T), sqrt(R)], [sqrt(R), -sqrt(T)]]}, with {@code T = 1 - R}
+	 * <p>
+	 * -- the off-diagonal entries are the amplitudes of switching path (reflection, probability
+	 * {@code R}), the diagonal ones of keeping it (transmission, probability {@code T}). Same real,
+	 * symmetric convention as {@link #hadamard()}, with the {@code -1} sign on {@code |1> -> |1>}:
+	 * {@code beamSplitter(0.5)} equals {@code hadamard()} up to rounding (1 ULP: {@code sqrt(0.5)}
+	 * vs {@code 1/sqrt(2)}). The parameter is a reflectivity, deliberately NOT an angle: it is not
+	 * the tilt of the mirror with respect to the beam (that relation depends on the coating, the
+	 * Fresnel equations and the polarization, outside this model). Usable on 1 photon directly, and
+	 * on several identical particles through {@link Fock#multiPhotonUnitary(MatrixComplex, int)} or
+	 * {@link Fock#multiFermionUnitary(MatrixComplex, int)}.
+	 * @param reflectivity The reflection probability {@code R}, in {@code [0, 1]} ({@code 0}: fully
+	 * transparent; {@code 1}: perfect mirror; {@code 0.5}: 50/50 splitter).
+	 * @return The 2x2 unitary beam splitter.
+	 * @throws IllegalArgumentException if {@code reflectivity} is outside {@code [0, 1]} or NaN.
+	 */
+	public static MatrixComplex beamSplitter(double reflectivity) {
+		if (!(reflectivity >= 0.0 && reflectivity <= 1.0)) {
+			throw new IllegalArgumentException("beamSplitter reflectivity must be in [0, 1], got R=" + reflectivity);
+		}
+		double r = Math.sqrt(reflectivity);
+		double t = Math.sqrt(1.0 - reflectivity);
+		MatrixComplex m = new MatrixComplex(2, 2);
+		m.setItem(0, 0, t); m.setItem(0, 1, r);
+		m.setItem(1, 0, r); m.setItem(1, 1, -t);
 		return m;
 	}
 
