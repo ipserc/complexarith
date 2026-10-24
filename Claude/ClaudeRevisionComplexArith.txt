@@ -12300,3 +12300,448 @@ Hazme un resumen del trabajo de esta sesion. Anota todas las reglas, skills, wor
 Punto de retomada: push de los commits locales en cuanto haya credenciales; decisiones pendientes sobre Eigenspace.java.(copia), LICENSE.md, .odt con ':', TestRoots.java.desktop, Claude_Talks.txt y la carpeta de respaldo; seguir con preguntas de HOM o candidatos (fermiones en Fock, HOM multipuerto, doble rendija).
 
 [El usuario instalo gh y se autentico (gh auth login, navegador). La subida de la clave DSA fallo (HTTP 422), irrelevante: el remoto es HTTPS y el helper gh funciona. Push hecho 615d261..7426f0d. Documento, log y memoria actualizados: sesion CERRADA Y PUSHEADA.]
+
+
+
+========================================================================================================================================
+#
+#	23/10/2026 DIA 24 - Seguimos con efecto Hong-Ou-Mandel (Fock.java)
+#
+========================================================================================================================================
+
+❯ seguimos con A. preguntas sobre HOM
+
+Perfecto, adelante con tus preguntas sobre Hong-Ou-Mandel.
+
+Para situarte, esto es lo que ya cubrimos en la sesión 49:
+- Notación: |1,1> significa un fotón en cada entrada del semiespejo, y |2,0> dos fotones en la salida 1 y ninguno en la 2.
+- Las dos maneras de acabar en coincidencia (un fotón por salida): con la H del código, "ninguno cruza" aporta −½ y "los dos cruzan" +½. Si los fotones son idénticos se suman las amplitudes y da 0, así que nunca hay coincidencia. Si son distinguibles se suman las probabilidades y da ½.
+- El permanente es como un determinante pero con todos los signos +. Para bosones da la amplitud y por eso Per(H)=0. Para fermiones se usa el determinante y salen siempre separados.
+- El dip: si el fotón 2 llega en cos(α)|temprano>+sin(α)|tardío>, la probabilidad de coincidencia es (1-cos²α)/2. Vale 0 si los fotones son idénticos (α=0) y ½ si son totalmente distinguibles (α=90°).
+
+Si quieres, al responder puedo apoyarme en ejecuciones de TestQuantum_HongOuMandel01 o en cálculos sueltos con Fock. ¿Cuál es tu pregunta?
+
+✻ Cooked for 7s · done 23:54
+
+※ recap: Seguimos con el proyecto complexarith y ahora toca la opción A: tus preguntas de aprendizaje sobre el efecto Hong-Ou-Mandel. Te toca a ti: hazme la primera pregunta sobre HOM. (disable recaps in /config)
+
+❯ ¿por qué los fermiones salen siempre separados? po el principio de exclusión de Pauli?
+
+Sí, en esencia es el principio de exclusión de Pauli. Pero hay un matiz que conviene ver, porque Pauli es una consecuencia de algo más profundo.
+
+1. La versión corta, con Pauli
+
+A la salida del semiespejo hay dos estados posibles para cada partícula: salida 1 o salida 2. Si los dos fermiones son idénticos (por ejemplo, electrones con el mismo espín), Pauli prohíbe que ocupen el mismo estado. Por tanto |2,0> y |0,2> no existen para fermiones: en su espacio de Fock cada modo tiene ocupación 0 o 1.
+
+El único estado de salida posible es |1,1>, uno por cada lado. Como la probabilidad total tiene que sumar 1, esa salida se lleva el 100 %.
+
+2. La versión profunda, con la antisimetría
+
+Pauli no es una regla añadida: sale de que la función de onda de dos fermiones idénticos cambia de signo al intercambiarlos. Para bosones no cambia de signo.
+
+Eso se ve en las mismas dos maneras de acabar en coincidencia de la sesión anterior. Con la H del código, H = (1/√2)·[[1, 1], [1, −1]]:
+
+┌──────────────────────────┬──────────┐
+│          Camino          │ Amplitud │
+├──────────────────────────┼──────────┤
+│ ninguno cruza (H₀₀·H₁₁)  │ −½       │
+├──────────────────────────┼──────────┤
+│ los dos cruzan (H₀₁·H₁₀) │ +½       │
+└──────────────────────────┴──────────┘
+
+"Los dos cruzan" equivale a intercambiar las partículas respecto a "ninguno cruza". Lo que cambia es cómo se combinan los dos caminos:
+
+- Bosones: el intercambio suma con signo + (permanente). Per(H) = −½ + ½ = 0, así que la coincidencia es imposible y salen juntos.
+- Fermiones: el intercambio suma con signo − (determinante). det(H) = −½ − ½ = −1, y |−1|² = 1, así que la coincidencia es segura y salen separados.
+- Distinguibles: no interfieren, se suman probabilidades: ¼ + ¼ = ½.
+
+Es la misma interferencia que en el caso bosónico con el signo cambiado. Una sola regla, el signo del intercambio, explica a la vez que los fotones se agrupen y que los fermiones se separen. Pauli es el caso particular "dos fermiones en el mismo estado": la amplitud se cancela consigo misma, porque ψ = −ψ implica ψ = 0.
+
+3. El matiz: "idénticos" incluye el espín
+
+El antiagrupamiento total solo ocurre si los dos fermiones son idénticos en todo, también en el espín. El signo − afecta a la función de onda completa (espacio × espín):
+
+- Mismo espín (parte de espín simétrica): la parte espacial es antisimétrica y salen siempre separados.
+- Espín en estado singlete (parte de espín antisimétrica): la parte espacial queda simétrica y los electrones se agrupan como bosones.
+- Espines sin correlación: queda un caso intermedio.
+
+Es decir, Pauli no prohíbe "dos electrones por la misma salida" en general: prohíbe "dos electrones en el mismo estado completo". Dos electrones con espines opuestos pueden salir juntos.
+
+En una frase
+
+Los fermiones salen separados porque, al ser idénticos, sus dos caminos a la coincidencia interfieren con signo − en vez de +. Eso hace que la probabilidad de salir juntos sea exactamente cero, que es lo que expresa Pauli.
+
+Si quieres verlo en código, este es el candidato B (fermiones en Fock con determinante). Cambiando el signo del intercambio saldría 100 % de coincidencias, y con espín como modo extra se vería también el caso singlete.
+
+✻ Cooked for 23s · done 0:00
+
+❯ sí, implementa los fermiones en Fock
+
+  Read 1 file, ran 1 shell command
+
+Antes de tocar código, este es el plan. La regla es darte el resumen de la fase y esperar tu OK.
+
+Plan: fermiones en Fock
+
+1. Fock.java 1.0 → 1.1: métodos fermiónicos nuevos junto a los bosónicos, sin cambiar nada de lo que ya existe.
+- fermionDimension(n, m) = C(m, n). Con fermiones cada modo tiene 0 o 1 partículas, así que hace falta n ≤ m; si no, lanza excepción.
+- fermionBasis(n, m), fermionIndexOf(...) y fermionKet(...): la misma base de ocupaciones en orden lexicográfico descendente, pero solo con valores 0/1. Para 2 en 2 modos queda únicamente |1,1>.
+- determinant(A): eliminación gaussiana con pivoteo parcial, O(n³). Lo hago propio y no uso MatrixComplex.determinant() porque quiero un cálculo directo, sin redondeos ni heurísticas, igual que hice con permanent().
+- multiFermionUnitary(U, n), el operador Λ_n(U): cada elemento es det(U[s,t]) y no lleva factoriales, porque las ocupaciones son 0 o 1. Con los modos ordenados de forma ascendente es la potencia exterior de U. Se comprueba la unitariedad a la entrada y a la salida, y si falla lanza excepción.
+- measure() sirve tal cual para los dos casos.
+
+2. ScratchQuantum_FockAudit01: casos nuevos con comprobaciones independientes.
+- El determinante, comparado con la suma de Leibniz sobre permutaciones con signo.
+- El homomorfismo Λ_n(UV) = Λ_n(U)·Λ_n(V).
+- Λ_1(U) = U y que el resultado sea unitario.
+- Las dimensiones C(m,n).
+- El rechazo de n > m.
+
+3. TestQuantum_HongOuMandelFermiones01, nuevo:
+- Semiespejo de 2 modos: |1,1> → −|1,1>, porque det(H) = −1, y el 100 % de los disparos dan coincidencia.
+- Con espín, con 4 modos (camino × ↑/↓) y el semiespejo H ⊗ I₂:
+  - Mismo espín: 100 % de coincidencias.
+  - Singlete (|a↑,b↓> − |a↓,b↑>)/√2: 0 % de coincidencias, es decir, se agrupan como bosones.
+  - Triplete con m=0: 100 % de coincidencias.
+  - Espín del segundo electrón en cos α|↑> + sin α|↓>: la probabilidad de coincidencia saldría (1+cos²α)/2. Es el pico que hace de espejo del dip bosónico. Comparo lo que dé Fock con esa fórmula sin meterla a mano en el cálculo, como hice con el dip.
+
+4. Regresión: la batería de quantum completa.
+
+5. Documentación, en un commit aparte:
+- 19_HongOuMandel.md: sección de fermiones.
+- 17_limites_y_extensiones.md: el hueco de "partículas idénticas" queda cubierto también en su parte fermiónica.
+
+Haré commits separados para código y documentación. ¿Adelante?
+
+> Por que phaseGate toma argumentos int? Es que no se puede girar un angulo de pi/sqrt(3) radianes? 
+No hay ninguna limitación física: un desfase puede ser cualquier ángulo real, también π/√3. Lo que limita es la forma en que está escrita la librería.
+
+Por qué phaseGate recibe un int
+
+Qubits.phaseGate(int k) (src/com/ipserc/arith/quantum/Qubits.java:186) no recibe un ángulo, sino el índice de una familia concreta de puertas:
+
+R_k = diag(1, e^(2πi/2^k)), con ángulo 2π/2^k
+
+┌─────┬────────┬───────────┐
+│  k  │ ángulo │  puerta   │
+├─────┼────────┼───────────┤
+│ 0   │ 2π     │ identidad │
+├─────┼────────┼───────────┤
+│ 1   │ π      │ Z         │
+├─────┼────────┼───────────┤
+│ 2   │ π/2    │ S         │
+├─────┼────────┼───────────┤
+│ 3   │ π/4    │ T         │
+└─────┴────────┴───────────┘
+
+Se escribió en la sesión 38 como la primera pieza de la QFT, que solo necesita esas fracciones diádicas de 2π: QFT.java:56 usa phaseGate(k - j + 1). QPE la usa de la misma manera. Para ese uso, el índice entero es la convención habitual de los libros (Nielsen & Chuang).
+
+Dónde se nota la limitación
+
+En TestQuantum_BeamSplitter01 (el Mach-Zehnder) se reutilizó phaseGate(k) como desfase entre los brazos. Por eso el barrido es k=0..5, con φ = 2π, π, π/2, π/4… y nunca φ = π/3, 2π/3 o π/√3. Para la física del interferómetro, cos²(φ/2), cualquier φ vale, así que ahí sí se echa en falta un parámetro continuo.
+
+La única puerta de Qubits con ángulo continuo es spinOperator(double theta), y es otra cosa: el observable de espín en la dirección θ, no un desfase.
+
+Lo que propongo
+
+- Añadir a Qubits una puerta phaseShift(double phi) = diag(1, e^(iφ)), válida para cualquier ángulo real.
+- Que phaseGate(int k) pase a llamar a phaseShift(2π/2^k). Lo que existe sigue igual, y lo verificaría con la QFT/QPE sin cambios.
+- Opcionalmente, ampliar TestQuantum_BeamSplitter01 con algunos ángulos arbitrarios (π/3, π/√3…) comparados con cos²(φ/2).
+
+Son unas 20 líneas más la verificación, con VERSION de Qubits 1.12 → 1.13.
+
+El plan de fermiones en Fock sigue pendiente de tu OK. ¿Hago primero phaseShift, la dejo para después de los fermiones, o no la hago?
+❯ haz primero phaseShift y luego los fermiones
+
+Las tablas se ven bien. Comiteo la documentación pública por separado (sin TestRoots.java.desktop).
+
+  Ran 2 shell commands
+
+He hecho las dos cosas en tres commits: phaseShift, los fermiones en Fock y la documentación. Compila limpio y los 15 tests de quantum (9 TestQuantum_* y 6 ScratchQuantum_*) terminan sin errores y sin ningún FAIL.
+
+1. Qubits.phaseShift(phi) (0684cfd, Qubits 1.13)
+
+- Qué es: diag(1, e^(iφ)) para cualquier ángulo real. Rechaza NaN e infinito con excepción.
+- phaseGate(k) sin cambios de resultado: ahora llama a phaseShift(2π/2^k) y da exactamente los mismos bits que antes para k=0..30, así que la QFT, QPE y Shor no cambian.
+- Mach-Zehnder: TestQuantum_BeamSplitter01 tiene un paso 5 con desfases arbitrarios (π/3, 2π/3, π/√3, 1 rad, e rad y −π/5). Los seis coinciden con cos²(φ/2) hasta 1e-12. Por ejemplo, con φ = π/√3 el fotón sale por el puerto transmitido con probabilidad 0,3797.
+
+2. Fermiones en Fock (e52ec98, Fock 1.1)
+
+- Base fermiónica: cada modo tiene 0 o 1 partículas, y pedir más partículas que modos lanza excepción (Pauli). En cada estado los modos ocupados van en orden ascendente, y ese orden es lo que fija el signo.
+- Determinante: propio, por eliminación gaussiana. El operador Λ_n(U) usa det(U[s,t]) en lugar del permanente.
+- Comprobaciones nuevas en ScratchQuantum_FockAudit01: el audit pasa a 15 de 15, con comprobaciones que no dependen del código que se prueba:
+  - el determinante coincide con la suma con signo sobre permutaciones;
+  - una matriz con dos filas iguales da exactamente 0;
+  - Λ_n(UV) = Λ_n(U)·Λ_n(V);
+  - al intercambiar las partículas (SWAP), fermiones dan −1 y bosones +1.
+- Test nuevo TestQuantum_HongOuMandelFermiones01:
+
+┌──────────────────────────────────────────────────────┬──────────────────────────────────────────────────────────────────────┐
+│                         Caso                         │                           P(coincidencia)                            │
+├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+│ Fermiones idénticos (sin espín o con el mismo espín) │ 100 %, det(H) = −1                                                   │
+├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+│ Triplete con m=0                                     │ 100 %                                                                │
+├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+│ Singlete                                             │ 0 %: se agrupan como bosones                                         │
+├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+│ Espín del segundo electrón en cos α|↑> + sin α|↓>    │ (1+cos²α)/2, coincide hasta 1e-12 sin meter la fórmula en el cálculo │
+└──────────────────────────────────────────────────────┴──────────────────────────────────────────────────────────────────────┘
+
+Es el "pico" fermiónico: baja del 100 % al 50 %, al revés que el dip bosónico, que sube del 0 % al 50 %.
+
+3. Documentación (41792fa)
+
+- 19_HongOuMandel.md: sección nueva "HOM con fermiones" con la tabla bosones / distinguibles / fermiones, el matiz del espín y el pico.
+- 02_Qubits.md: documenta phaseShift y phaseGate, que no estaba documentada.
+- 17_limites_y_extensiones.md, 00_introduccion.md y README.md: al día.
+
+Los commits están solo en local; haré push al cerrar la sesión, salvo que lo quieras antes. Los candidatos que quedan son HOM con 3 fotones en la DFT 3×3, la doble rendija y añadir HOM a 16_experimentos_guiados.md. ¿Sigues con preguntas o pasamos a otro?
+
+> Qubits.phaseShift(pi/4).times(Qubits.hadamard().times(foton)) ¿simula que el espejo está girado 22.5º con respecto al haz de fotones en vez de a 45º?
+No. Esa expresión simula un retardo en uno de los brazos, no un espejo girado. Son dos cosas físicas distintas.
+
+Qué simula realmente
+
+Qubits.phaseShift(Math.PI/4).times(Qubits.hadamard().times(foton))
+1. hadamard() es un semiespejo 50/50 normal, que reparte el fotón entre los brazos a y b.
+2. phaseShift(π/4) multiplica la amplitud del brazo b por e^(iπ/4). Físicamente, el camino b es un poco más largo, o atraviesa un vidrio, en ΔL = λ·φ/2π = λ/8. El espejo no se mueve: se alarga el camino.
+
+Con eso solo no cambia nada observable. Cada brazo sigue al 50 %, porque una fase no altera |amplitud|². La fase se nota cuando un segundo semiespejo recombina los brazos: entonces P(transmitido) = cos²(φ/2) = cos²(π/8) ≈ 85,4 %.
+
+Qué pasaría girando el semiespejo
+
+Girar el semiespejo respecto al haz cambia dos cosas que phaseShift no modela:
+- La geometría: el haz reflejado cambia de dirección (gira el doble del ángulo del espejo) y deja de salir a 90°. Eso es óptica geométrica, y en el modelo de 2 modos no existe "dirección", solo "brazo a" y "brazo b".
+- La proporción de reparto: en un divisor real, la reflectividad depende del ángulo de incidencia (Fresnel y el recubrimiento) y de la polarización, así que deja de ser 50/50.
+
+Lo segundo sí se puede modelar con un divisor de reflectividad variable:
+
+B(θ) = [[cos θ, sin θ], [sin θ, −cos θ]], con P(reflejado) = sin²θ
+
+θ = π/4 da exactamente hadamard(). Ojo: este θ es un parámetro de reflectividad, no el ángulo físico del espejo. Para pasar de uno a otro hacen falta las ecuaciones de Fresnel del recubrimiento concreto, y eso no es mecánica cuántica.
+
+Por qué aparece 22,5° y confunde
+
+Hay una coincidencia numérica que conviene deshacer. H es, como matriz, una reflexión respecto a un eje a 22,5° (π/8) en el plano de estados (|0>, |1>). Y en el Mach-Zehnder, cos²(φ/2) con φ = π/4 también lleva π/8. Pero ninguno de esos ángulos está en el espacio físico: son ángulos en el espacio de Hilbert. El "45°" del semiespejo de laboratorio es su orientación geométrica para que el haz reflejado salga a 90°. No es lo que hace 50/50 al divisor; eso lo decide el recubrimiento.
+
+Resumen
+
+┌────────────────────────────────────────────────┬───────────────────────────────────────────────┐
+│                     Física                     │                 En el código                  │
+├────────────────────────────────────────────────┼───────────────────────────────────────────────┤
+│ Semiespejo 50/50                               │ hadamard()                                    │
+├────────────────────────────────────────────────┼───────────────────────────────────────────────┤
+│ Diferencia de camino entre brazos (ΔL = λφ/2π) │ phaseShift(φ)                                 │
+├────────────────────────────────────────────────┼───────────────────────────────────────────────┤
+│ Divisor con otra proporción (p.ej. 70/30)      │ no existe todavía: sería B(θ) con sin²θ = 0,3 │
+├────────────────────────────────────────────────┼───────────────────────────────────────────────┤
+│ Dirección geométrica de los haces              │ fuera del modelo de 2 modos                   │
+└────────────────────────────────────────────────┴───────────────────────────────────────────────┘
+
+Si quieres, añado Qubits.beamSplitter(double theta) con B(θ) y un paso en TestQuantum_BeamSplitter01 con un divisor descompensado, que muestra cómo se pierde el contraste de las franjas. También tendría su interés en HOM: con un divisor que no sea 50/50, el dip ya no llega a 0.
+
+❯ tiene sentido el Qubits.beamSplitter(double theta) para nuestro propósito?
+
+Sí, aunque con un alcance modesto. Lo que lo justifica no es el Mach-Zehnder, sino lo que enseña en HOM.
+
+Lo que aporta
+
+Con un divisor descompensado (B(θ) = [[cos θ, sin θ], [sin θ, −cos θ]], reflectividad R = sin²θ, transmitancia T = cos²θ) salen tres resultados con contenido físico real:
+
+┌────────────────────────────────┬────────────────────────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│          Experimento           │                 Resultado                  │                                                                                         Lectura                                                                                          │
+├────────────────────────────────┼────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ HOM con bosones                │ Per(B) = −T + R, así que P(coinc) = (T −   │ El dip solo llega a 0 con un divisor 50/50. Las dos maneras de acabar en coincidencia ya no tienen el mismo peso y no se cancelan del todo. Es una condición experimental real de HOM.   │
+│                                │ R)²                                        │                                                                                                                                                                                          │
+├────────────────────────────────┼────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ HOM con fermiones              │ det(B) = −T − R = −1, así que P(coinc) = 1 │ El antiagrupamiento fermiónico no depende de la reflectividad. Sale de que, con 2 modos, los dos fermiones no tienen otro sitio adonde ir: es Pauli en estado puro, no una interferencia │
+│                                │  siempre                                   │  afinada. Contrasta bien con el caso bosónico.                                                                                                                                           │
+├────────────────────────────────┼────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Mach-Zehnder (dos divisores    │ P(transmitido) = T² + R² + 2RT·cos φ       │ Las franjas pierden contraste: visibilidad V = 2RT/(R²+T²), que es 1 solo con 50/50.                                                                                                     │
+│ iguales)                       │                                            │                                                                                                                                                                                          │
+└────────────────────────────────┴────────────────────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+El caso de los fermiones me parece el más instructivo, porque separa "interferencia" de "exclusión", que hasta ahora salían juntas.
+
+Lo que no aporta
+
+- No hay física nueva fuera de esos casos. Cualquier unitaria 2×2 se puede construir ya a mano con MatrixComplex; esto solo le da nombre.
+- Riesgo de confusión: si el parámetro es un ángulo θ, invita a leerlo como "ángulo del espejo", que es justo la confusión que acabamos de deshacer.
+
+Recomendación
+
+Hacerlo, pero con el parámetro como reflectividad y no como ángulo, Qubits.beamSplitter(double reflectivity) con R ∈ [0,1], para que no se lea como un giro del espejo:
+- beamSplitter(0.5) daría exactamente hadamard(), y lo comprobaría.
+- Lanzaría excepción si R está fuera de [0,1].
+- Un paso nuevo en TestQuantum_HongOuMandel01 y otro en el test de fermiones con un barrido de R, comparando con (T−R)² y con 1.
+- Opcionalmente, la visibilidad en TestQuantum_BeamSplitter01.
+
+Son unas 25 líneas en Qubits (VERSION 1.14) más los tests y una nota en la documentación. ¿Lo hago así, o prefieres dejarlo y pasar a otro candidato?
+
+❯ sí, hazlo con la reflectividad
+Ya está Qubits.beamSplitter(R) (Qubits 1.14), parametrizado por la reflectividad. Compila limpio y los 15 tests de quantum terminan sin errores y sin ningún FAIL.
+
+El método
+
+B(R) = [[√T, √R], [√R, −√T]], con T = 1 − R, y la misma convención que hadamard(). Lo he comprobado así:
+- beamSplitter(0.5) coincide con hadamard(). Solo difieren en 1 ULP (√0.5 frente a 1/√2), que es redondeo.
+- Lanza excepción con R < 0, R > 1 o NaN.
+- El Javadoc avisa de que R es una reflectividad y no el ángulo del espejo.
+
+Lo que muestra cada test (paso nuevo en los tres)
+
+Cada paso compara con la fórmula cerrada hasta 1e-12 y lanza excepción si no coincide.
+
+- Mach-Zehnder, paso 6: las franjas pierden contraste, con visibilidad 2RT/(R²+T²) (6 OK). Con R = 0,3 el fotón ya nunca baja de un 16 % por el puerto "oscuro".
+- HOM con fotones, paso 5: Per(B) = R − T y P(coincidencia) = (T−R)². El dip solo llega a 0 con R = ½; con R = 0,4 ya queda un 4 % de coincidencias, aunque los fotones sean idénticos.
+- HOM con fermiones, paso 5: det(B) = −1 para cualquier R, así que siempre salen separados.
+
+Juntos, los dos HOM separan la interferencia de la exclusión:
+
+┌─────────────────────┬─────┬──────┬──────┬─────┬──────┬─────┐
+│          R          │  0  │ 0,1  │ 0,25 │ 0,5 │ 0,75 │  1  │
+├─────────────────────┼─────┼──────┼──────┼─────┼──────┼─────┤
+│ Bosones, P(coinc)   │ 1   │ 0,64 │ 0,25 │ 0   │ 0,25 │ 1   │
+├─────────────────────┼─────┼──────┼──────┼─────┼──────┼─────┤
+│ Fermiones, P(coinc) │ 1   │ 1    │ 1    │ 1   │ 1    │ 1   │
+└─────────────────────┴─────┴──────┴──────┴─────┴──────┴─────┘
+
+El agrupamiento de los fotones es una interferencia que necesita el divisor equilibrado. La separación de los fermiones no depende de ningún ajuste: con 2 modos no tienen otro sitio adonde ir.
+
+Commits
+
+- 8e8ba87: código y tests.
+- c9e085e: documentación en 02_Qubits.md y una sección "Divisor descompensado" en 19_HongOuMandel.md.
+
+Esta sesión llevamos 5 commits, todos en local sin push todavía. ¿Sigues con preguntas, pasamos a otro candidato (HOM con 3 fotones en la DFT 3×3, doble rendija) o cerramos la sesión?
+
+❯ Qubits.beamSplitter(pi/4).times(Qubits.hadamard().times(foton)) ¿Qué es eso?
+
+  Ran 1 shell command
+
+Es un Mach-Zehnder sin desfase entre los brazos, con un primer semiespejo 50/50 y un segundo divisor que refleja el 78,5 %. Además esconde una trampa de unidades.
+
+Leído de derecha a izquierda
+
+1. foton: el fotón entra por el brazo |0>.
+2. hadamard(): primer semiespejo 50/50, que lo reparte entre los dos brazos.
+3. beamSplitter(pi/4): segundo divisor. Su argumento es la reflectividad, así que π/4 ≈ 0,785 significa R = 78,5 % y T = 21,5 %. No es un ángulo de 45°.
+
+Entre los dos divisores no hay phaseShift, así que los brazos llegan con desfase 0.
+
+Resultado (calculado con el código)
+
+┌──────────────┬──────────┬──────────────┐
+│              │ Amplitud │ Probabilidad │
+├──────────────┼──────────┼──────────────┤
+│ sale por |0> │ 0,9542   │ 91,05 %      │
+├──────────────┼──────────┼──────────────┤
+│ sale por |1> │ 0,2991   │ 8,95 %       │
+└──────────────┴──────────┴──────────────┘
+
+A mano: P(|0>) = (√T + √R)²/2 = (1 + 2√(RT))/2 ≈ 0,9105.
+
+Es la interferencia del Mach-Zehnder, pero incompleta. Con dos semiespejos 50/50 y desfase 0, el fotón saldría por |0> el 100 % de las veces. Aquí el segundo divisor no está equilibrado: las dos contribuciones que llegan a |1> (√T/√2 y √R/√2, con signos opuestos) no se cancelan del todo, y queda ese 9 % de fuga.
+
+La trampa de unidades
+
+Java acepta pi/4 sin protestar porque 0,785 está dentro de [0,1]. Pero si tu idea era "un divisor a 45°", el valor que buscas es beamSplitter(0.5), que es exactamente hadamard(). En ese caso:
+
+Qubits.beamSplitter(0.5).times(Qubits.hadamard().times(foton))   // = H·H·|0> = |0>
+
+y el fotón sale por |0> el 100 % de las veces (también calculado: amplitudes 1,0 y 0,0). Dos semiespejos iguales seguidos se deshacen: H·H = I.
+
+Es justo la confusión que el nombre del parámetro pretendía evitar: la reflectividad no es un ángulo, ni del espejo ni de nada. Si te parece útil, puedo hacer que el Javadoc de beamSplitter avise explícitamente de este caso (π/4 como R vale 0,785, no un 50/50).
+
+✻ Brewed for 24s · done 2:11
+
+❯ No, dejé el pi/4 pono poner otro irracional
+
+Entendido, entonces no había trampa: R = π/4 ≈ 0,785 es una reflectividad válida como cualquier otra, y el resultado anterior vale tal cual (91,05 % por |0> y 8,95 % por |1>).
+
+Para cualquier reflectividad R del segundo divisor, con el primero 50/50 y sin desfase:
+
+P(|0>) = (1 + 2√(R(1−R)))/2  y  P(|1>) = (1 − 2√(R(1−R)))/2
+
+- R = ½ es el único caso con interferencia perfecta (100 % / 0 %).
+- R = 0 o R = 1: el segundo divisor no mezcla los brazos y queda 50 % / 50 %, como si no hubiera interferencia.
+- Cualquier R intermedio, racional o irracional, da algo entre esos dos extremos. Con π/4 sale 91 % / 9 %.
+
+Si añades phaseShift(φ) entre los dos divisores, el término 2√(R(1−R)) pasa a ir multiplicado por cos φ.
+
+¿Seguimos con más preguntas, otro candidato o cerramos la sesión?
+
+✻ Worked for 5s · done 2:12
+
+❯ Pero sabía que era el indice de reflexión
+
+Tienes razón: sabías que era la reflectividad y fui yo quien supuso una confusión que no existía. Lo siento por el sermón sobre la "trampa de unidades".
+
+El cálculo sí era correcto: con R = π/4 el fotón sale un 91,05 % por |0> y un 8,95 % por |1>.
+
+¿Seguimos con preguntas, otro candidato (HOM con 3 fotones en la DFT 3×3, doble rendija) o cerramos la sesión?
+
+❯ pero si el semiespejo no esta a 45º del haz, ¿cómo afecta al experimeto?
+
+Afecta de cuatro maneras a la vez. La que más pesa en la práctica no es la reflectividad sino la geometría: los dos haces dejan de solaparse.
+
+1. La geometría: los haces dejan de superponerse (el efecto dominante)
+
+Si el semiespejo gira un ángulo δ respecto a 45°, el haz reflejado gira 2δ. En el segundo divisor del Mach-Zehnder, o en el punto de encuentro de HOM, los dos haces llegan con cierto ángulo entre ellos y algo desplazados.
+
+- Mach-Zehnder: los frentes de onda inclinados forman franjas a lo ancho del haz. Un detector que integra todo el haz promedia franjas claras y oscuras, y la visibilidad cae.
+- HOM: los dos fotones ya no están en el mismo modo espacial, así que son parcialmente distinguibles por su dirección. El dip deja de llegar a 0, exactamente como con el retardo temporal.
+
+La tolerancia es muy pequeña. El ángulo crítico es del orden de λ/w (longitud de onda entre ancho del haz). Con λ = 800 nm y un haz de 1 mm sale ~10⁻³ rad, es decir, unas centésimas de grado. Por eso alinear un interferómetro es un arte.
+
+2. La reflectividad cambia con el ángulo
+
+El recubrimiento está diseñado para 45°. Al cambiar el ángulo de incidencia, R se aleja de 0,5 (ecuaciones de Fresnel y diseño de capas). Es lo que acabamos de modelar con beamSplitter(R): la visibilidad pasa a ser 2RT/(R²+T²) y en HOM queda (T−R)². Pero es un efecto lento: hacen falta varios grados para que R cambie unos pocos por ciento, mucho más que las centésimas de grado del punto 1.
+
+3. La polarización deja de ser inocente
+
+Con incidencia oblicua, las polarizaciones s y p tienen reflectividades distintas (R_s ≠ R_p), y la diferencia depende del ángulo. Si los fotones no tienen la misma polarización pura, el divisor trata distinto cada componente, y la polarización acaba funcionando como una marca parcial de camino. También añade desfases distintos para s y p en la reflexión.
+
+4. Cambian las longitudes de camino
+
+Girar el espejo alarga o acorta un brazo, y además el sustrato de vidrio desplaza el haz lateralmente.
+- Mach-Zehnder: un desfase extra φ que desplaza las franjas pero no reduce el contraste. Es el phaseShift(φ).
+- HOM: la diferencia de camino es un retardo temporal, y si supera la longitud de coherencia de los fotones (decenas o cientos de μm en fotones de SPDC) los hace distinguibles. Es el dip que ya modelamos con cos α.
+
+Qué podemos modelar con lo que hay
+
+┌─────────────────────────────────────────────┬──────────────────────────┬──────────────────────────────────────────────────────────────────────────┐
+│                   Efecto                    │      ¿En el código?      │                                   Cómo                                   │
+├─────────────────────────────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ R ≠ 0,5                                     │ Sí                       │ beamSplitter(R)                                                          │
+├─────────────────────────────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Desfase por camino (Mach-Zehnder)           │ Sí                       │ phaseShift(φ)                                                            │
+├─────────────────────────────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Retardo temporal (HOM)                      │ Sí                       │ modos temprano/tardío, dip con cos α                                     │
+├─────────────────────────────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Mal solapamiento espacial                   │ Sí, con la misma técnica │ un modo espacial extra con solapamiento cos α, igual que el temporal     │
+├─────────────────────────────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ R_s ≠ R_p                                   │ Sí, con 4 modos          │ camino × polarización, divisor B(R_s) ⊕ B(R_p) (bloque por polarización) │
+├─────────────────────────────────────────────┼──────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Calcular R(ángulo) o el ángulo de los haces │ No                       │ es óptica clásica (Fresnel, geometría), fuera del modelo de modos        │
+└─────────────────────────────────────────────┴──────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+
+Es decir, el modelo cuántico no sabe nada de ángulos, pero todo lo que un ángulo mal puesto provoca se traduce en tres cosas que sí sabe tratar: reflectividad, fase y distinguibilidad.
+
+Si quieres, puedo hacer un test que junte el dip temporal, el espacial y la polarización con R_s ≠ R_p en Fock, para ver cómo se combinan las imperfecciones.
+
+
+
+
+[Resumen de la respuesta anterior: 4 efectos de un semiespejo que no esta a 45 grados: geometria (los haces dejan de solaparse, tolerancia ~lambda/w, centesimas de grado: el dominante), reflectividad (Fresnel, lento), polarizacion (R_s != R_p), longitud de camino (fase en MZ, retardo en HOM). Todo se traduce a reflectividad, fase y distinguibilidad. Ofrecido un test que combine imperfecciones en Fock.]
+
+❯ Qué es el dip?
+
+[Explicado: el pozo de la curva coincidencias frente a retardo en HOM (50% lejos, 0% en tau=0); en el codigo, (1-cos^2 a)/2; anchura = tiempo de coherencia (~cientos de fs, medido en 1987 con detectores mucho mas lentos), profundidad = prueba de cuan identicos son los fotones. Para fermiones es un pico.]
+
+❯ hazme un resumen de esta sesión. Recuerda todo lo que has aprendido. Anota la reglas, skills, workflows y procedimientos que hemos usado. Realiza los commit & push pendientes. Cuando retome la sesión, me recuerdas por donde nos quedamos.
+
+[Seccion "Quincuagesima sesion" en ComplexArithRev.md (limpieza, preguntas, phaseShift 0684cfd, Fock 1.1 fermiones e52ec98, beamSplitter(R) 8e8ba87, docs 41792fa/c9e085e, reglas/workflow, errores: suponer una confusion inexistente con beamSplitter(pi/4); "R=1 sin divisor"). Memoria actualizada. Commit + push.]
+
+Punto de retomada: git fetch; decisiones pendientes (LICENSE.md, .odt con ':', TestRoots.java.desktop, Claude_Talks.txt); oferta abierta: test que combine dip temporal + solapamiento espacial + polarizacion R_s != R_p en Fock; candidatos: HOM multipuerto DFT 3x3, doble rendija, HOM en 16_experimentos_guiados.md.

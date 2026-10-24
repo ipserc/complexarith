@@ -59,7 +59,7 @@ Preguntado explícitamente si el trabajo real (15 sesiones: auditorías de corre
 
 # ESTADO DE LA SESIÓN Y CONTINUACIÓN (leer esto primero al retomar)
 
-> **Al retomar (desde la sesión 49, octubre 2026): leer primero la ÚLTIMA sección de este documento** ("Cuadragesimonovena sesión" o posterior) — contiene el estado actual, el workflow en **Linux** (el proyecto ya no está en Windows: las recetas de CRLF/`sed`/cygwin de este bloque son históricas) y el punto exacto de retomada. Este bloque inicial se conserva como historia de las primeras sesiones.
+> **Al retomar (desde la sesión 49, octubre 2026): leer primero la ÚLTIMA sección de este documento** ("Quincuagésima sesión" o posterior) — contiene el estado actual, el workflow en **Linux** (el proyecto ya no está en Windows: las recetas de CRLF/`sed`/cygwin de este bloque son históricas) y el punto exacto de retomada. Este bloque inicial se conserva como historia de las primeras sesiones.
 
 > Este bloque es un documento vivo de continuidad. Está escrito para que, si se retoma el trabajo en una sesión nueva sin memoria de esta conversación, se pueda reconstruir todo el contexto, las reglas acordadas y el estado exacto en el que se dejó el trabajo, sin tener que releer todo el historial de git ni redescubrir los mismos bugs.
 
@@ -5329,6 +5329,121 @@ a `git@github.com:ipserc/complexarith.git`. Hasta entonces todos los commits de 
 4. Candidatos abiertos: fermiones en `Fock` (determinante: antiagrupamiento, 100 % de coincidencias), HOM en
    multipuerto (3 fotones en la DFT 3x3), doble rendija (aplazado de antes), ampliar
    `16_experimentos_guiados.md` con HOM (opcional).
+
+## Quincuagésima sesión (23-24 octubre 2026) — fermiones en `Fock`, `phaseShift`, `beamSplitter(R)` y preguntas de HOM, CERRADA Y PUSHEADA
+
+Arrancada con `git fetch; git status -sb`: `HEAD==origin/master==808a415`, sin commits pendientes; el
+proyecto compila limpio en Linux y `ScratchQuantum_FockAudit01` daba 9/9. 5 commits nuevos más los
+de cierre, todos pusheados al final.
+
+### 1. Limpieza pedida por el usuario
+- `src/com/ipserc/arith/matrixcomplex/Eigenspace.java.(copia)`: el usuario confirmó que era una copia
+  suya y pidió borrarla. Borrada (`rm`, sin trackear: no hay commit).
+- `/home/ipserc/complexarith_stale_backup_2026_1020/` (21 ficheros, fuera del repo): borrada a
+  petición del usuario.
+- Siguen pendientes de decisión: `LICENSE.md`, el `.odt` con `:` en `Claude/Revisiones/`, el cambio
+  solo-CRLF de `TestRoots.java.desktop` y `Claude_Talks.txt` (del usuario, no tocar).
+
+### 2. Preguntas de aprendizaje (sin código)
+- **¿Por qué los fermiones salen siempre separados? ¿Pauli?** Sí, pero Pauli es consecuencia de la
+  antisimetría: las dos maneras de acabar en coincidencia ("ninguno cruza" −½, "los dos cruzan" +½)
+  se combinan con signo + para bosones (permanente, 0) y con signo − para fermiones (determinante,
+  −1). Matiz del espín: el antiagrupamiento exige identidad también en el espín; en el singlete la
+  parte de camino es simétrica y los electrones se agrupan.
+- **¿Por qué `phaseGate` toma `int`?** `k` es el índice de la familia diádica `R_k` (ángulo
+  `2π/2^k`) que necesita la QFT, no un ángulo. Llevó a `phaseShift` (punto 3).
+- **`phaseShift(π/4)·H·foton`, ¿es un espejo a 22,5°?** No: es una diferencia de camino entre brazos
+  (`ΔL = λφ/2π`), no un giro del espejo. Girar el espejo cambia la geometría y la reflectividad.
+  Llevó a `beamSplitter(R)` (punto 5).
+- **`beamSplitter(pi/4)·H·foton`**: Mach-Zehnder sin desfase con segundo divisor `R≈0,785`: 91,05 % /
+  8,95 % (calculado con el código). **Error mío**: supuse que el usuario confundía reflectividad con
+  ángulo y le hablé de una "trampa de unidades"; el usuario había usado π/4 a propósito como
+  irracional cualquiera y sabía que era la reflectividad. Pedí disculpas. Lección abajo.
+- **Semiespejo no a 45°**: 4 efectos — geometría (los haces dejan de solaparse, tolerancia ~`λ/w`,
+  centésimas de grado: el dominante), reflectividad (Fresnel, lento), polarización (`R_s ≠ R_p`),
+  longitud de camino (fase en MZ, retardo en HOM). El modelo de modos traduce todo a reflectividad,
+  fase y distinguibilidad.
+- **¿Qué es el dip?** El pozo en la curva coincidencias-frente-a-retardo de HOM (50 % lejos, 0 % en
+  τ=0); su anchura es el tiempo de coherencia (~cientos de fs) y su profundidad certifica cuán
+  idénticos son los fotones. Para fermiones es un pico.
+
+### 3. `Qubits.phaseShift(double phi)` — commit `0684cfd`, `Qubits` 1.12 → 1.13
+`diag(1, e^(iφ))` para cualquier ángulo real; falla alto ante NaN/infinito. `phaseGate(k)` delega en
+`phaseShift(2π/2^k)`: verificado **bit a bit idéntico** al build anterior para k=0..30 (build de
+referencia en `/tmp/qbase` + programa que vuelca `doubleToRawLongBits`). `TestQuantum_BeamSplitter01`
+paso 5: Mach-Zehnder con π/3, 2π/3, π/√3, 1, e, −π/5 contra `cos²(φ/2)`, 6 OK.
+
+### 4. Fermiones en `Fock` — commit `e52ec98`, `Fock` 1.0 → 1.1
+Plan resumido al usuario y aprobado antes de tocar código.
+- `fermionDimension(n,m)=C(m,n)`, `fermionBasis/fermionIndexOf/fermionKet` (ocupaciones 0/1, mismo
+  orden lexicográfico descendente; un estado base es `a†_i1 a†_i2…|0>` con modos ascendentes, lo que
+  fija el signo); falla alto ante `n>m` u ocupación 2 (Pauli).
+- `determinant(A)` propio: Gauss con pivoteo parcial, sin redondeos (no se usa
+  `MatrixComplex.determinant()` para evitar heurísticas).
+- `multiFermionUnitary(U,n) = Λ_n(U)`, potencia exterior: `<s|Λ_n(U)|t> = det(U[s,t])`, sin
+  factoriales; unitariedad comprobada a la entrada y a la salida.
+- `ScratchQuantum_FockAudit01`: 6 casos nuevos, **15/15**: determinante contra la suma literal con
+  signo (n=1..6) y matriz singular → 0 exacto; homomorfismo; `Λ_1(U)=U`; `det(H)=-1`; signo de
+  intercambio con SWAP (−1 fermiones, +1 bosones); rechazo de Pauli.
+- `TestQuantum_HongOuMandelFermiones01` nuevo: `|1,1> → −|1,1>`, 100 % coincidencias; con espín
+  (4 modos camino×espín, `H ⊗ I₂`): mismo espín y triplete 100 %, **singlete 0 %**; pico
+  `(1+cos²α)/2` hasta 1e-12 sin meter la fórmula en el cálculo.
+
+### 5. `Qubits.beamSplitter(double reflectivity)` — commit `8e8ba87`, `Qubits` 1.13 → 1.14
+Antes de implementarlo se discutió con el usuario si tenía sentido (lo que aporta / lo que no). Por
+decisión del usuario el parámetro es la **reflectividad R**, no un ángulo:
+`B(R) = [[√T, √R], [√R, −√T]]`, misma convención que `hadamard()` (`beamSplitter(0.5)` == `H` salvo
+1 ULP: `√0.5` vs `1/√2`); falla alto fuera de [0,1] o NaN. Pasos nuevos, todos fail-loud a 1e-12:
+- `TestQuantum_BeamSplitter01` paso 6: visibilidad del MZ `2RT/(R²+T²)`, 6 OK.
+- `TestQuantum_HongOuMandel01` paso 5: `Per(B)=R−T`, `P=(T−R)²` en 11 valores; el dip solo llega a 0
+  con R=½.
+- `TestQuantum_HongOuMandelFermiones01` paso 5: `det(B)=−1` para toda R → P=1 siempre (exclusión, no
+  interferencia afinada). Es el resultado más didáctico de la sesión.
+
+### 6. Documentación — commits `41792fa`, `c9e085e`
+`19_HongOuMandel.md` (secciones "HOM con fermiones" y "Divisor descompensado", API fermiónica,
+verificación 15/15), `02_Qubits.md` (`phaseShift`/`phaseGate`, que no estaban documentadas, y
+`beamSplitter`), `17_limites_y_extensiones.md`, `00_introduccion.md`, `README.md`.
+
+### 7. Reglas, workflow y procedimientos usados (vigentes)
+- Español; resumen de fase y esperar OK antes de tocar código (se hizo con los fermiones; con
+  `phaseShift`/`beamSplitter` el usuario dio el OK sobre una propuesta concreta ya descrita).
+- Regla permanente: si compila limpio, comitear; un commit para código+tests y otro aparte para la
+  documentación pública; `Claude/` en su propio commit.
+- `VERSION` + release note en español en cada clase tocada, con `date +"%Y_%m%d_%H%M"` ANTES.
+- **Refactor sin cambio de comportamiento → verificación bit a bit** contra un build de referencia
+  compilado antes del cambio (así se validó `phaseGate` → `phaseShift`).
+- **Física nueva → comprobación contra fórmula cerrada fail-loud a 1e-12** dentro del propio test,
+  sin introducir la fórmula en el cálculo; oráculos independientes en el audit (suma sobre
+  permutaciones, homomorfismo de grupo).
+- Regresión de `quantum` (15 programas, todos exit 0 y sin `FAIL`; ojo, las líneas de resumen "0
+  FAIL" contienen la palabra: filtrar con `grep FAIL | grep -v " 0 FAIL"`):
+  `TestQuantum_{QubitMeasure01,Bell01,PhotonEntanglement01,BeamSplitter01,QFT01,QPE01,Shor01,HongOuMandel01,HongOuMandelFermiones01}`
+  y `ScratchQuantum_{Grover,Teleportation,DensityMatrix,QubitsN,Decoherence,Fock}Audit01`.
+- Compilación en Linux: la receta de la sección 49 (`mktemp -d`, `cp -r classes/com`, `-cp "$O:classes"`).
+- Ediciones de varias líneas: `python3` con `assert s.count(old)==1` antes de reemplazar (falla si el
+  texto no es único) o la herramienta `Edit`; tras `sed`, verificar con `grep`.
+- El usuario pega la conversación entera en `Claude/ClaudeRevisionComplexArith.txt` (estilo `❯`);
+  no reescribir lo suyo, solo añadir al final.
+- Skills: ninguna propia del proyecto; no se creó ninguna.
+
+### 8. Errores de esta sesión
+1. **Suponer una confusión del usuario que no existía** (`beamSplitter(pi/4)`): respondí con una
+   "trampa de unidades" cuando el usuario había elegido π/4 a propósito. Lección: ante un valor
+   llamativo, responder primero a lo que se pregunta (qué hace la expresión) y, como mucho, preguntar
+   si el valor es intencionado; no sermonear.
+2. Menor: en el paso 5 de `TestQuantum_HongOuMandel01` escribí "R=0 o R=1 (sin divisor)"; R=1 es un
+   espejo perfecto. Corregido antes del commit ("transparente / espejo perfecto: cada fotón sigue un
+   camino fijo").
+
+**SESIÓN CERRADA — punto de retomada EXACTO**:
+1. Al retomar: `git fetch; git status -sb`.
+2. Pendientes de decisión del usuario: `LICENSE.md`, `.odt` con `:` en `Claude/Revisiones/`,
+   `TestRoots.java.desktop` (solo CRLF), `Claude_Talks.txt`.
+3. Última oferta abierta: un test que combine imperfecciones en Fock — dip temporal + mal solapamiento
+   espacial + polarización con `R_s ≠ R_p` (4+ modos, divisor `B(R_s) ⊕ B(R_p)`).
+4. Otros candidatos: HOM en multipuerto (3 fotones en la DFT 3×3), doble rendija, HOM en
+   `16_experimentos_guiados.md`.
 
 ---
 
