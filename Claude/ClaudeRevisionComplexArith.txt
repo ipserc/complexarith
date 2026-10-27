@@ -12778,3 +12778,40 @@ Por donde lo dejamos:
 ❯ incluye el resumen en el log crudo
 
 [Resumen anadido a este log. Commit + push.]
+
+
+
+========================================================================================================================================
+#
+#	27/10/2026 DIA 25 - Preguntas sobre TestQuantum_BeamSplitter01 (sin codigo)
+#
+========================================================================================================================================
+
+❯ Complex Arith - Continuamos con el proyecto. Recupera TODO el contexto.
+
+[Contexto recuperado (memoria + ComplexArithRev.md). git fetch: HEAD==origin/master==a52c18e. Compila limpio, FockAudit 15/15. Fichero nuevo del usuario sin trackear: Claude/Prompts.txt (su prompt de cierre), no tocado.]
+
+❯ te voy a seguir haciendo preguntas sobre TestQuantum_BeamSplitter01
+
+[Resumen de los 6 pasos del test.]
+
+❯ ¿qué significa "foton entra por el puerto |0> (camino transmitido)"? Qué significado físico tiene? descríbelo con lenguaje llano
+
+[El qubit es el camino: semiespejo con 2 entradas/2 salidas, |0> camino horizontal ("sigue recto"), |1> vertical. ket0() = un foton enviado con certeza por la entrada 0, la 1 vacia; "transmitido" es solo el nombre de la etiqueta. Tras H: superposicion de los dos brazos. Laboratorio: fuente de fotones individuales anunciados, detectores de clic.]
+
+❯ ¿Cambia algo por hacer el experimento con MatrixComplex foton = Qubits.ket1();? ¿Qué cambia?
+
+[Ejecutada una copia temporal en /tmp (el repo no se toco). Las salidas se intercambian: P(salida 0)=sin^2(phi/2), P(salida 1)=cos^2(phi/2), por el signo de H|1>=(|0>-|1>)/sqrt2. Paso 5: 6/6 FAIL (oraculo cos^2 fijo). Paso 6: 6/6 FAIL, V=-1 (NaN con R=0): con entrada |1> la salida 0 tiene contraste total para cualquier R. Hallazgo: en un MZ con divisores iguales descompensados una salida conserva franjas perfectas y la otra pierde contraste 2RT/(R^2+T^2). Ofrecido generalizar el test a cualquier entrada.]
+
+❯ Antes de construirlo bien, voy a seguir preguntando sobre este.
+
+[Entendido, nada tocado.]
+
+❯ Antes me decías que te preguntase "¿por qué H tiene un -1 en la esquina?" Pero, ¿donde está es -1?, luego me respondes a la cuestión original
+
+[Donde: Qubits.java:234, setItem(1,1,-s), elemento (1,1) = entra por 1 y sale por 1; tambien -sqrt(T) en beamSplitter(R). Por que: (1) unitariedad, sin el signo las columnas coinciden, se pierde informacion y no se conserva la probabilidad; (2) fisicamente, relaciones de Stokes r'=-r; (3) donde se pone el signo es convencion (multiplicar una salida por -1 es inobservable); invariante (t t')/(r r') = -1, igual en H y en el divisor simetrico [[1,i],[i,1]]/sqrt2. Se nota en la oscuridad total del MZ, en el cos^2<->sin^2 con ket1 y en los signos +-1/2 de HOM.]
+
+❯ Hazme un resumen de la jornada de hoy. Paramos por ahora. Guarda todo el contexto. Actualiza todos los archivos, documentos, planes, reglas, workflows, skills que tengas y la memoria del proyecto. Recuerda todo lo que has aprendido. Haz push de todos los commits, si es necesario. Cuando vuelva a conectar me recuerdas por donde seguir.
+
+[Sesion solo de preguntas, sin codigo. Seccion "Quincuagesimoprimera sesion" en ComplexArithRev.md, este bloque DIA 25 y memoria actualizados; commit de Claude/ + push.
+Por donde seguir: 1) git fetch; git status -sb. 2) Seguir con preguntas sobre TestQuantum_BeamSplitter01. 3) Pendiente aceptado: generalizar el test a entrada |0> o |1> (oraculo cos^2/sin^2 y visibilidad de las dos salidas en el paso 6). 4) Decisiones pendientes: LICENSE.md, .odt con ':', TestRoots.java.desktop, Claude_Talks.txt, Claude/Prompts.txt. 5) Candidatos: Fock con imperfecciones combinadas, HOM 3 fotones DFT 3x3, doble rendija, HOM en 16_experimentos_guiados.md.]
